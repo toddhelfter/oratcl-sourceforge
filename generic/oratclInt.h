@@ -84,6 +84,8 @@ typedef struct OratclLogs {
 	OCISession	*usrhp;		/* user handle		*/
 	int		autocom;	/* autocommit mode	*/
         int		logid;		/* login handle id	*/
+	int		ora_rc;		/* oracle return code	*/
+	Tcl_DString	ora_err;	/* oracle error text	*/
 } OratclLogs;
 
 /* use size_t instead */
@@ -105,6 +107,7 @@ typedef struct OratclStms {
 	int		fetchidx;	/* row in cache to fetch	*/
 	int		fetch_end;	/* true when fetches exhausted	*/
 	int		fetch_ok;	/* true when fetches exhausted	*/
+	ub4		iters;		/* iteration count		*/
 	ub4		fetch_cnt;	/* total rows fetched so far	*/
 	ub4		append_cnt;	/* total rows appended so far	*/
 	ub2		sqltype;	/* the sql type attribute	*/
@@ -114,20 +117,16 @@ typedef struct OratclStms {
 	Tcl_Obj		**oColsv;
         int		stmid;		/* statement handle id		*/
 	int		utfmode;	/* utf conversion flag		*/
+	int		ora_rc;		/* oracle return code		*/
+	Tcl_DString	ora_err;	/* oracle error text		*/
+	ub4		ora_row;	/* oracle row number		*/
+	int		ora_peo;	/* oracle parse error offset	*/
+	int		ora_fcd;	/* oracle function code		*/
 } OratclStms;
-
-/* tcl objs for oramsg array name and all indices */
-static Tcl_Obj		*OraMsgArray;
 
 static Tcl_Obj		*OMV_null;
 static Tcl_Obj		*OMV_zero;
 static Tcl_Obj		*OMV_auto;
-
-static Tcl_Obj		*OM_errortxt;
-static Tcl_Obj		*OM_rc;
-static Tcl_Obj		*OM_rows;
-static Tcl_Obj		*OM_peo;
-static Tcl_Obj		*OM_sqlfunc;
 static Tcl_ObjType      *tListObjType;
 
 typedef struct OratclState {

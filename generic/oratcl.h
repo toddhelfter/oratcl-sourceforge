@@ -40,6 +40,8 @@ extern Tcl_ObjCmdProc  Oratcl_Config;
 extern Tcl_ObjCmdProc  Oratcl_LongRead;
 extern Tcl_ObjCmdProc  Oratcl_LongWrite;
 
+extern Tcl_ObjCmdProc  Oratcl_Message;
+
 extern Tcl_ExitProc Oratcl_Kill;
 
 #endif /* _ORATCL_H */
