@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.12 2000-09-21 15:50:58 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.13 2000-09-21 18:47:34 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -441,5 +441,5 @@ proc oratcl::clob_instr {stm rowid table column pattern start nth} {
 		error "oraclob instr: value error \n$info"
 	}
 
-	return [lindex $tcl_res 1]
+	return [expr [lindex $tcl_res 1] - 1]
 }
