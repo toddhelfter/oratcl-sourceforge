@@ -226,3 +226,15 @@ Version 3.0.1 August, 2000
     -	fixed a memory management problem with Oratcl_Clean().
 
 -----------------------------------------------------------------------------
+
+
+Version 3.0.2 September, 2000
+
+    Todd M. Helfter, Purdue University
+    tmh@purdue.edu
+
+    -	applied patches from Don Libes (libes@cme.nist.gov) that allow Oracle
+	8.0.x to be used with this library.  The basic problem is that Oracle
+	8.0.x OCI library does not seem to know about LOB types.
+
+-----------------------------------------------------------------------------

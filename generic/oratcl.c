@@ -672,7 +672,9 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->column.valuesz	= 0;
 		ColPtr->defnp = NULL;
 		ColPtr->bindp = NULL;
+#if ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0
 		ColPtr->lobp = NULL;
+#endif
 		ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows);
 		ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows);
 		ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows);
@@ -929,6 +931,7 @@ Oratcl_Parse (interp, StmPtr)
 		case SQLT_RDD:					/* 104	*/
 			new_col->column.valuesz = 23;
 			break;
+#if ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0
 		case SQLT_CLOB:
 			/* 
 			 * TMH :: need an OCILobLocator
@@ -948,9 +951,11 @@ Oratcl_Parse (interp, StmPtr)
 			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
 			new_col->dty = SQLT_BLOB;
 			break;
+#endif
 		}
 	
 if (lob) {
+#if ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0
 		/* in free cols, will have to free this */
 		OCIDescriptorAlloc((dvoid *) LogPtr->envhp,
 				(dvoid **) &new_col->lobp,
@@ -969,6 +974,7 @@ if (lob) {
 				    (ub2 *) new_col->rlenp,
 				    (ub2 *) new_col->rcodep,
 				    (ub4) OCI_DEFAULT);
+#endif
 } else {
 
 		new_col->column.valuesz = new_col->column.valuesz + 1;
