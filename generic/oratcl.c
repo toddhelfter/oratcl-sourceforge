@@ -63,11 +63,11 @@ LPVOID reserved;            /* Not used. */
  */
 
 static char *OraHandlePrefix = "oratcl";
-static char *OraLibraryList[] = {
-	LIBRARY1,
-	LIBRARY2,
-	NULL
-};
+
+Tcl_Obj *OMV_null = NULL;
+Tcl_Obj *OMV_zero = NULL;
+Tcl_ObjType *tListObjType = NULL;
+
 
 OratclStateList	*OratclSLP = NULL;
  
@@ -89,6 +89,8 @@ extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     Tcl_Obj		*listvar,
 						     Tcl_Obj		*arrayvar,
 						     int		hashType));
+extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
+extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
 
 /* 
  *----------------------------------------------------------------------
@@ -284,14 +286,7 @@ Oratcl_Init (interp)
 	OratclState	*OratclStatePtr;
 	OratclStateList *StateListPtr;
 
-	Tcl_DString	oratclPath;
-	const char	*path[4];
-	int		libix;
-
-	int		path_cnt;
-	Tcl_Obj		*pathObj;
-        Tcl_Obj		**pathObjv;
-        int		pathObjc;
+	int		rc = 0;
 
 #ifdef USE_TCL_STUBS
 	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
@@ -567,32 +562,8 @@ Oratcl_Init (interp)
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
 
-	if (Tcl_IsSafe(interp) == 0) {
-		OMV_auto = Tcl_NewStringObj("auto_path", -1);
-		Tcl_IncrRefCount(OMV_auto);
-
-		/* source the tcl portion of the oratcl package. */
-		pathObj = Tcl_ObjGetVar2(interp, OMV_auto, NULL, TCL_GLOBAL_ONLY);
-
-		Tcl_ListObjGetElements(interp, pathObj, &pathObjc, &pathObjv);
-		path[1] = "..";
-		path[2] = "oratcl"VERSION;
-
-		for (path_cnt = 0; path_cnt < pathObjc; path_cnt ++) {
-			path[0] = Tcl_GetStringFromObj(pathObjv[path_cnt], NULL);
-			for (libix=0; OraLibraryList[libix] != NULL; libix++) {
-				Tcl_DStringInit(&oratclPath);
-				path[3] = OraLibraryList[libix];
-				Tcl_JoinPath(4, path, &oratclPath);
-				if (Tcl_Access(Tcl_DStringValue(&oratclPath), 4) == 0) {
-					Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
-				}
-				Tcl_DStringFree(&oratclPath);
-			}
-		}
-
-		Tcl_DecrRefCount(OMV_auto);
-	}
+	rc = Oralob_Init(interp);
+	rc = Oralong_Init(interp);
 
 	if (Tcl_PkgProvide(interp, "Oratcl", VERSION) != TCL_OK) {
 		return TCL_ERROR;

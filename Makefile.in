@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.37 2002-05-29 17:19:04 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.38 2002-08-29 03:23:50 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -26,16 +26,12 @@
 lib_BINARIES=$(oratcl_LIB_FILE)
 BINARIES=$(lib_BINARIES)
 
-LIBRARY1=oralob.tcl
-LIBRARY2=oralong.tcl
-LIBRARIES=${LIBRARY1} ${LIBRARY2}
-
 #========================================================================
 # Enumerate the names of the source files included in this package.
 # This will be used when a dist target is added to the Makefile.
 #========================================================================
 
-oratcl_SOURCES = oratcl.c 
+oratcl_SOURCES = oratcl.c oralob.c oralong.c
 SOURCES = $(oratcl_SOURCES)
 
 #========================================================================
@@ -46,7 +42,7 @@ SOURCES = $(oratcl_SOURCES)
 #
 #========================================================================
 
-oratcl_OBJECTS =  oratcl.$(OBJEXT) 
+oratcl_OBJECTS = oratcl.$(OBJEXT) oralob.$(OBJEXT) oralong.$(OBJEXT)
 OBJECTS = $(oratcl_OBJECTS)
 
 #========================================================================
@@ -229,8 +225,6 @@ INCLUDES = @TCL_INCLUDES@ -I"../generic" $(ORAINCLUDE)
 EXTRA_CFLAGS = $(TCL_DEFS) $(PROTO_FLAGS) $(SECURITY_FLAGS) $(MEM_DEBUG_FLAGS) $(KEYSYM_FLAGS) $(NO_DEPRECATED_FLAGS) $(ORA_DB_VER) $(ORA_MAJOR_VERSION_CFLAG) $(ORA_MINOR_VERSION_CFLAG)
 
 DEFS = @DEFS@ \
-	-DLIBRARY1=\"${LIBRARY1}\" \
-	-DLIBRARY2=\"${LIBRARY2}\" \
 	$(EXTRA_CFLAGS)
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -281,20 +275,13 @@ libraries:
 
 doc:
 
-install: all install-binaries install-libraries install-doc
+install: all install-binaries install-doc
 
 install-binaries: binaries install-lib-binaries install-bin-binaries
 
 #========================================================================
 # This rule installs platform-independent files, such as header files.
 #========================================================================
-
-install-libraries: libraries
-	@for i in $(LIBRARIES); \
-	    do \
-		echo "$(INSTALL_DATA) $(srcdir)/library/$$i $(pkglibdir)/$$i"; \
-		$(INSTALL_DATA) $(srcdir)/library/$$i $(pkglibdir) ; \
-	    done
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(mandir)
@@ -350,6 +337,10 @@ $(oratcl_LIB_FILE): $(oratcl_OBJECTS)
 
 oratcl.$(OBJEXT): $(srcdir)/generic/oratcl.c $(oratcl_DEP_INC)
 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/generic/oratcl.c` -o $@
+oralob.$(OBJEXT): $(srcdir)/generic/oralob.c $(oratcl_DEP_INC)
+	$(COMPILE) -c `@CYGPATH@ $(srcdir)/generic/oralob.c` -o $@
+oralong.$(OBJEXT): $(srcdir)/generic/oralong.c $(oratcl_DEP_INC)
+	$(COMPILE) -c `@CYGPATH@ $(srcdir)/generic/oralong.c` -o $@
 
 #========================================================================
 # End of user-definable section

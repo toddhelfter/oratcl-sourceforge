@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.7 2002-02-11 00:46:00 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.8 2002-08-29 03:23:53 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -38,14 +38,11 @@ proc ::oratcl::parse_long_args {args} {
 			return -code error $err_txt 
 		}
 		set value [lindex $argv $argx]
-
-		switch -- $option {
-			-rowid	 { set ::oratcl::oralong(rowid) $value }
-			-table	 { set ::oratcl::oralong(table) $value }
-			-column	 { set ::oratcl::oralong(column) $value }
-			-datavar { set ::oratcl::oralong(datavar) $value }
+		if {[regexp ^- $option]} {
+			set index [string range $option 1 end]
+			set ::oratcl::oralong($index) $value 
 		}
-	}		
+	}
 }
 
 #
@@ -60,20 +57,18 @@ proc oralong {command handle args} {
 	}
 
 	set tcl_res {}
-	switch $command {
 
-		alloc 	{set cmd [list ::oratcl::long_alloc $handle $args]}
-		free 	{set cmd [list ::oratcl::long_free $handle]}
-		read	{set cmd [list ::oratcl::long_read $handle $args]}
-		write	{set cmd [list ::oratcl::long_write $handle $args]}
-		default {
-			 set err_txt "oralong: unknown command option '$command'"
-			 return -code error $err_txt 
-		}
+	set cm(alloc)	[list ::oratcl::long_alloc $handle $args]
+	set cm(free)	[list ::oratcl::long_free $handle]
+	set cm(read)	[list ::oratcl::long_read $handle $args]
+	set cm(write)   [list ::oratcl::long_write $handle $args]
 
+	if {! [info exists cm($command)]} {
+		 set err_txt "oralong: unknown command option '$command'"
+		 return -code error $err_txt 
 	}
 
-	set tcl_rc [catch {eval $cmd} tcl_res]
+	set tcl_rc [catch {eval $cm($command)} tcl_res]
 	if {$tcl_rc} {
 		return -code error "$tcl_res"
 	}
@@ -145,17 +140,13 @@ proc ::oratcl::long_alloc {handle args} {
 		return -code error $err_txt
 	}
 
-	switch $autotype {
-		LONG 	{
-			set longtype long
-		}
-		{LONG RAW} {
-			set longtype longraw
-		}
-		default {
-			set err_txt "oralong $fn: error unsuported long type '$autotype'."
-			return -code error $err_txt
-		}
+	if {[string equal $autotype LONG]} {
+		set longtype long
+	} elseif {[string equal $autotype {LONG RAW}]} {
+		set longtype longraw
+	} else {
+		set err_txt "oralong $fn: error unsuported long type '$autotype'."
+		return -code error $err_txt
 	}
 
 	set lng oralong.$longidx

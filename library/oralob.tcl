@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.12 2002-02-11 15:14:57 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.13 2002-08-29 03:23:53 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -10,10 +10,10 @@ namespace eval oratcl {
 
 	variable oralob
 	variable plsql
-	variable loblst
+	variable loblst {}
 	variable lobidx 0
 
-	set oralob(script) [info script]
+	#set oralob(script) [info script]
 	set oralob(oratcl_ok) 0
 	set oralob(oratcl_error) 1
 
@@ -202,20 +202,10 @@ proc ::oratcl::parse_lob_args {args} {
 			return -code error $err_txt 
 		}
 		set value [lindex $argv $argx]
-
-		switch -- $option {
-			-rowid	 { set ::oratcl::oralob(rowid) $value }
-			-table	 { set ::oratcl::oralob(table) $value }
-			-column	 { set ::oratcl::oralob(column) $value }
-			-datavar { set ::oratcl::oralob(datavar) $value }
-			-length	 { set ::oratcl::oralob(length) $value }
-			-pattern { set ::oratcl::oralob(pattern) $value }
-			-nth	 { set ::oratcl::oralob(nth) $value }
-			-start	 { set ::oratcl::oralob(start) $value }
-			-stop	 { set ::oratcl::oralob(stop) $value }
-			-start1	 { set ::oratcl::oralob(start1) $value }
-			-start2	 { set ::oratcl::oralob(start2) $value }
-		}
+                if {[regexp ^- $option]} {
+                        set index [string range $option 1 end]
+                        set ::oratcl::oralob($index) $value
+                }
 	}		
 }
 
@@ -234,27 +224,25 @@ proc oralob {command handle args} {
 	}
 
 	set tcl_res {}
-	switch $command {
 
-		alloc 	{set cmd [list ::oratcl::lob_alloc $handle $args]}
-		free 	{set cmd [list ::oratcl::lob_free $handle]}
-		read	{set cmd [list ::oratcl::lob_read $handle $args]}
-		write	{set cmd [list ::oratcl::lob_write $handle $args]}
-		length	{set cmd [list ::oratcl::lob_length $handle]}
-		trim	{set cmd [list ::oratcl::lob_trim $handle $args]}
-		erase	{set cmd [list ::oratcl::lob_erase $handle $args]}
-		substr	{set cmd [list ::oratcl::lob_substr $handle $args]}
-		instr	{set cmd [list ::oratcl::lob_instr $handle $args]}
-		append	{set cmd [list ::oratcl::lob_append $handle [lindex $args 0]]}
-		compare	{set cmd [list ::oratcl::lob_compare $handle [lindex $args 0] [lrange $args 1 end]]}
-		default {
-			 set err_txt "oralob: unknown command option '$command'"
-			 return -code error $err_txt 
-		}
+	set cm(alloc)	[list ::oratcl::lob_alloc $handle $args]
+	set cm(free) 	[list ::oratcl::lob_free $handle]
+	set cm(read)	[list ::oratcl::lob_read $handle $args]
+	set cm(write)	[list ::oratcl::lob_write $handle $args]
+	set cm(length)	[list ::oratcl::lob_length $handle]
+	set cm(trim)	[list ::oratcl::lob_trim $handle $args]
+	set cm(erase)	[list ::oratcl::lob_erase $handle $args]
+	set cm(substr)	[list ::oratcl::lob_substr $handle $args]
+	set cm(instr)	[list ::oratcl::lob_instr $handle $args]
+	set cm(append)	[list ::oratcl::lob_append $handle [lindex $args 0]]
+	set cm(compare)	[list ::oratcl::lob_compare $handle [lindex $args 0] [lrange $args 1 end]]
 
+	if {! [info exists cm($command)]} {
+		 set err_txt "oralob: unknown command option '$command'"
+		 return -code error $err_txt 
 	}
 
-	set tcl_rc [catch {eval $cmd} tcl_res]
+	set tcl_rc [catch {eval $cm($command)} tcl_res]
 	if {$tcl_rc} {
 		return -code error "$tcl_res"
 	}
@@ -326,17 +314,13 @@ proc ::oratcl::lob_alloc {handle args} {
 		return -code error $err_txt
 	}
 
-	switch $autotype {
-		CLOB 	{
-			set lobtype clob
-		}
-		BLOB	{
-			set lobtype blob
-		}
-		default {
-			set err_txt "oralob $fn: error unsuported lob type '$autotype'."
-			return -code error $err_txt
-		}
+	if {[string equal $autotype CLOB]} {
+		set lobtype clob
+	} elseif {[string equal $autotype BLOB]} {
+		set lobtype blob
+	} else {
+		set err_txt "oralob $fn: error unsuported lob type '$autotype'."; \
+		return -code error $err_txt \
 	}
 
 	set pl [format $::oratcl::plsql(${lobtype}_length) $oralob(column) $oralob(table)]
@@ -785,7 +769,7 @@ proc ::oratcl::lob_substr {handle args} {
 					     :sub_str {} \
 					     :lob_amt $par \
 					     :lob_off $off} \
-				  tcl_res] 
+				  tcl_res]
 		if {$tcl_rc} {
 			set info $errorInfo
 			set err_txt "oralob $fn: [oramsg $handle error] $info"

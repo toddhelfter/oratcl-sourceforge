@@ -378,3 +378,15 @@ Version 4.0 December, 2001
         Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
 
 -----------------------------------------------------------------------------
+
+Version 4.1 August, 2002
+
+    -   The 'oralob' and 'oralong' commands have been implemented in 'C'.
+	This will make those commands available in slave interps and in
+	other situations where the old tcl file sourcing was made difficult
+	due to auto_path idiosyncracies.  The files 'oralob.tcl' and
+	'oralong.tcl' will persist in the library directory as a baseline
+	for the new 'oralob.c' and 'oralong.c' files which are created
+	from them.
+
+-----------------------------------------------------------------------------
