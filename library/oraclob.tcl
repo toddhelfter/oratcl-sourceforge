@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.9 2000-09-21 04:39:43 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.10 2000-09-21 04:41:33 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -78,8 +78,11 @@ namespace eval oratcl {
 
 proc oraclob {stm command args} {
 
-	foreach idx [list rowid table column length start stop amount pattern datavar] {
+	foreach idx [list rowid table column length amount pattern datavar] {
 		set oraclob($idx) {}
+	}
+	foreach idx [list start stop] {
+		set oraclob($idx) 0
 	}
 	foreach idx [list offset nth] {
 		set oraclob($idx) 1
