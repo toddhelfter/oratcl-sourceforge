@@ -3405,7 +3405,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 		new_col->column.name[arg_pcc_len] = '\0';
 		new_col->column.namesz = arg_pcc_len;
 
-		if (chashPtr == NULL) {
+		if (new_col->bindPtr == NULL) {
 
 			/* string data type */
 			new_col->column.typecode = SQLT_STR;
@@ -3503,7 +3503,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	while (new_col != NULL) {
 		if (new_col->column.typecode == SQLT_CUR) {
 			if (new_col->bindPtr != NULL) {
-				CurPtr = (OratclStms *) Tcl_GetHashValue(chashPtr);
+				CurPtr = (OratclStms *) Tcl_GetHashValue(new_col->bindPtr);
 				if (Oratcl_Parse(interp, CurPtr) == -1) {
 					Oratcl_ErrorMsg(interp,
 							objv[0],
