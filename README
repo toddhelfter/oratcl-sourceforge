@@ -51,9 +51,11 @@ Oratcl -  Tcl interface to Oracle database server
  * Version 2.5 November, 1997
  * Tom Poindexter, Denver Colorado
  * tpoindex@nyx.net
- *
- *
-
+ *-----------------------------------------------------------------------
+ * Version 2.6 September, 1999
+ * Mariam Tariq, Scriptics Corporation
+ * mtariq@scriptics.com
+ *-----------------------------------------------------------------------
 
 
 WHAT IS ORATCL?
@@ -136,6 +138,26 @@ The specific software versions I used:
 
 	There are some notes about working with Oracle 8.  See the file
 	'oracle8.mods'
+
+        *************ORATCL VERSION 2.6 NOTES***********************
+
+	(Oratcl Version 2.6 can also be used with Tcl versions up to 8.2
+	 and with versions of Oracle through Oracle 8.1.5. Note that
+	 Oratcl still uses the Oracle OCI API version 7 (which is
+         still included with Oracle 8 libraries for backwards
+	 compatibility) so new features  of Oracle 8 such as LOB
+	 functions are not available.)
+	 
+	 Oratcl 2.6 is stub aware.
+	 
+	 Since the Oracle 7 OCI function orlon does not work with some
+         versions of Oracle 8i (such as 8.1.5 on NT), the Oracle 8 OCI
+         call OCILogon is used for logging in. Therefore, if linking
+         Oratcl with Oracle 7 libraries, you must compile Oratcl with
+         the flag VERSION7DB.
+
+         
+
 
 >>>>>>>	I've put oratcl-2.5.tar.gz on ftp.neosoft.com 
         in /pub/tcl/sorted/databases/oratcl-2.5/oratcl-2.5.tar.gz
