@@ -1,4 +1,0 @@
-package ifneeded Oratcl @ORATCL_VERSION@ "
-        load [file join $dir .. @oratcl_LIB_FILE@]
-        source [file join $dir oraclob.tcl]
-"
