@@ -330,4 +330,15 @@ Version 3.3 August, 2001
 	(Back ported from 4.2 development version)
 	Thanks to Manfred Frey (Manfred.Frey@ZF-Lenksysteme.com) for the alert.
 
+03-JUL-2003
+
+    -   Place the new 9i columns inside a #define, not defined in oracle 8.1.5
+                TIMESTAMP
+                TIMESTAMP WITH TIME ZONE
+                INTERVAL YEAR TO MONTH
+                INTERVAL DAY TO SECOND
+                TIMESTAMP WITH LOCAL TIME ZONE
+        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
+	*** Backported from Oratcl 4.X by request...
+
 -----------------------------------------------------------------------------

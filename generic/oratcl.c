@@ -972,6 +972,15 @@ Oratcl_Parse (interp, StmPtr)
 		case SQLT_RDD:					/* 104	*/
 			new_col->column.valuesz = 23;
 			break;
+#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
+		case SQLT_TIMESTAMP:				/* 187	*/
+		case SQLT_TIMESTAMP_TZ:				/* 188	*/
+		case SQLT_INTERVAL_YM:				/* 189	*/
+		case SQLT_INTERVAL_DS:				/* 190	*/
+		case SQLT_TIMESTAMP_LTZ:			/* 232	*/
+			new_col->column.valuesz = 150;
+			break;
+#endif
 #if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
 		case SQLT_CLOB:
 			/* 
