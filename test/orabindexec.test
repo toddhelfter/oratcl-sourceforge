@@ -16,7 +16,7 @@ test orabindexec-1.1 {orabindexec: one bind value} {
 	set sql1 {select v_number from oratcl___tests where v_char = :n1}
 	orasql $tst_cur $sql1 -parseonly
 	orabindexec $tst_cur :n1 {10}
-	set rv1 [orafetch $tst_cur]
+	orafetch $tst_cur -datavariable rv1
 	oraclose $tst_cur
 	oralogoff $tst_lda
 	unset tst_cur
@@ -32,7 +32,7 @@ test orabindexec-1.2 {orabindexec: many bind values} {
 	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
   orasql $ora_cur3 $sql2 -parseonly
   orabindexec $ora_cur3 :n1 {10} :n2 {10} :n3 {10%}
-  set rv1 [orafetch $ora_cur3]
+  orafetch $ora_cur3 -datavariable rv1
   set res $rv1
   unset rv1
   set res

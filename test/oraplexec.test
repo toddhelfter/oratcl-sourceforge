@@ -73,12 +73,11 @@ oraplexec $pl_stm $oratcl_pkgbody
 
 test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {
   set pl(1) {declare my_result date; begin :my_result := oratcl___test1(22, '22'); end;}
-  set rv_0 [oraplexec $pl_stm $pl(1) :my_result {}]
-  set rv_1 [orafetch $pl_stm]
+  oraplexec $pl_stm $pl(1) :my_result {}
+  orafetch $pl_stm -datavariable rv_1
   set rv_2 [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]]
-  set res [expr {[string equal $rv_0 $rv_1] + [string equal $rv_1 $rv_2]}]
-  set res
-} 2
+  string equal $rv_1 $rv_2
+} 1
 
 test oraplexec-1.2 {oraplexec: :bind = function(:bindval, val)} {
   set pl(2) {declare my_result date; begin :my_result := oratcl___test1(:in1, '22'); end;}
