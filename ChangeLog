@@ -391,8 +391,6 @@ Version 4.1 August, 2002
     -   Fixed a bug in oraparse that prevented asynchronous
         transactions from parsing properly with the supplied examples.
         Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
-    -   Changed oralongp to type ub4 to eliminate a compiler warning.
-        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
 
 17-SEP-2002
 
