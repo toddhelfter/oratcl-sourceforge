@@ -31,13 +31,19 @@ be a valid Oracle connect string, in the form:   <P>
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;<I>name/password</I><BR>
  <BR>
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;<I>name/password@n:dbname</I><BR>
- <P>
+<P>
 If using system authentication, the connect string should be in the form:
 <P>
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;<I>/</I><BR>
- <BR>
+<BR>
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;<I>/@dbname</I><BR>
- <P>
+<P>
+If connecting as SYSOPER or SYSDBA, the connect string should be in the form:
+<P>
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;<I>sysdba</I><BR>
+<BR>
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;<I>sysoper</I><BR>
+<P>
 A logon handle is returned and should be used for all other Oratcl commands
 using this connection that require a logon handle.   Multiple connections
 to the same or different servers are allowed. <B>Oralogon</B> raises a Tcl error

@@ -35,6 +35,12 @@ If using system authentication, the connect string should be in the form:
 .br
 	\fI/@dbname\fR
 .sp
+If connecting as SYSOPER or SYSDBA, the connect string should be in the form:
+.sp
+	\fIsysdba\fR
+.br
+	\fIsysoper\fR
+.sp
 A logon handle is returned and should be used for all other Oratcl
 commands using this connection that require a logon handle.  
 Multiple connections to the same or

@@ -309,4 +309,11 @@ Version 3.3 August, 2001
     -   Add detection of oracle 9i to configure script.  Oratcl 3.3 works
 	fine with Oracle 9i.
 
+22-NOV-2002
+
+    -   Added support for sysdba and sysoper connections to 'oralogon'
+        usage: oralogon sysdba
+        usage: oralogon sysoper
+        Thanks to Aleksey Kurbatov (akurbatov@borlas.ru) for the patch.
+
 -----------------------------------------------------------------------------
