@@ -354,9 +354,6 @@ Oratcl_Init (interp)
 	char		*path[4];
 	int		libix;
 
-	int		pargc;
-	char		**pargv;
-
 	int		path_cnt;
 	Tcl_Obj		*pathObj;
         Tcl_Obj		**pathObjv;
