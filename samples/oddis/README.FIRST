@@ -1,5 +1,0 @@
-To run oddis first set the module_path at the beginning of the
-file oddis2.11. In this directory all the *.tcl files and the file
-tclIndex must exist!
-E.g.,
-	set module_path /usr/local/oddis2.11
