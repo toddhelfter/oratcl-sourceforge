@@ -29,13 +29,20 @@ extern Tcl_ObjCmdProc  Oratcl_Describe;
 
 extern Tcl_ObjCmdProc  Oratcl_Open;
 extern Tcl_ObjCmdProc  Oratcl_Close;
-extern Tcl_ObjCmdProc  Oratcl_Stm_List;
-extern Tcl_ObjCmdProc  Oratcl_Sql;
-extern Tcl_ObjCmdProc  Oratcl_Cols;
-extern Tcl_ObjCmdProc  Oratcl_Bindexec;
-extern Tcl_ObjCmdProc  Oratcl_Fetch;
-extern Tcl_ObjCmdProc  Oratcl_PLexec;
+
 extern Tcl_ObjCmdProc  Oratcl_Config;
+extern Tcl_ObjCmdProc  Oratcl_Cols;
+extern Tcl_ObjCmdProc  Oratcl_Stm_List;
+
+extern Tcl_ObjCmdProc  Oratcl_Parse;
+extern Tcl_ObjCmdProc  Oratcl_Bind;
+extern Tcl_ObjCmdProc  Oratcl_Exec;
+extern Tcl_ObjCmdProc  Oratcl_Fetch;
+extern Tcl_ObjCmdProc  Oratcl_Break;
+
+extern Tcl_ObjCmdProc  Oratcl_Sql;
+extern Tcl_ObjCmdProc  Oratcl_Bindexec;
+extern Tcl_ObjCmdProc  Oratcl_PLexec;
 
 extern Tcl_ObjCmdProc  Oratcl_LongRead;
 extern Tcl_ObjCmdProc  Oratcl_LongWrite;
@@ -43,12 +50,5 @@ extern Tcl_ObjCmdProc  Oratcl_LongWrite;
 extern Tcl_ObjCmdProc  Oratcl_Message;
 
 extern Tcl_ExitProc Oratcl_Kill;
-
-extern Tcl_ObjCmdProc  Oratcl_Async;
-extern Tcl_ObjCmdProc  Oratcl_Parse;
-extern Tcl_ObjCmdProc  Oratcl_Bind;
-extern Tcl_ObjCmdProc  Oratcl_Exec;
-extern Tcl_ObjCmdProc  Oratcl_AsyncFetch;
-extern Tcl_ObjCmdProc  Oratcl_Break;
 
 #endif /* _ORATCL_H */
