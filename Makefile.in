@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.28 2000-09-19 04:25:25 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.29 2000-09-19 04:52:41 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -280,7 +280,7 @@ install-libraries: libraries
 
 install-doc: doc
 	$(mkinstalldirs) $(mandir)/mann
-	@for i in $(srcdir)/../doc/*.n; \
+	@for i in $(srcdir)/doc/*.n; \
 	    do \
 	    echo "Installing $$i"; \
 	    rm -f $(mandir)/mann/$$i; \
@@ -288,7 +288,7 @@ install-doc: doc
 	    done
 
 test: binaries
-	  $(TCLSH_PROG) "$(srcdir)/../test/all.tcl"
+	  $(TCLSH_PROG) "$(srcdir)/test/all.tcl"
 
 depend:
 
@@ -325,8 +325,8 @@ $(oratcl_LIB_FILE): $(oratcl_OBJECTS)
 # 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/src/win/exampleA.c` -o $@
 #========================================================================
 
-oratcl.$(OBJEXT): $(srcdir)/../generic/oratcl.c
-	$(COMPILE) -c `@CYGPATH@ $(srcdir)/../generic/oratcl.c` -o $@
+oratcl.$(OBJEXT): $(srcdir)/generic/oratcl.c
+	$(COMPILE) -c `@CYGPATH@ $(srcdir)/generic/oratcl.c` -o $@
 
 
 
