@@ -98,9 +98,6 @@ extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     int		setResult,
 						     Tcl_Obj		*listvar,
 						     Tcl_Obj		*arrayvar));
-extern void       Oratcl_PrintStm 	_ANSI_ARGS_((Tcl_Interp		*interp,
-						     OratclStms		*StmPtr,
-						     char		*message));
 
 /* 
  *----------------------------------------------------------------------
@@ -531,6 +528,12 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
+			      "orabreak",
+			      Oratcl_Break,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
+
+	Tcl_CreateObjCommand (interp,
 			      "::oratcl::break",
 			      Oratcl_Break,
 			      (ClientData) OratclStatePtr,
@@ -865,6 +868,114 @@ Oratcl_LogFree (LogPtr)
 
 /*
  *----------------------------------------------------------------------
+ * Oratcl_ColAppend
+ *      appends column results to tcl result
+ *----------------------------------------------------------------------
+ */
+
+void
+Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
+	Tcl_Interp	*interp;
+	OratclStms	*StmPtr;
+	int		setResult;
+	Tcl_Obj		*listvar;
+	Tcl_Obj		*arrayvar;
+{
+	int		rn;
+	OratclCols 	*ColPtr;
+	OratclCols	*col, *src;
+	char		*null_str;
+	int		oColsc = 0;
+
+	Tcl_DString	valStr;
+
+	/* quick sanity check */
+	rn = StmPtr->fetchidx;
+	if (rn < 0 || rn >= StmPtr->fetchmem) {
+		/* TMH Does this ever happen ??? if so can it be tested for? */
+		return;
+	}
+
+	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
+	    StmPtr->sqltype == OCI_STMT_DECLARE) {
+		ColPtr = StmPtr->bind_list;
+	} else {
+		ColPtr = StmPtr->col_list;
+	}
+
+	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
+
+	for (col = ColPtr; col != NULL; col = col->next) {
+      
+		/* for cursor type, just return a null */
+		/* get pointer to next row column data buffer */
+
+		if (oColsc >= StmPtr->oColslen) {
+			StmPtr->oColslen += 10;
+			StmPtr->oColsv = (Tcl_Obj **) ckrealloc ((char *) StmPtr->oColsv,
+								 StmPtr->oColslen * sizeof(*StmPtr->oColsv));
+		}
+
+
+		if ((sb2) col->indp[rn] == -1) {
+			if (col->column.typecode == SQLT_CUR) {
+				StmPtr->oColsv[oColsc++] = OMV_null;
+			} else {
+				/* default :: if number "0" else "" */
+				if (*null_str == 'd' 
+				   && strcmp(null_str,"default") == 0) {
+
+					if (col->column.typecode == SQLT_NUM) {
+						StmPtr->oColsv[oColsc++] = OMV_zero;
+					} else {
+						StmPtr->oColsv[oColsc++] = OMV_null;
+					}
+				} else {
+					/* return user defined nullvalue */
+					StmPtr->oColsv[oColsc++] = Tcl_DuplicateObj(StmPtr->nullvalue);
+				}
+			}
+		} else {
+			if (col->column.valuesz > 0) {
+                                if (StmPtr->utfmode) {
+                                        Tcl_DStringInit(&valStr);
+                                        Tcl_ExternalToUtfDString(NULL,
+								 col->column.valuep + (rn * col->column.valuesz),
+								 -1,
+								 &valStr);
+                                        StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&valStr), -1);
+                                        Tcl_DStringFree(&valStr);
+                                } else {
+					StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(
+						col->column.valuep + (rn * col->column.valuesz),
+						-1);
+				}
+			} else {
+				StmPtr->oColsv[oColsc++] = OMV_null;
+			}
+		}
+
+	}
+
+	if (setResult) {
+		Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, StmPtr->oColsv));
+	}
+
+	if (listvar != NULL) {
+		Tcl_ObjSetVar2(interp, listvar, NULL, Tcl_NewListObj(oColsc, StmPtr->oColsv), 0);
+	}
+
+	StmPtr->fetchidx += 1;
+	StmPtr->append_cnt += 1;
+	StmPtr->ora_rc = 0;
+	StmPtr->ora_row = StmPtr->append_cnt;
+
+	StmPtr->fetch_ok = 1;
+}
+
+
+/*
+ *----------------------------------------------------------------------
  * Oratcl_ColDescribe
  *   parse result columns, allocate memory for fetches
  *   return -1 on error, 1 if ok
@@ -890,50 +1001,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 
 	int		lob;
 
-	new_col_head = Oratcl_ColAlloc(StmPtr->fetchrows);
-	if (new_col_head == NULL) {
-		return -1;
-	}
-	new_col      = new_col_head;
-	last_col     = new_col_head;
-
-	StmPtr->ora_peo = 0;
-
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
-
-	while ((rc = OCIStmtExecute(LogPtr->svchp,
-				StmPtr->stmhp,
-				LogPtr->errhp,
-				(ub4) 0,
-				(ub4) 0,
-				(OCISnapshot *) NULL,
-				(OCISnapshot *) NULL,
-				OCI_DESCRIBE_ONLY)) == OCI_STILL_EXECUTING) {
-		if (rc == OCI_STILL_EXECUTING) {
-			fprintf (stderr, "Oratcl_ColDescribe() still executing\n");
-		}
-	}
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-	if (rc != OCI_SUCCESS) {
-#ifdef OCI_ATTR_PARSE_ERROR_OFFSET
-		OCIAttrGet( (dvoid *) StmPtr->stmhp,
-			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &StmPtr->ora_peo,
-			    (ub4) 0,
-			    OCI_ATTR_PARSE_ERROR_OFFSET,
-			    LogPtr->errhp);
-#endif
-		Oratcl_ColFree(new_col_head);
-		return -1;
-	}
-
-	OCIAttrGet( (dvoid *) StmPtr->stmhp,
-		    (ub4) OCI_HTYPE_STMT,
-		    (ub2 *) &StmPtr->ora_fcd,
-		    (ub4) 0,
-		    OCI_ATTR_SQLFNCODE,
-		    LogPtr->errhp);
 
 	/* get the parameter count info */
 	parmcnt = 0;
@@ -947,9 +1015,15 @@ Oratcl_ColDescribe (interp, StmPtr)
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
-		Oratcl_ColFree(new_col_head);
 		return -1;
 	}
+
+	new_col_head = Oratcl_ColAlloc(StmPtr->fetchrows);
+	if (new_col_head == NULL) {
+		return -1;
+	}
+	new_col      = new_col_head;
+	last_col     = new_col_head;
 
 	for (parmix = 1; parmix <= parmcnt; parmix++) {
 
@@ -1082,114 +1156,6 @@ if (lob) {
 	StmPtr->col_list = new_col_head;
 
 	return (parmcnt);
-}
-
-
-/*
- *----------------------------------------------------------------------
- * Oratcl_ColAppend
- *      appends column results to tcl result
- *----------------------------------------------------------------------
- */
-
-void
-Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
-	Tcl_Interp	*interp;
-	OratclStms	*StmPtr;
-	int		setResult;
-	Tcl_Obj		*listvar;
-	Tcl_Obj		*arrayvar;
-{
-	int		rn;
-	OratclCols 	*ColPtr;
-	OratclCols	*col, *src;
-	char		*null_str;
-	int		oColsc = 0;
-
-	Tcl_DString	valStr;
-
-	/* quick sanity check */
-	rn = StmPtr->fetchidx;
-	if (rn < 0 || rn >= StmPtr->fetchmem) {
-		/* TMH Does this ever happen ??? if so can it be tested for? */
-		return;
-	}
-
-	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
-	    StmPtr->sqltype == OCI_STMT_DECLARE) {
-		ColPtr = StmPtr->bind_list;
-	} else {
-		ColPtr = StmPtr->col_list;
-	}
-
-	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
-
-	for (col = ColPtr; col != NULL; col = col->next) {
-      
-		/* for cursor type, just return a null */
-		/* get pointer to next row column data buffer */
-
-		if (oColsc >= StmPtr->oColslen) {
-			StmPtr->oColslen += 10;
-			StmPtr->oColsv = (Tcl_Obj **) ckrealloc ((char *) StmPtr->oColsv,
-								 StmPtr->oColslen * sizeof(*StmPtr->oColsv));
-		}
-
-
-		if ((sb2) col->indp[rn] == -1) {
-			if (col->column.typecode == SQLT_CUR) {
-				StmPtr->oColsv[oColsc++] = OMV_null;
-			} else {
-				/* default :: if number "0" else "" */
-				if (*null_str == 'd' 
-				   && strcmp(null_str,"default") == 0) {
-
-					if (col->column.typecode == SQLT_NUM) {
-						StmPtr->oColsv[oColsc++] = OMV_zero;
-					} else {
-						StmPtr->oColsv[oColsc++] = OMV_null;
-					}
-				} else {
-					/* return user defined nullvalue */
-					StmPtr->oColsv[oColsc++] = Tcl_DuplicateObj(StmPtr->nullvalue);
-				}
-			}
-		} else {
-			if (col->column.valuesz > 0) {
-                                if (StmPtr->utfmode) {
-                                        Tcl_DStringInit(&valStr);
-                                        Tcl_ExternalToUtfDString(NULL,
-								 col->column.valuep + (rn * col->column.valuesz),
-								 -1,
-								 &valStr);
-                                        StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&valStr), -1);
-                                        Tcl_DStringFree(&valStr);
-                                } else {
-					StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(
-						col->column.valuep + (rn * col->column.valuesz),
-						-1);
-				}
-			} else {
-				StmPtr->oColsv[oColsc++] = OMV_null;
-			}
-		}
-
-	}
-
-	if (setResult) {
-		Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, StmPtr->oColsv));
-	}
-
-	if (listvar != NULL) {
-		Tcl_ObjSetVar2(interp, listvar, NULL, Tcl_NewListObj(oColsc, StmPtr->oColsv), 0);
-	}
-
-	StmPtr->fetchidx += 1;
-	StmPtr->append_cnt += 1;
-	StmPtr->ora_rc = 0;
-	StmPtr->ora_row = StmPtr->append_cnt;
-
-	StmPtr->fetch_ok = 1;
 }
 
 
@@ -4571,8 +4537,6 @@ common_exit:
 	return tcl_return;
 }
 
-/* finis */
-
 int
 Oratcl_Async (clientData, interp, objc, objv)
 	ClientData	clientData;
@@ -4814,7 +4778,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 			    OCI_ATTR_SQLFNCODE,
 			    LogPtr->errhp);
 
-		cols = Oratcl_MyDescribe(interp, StmPtr);
+		cols = Oratcl_ColDescribe(interp, StmPtr);
 		if (cols < 0) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;	
@@ -4838,9 +4802,18 @@ common_exit:
 	return tcl_return;
 }
 
-
 /*
- *
+ *----------------------------------------------------------------------
+ * Oratcl_Bind --
+ *    Implements the orabind command:
+ *    usage: orabind stm_handle :bindname value ...
+ *    usage: ::oratcl::bind stm_handle :bindname value ...
+ *	                
+ *    results:
+ *	return code from OCIBindByName
+ *      TCL_OK - binding successful
+ *      TCL_ERROR - wrong # args, handle not opened, or OCI error
+ *----------------------------------------------------------------------
  */
 int
 Oratcl_Bind (clientData, interp, objc, objv)
@@ -5165,8 +5138,19 @@ common_exit:
 }
 
 /*
- *
+ *----------------------------------------------------------------------
+ * Oratcl_Exec --
+ *    Implements the oraexec command:
+ *    usage: oraexec stm_handle
+ *    usage: ::oratcl::exec stm_handle
+ *	                
+ *    results:
+ *	return code from OCIStmtExecute
+ *      TCL_OK - execution successful
+ *      TCL_ERROR - wrong # args, handle not opened, or OCI error
+ *----------------------------------------------------------------------
  */
+
 int
 Oratcl_Exec (clientData, interp, objc, objv)
 	ClientData	clientData;
@@ -5367,7 +5351,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 							    OCI_ATTR_SQLFNCODE,
 							    LogPtr->errhp);
  
-						if (Oratcl_MyDescribe(interp, RefPtr) == -1) {
+						if (Oratcl_ColDescribe(interp, RefPtr) == -1) {
 							Oratcl_ErrorMsg(interp,
 									objv[0],
 									": Oratcl_ColDescribe failed for ",
@@ -5412,208 +5396,107 @@ common_exit:
 
 /*
  *----------------------------------------------------------------------
- * Oratcl_MyDescribe
- *   parse result columns, allocate memory for fetches
- *   return -1 on error, 1 if ok
+ * Oratcl_Break --
+ *    Implements the orabreak command:
+ *    usage: orabreak stm_handle
+ *    usage: ::oratcl::break stm_handle
+ *	                
+ *    results:
+ *	return code from OCIBreak or OCIReset
+ *      TCL_OK - handle is reset
+ *      TCL_ERROR - wrong # args, or handle not opened,  OCI error
  *----------------------------------------------------------------------
  */
 
 int
-Oratcl_MyDescribe (interp, StmPtr)
-	Tcl_Interp 	*interp;
-	OratclStms	*StmPtr;
+Oratcl_Break (clientData, interp, objc, objv)
+	ClientData	clientData;
+	Tcl_Interp	*interp;
+        int		objc;
+        Tcl_Obj		*CONST objv[];
 {
+	OratclState	*OratclStatePtr = (OratclState *) clientData;
+	Tcl_HashEntry	*stmHashPtr;
+	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
+	char		*p;
+	int		parm_cnt;
+	ub4		oci_mode = OCI_DEFAULT;
+	ub4		rowcnt;
 	sword		rc;
 
-	OratclCols	*new_col_head;
-	OratclCols	*new_col;
-	OratclCols	*last_col;
+	int		objix;
+	int		tcl_return = TCL_OK;
 
-	OCIParam	*parmdp;
-	ub4		parmcnt;
-	ub4		parmix;
+	if (objc < 2) {
+		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle");
+		return TCL_ERROR;
+	}
 
-	int		lob;
+	for (objix=0; objix<objc; objix++) {
+		Tcl_IncrRefCount(objv[objix]);
+	}
 
+	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
+				       Tcl_GetStringFromObj(objv[1], NULL));
+
+	if (stmHashPtr == NULL) {
+		Oratcl_ErrorMsg(interp,
+				objv[0],
+				": handle ",
+				objv[1],
+				" not open");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
-	/* get the parameter count info */
-	parmcnt = 0;
-	rc = OCIAttrGet( (dvoid *) StmPtr->stmhp,
-			 (ub4) OCI_HTYPE_STMT,
-			 (ub4 *) &parmcnt,
-			 (ub4) 0,
-			 OCI_ATTR_PARAM_COUNT,
-			 LogPtr->errhp);
+	StmPtr->ora_rc  = 0;
+	Tcl_DStringInit(&StmPtr->ora_err);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-	if (rc != OCI_SUCCESS) {
-		return -1;
-	}
-
-	new_col_head = Oratcl_ColAlloc(StmPtr->fetchrows);
-	if (new_col_head == NULL) {
-		return -1;
-	}
-	new_col      = new_col_head;
-	last_col     = new_col_head;
-
-	for (parmix = 1; parmix <= parmcnt; parmix++) {
-
-		rc = OCIParamGet( (dvoid *) StmPtr->stmhp,
-				  (ub4) OCI_HTYPE_STMT, 
-				  (OCIError *) LogPtr->errhp,
-				  (dvoid *) &parmdp,
-				  (ub4) parmix);
-
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	if (LogPtr->async == 1) {
+		rc = OCIBreak((dvoid *) LogPtr->srvhp,
+			       LogPtr->errhp);
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
-			Oratcl_ColFree(new_col_head);
-			return -1;
+			tcl_return = TCL_ERROR;
+			goto common_exit;
 		}
 
-		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmdp, &new_col->column, 0);
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		rc = OCIReset((dvoid *) LogPtr->srvhp,
+			       LogPtr->errhp);
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
+
 		if (rc != OCI_SUCCESS) {
-			Oratcl_ColFree(new_col_head);
-			return -1;
+			tcl_return = TCL_ERROR;
+			goto common_exit;
 		}
+	}
 
-		lob = 0;
-		new_col->dty = SQLT_STR;
-		new_col->column.valuesz = new_col->column.size;
-		
-		switch (new_col->column.typecode) {
-		case SQLT_LNG:					/* 8	*/
-		case SQLT_LBI:					/* 24	*/
-			new_col->column.valuesz = StmPtr->longsize;
-			break;
-		case SQLT_BIN:					/* 23	*/
-			new_col->column.valuesz = new_col->column.size * 2;
-			break;
-		case SQLT_NUM:					/* 2	*/
-			new_col->column.valuesz = 40;
-			break;
-		case SQLT_DAT:					/* 12	*/
-			new_col->column.valuesz = 75;
-			break;
-		case SQLT_RID:					/* 11	*/
-		case SQLT_RDD:					/* 104	*/
-			new_col->column.valuesz = 23;
-			break;
-#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
-		case SQLT_CLOB:
-			/* 
-			 * TMH :: need an OCILobLocator
-			 *        must by to a SQLT_CLOB type
-			 */
-			fprintf(stderr, "%s %d, clob type\n", __FILE__, __LINE__);
-			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
-			new_col->dty = SQLT_CLOB;
-			lob = 1;
-			break;
-		case SQLT_BLOB:
-			/* 
-			 * TMH :: need an OCILobLocator
-			 *        must by to a SQLT_BLOB type
-			 */
-			fprintf(stderr, "%s %d, blob type\n", __FILE__, __LINE__);
-			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
-			new_col->dty = SQLT_BLOB;
-			break;
-#endif
-		}
-	
-if (lob) {
-#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
-		/* in free cols, will have to free this */
-		OCIDescriptorAlloc((dvoid *) LogPtr->envhp,
-				(dvoid **) &new_col->lobp,
-				(ub4)OCI_DTYPE_LOB,
-				(size_t) 0,
-				(dvoid **) 0);
+common_exit:
 
-		rc = OCIDefineByPos(StmPtr->stmhp,
-				    &new_col->defnp,
-				    LogPtr->errhp,
-				    (ub4) parmix,
-				    (dvoid *) new_col->lobp,
-				    (sb4) new_col->column.valuesz,
-				    new_col->dty,
-				    (sb2 *) new_col->indp,
-				    (ub2 *) new_col->rlenp,
-				    (ub2 *) new_col->rcodep,
-				    (ub4) OCI_DEFAULT);
-#endif
-} else {
+	for (objix=0; objix<objc; objix++) {
+		Tcl_DecrRefCount(objv[objix]);
+	}
 
-		new_col->column.valuesz = new_col->column.valuesz + 1;
-		new_col->column.valuep = 
-			ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
-		StmPtr->fetchmem = StmPtr->fetchrows;
-
-		rc = OCIDefineByPos(StmPtr->stmhp,
-				    &new_col->defnp,
-				    LogPtr->errhp,
-				    (ub4) parmix,
-				    (dvoid *) new_col->column.valuep,
-				    (sb4) new_col->column.valuesz,
-				    SQLT_STR,
-				    (sb2 *) new_col->indp,
-				    (ub2 *) new_col->rlenp,
-				    (ub2 *) new_col->rcodep,
-				    (ub4) OCI_DEFAULT);
-
+	return tcl_return;
 }
-
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-		if (rc != OCI_SUCCESS) {
-			Oratcl_ColFree(new_col_head);
-			return -1;
-		}
-
-		last_col           = new_col;
-		new_col            = Oratcl_ColAlloc(StmPtr->fetchrows);
-		if (new_col == NULL) {
-			Oratcl_ColFree(new_col_head);
-			return -1;
-		}
-		last_col->next = new_col;
-
-	}
-
-	last_col->next = NULL;
-	Oratcl_ColFree(new_col);
-	StmPtr->col_list = new_col_head;
-
-	return (parmcnt);
-}
-
-void
-Oratcl_PrintStm (interp, StmPtr, message)
-	Tcl_Interp	*interp;
-	OratclStms	*StmPtr;
-	char		*message;
-{
-
-	if (! StmPtr) {
-		return;
-	}
-
-	fprintf(stderr, "--------- %s ---------\n", message);
-	fprintf(stderr, "StmPtr->fetchmem = %d\n", StmPtr->fetchmem);
-	fprintf(stderr, "StmPtr->fetchidx = %d\n", StmPtr->fetchidx);
-	fprintf(stderr, "StmPtr->fetch_end = %d\n", StmPtr->fetch_end);
-	fprintf(stderr, "StmPtr->fetch_ok = %d\n", StmPtr->fetch_ok);
-	fprintf(stderr, "StmPtr->fetch_cnt = %d\n", StmPtr->fetch_cnt);
-	fprintf(stderr, "StmPtr->append_cnt = %d\n", StmPtr->append_cnt);
-
-};
 
 /*
  *----------------------------------------------------------------------
@@ -5627,6 +5510,7 @@ Oratcl_PrintStm (interp, StmPtr, message)
  *      TCL_ERROR - fetch failed
  *----------------------------------------------------------------------
  */
+
 int
 Oratcl_AsyncFetch (clientData, interp, objc, objv)
 	ClientData	clientData;
@@ -5764,83 +5648,4 @@ common_exit:
 	return tcl_return;
 }
 
-
-int
-Oratcl_Break (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
-{
-	OratclState	*OratclStatePtr = (OratclState *) clientData;
-	Tcl_HashEntry	*stmHashPtr;
-	OratclStms	*StmPtr;
-	OratclLogs	*LogPtr;
-
-	char		*p;
-	int		parm_cnt;
-	ub4		oci_mode = OCI_DEFAULT;
-	ub4		rowcnt;
-	sword		rc;
-
-	int		objix;
-	int		tcl_return = TCL_OK;
-
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle");
-		return TCL_ERROR;
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
-
-	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
-				       Tcl_GetStringFromObj(objv[1], NULL));
-
-	if (stmHashPtr == NULL) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": handle ",
-				objv[1],
-				" not open");
-		tcl_return = TCL_ERROR;
-		goto common_exit;
-	}
-
-	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
-	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
-
-	StmPtr->ora_rc  = 0;
-	Tcl_DStringInit(&StmPtr->ora_err);
-
-	if (LogPtr->async == 1) {
-		rc = OCIBreak((dvoid *) LogPtr->srvhp,
-			       LogPtr->errhp);
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-		if (rc != OCI_SUCCESS) {
-			tcl_return = TCL_ERROR;
-			goto common_exit;
-		}
-
-		rc = OCIReset((dvoid *) LogPtr->srvhp,
-			       LogPtr->errhp);
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-		if (rc != OCI_SUCCESS) {
-			tcl_return = TCL_ERROR;
-			goto common_exit;
-		}
-	}
-
-common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
-	return tcl_return;
-}
+/* finis */
