@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.34 2001-03-26 20:16:11 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.35 2001-03-29 13:42:43 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -68,7 +68,7 @@ DEP-INC = $(oratcl_DEP_INC)
 #========================================================================
 
 oratcl_LIB_FILE = @oratcl_LIB_FILE@
-#$(oratcl_LIB_FILE)_OBJECTS = $(oratcl_OBJECTS)
+$(oratcl_LIB_FILE)_OBJECTS = $(oratcl_OBJECTS)
 
 #========================================================================
 # This is a list of header files to be installed
