@@ -89,7 +89,8 @@ extern OratclCols *Oratcl_ColAlloc	_ANSI_ARGS_((int 		fetchrows));
 extern sword	  Oratcl_Attributes	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     OCIError		*errhp,
 						     OCIParam		*parmh,
-						     OratclDesc		*column));
+						     OratclDesc		*column,
+						     int		explicit));
 extern int	  Oratcl_Parse		_ANSI_ARGS_((Tcl_Interp 	*interp,
 						     OratclStms		*StmPtr));
 extern void       Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
@@ -944,7 +945,7 @@ Oratcl_Parse (interp, StmPtr)
 			return -1;
 		}
 
-		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmdp, &new_col->column);
+		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmdp, &new_col->column, 0);
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ColFree(new_col_head);
 			return -1;
@@ -3812,14 +3813,17 @@ common_exit:
 
 
 sword
-Oratcl_Attributes (interp, errhp, parmh, column)
+Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	Tcl_Interp	*interp;
 	OCIError	*errhp;
 	OCIParam	*parmh;
 	OratclDesc	*column;
+	int		explicit;
 {
 	text		*namep;
 	sword		rc;
+	ub1		prec_ub1;	
+	sb2		prec_sb2;	
 
 	/* column name */
 	rc = OCIAttrGet((dvoid*) parmh,
@@ -3866,16 +3870,33 @@ Oratcl_Attributes (interp, errhp, parmh, column)
 	}
 
 	/* precision */
-	rc = OCIAttrGet((dvoid*) parmh,
-			(ub4) OCI_DTYPE_PARAM,
-			(dvoid*) &column->prec,
-			(ub4 *) 0,
-			(ub4) OCI_ATTR_PRECISION,
-			(OCIError *) errhp);
+	if (explicit) {
+		rc = OCIAttrGet((dvoid*) parmh,
+				(ub4) OCI_DTYPE_PARAM,
+				(dvoid*) &prec_ub1,
+				(ub4 *) 0,
+				(ub4) OCI_ATTR_PRECISION,
+				(OCIError *) errhp);
 
-	if (rc != OCI_SUCCESS) {
-		Oratcl_Checkerr(interp, errhp, rc, 0);
-		return rc;
+		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp, errhp, rc, 0);
+			return rc;
+		}
+		column->prec = prec_ub1;
+	} else {
+		rc = OCIAttrGet((dvoid*) parmh,
+				(ub4) OCI_DTYPE_PARAM,
+				(dvoid*) &prec_sb2,
+				(ub4 *) 0,
+				(ub4) OCI_ATTR_PRECISION,
+				(OCIError *) errhp);
+
+		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp, errhp, rc, 0);
+			return rc;
+		}
+
+		column->prec = prec_sb2;
 	}
 
 	/* scale */
@@ -4131,7 +4152,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmh, &column);
+		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmh, &column, 1);
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
 			tcl_return = TCL_ERROR;

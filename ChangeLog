@@ -270,5 +270,7 @@ Version 3.2 March, 2001
 	Tcl_UtfToExternalDstring and Tcl_ExternalToUtfDString on string
 	values in orasql, orabindexec, oraplexec, orafetch and oralong.
 	(Note :: oralob is implemented with oraplexec, so it to is affected.)
+    -   fixed a bug in oracols that was not reporting the correct precision
+	of number fields on big-endian systems.
 
 -----------------------------------------------------------------------------

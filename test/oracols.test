@@ -18,10 +18,10 @@ set size_result [list 40 75 2 36]
 set size_result [list 22 7 2 36]
 
 set type_result [list NUMBER DATE CHAR VARCHAR2]
-set prec_result [list 0 {} {} {}]
+set prec_result [list 2 {} {} {}]
 set scale_result [list 0 {} {} {}]
 set null_result [list 1 1 1 1]
-set all_result [list {V_NUMBER 22 NUMBER 0 0 1} {V_DATE 7 DATE {} {} 1} {V_CHAR 2 CHAR {} {} 1} {V_VARCHAR2 36 VARCHAR2 {} {} 1}]
+set all_result [list {V_NUMBER 22 NUMBER 2 0 1} {V_DATE 7 DATE {} {} 1} {V_CHAR 2 CHAR {} {} 1} {V_VARCHAR2 36 VARCHAR2 {} {} 1}]
 
 
 
