@@ -2986,6 +2986,7 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	case 106:
 		column->typename = "RAW MLSLABEL";
 		break;
+#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 	case SQLT_TIMESTAMP:
 		column->typename = "TIMESTAMP";
 		break;
@@ -3001,6 +3002,7 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	case SQLT_TIMESTAMP_LTZ:
 		column->typename = "TIMESTAMP WITH LOCAL TIME ZONE";
 		break;
+#endif
 	default:
 		column->typename = "UNKNOWN";
 	}
@@ -4369,8 +4371,6 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	OratclStms	*RefPtr = NULL;
 
 	int		parm_cnt;
-	ub4		oci_mode = OCI_DEFAULT;
-	ub4		rowcnt;
 	sword		rc;
 
 	OratclCols	*tmp_col_head = NULL;
