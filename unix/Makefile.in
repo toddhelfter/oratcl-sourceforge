@@ -1,0 +1,345 @@
+###############################################################################
+#
+# Oratcl-2.5
+# Makefile.in for Oratcl configure
+#
+# Tom Poindexter 
+
+ORATCL_VERSION = @ORATCL_VERSION@
+ORATCL_LIBVER  = @ORATCL_LIBVER@
+
+SHELL = /bin/sh
+
+###############################################################################
+#
+# set the following defines as needed: 
+
+prefix       = @TCL_PREFIX@
+exec_prefix  = @TCL_EXEC_PREFIX@
+
+# alternative defs
+#prefix      = @prefix@
+#exec_prefix = @exec_prefix@
+
+#------------------------------------------------------------------------------
+# define where Oratcl should put binaries, libraries, and mapages
+#
+
+BIN_DIR      = $(exec_prefix)/bin
+LIB_DIR      = $(exec_prefix)/lib
+MAN_DIR      = $(prefix)/man
+MANN_DIR     = $(MAN_DIR)/mann
+
+#------------------------------------------------------------------------------
+# define where Tcl include and libraries are located
+# Oratcl assumes that Tcl, Tk (and possibly Extended Tcl) are installed
+# in the same locations
+
+TCL_INC_DIR  = @TCL_INC_DIR@
+TCL_LIB_DIR  = @TCL_LIB_DIR@
+
+#------------------------------------------------------------------------------
+# define Tcl, Tk, TclX libraries and extra libs
+
+TCL_VERSION   = @TCL_VERSION@
+TK_VERSION    = @TK_VERSION@
+
+TCL_LIB_SPEC  = @TCL_LIB_SPEC@
+TCL_LIBS      = @TCL_LIBS@
+
+TK_LIB_SPEC   = @TK_LIB_SPEC@
+TK_LIBS       = @TK_LIBS@
+TK_XINCLUDES  = @TK_XINCLUDES@
+TK_XLIBSW     = @TK_XLIBSW@
+
+TCLX_LIB_SPEC = @TCLX_LIB_SPEC@
+TCLX_LIBS     = @TCLX_LIBS@
+TCLX_LIB_LOC  = @TCLX_LIB_LOC@
+TCLX_LIB_SEP  = @TCLX_LIB_SEP@
+TKX_LIB_SPEC  = @TKX_LIB_SPEC@
+TKX_LIBS      = @TKX_LIBS@
+
+# grab the versions from TclX, needed to find TclX appinit files
+TCLX_FULL_VERSION = @TCLX_FULL_VERSION@
+TKX_FULL_VERSION  = @TKX_FULL_VERSION@
+
+#------------------------------------------------------------------------------
+# compiler and flags from tcl config, so don't change CC
+# without some thought, otherwise you might break the shared flags.
+ 
+CC                = @TCL_CC@
+#CC                = purify -chain-length="13" cc -Xc
+
+OPT_DEBUG         = -O
+#OPT_DEBUG         = -g -DORATCL_MEM_DEBUG
+#OPT_DEBUG         = -g -DORATCL_MEM_DEBUG -DORATCL_MEM_FULL_DEBUG
+
+TCL_DEFS          = $(OPT_DEBUG) @TCL_DEFS@   @DEFS@
+TCL_LD_FLAGS      = @TCL_LD_FLAGS@
+TCL_SHLIB_SUFFIX  = @TCL_SHLIB_SUFFIX@
+TCL_SHLIB_CFLAGS  = @TCL_SHLIB_CFLAGS@
+TCL_SHLIB_LD      = @TCL_SHLIB_LD@
+TCL_SHLIB_LD_LIBS = @TCL_SHLIB_LD_LIBS@
+
+#------------------------------------------------------------------------------
+# define names for Oratcl tclsh/tcl executable
+
+TCL_EXEC   = tclsh
+TCLX_EXEC  = tcl
+
+#------------------------------------------------------------------------------
+# define names for Oratcl wish/wishx executable
+
+WISH_EXEC  = wish
+WISHX_EXEC = wishx
+
+#------------------------------------------------------------------------------
+# define names for Oratcl library files, static and shared
+
+LIB_ORATCL    = libOratcl$(ORATCL_LIBVER).a
+LNK_ORATCL    = -lOratcl$(ORATCL_LIBVER)
+LIB_SH_ORATCL = libOratcl$(ORATCL_LIBVER)$(TCL_SHLIB_SUFFIX)
+
+#------------------------------------------------------------------------------
+# define where Oracle libraries are located
+
+ORACLE_HOME   = @ORACLE_HOME@
+ORA           = @ORA@
+ORA_LIB_DIR   = $(ORA)
+ORAVER        = @ORAVER@
+ORA72FEATURES = @ORA72FEATURES@
+ORA_SH_LIB    = @ORA_SH_LIB@
+ORA_SYS_LIBS  = @ORA_SYS_LIBS@
+
+OCILIB        = @OCILIB@
+
+# Oracle 7.3 needs some objects removed, otherwise there are lots of 
+# unresolved symbols.
+
+OCIIGNORE     = @OCIIGNORE@
+
+# other machine specific libs that oracle might need.  these are initially
+# populated from ORACLE_HOME/rdbms/lib/sysliblist 
+# by configure.  adjust as needed.
+
+OTHER_ORA_LIBS = @OTHER_ORA_LIBS@
+
+# AIX apparently requires this
+OCIMILI = @OCIMILI@
+
+# some versions of oracle require explicit linking with libc,  without -lc,
+# the link appears fine, but executing 'oralogon' causes a core dump.  default
+# is to define libc explicitly.
+
+LIBC = -lc
+
+#------------------------------------------------------------------------------
+# OTHER_LD_SEARCH_FLAGS so that dynamic loader will look for Oracle libraries
+# NOTE: these are hacked from TCL_LD_SEARCH_FLAGS, and may need tweaking
+# for a particular platform.  LIB_INSTALL_DIR used in tcl7.5,
+# LIB_RUNTIME_DIR used in tcl7.5p1+.  If your linker doesn't like a colon
+# separated path, then you will have to figure out what works, or 
+# possible leave off the second lib. The inclusion of the Tcl lib dir is
+# for the occasion you are building a static lib, but a shared Tcl lib is
+# found during linking.
+
+LIB_INSTALL_DIR        = @SEARCH_DIRS@
+LIB_RUNTIME_DIR        = @SEARCH_DIRS@
+OTHER_LD_SEARCH_FLAGS  = @OTHER_LD_SEARCH_FLAGS@
+
+# Include tcl's cc flags for dynamic lib search path.  This is in case you
+# are builing a static binary for Oratcl, but have both static and dynamic
+# tcl libraries, of which the loader will probably prefer the dynamic verisons.
+# Without this flag, the resulting binary won't have lib search information.
+# Note that TCL_LD_SEARCH_FLAGS only works when LIB_RUNTIME_DIR has been set
+# as above.
+ 
+TCL_LD_SEARCH_FLAGS    = @TCL_LD_SEARCH_FLAGS@
+ 
+
+#------------------------------------------------------------------------------
+# define man page 
+
+MAN_PAGE = oratcl.n
+
+
+#------------------------------------------------------------------------------
+# define ranlib command for systems that need it; touch otherwise
+
+RANLIB = @RANLIB@
+
+#------------------------------------------------------------------------------
+# how to install
+
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+
+
+#
+# end of defines
+#
+###############################################################################
+
+
+T_EXEC = @T_EXEC@
+W_EXEC = @W_EXEC@
+
+all:	@PROGS@  
+
+#------------------------------------------------------------------------------
+# how to build objects for oratcl and libOratcl
+
+oratcl.o:  ../generic/oratcl.c $(LIB_ORATCL)
+	$(CC) -c -I$(TCL_INC_DIR) $(ORAVER) $(ORA72FEATURES) $(TCL_DEFS) \
+	     ../generic/oratcl.c
+	ar cr $(LIB_ORATCL) oratcl.o
+	-$(RANLIB) $(LIB_ORATCL)
+	touch oratcl.o
+
+shoratcl.o:  ../generic/oratcl.c 
+	$(CC) -c -I$(TCL_INC_DIR) $(ORAVER) $(ORA72FEATURES) $(TCL_DEFS) \
+		   $(TCL_SHLIB_CFLAGS) ../generic/oratcl.c
+	mv -f oratcl.o shoratcl.o
+
+$(LIB_ORATCL):  $(OCILIB)
+	@echo "building initial libOratcl$(ORATCL_LIBVER).a"
+	-mkdir libtmp
+	-rm -f libtmp/*
+	-for L in $(OCILIB) ; do 		\
+	    cd libtmp ;				\
+	    echo "  adding objects from $$L" ;	\
+	    ar x $$L || cp $$L . ;		\
+	    rm -f $(OCIIGNORE)   ;              \
+	    ar cr ../$(LIB_ORATCL) * ; 		\
+	    rm -f *.o *.a ;			\
+	    cd .. ;				\
+	  done ;
+	-rm -f libtmp/*
+
+$(LIB_SH_ORATCL):  shoratcl.o
+	$(TCL_SHLIB_LD)  $(OTHER_LD_SEARCH_FLAGS) \
+	      -o $(LIB_SH_ORATCL) shoratcl.o \
+	      -L$(ORA_LIB_DIR) $(ORA_SH_LIB) $(ORA_SYS_LIBS) \
+	      $(TCL_LIB_SPEC) $(TCL_LIBS) \
+	      $(OTHER_ORA_LIBS) $(OCIMILI) $(LIBC)
+	-$(RANLIB) $(LIB_SH_ORATCL)
+
+#------------------------------------------------------------------------------
+# how to build objects for standard tcl
+
+TCL_APPINIT   = $(TCL_LIB_DIR)/tcl$(TCL_VERSION)/tclAppInit.c
+TK_APPINIT    = $(TCL_LIB_DIR)/tk$(TK_VERSION)/tkAppInit.c
+
+tclAppInit.c:   $(TCL_APPINIT)
+	sed -f orainit.sed <$(TCL_APPINIT) >tclAppInit.c
+
+tkAppInit.c:    $(TK_APPINIT)
+	sed -f orainit.sed <$(TK_APPINIT) >tkAppInit.c
+
+tclAppInit.o:   tclAppInit.c
+	$(CC) -c -I$(TCL_INC_DIR) $(TCL_DEFS) tclAppInit.c
+
+tkAppInit.o:    tkAppInit.c
+	$(CC) -c -I$(TCL_INC_DIR) $(TK_XINCLUDES) tkAppInit.c
+
+
+#------------------------------------------------------------------------------
+# how to build objects for neosoft extended tcl
+
+TCLX_APPINIT  = $(prefix)/$(TCLX_LIB_LOC)tclX$(TCLX_LIB_SEP)$(TCLX_FULL_VERSION)/tclXAppInit.c
+TKX_APPINIT   = $(prefix)/$(TCLX_LIB_LOC)tkX$(TCLX_LIB_SEP)$(TKX_FULL_VERSION)/tkXAppInit.c
+
+tclXAppInit.c:	$(TCLX_APPINIT)
+	sed -f orainit.sed <$(TCLX_APPINIT) >tclXAppInit.c
+
+tkXAppInit.c:	$(TKX_APPINIT)
+	sed -f orainit.sed <$(TKX_APPINIT)  >tkXAppInit.c
+
+tclXAppInit.o:	tclXAppInit.c
+	$(CC)  -c -I$(TCL_INC_DIR) $(TCL_DEFS)  tclXAppInit.c
+
+tkXAppInit.o:	tkXAppInit.c
+	$(CC)  -c -I$(TCL_INC_DIR) $(TCL_DEFS) $(TK_XINCLUDES) tkXAppInit.c
+
+
+#------------------------------------------------------------------------------
+# how to build static executables and man page
+
+$(TCL_EXEC):   $(LIB_ORATCL) oratcl.o tclAppInit.o
+	$(CC) tclAppInit.o    $(TCL_LD_FLAGS) $(TCL_LD_SEARCH_FLAGS) \
+	       -L. $(LNK_ORATCL) $(ORA_SYS_LIBS) \
+	       $(TCL_LIB_SPEC) $(TCL_LIBS) \
+	       $(OTHER_ORA_LIBS) $(OCIMILI) $(LIBC) -o $(TCL_EXEC)
+
+$(WISH_EXEC):  $(LIB_ORATCL) oratcl.o tkAppInit.o
+	$(CC) tkAppInit.o $(TCL_LD_FLAGS) $(TCL_LD_SEARCH_FLAGS) \
+	       -L. $(LNK_ORATCL) $(ORA_SYS_LIBS) \
+	       $(TK_LIB_SPEC)  $(TK_LIBS) \
+	       $(TCL_LIB_SPEC) $(TCL_LIBS) \
+	       $(OTHER_ORA_LIBS) $(OCIMILI) $(LIBC) -o $(WISH_EXEC)
+
+$(TCLX_EXEC):  $(LIB_ORATCL) oratcl.o tclXAppInit.o 
+	$(CC) tclXAppInit.o   $(TCL_LD_FLAGS) $(TCL_LD_SEARCH_FLAGS) \
+	       -L. $(LNK_ORATCL) $(ORA_SYS_LIBS) \
+	       $(TCLX_LIB_SPEC) \
+               $(TCL_LIB_SPEC) $(TCLX_LIBS) $(TCL_LIBS) \
+	       $(OTHER_ORA_LIBS) $(OCIMILI) $(LIBC) -o $(TCLX_EXEC)
+
+$(WISHX_EXEC): $(LIB_ORATCL) oratcl.o tkXAppInit.o
+	$(CC) tkXAppInit.o   $(TCL_LD_FLAGS) $(TCL_LD_SEARCH_FLAGS) \
+	       -L. $(LNK_ORATCL) $(ORA_SYS_LIBS) \
+	       $(TKX_LIB_SPEC) $(TCLX_LIB_SPEC) \
+	       $(TK_LIB_SPEC) $(TCL_LIB_SPEC) \
+	       $(TK_LIBS) $(TKX_LIBS) $(TCLX_LIBS) $(TCL_LIBS) \
+	       $(OTHER_ORA_LIBS) $(OCIMILI) $(LIBC) -o $(WISHX_EXEC)
+
+$(MAN_PAGE):	../doc/oratcl.man
+	cp ../doc/oratcl.man $(MAN_PAGE)
+
+man-formatted: ../doc/oratcl.man
+	rman -f html ../doc/oratcl.man > ../doc/oratcl.html
+	nroff -man ../doc/oratcl.man > ../doc/oratcl.txt
+	groff -Tps -man ../doc/oratcl.man > ../doc/oratcl.ps
+
+#------------------------------------------------------------------------------
+# install targets
+
+install:	@INSTALL_TARGET@  install-man
+
+install-shared:	$(LIB_SH_ORATCL)   
+	@echo installing $(LIB_SH_ORATCL)
+	$(INSTALL_PROGRAM) $(LIB_SH_ORATCL)  $(LIB_DIR)/$(LIB_SH_ORATCL)
+	@echo installing pkgIndex.tcl
+	-mkdir $(LIB_DIR)/Oratcl$(ORATCL_LIBVER)
+	$(INSTALL_PROGRAM) pkgIndex.tcl  $(LIB_DIR)/Oratcl$(ORATCL_LIBVER)/pkgIndex.tcl
+
+install-static:	@PROGS@   $(LIB_ORATCL)
+	@for f in $(T_EXEC) $(W_EXEC) ; do  \
+	  if test -x $$f ; then  \
+	    echo installing $$f; \
+	    $(INSTALL_PROGRAM) $$f  $(BIN_DIR)/$$f ; \
+	  fi ; \
+	  done
+	@echo installing $(LIB_ORATCL)
+	$(INSTALL_DATA)    $(LIB_ORATCL) $(LIB_DIR)/$(LIB_ORATCL)
+
+install-man:	$(MAN_PAGE)
+	@echo installing $(MAN_PAGE)
+	$(INSTALL_DATA)    $(MAN_PAGE)  $(MANN_DIR)/$(MAN_PAGE)
+
+install-wosql:
+	sed -e '1s@^.*$$@#!$(BIN_DIR)/$(W_EXEC)@p' \
+	       <samples/wosql >$(BIN_DIR)/wosql
+	chmod 755 $(BIN_DIR)/wosql
+
+clean:
+	rm -f $(T_EXEC) $(W_EXEC) $(MAN_PAGE) \
+	      oratcl.o shoratcl.o $(LIB_ORATCL) $(LIB_SH_ORATCL)  \
+	      tclXAppInit.c tkXAppInit.c tclXAppInit.o tkXAppInit.o     \
+	      tclAppInit.c  tkAppInit.c  tclAppInit.o  tkAppInit.o  \
+	      config.cache config.log
+
+###############################################################################
+# end of Makefile
+###############################################################################

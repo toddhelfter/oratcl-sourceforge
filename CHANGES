@@ -1,0 +1,130 @@
+Oratcl change history
+
+
+Version 1.0,  July, 1993
+
+     First general release, borrowed on concepts from my Sybtcl package.
+
+
+--------------------------------------------------------------------------------
+
+Version 2.0, November, 1993
+
+     Change oratcl.c to support Tcl 7.0+.  Change wosql for new pack
+     syntax in Tk 3.3.
+     Add oracancel to man page, and fixed reference to "errortxt"
+
+     New - Makefile and appinit.sed script.
+
+--------------------------------------------------------------------------------
+
+Version 2.1, February, 1994
+
+     Change oratcl.c - add optional commands to "orafetch" command, 
+     add colprecs and colscales to oracols (thanks to Dan Schenck); 
+     change init function to (int); avoid possible core dump in oralogon 
+     when connect to server failed; change how cursor handles are made
+
+     Wosql - use new orafetch when possible
+
+--------------------------------------------------------------------------------
+
+Version 2.11, April, 1994
+
+     Change oratcl.c - fix orasql to only call parse_columns() after DML,
+     fixes bogus error in V7 after DDL.
+
+--------------------------------------------------------------------------------
+
+Version 2.2, October, 1994
+
+     Change oratcl.c - change default nullvalue to "default", which performs
+     current behavior, set oramsg(nullvalue) "" will give true null elements
+     even for numeric data (potential incompatibility.)  clean up left over
+     public functions to Oratcl_xxxx.  add last parameter to orlon(), which
+     caused connect problems for some.
+
+     Change make/install to use autoconf.
+
+--------------------------------------------------------------------------------
+
+Version 2.3, August, 1995
+
+     Change oratcl.c - support Tcl 7.4 release, hda area to support 64 bit
+     Dec Alpha.  Always set oramsg(rows) to row processed count after
+     oexec.  Fix bug in FetchAll that sometimes tries to reference beyond 
+     actual columns.
+
+     Change wosql - support Tk 4.0 release.
+
+     Change make/install to use newer autoconf 2.2.  Check for __fstd.o on
+     Solaris, and mili.exp on AIX.
+
+--------------------------------------------------------------------------------
+
+Version 2.4, September 1996
+
+     Change oratcl.c - add support for Tcl 7.5 packages.  fix orafetchall
+     to quote two occurance of substiution char, and to accept a user defined
+     substitution char.  add oramsg(ociinfo) index for features of how oratcl
+     was compiled.  add initialized flag check to prevent reinitializing on
+     subsequent 'load'.
+
+     Change wosql - add 'package require' for TclX.
+     Include ODDIS as sample program.  
+
+     changes to Makefile/configure - nearly a total rewrite, should allow
+     Oratcl to be nearly independent of Tcl/Tk/TclX source directories.  Relies
+     on Tcl/Tk/TclX to be installed properly, using tclConfig.sh (et.al) to
+     get version numbers, library info, tclAppInit.c files, etc.  Also build
+     libOratcl.so on request, using Oracle shared lib also.  Installs or
+     updates and pkgIndex.tcl files in lib/tcl7.5.  Support Oracle 7.3.2
+     libraries (libclient.a, etc.)
+
+     New! - oratcl-capi, a C interface for Oratcl.  Experimental.  Feedback
+     is welcome.
+
+--------------------------------------------------------------------------------
+
+Version 2.41, December 1996
+
+     Change oratcl.c - zero out lda and hda before logon
+
+     Configure/makefile - fix problem when --exec-prefix= is different from
+     --prefix,  include extra paths in library search, include compile time
+     lib search flag since linker may prefer shared libs over static when
+     both are present.
+
+     Change wosql - add server names from ~/.tnsnames.ora and Oracle home
+     $ORACLE_HOME/network/admin/tnsnames.ora
+
+
+-------------------------------------------------------------------------------
+
+Version 2.5, November 1997
+
+     Change oratcl.c - add support for cursor variables returned by oraplexec,
+     add 'parseonly'  option to orasql, add 'orabindexec' command, add 'async'
+     option for orasql, add 'orapoll' and 'orabreak' commands, add windows
+     .dll support, change orawritelong to allow writing of zero length file,
+     add 'version' element to oramsg.  add tclvars to be bound on orafetch /w
+     commands.  former keywords (async,parseonly,all,etc.) are now recognized
+     as options (-async,-parseonly,-all,etc.)  check orafetch rc code for
+     errors, return tcl_error on failure.  add atexit handler to call
+     Oratcl_Kill, remove call to Oratcl_Kill on command deletion.
+     Fix a problem in FetchAll where the argv[] command string is manipulated,
+     caused problems in Tcl 8.0  Added 'rowid' element to oramsg array, valid
+     after insert, update, delete, or select for update SQL statements.
+
+     configure/makefile - configure: change default to --enable-shared,
+     makefile:  now makes libOratcl with a version number.  reorganize 
+     distribution directory with generic,unix,mac,win,doc,misc,samples 
+     directories.  Add explicit link with '-lc', might fix some problems.
+
+     win directory - windows makefile, .dll
+
+     include Osql from Dan R. Schenck in samples
+
+     wosql - modified to run without requiring TclX, remove unix-only
+     code to allow to run in windows also.
+

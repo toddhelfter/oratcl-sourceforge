@@ -1,0 +1,60 @@
+         TKSQL : ALPHA V0.0.0 
+         --------------------
+
+What ?
+  browser Oracle database
+Need ?
+  Unix (Tcl 7.5/Tk 4.1 minimum) OraTcl
+Where ?
+  France,Paris, at GTIE IGL
+By    ?
+  Regis d'Aubarede at GTIE-IGL
+  gtie_igl@pratique.fr
+When ?
+  by night, when raining...
+License ?
+  :)
+
+Install
+-------
+ nothing ( tksql.tcl in directory in PATH)
+ First line to modify : #!/...
+
+Loggin
+-----
+  when connect for the first time to a base , tksql create at $HOME
+  a file .initsql_<name of the base> .
+  This is do for don't consult view  user_objects at each time (very slow on
+  my machine).
+  If your base is modify (create/drop table) , you chould destroy .inisql_???
+
+Configure
+---------
+ for consult, nothing : tksql consult USER_OBJECT and USER_TAB_COLUMNS
+ for working basicely.
+
+ For navigate from table to table , you should create the file
+   $HOME/.init_tksql_<oracle database name> for specifiate
+   relation beetwin table :
+
+    >file dept "Salary of dept"  EMP {deptno=:depno}
+
+To Do
+-----
+ Many
+ I think the more originale is made and is working well.
+ All the kitchen is to do fore to have better then DISCOVERY 2000
+
+ I would like generate "automatiquely" the description of association
+ by consult CONSTRAINTE and/or a export from AMC/DESIGNOR
+
+Help
+----
+ I need a good course of english (as you can see)
+ I need oratcl on WINNT, and i have'nt C Compiler
+  
+Future
+------
+ Raining while stopp perhaps. So i am not sure to developpe more
+
+ 

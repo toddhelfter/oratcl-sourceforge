@@ -1,0 +1,17 @@
+Osql*activeBackground:			blue
+Osql*activeForeground:			white
+Osql*foreground:			blue
+Osql*background:			gray91
+Osql*font:			*new century schoolbook-bold-r-normal-*-12-*
+Osql*fm*background:			lightblue
+Osql*Text*font:	-adobe-new century schoolbook-bold-r-normal--14-140-75-75-p-87-iso8859-1
+Osql*Listbox*background:		gray83
+Osql*Listbox*foreground:		blue
+Osql*Listbox*font:			*courier-bold-r-normal-*-12-*
+Osql*Listbox*selectForeground:	black
+Osql*Listbox*selectBackground:	lightblue
+Osql*Scrollbar*troughColor:		gray55
+Osql*Scrollbar*highlightColor:	gray83
+Osql*Scrollbar*activeForeground:	blue
+Osql*Entry*selectBackground:		lightblue
+

@@ -1,0 +1,43 @@
+README.samples
+
+Sample programs for Oratcl.  These programs are based on TclX (Extended Tcl)
+executables `wishx' and `tcl' when compiled with Oratcl.
+
+iud_maker       (wishx) not a conception inhibitor!  iud_maker builds simple
+			insert,update,delete applications for a single table.
+			choose a table, choose columns to appear in the
+			search and detail portions, and viola' - instant app.
+			the created application is controlled by 2 lists, and
+			can easily be tweaked by hand for added functionality.
+
+wosql		(wishx)	wosql is an X11 based SQL processor, complete with
+			menu bars,  editable sql window, scrollable 
+			output, command history, PL/SQL variable binding,
+			LONG column i/o, data dictionary access, and formatted
+			column and table name pasting into the sql window.
+
+
+monthly_pay.tcl (tcl)	monthly_pay.tcl demonstrates using multiple cursors
+			and PL/SQL execution, not necessarily proper SQL code. 
+			Uses Oracle demo table SCOTT.EMP.
+
+oddis/         (wishx)  The Oddis system for Oracle Administration - very cool!
+                        Contact the Oddis group at 
+			oddis@informatik.uni-hannover.de  for information &
+			support.
+
+nist/     (tclsh/wish)  Samples from Don Libes <libes@nist.gov>
+                        oratcl.cgi - (uses example.tc) a brief example of using
+			  Oratcl with Don's fine CGI library for Tcl (cgi.tcl
+			  available at http://expect.nist.gov/cgi.tcl/ )
+			oratk - a minimal Oracle SQL tool written with Tk
+
+osql/  (wishx/itcl/blt) Comprehensive Oracle query tool from Dan R. Schenck
+			<schenck@POSC.org>.  Requires TclX, [incr Tcl], and BLT.
+
+tksql/			Oracle Data browser from  Regis d'Aubarede 
+			at GTIE-IGL gtie_igl@pratique.fr
+
+
+Tom Poindexter
+tpoindex@nyx.net

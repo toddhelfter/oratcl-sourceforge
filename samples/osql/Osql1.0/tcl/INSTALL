@@ -1,0 +1,69 @@
+The Tcl/Tk packages in this directory should be installed in the following 
+sequence:
+
+	Tcl
+	Tk
+	Blt
+	Itcl
+	TclX
+	Oratcl
+
+The tcl_cruncher is optional.  It is useful in speeding up Tcl execution, as it 
+removes unnecessary spaces and comments at runtime from Tcl scripts.  If you do 
+not install tcl_cruncher, comment out the following line in the subset_selector
+script in ../SSelect:
+  proc source file {uplevel #0 [exec /home/schendr/bin/tcl_cruncher -s $file]}
+
+To make each of the packages, unzip and untar each, and follow the directions 
+in the README and INSTALL files in their respective top level directories.  
+Usually this involves running ./configure as a first step.  Be sure to set the
+--exec_prefix and --prefix switches on the ./configure command to the directory
+where you intend to install the Tcl/Tk libraries and executables.  You will 
+probably want to set -cc to the correct C/C++ compiler (GNU C and acc from Sun 
+are known to work) also.
+
+Package Notes:
+
+Blt -
+
+  If you have an INSTALL environment variable set, Blt will use the install 
+  program that it points to.  Be sure the INSTALL variable points the correct 
+  install program.
+  
+  Some versions of install (Solaris) are incompatible with the order in which 
+  Blt passes args to install.  If this problem occurs, you will have to modify 
+  the Makefiles for Blt.
+
+Itcl -
+
+  When making Itcl, make will probably fail to create a wish executable.  
+  This is not a problem, however, as the itcl wish is not required (This is 
+  the only error that is OK though!).  You only need to be able to refer in 
+  later steps to the Itcl library that will be created.
+
+  Because of the above problem, when you do a make install, you must use the -i 
+  switch (make -i install) to ignore any errors encountered.
+
+TclX -
+
+  Included in this directory are two files which serve as examples for making 
+  TclX.  The Config.mk file shows how to modify your TclX Config.mk file to 
+  address the appropriate libraries for linking in Blt and Itcl.  The file
+  tkXAppInit.c can be substituted for the original TclX file of the same name 
+  in the tclX7.4a-b6/tksrc directory.  The purpose of this module is to link in 
+  the Blt and Itcl modules into a TclX wish.
+
+  On Solaris you will also need to include a switch, -cg92, where the Itcl and
+  Blt libraries are referenced in the Config.mk file.
+
+Oratcl -
+
+  Oratcl will also recognize an INSTALL environment variable, so everything 
+  that was said about this for Blt also applies to Oratcl.  You also need to
+  modify the Oratcl Makefile to reference the Itcl and Blt libraries.
+
+  It is important to make Oratcl last, as it refers to the TclX files for
+  creating a TclX wish which incorporates the Oracle call interface.
+
+The entire installation process should take from 1.5 to 3 hours, depending on 
+the speed of your system and what local quirks you encounter.

@@ -1,0 +1,37 @@
+OCI714.bug
+
+As mentioned in the README, Oratcl is not supported with Oracle 7.1.3 or
+7.1.4 OCI libraries.  Symptoms of the problem are extremely long (several
+minutes) connect times for 'oralogon', or a core-dump.
+
+Another confusing issue is that not all platforms that Oracle supports
+are affected by the bug.  Oracle 7.1.4 for HP-UX for one, seems to be
+immune from the bug.  SunOS, Solaris, AIX, IRIX platforms all seem to
+have the bug.  Apparently the Oracle case number for this bug is #227321.
+
+This is a snippet of email I received from someone who tracked down the
+bug in Oracle OCI 7.1.4.  If you are absolutely stuck with 7.1.4, you might
+try this patch.
+
+Tom Poindexter
+
+----------------------------------------------------------------------------
+
+
+ 
+ Well I've done some more investigating and found the source of the problem.
+ Basically Oracle 7.1.4 is not at all happy when the tcl interpreter copies
+ the contentes of the environ array into dynamic memory. The TCL function in
+ question is EnvInit() which is called by TclSetupEnv(). If you make EnvInit()
+ a null-op (ie no body), the long connect time problem goes away. The only
+ drawback is that now the environ array points to static mem and can't be
+ written to.
+  
+ Obviously Oracle is making some assumption as to the environ pointer, but
+ I don't know what it is yet. When I find out, I will log a bug against the
+ rdbms.
+   
+ If people are experiencing the same problem I was, this fix could help.
+
+ (EnvInit() is in tclEnv.c - tp)
+

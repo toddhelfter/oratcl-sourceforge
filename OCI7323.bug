@@ -1,0 +1,14 @@
+Oracle has a confirmed bug in it's libraries for 7.3.2.3.  Here's is a
+report from an Oratcl user:
+
+====================================
+
+
+Oracle confirmed that there is a problem in their shared library build script 
+for version 7.3.2.3.
+ 
+The Bug Ref Nr.is:      441647
+  
+We downloaded the patch, rebuilt the libraries, and I it worked.
+   
+

@@ -1,0 +1,282 @@
+###############################################################################
+#
+# Oratcl-2.3
+# Makefile.in for Oratcl configure
+#
+# Tom Poindexter 
+
+SHELL = /bin/sh
+
+###############################################################################
+#
+# set the following defines as needed: 
+
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+BIN_DIR      = $(exec_prefix)/bin
+LIB_DIR      = $(exec_prefix)/lib
+
+#------------------------------------------------------------------------------
+# define where Tcl source and libraries are located, relative to oratcl
+# TCL_LIB may also need network libs found by configure
+
+TCL_DIR = @TCL_DIR@  
+TCL_LIB = @TCL_LIB@ @LIBS@
+
+#------------------------------------------------------------------------------
+# define where Tk source and libraries are located, relative to oratcl
+
+TK_DIR = @TK_DIR@
+TK_LIB = @TK_LIB@
+
+#------------------------------------------------------------------------------
+# define where Extended Tcl source and libraries are located, relative to oratcl
+
+TCLX_DIR = @TCLX_DIR@
+TCLX_LIB = @TCLX_LIB@
+TKX_LIB  = @TKX_LIB@
+
+#------------------------------------------------------------------------------
+# define names for Oratcl tclsh/tcl executable
+
+TCL_EXEC = tclsh
+TCLX_EXEC = tcl
+
+#------------------------------------------------------------------------------
+# define name for Oratcl wish/wishx executable
+
+WISH_EXEC = wish
+WISHX_EXEC = wishx
+
+#------------------------------------------------------------------------------
+# define name for Oratcl library
+
+LIBORATCL = libOratcl.a
+
+#------------------------------------------------------------------------------
+# include compile and link flags gleaned from Tcl and Tk Makefiles
+# tclflags.mk is created by the target "get-tcl-flags:" (see below)
+# the following flags should be set in tclflags.mk:
+#
+# from Tcl's Makefile:
+# MATH_LIBS		# math libs needed to link tclsh
+# AC_FLAGS		# compile time flags, for tcl.h, tclUnix.h
+# PROTO_FLAGS		# use ansi function prototypes or not
+# MEM_DEBUG_FLAGS	# use memory debug (ckalloc/ckfree)
+# CFLAGS		# other cc flags, e.g. -O or -g
+#
+# and from Tk's Makefile
+# X11_INCLUDES		# where X11 includes are, if not /usr/include
+# X11_LIB_SWITCHES	# what X11 libs and associated network libs, if any
+# LIBS			# all libs needed to link wish
+
+# Tk's Makefile uses TCL_BIN_DIR to find libtcl.a, use our TCL_DIR
+TCL_BIN_DIR = $(TCL_DIR)
+
+include tclflags.mk
+
+#------------------------------------------------------------------------------
+# get the syslibs definition from TclX
+# TclX uses the following two defs, which are included for building with TclX,
+# otherwise null
+# TCLXLIBS=
+# TKXLIBS=
+
+@TCLX_SYSLIBS@
+@TKX_SYSLIBS@
+
+#------------------------------------------------------------------------------
+# define where Oracle libraries are located
+
+ORACLE_HOME = @ORACLE_HOME@
+
+ORA = @ORA@
+
+ORAVER = @ORAVER@
+
+OCILIB = @OCILIB@
+
+# other machine specific libs that oracle might need
+OTHERLIBS = `cat -s $(ORACLE_HOME)/rdbms/lib/sysliblist`
+
+# AIX apparently requires this
+OCIMILI = @OCIMILI@
+
+
+#------------------------------------------------------------------------------
+# man page and where to install
+
+MAN_PAGE = oratcl.n
+
+MAN_DIR =       $(prefix)/man
+
+# Directory in which to install manual entry for tclsh:
+MAN1_DIR =      $(MAN_DIR)/man1
+
+# Directory in which to install manual entries for the built-in
+# Tcl commands:
+MANN_DIR =      $(MAN_DIR)/mann
+
+
+#------------------------------------------------------------------------------
+# define ranlib command for systems that need it; touch otherwise
+
+RANLIB = @RANLIB@
+
+#------------------------------------------------------------------------------
+# how to install
+
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+
+
+#------------------------------------------------------------------------------
+# compiler to use
+
+CC = @CC@
+
+#
+# end of defines
+#
+###############################################################################
+
+# define all the compile flags
+TCL_CFLAGS = $(AC_FLAGS) $(GENERIC_FLAGS) $(PROTO_FLAGS) $(MEM_DEBUG_FLAGS) \
+	     $(CFLAGS)
+
+
+T_EXEC = @T_EXEC@
+W_EXEC = @W_EXEC@
+
+all:	@PROGS@  $(MAN_PAGE)
+
+#------------------------------------------------------------------------------
+# how to build objects for standard ucb tcl
+
+tclAppInit.c:   $(TCL_DIR)/tclAppInit.c
+	sed -f orainit.sed <$(TCL_DIR)/tclAppInit.c >tclAppInit.c
+
+tkAppInit.c:    $(TK_DIR)/tkAppInit.c
+	sed -f orainit.sed <$(TK_DIR)/tkAppInit.c >tkAppInit.c
+
+tclAppInit.o:   tclAppInit.c
+	$(CC) -c -I$(TCL_DIR) $(TCL_CFLAGS) tclAppInit.c
+
+tkAppInit.o:    tkAppInit.c
+	$(CC) -c -I$(TK_DIR) -I$(TCL_DIR) $(X11_INCLUDES) $(TCL_CFLAGS) \
+	  tkAppInit.c
+
+
+#------------------------------------------------------------------------------
+# how to build objects for neosoft extended tcl
+
+tclXAppInit.c:	$(TCLX_DIR)/src/tclXAppInit.c
+	sed -f orainit.sed <$(TCLX_DIR)/src/tclXAppInit.c \
+			   >tclXAppInit.c
+
+tkXAppInit.c:	$(TCLX_DIR)/tksrc/tkXAppInit.c
+	sed -f orainit.sed <$(TCLX_DIR)/tksrc/tkXAppInit.c \
+			   >tkXAppInit.c
+
+tclXAppInit.o:	tclXAppInit.c
+	$(CC)  -c -I$(TCLX_DIR)/src -I$(TCL_DIR) $(TCL_CFLAGS) \
+	   tclXAppInit.c
+
+tkXAppInit.o:	tkXAppInit.c
+	$(CC)  -c -I$(TCLX_DIR)/src \
+		 -I$(TCLX_DIR)/tksrc -I$(TK_DIR) -I$(TCL_DIR) \
+		$(X11_INCLUDES) $(TCL_CFLAGS) tkXAppInit.c
+
+
+#------------------------------------------------------------------------------
+# how to build objects for oratcl and libOratcl
+
+oratcl.o:	oratcl.c $(LIBORATCL)
+	$(CC) -c -I$(TCL_DIR) -D$(ORAVER) $(TCL_CFLAGS) oratcl.c
+	ar cr $(LIBORATCL) oratcl.o
+	-$(RANLIB) $(LIBORATCL)
+	touch oratcl.o
+
+$(LIBORATCL):    $(OCILIB)
+	-mkdir libtmp
+	-cd libtmp; rm -f *.o *.a
+	-cp $(OCILIB) libtmp
+	cd libtmp; for L in lib*.a ; do ar x $$L; done
+	cd libtmp; rm -f *.a
+	cd libtmp; ar cr ../$(LIBORATCL) [a-n]*.o
+	cd libtmp; rm -f [a-n]*.o
+	cd libtmp; ar cr ../$(LIBORATCL) *.o
+	-cd libtmp; ar cr ../$(LIBORATCL) *.exp
+	-cd libtmp; rm -f *.o *.a *.exp
+
+
+#------------------------------------------------------------------------------
+# how to build executables and man page
+
+$(TCL_EXEC):    oratcl.o tclAppInit.o
+	$(CC) tclAppInit.o $(LIBORATCL) $(TCL_LIB) $(OTHERLIBS) \
+	      $(OCIMILI) $(MATH_LIBS) -o $(TCL_EXEC)
+
+$(WISH_EXEC):   oratcl.o tkAppInit.o
+	$(CC) tkAppInit.o $(LIBORATCL) $(TK_LIB) $(TCL_LIB) $(OTHERLIBS) \
+	      $(OCIMILI) $(LIBS) -o $(WISH_EXEC)
+
+$(TCLX_EXEC):	oratcl.o tclXAppInit.o 
+	$(CC) tclXAppInit.o $(LIBORATCL) $(TCLX_LIB) $(TCL_LIB) \
+	    $(TCLXLIBS) $(OTHERLIBS) $(OCIMILI) -o $(TCLX_EXEC)
+
+$(WISHX_EXEC):	oratcl.o tkXAppInit.o
+	$(CC) tkXAppInit.o $(LIBORATCL) $(TKX_LIB) $(TK_LIB) \
+	   $(TCLX_LIB) $(TCL_LIB) $(TKXLIBS) $(OTHERLIBS) $(OCIMILI) \
+	   -o $(WISHX_EXEC)
+
+$(MAN_PAGE):	oratcl.man
+	nroff -man oratcl.man >$(MAN_PAGE)
+
+get-tcl-flags:
+	egrep '^MATH_LIBS'         $(TCL_DIR)/Makefile    >tclflags.mk
+	egrep '^AC_FLAGS'          $(TCL_DIR)/Makefile   >>tclflags.mk
+	egrep '^PROTO_FLAGS'       $(TCL_DIR)/Makefile   >>tclflags.mk
+	egrep '^MEM_DEBUG_FLAGS'   $(TCL_DIR)/Makefile   >>tclflags.mk
+	egrep '^CFLAGS'            $(TCL_DIR)/Makefile   >>tclflags.mk
+	egrep '^X11_INCLUDES'      $(TK_DIR)/Makefile    >>tclflags.mk
+	egrep '^X11_LIB_SWITCHES'  $(TK_DIR)/Makefile    >>tclflags.mk
+	egrep '^LIBS'              $(TK_DIR)/Makefile | \
+	    sed -e 's@libtk.a@$(TK_DIR)/libtk.a@p'       >>tclflags.mk
+	@echo "tclflags.mk made.  check that the following are defined:"
+	@echo "MATH_LIBS  AC_FLAGS  PROTO_FLAGS  MEM_DEBUG_FLAGS  CFLAGS "
+	@echo "X11_INCLUDES  X11_LIB_SWITCHES  LIBS"
+	@echo
+	@echo "tclflags.mk:"
+	@cat   tclflags.mk
+	@echo
+	@echo  'if the flags are suitable, type "make" to build'
+
+#------------------------------------------------------------------------------
+# install targets
+
+install:	$(T_EXEC) $(W_EXEC) $(MAN_PAGE)
+	$(INSTALL_PROGRAM) `pwd`/$(T_EXEC)  $(BIN_DIR)/$(T_EXEC)
+	$(INSTALL_PROGRAM) `pwd`/$(W_EXEC)  $(BIN_DIR)/$(W_EXEC)
+	$(INSTALL_DATA)    `pwd`/$(MAN_PAGE)  $(MANN_DIR)/$(MAN_PAGE)
+	$(INSTALL_DATA)    `pwd`/$(LIBORATCL) $(LIB_DIR)/$(LIBORATCL)
+
+install-wosql:
+	sed -e '1s@^.*$$@#!$(BIN_DIR)/$(W_EXEC)@p' \
+	       <samples/wosql >$(BIN_DIR)/wosql
+	chmod 755 $(BIN_DIR)/wosql
+
+tests:	$(T_EXEC)
+	./$(T_EXEC) oratcl.test
+
+clean:
+	rm -f $(T_EXEC) $(W_EXEC) $(MAN_PAGE) oratcl.o $(LIBORATCL) \
+	      tclXAppInit.c tkXAppInit.c tclXAppInit.o tkXAppInit.o     \
+	      tclAppInit.c  tkAppInit.c  tclAppInit.o  tkAppInit.o  \
+	      config.cache
+	-rm -rf libtmp
+
+###############################################################################
+# end of Makefile
+###############################################################################

@@ -1,0 +1,14 @@
+
+This directory contains the configure and makefile that was shipped with
+Oratcl 2.3, which supported Tcl 7.4  If you are still using Tcl 7.4, this
+configure and makefile might help you.  I've hacked the Oracle searching
+routines to include Oracle 7.3
+
+See the shell script 'run.configure'.  It lists all of the configure options
+for this version.  It also copies the files needed to build oratcl to this
+directory.
+
+Good luck.
+
+Tom Poindexter
+

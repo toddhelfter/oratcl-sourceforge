@@ -1,0 +1,168 @@
+			OSQL
+	      ORACLE Visual SQL Query Tool
+
+---------------------------------------------------------------
+	   Copyright (c) 1996 - POSC
+	  Dan R. Schenck (schenck@posc.org)
+---------------------------------------------------------------
+
+
+CONTENTS
+-----------
+
+		%%hyperhelp_link "INTRODUCTION" Osql.intro Intro%%
+
+		%%hyperhelp_link "COMMAND LINE OPTIONS" Osql.intro Opt%%
+
+		%%hyperhelp_link "ENVIRONMENT VARIABLE SETTINGS" Osql.intro Env%%
+
+		%%hyperhelp_link "GENERAL TOOL LAYOUT" Osql.intro Layout%%
+
+		%%hyperhelp_link "PL/SQL TOOL LAYOUT" Osql.plsql%%
+
+		%%hyperhelp_link "EXCEPTIONAL CONDITIONS" Osql.intro Execpt%%
+
+%%hyperhelp_mark Intro%%
+INTRODUCTION
+----------------
+
+Osql is a tool for executing interactive SQL queries against an
+ORACLE database.
+
+In addition to allowing the entry of adhoc SQL commands, Osql
+has knowledge of ORACLE database objects such as tables, views,
+indexes and procedures.  Information about these objects can be
+displayed by choosing items from the %%
+hyperhelp_link "Objects" Osql.menu Objects%% button of the
+%%hyperhelp_link "menu bar" Osql.menu%%.
+
+%%hyperhelp_mark Opt%%
+COMMAND LINE OPTIONS
+--------------------------
+
+Osql has the following optional command line arguments:
+
+	-u userid	Userid to log in to ORACLE with.  If
+			a userid is given, the correct password
+			must also be given.  Otherwise, an
+			incorrect login will result and a login
+			window will be presented for correct
+			userid/password entry.
+
+	-p password	Password to log in to ORACLE with.  Not
+			valid without corresponding -u
+			argument.
+
+	-i inputfile	File name of SQL commands to execute
+			after initial log in.
+
+%%hyperhelp_mark Env%%
+ENVIRONMENT VARIABLE SETTINGS
+-------------------------------------
+
+Osql always links to the ORACLE instance pointed to by the
+TWO_TASK environment variable. If TWO_TASK is not set, osql
+cannot connect to ORACLE.
+
+%%hyperhelp_mark Layout%%
+GENERAL TOOL LAYOUT
+-------------------------
+
+LOGIN WINDOW
+
+If the -u and -p command line arguments are omitted or are
+incorrect, the user will be presented with a login window
+requesting a userid and password.  Hitting the <Tab> key 
+in the userid field changes input focus to the password
+field.
+
+A login will be attempted if the user hits <Return> in the
+password field or presses the "Ok" button.
+
+The login process may be canceled with the "Cancel" button.
+
+MAIN APPLICATION WINDOW
+
+  -Title Bar-
+  The main application window is titled "OSQL to [TWO_TASK]
+  as [userid]", where:
+
+	[TWO_TASK]	=	Value of TWO_TASK environ-
+				ment variable.
+
+	[userid]		=	Userid that is connected to
+				the ORACLE server.
+
+  -Menu Bar-
+  The main window has a %%
+  hyperhelp_link "menu bar" Osql.menu%% with the following menu
+  buttons:
+
+	%%hyperhelp_link " File " Osql.menu File%%
+
+	%%hyperhelp_link " Props " Osql.menu Props%%
+
+	%%hyperhelp_link " DB Options " Osql.menu Options%%
+
+	%%hyperhelp_link " Objects " Osql.menu Objects%%
+
+	%%hyperhelp_link " Help " Osql.menu Help%%
+
+  -Button Bar-
+  The next frame of the main window has an "Execute SQL" button
+  that, when pressed, causes the text in the SQL statement text
+  entry area to be executed.  Each execution of a SQL statement
+  causes the creation of a %%
+  hyperhelp_link "Results Window" Osql.results%% which holds the output
+  returned from the ORACLE server.
+
+  If a SQL file has been loaded or saved using the menu options,
+  the name of the current save file is shown to the right of the
+  "Execute SQL" button.
+
+  -SQL Text Entry Area-
+  The bottom area of the window is a text entry area for entering
+  SQL statements.  Statements may be typed into the entry area or
+  they may be loaded from a file by using the "Load" option of the
+  %%
+  hyperhelp_link "File" Osql.menu File%% menu or by typing in the first word of the entry area a valid 
+  file name immediately preceded by "@" (e.g. @my_query.sql), 
+  then executing the query.
+
+  Text is always word wrapped for a pleasing display, but newlines
+  are not automatically inserted as words are wrapped.
+
+  Text may contain SQLPlus comments and commands which will
+  be ignored on execution.  An exception is the presence of
+  a substitution variable, which is designated by any number
+  of leading ampersands (i.e. - &low_val).  Upon execution,
+  the user will be prompted for the value of any substitution
+  variables in the SQL text.  To use an ampersand in the SQL
+  statement, escape it with a backslash.  
+
+  Special %%
+  hyperhelp_link "key bindings" Osql.bindings%% are available to assist in editing and
+  submitting SQL text for execution, as well as moving backward
+  and forward through a history list of previously executed
+  queries.  The heading of the text entry area shows what the
+  number of the current query is and how many queries are in
+  the buffer.
+
+  Text in the SQL text entry area may be saved to a file using the
+  "Save" option of the %%
+  hyperhelp_link "File" Osql.menu File%% menu.
+
+%%hyperhelp_mark Execpt%%
+EXCEPTIONAL CONDITIONS
+-------------------------
+
+Errors returned from ORACLE are displayed in a message window
+that may be dismissed with an "OK" button.  The error messages
+are also written to stderr.
+
+
+If more than 5,000 lines or 5,000,000 characters will be returned
+to the user by an ORACLE query, the output will not be displayed
+in the normal manner and the user will be given the option of
+storing the unformatted results into a file.
+

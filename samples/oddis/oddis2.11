@@ -1,0 +1,3463 @@
+#!/usr/local/bin/orawishx7.4 -f
+# Program: oddis_v2.0
+# Tcl version: 7.4 (Tcl/Tk)
+# Tk version: 4.0
+
+# SET THE RIGHT MODULE_PATH HERE !!!!!
+set module_path /usr/local/oddis2.11
+set module_path /home/tpoindex/src/tcl/oddis-2.11
+
+# ODDIS is a tool for administrating Oracle databases
+
+# ODDIS Version v2.1, Copyright (C) 1996 Regine Kasten & University of Hanover.
+# ODDIS Version v2.0, Copyright (C) 1995 Michael Bethke, Axel Schlueter & University of Hanover.
+# ODDIS Version v1.0, Copyright (C) 1995 Rainer Gruetzner & University of Hanover.
+
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+
+# This Program Is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 675 Mass
+# Ave, Cambridge, MA 02139, USA.
+
+#################################################################
+# Procedure for updating Indexfile                              #
+# taken from B.Welch: Practical Programming in Tcl and Tk, p.90 #
+#################################################################
+
+proc Library_UpdateIndex { libdir } {
+  if ![file exists $libdir/tclIndex] {
+     set doit 1
+  } else {
+      set age [file mtime $libdir/tclIndex]
+      set doit 0
+      foreach file [glob $libdir/*.tcl] {
+         if {[file mtime $file] > $age} {
+            set doit 1
+            break
+         }
+      }
+  }
+  if { $doit } {
+     auto_mkindex $libdir *.tcl
+  }
+}
+
+##########################################################################
+# set path of modules, this has to be configured to your own requirements#
+##########################################################################
+
+Library_UpdateIndex $module_path
+lappend auto_path $module_path
+
+
+
+##########################################################
+# initialize global variables                            #
+##########################################################
+
+
+proc InitGlobals {} {
+global {ODv_ArHelp}
+
+
+###############################
+# User-Help                   #
+###############################
+
+
+####################
+# User-Tables      #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrTables)} {All Tables of User. 
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'TABLE'
+order by object_name
+}
+  set {ODv_ArHelp(usrTables,usrColumns)} {Columns of Table.
+
+select column_name, table_name, data_type, data_length,  data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from user_tab_columns
+where table_name = '...'
+order by column_name
+}
+  set {ODv_ArHelp(usrTables,usrIndexes)} {Indexes on Table.
+
+select index_name, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from user_indexes
+where table_name = '...'
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(usrTables,usrViews)} {Dependent Views on Table.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_dependencies d, user_objects o
+where d.referenced_owner = '...' and d.referenced_name = '...'  and d.referenced_type = 'TABLE' and d.name = o.object_name and o.object_type = 'VIEW'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrTables,usrClusters)} {Cluster of Table.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o, user_tables t
+where o.object_type = 'CLUSTER' and t.table_name = '...' and t.cluster_name = o.object_name
+order by o.object_id
+}
+  set {ODv_ArHelp(usrTables,usrTablespaces)} {Tablespace of Table.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from user_tablespaces s, user_tables t
+where t.table_name = '...' and t.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(usrTables,usrExtents)} {Extents of Table.
+
+select extent_id, segment_name, segment_type, tablespace_name, bytes, blocks
+from user_extents
+where segment_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(usrTables,usrSynonyms)} {Synonyms for Table.
+
+select synonym_name, table_owner, table_name, db_link
+from user_synonyms
+where table_owner = '...' and table_name = '...'
+order by synonym_name
+}
+  set {ODv_ArHelp(usrTables,usrConstraints)} {Constraint definitions on Table.
+
+select constraint_name, table_name, owner, constraint_type, r_owner, r_constraint_name, constraint_type
+from user_constraints
+where table_name = '...'
+order by constraint_name, r_owner, r_constraint_name
+}
+  set {ODv_ArHelp(usrTables,usrTriggers)} {Triggers on Table.
+
+select distinct trigger_name, table_owner, table_name, trigger_type, triggering_event, status, referencing_names
+from user_triggers
+where table_name = '...'
+order by trigger_name, table_owner, table_name
+}
+  set {ODv_ArHelp(usrTables,usrRoles)} {Roles with granted privileges on Table.
+
+select role, owner, table_name, privilege, grantable
+from sys.role_tab_privs
+where owner = '...' and table_name = '...'
+order by role, privilege
+}
+  set {ODv_ArHelp(usrTables,usrGrants)} {Grants on Table.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from user_tab_privs
+where owner = '...' and table_name = '...'
+order by grantor,grantee 
+}
+  set {ODv_ArHelp(usrTables,utaDetails)} {Details of Table.
+
+select tablespace_name, pct_free, pct_used, ini_trans, max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, backed_up, num_rows, blocks, empty_blocks, avg_space, chain_cnt, avg_row_len,cluster_name
+from user_tables
+where table_name = '...'
+order by tablespace_name
+}
+  set {ODv_ArHelp(usrTables,utaComments)} {Comments on Table.
+
+select comments 
+from user_tab_comments 
+where table_name = '...' and table_type = 'TABLE' 
+}
+
+ 
+####################
+# User-Columns     #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrColumns)} {All Columns of User.
+
+select column_name, table_name, data_type, data_length, data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from user_tab_columns
+order by table_name, column_name
+}
+  set {ODv_ArHelp(usrColumns,usrTables)} {Table of User containing Column.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_tab_columns c, user_objects o
+where c.table_name = '...' and c.column_name = '...' and o.object_name = '...' and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrColumns,usrIndexes)} {Indexes on Column.
+
+select t.index_name, t.table_owner, t.table_name, t.table_type, t.uniqueness, t.tablespace_name, t.ini_trans,  t.max_trans, t.initial_extent, t.next_extent, t.min_extents, t.max_extents, t.pct_increase, t.pct_free, t.blevel, t.leaf_blocks,  t.distinct_keys, t.avg_leaf_blocks_per_key, t.avg_data_blocks_per_key, t.clustering_factor, t.status
+from user_indexes t, user_ind_columns c
+where t.table_name = '...' and c.table_name = '...' and c.column_name = '...' and t.index_name = c.index_name
+order by t.index_name, t.table_owner, t.table_name
+}
+  set {ODv_ArHelp(usrColumns,usrViews)} {View of User containing Column.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o, user_tab_columns c
+where o.object_name = '...' and o.object_type = 'VIEW' and  c.table_name = '...' and c.column_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrColumns,usrClusterColumns)} {ClusterColumn of Column.
+
+select cluster_name, clu_column_name, table_name, tab_column_name
+from user_clu_columns
+where tab_column_name = '...' and table_name = '...'
+order by cluster_name, clu_column_name
+}
+  set {ODv_ArHelp(usrColumns,usrConstraints)} {Constraints on Column.
+
+select t.constraint_name, t.table_name, t.owner, t.constraint_type, t.r_owner, t.r_constraint_name
+from user_constraints t, user_cons_columns c
+where t.table_name = '...' and c.table_name = '...' and c.column_name = '...'
+order by t.constraint_name, t.r_owner, t.r_constraint_name
+}
+  set {ODv_ArHelp(usrColumns,usrTriggers)} {Triggers on Column.
+
+select distinct t.trigger_name, t.table_owner, t.table_name, t.trigger_type, t.triggering_event, t.status, t.referencing_names
+from user_triggers t, user_trigger_cols c
+where t.table_owner = c.table_owner and t.table_name = '...' and c.table_name = '...' and t.trigger_name = c.trigger_name and c.column_name = '...'
+order by t.trigger_name, t.table_owner, t.table_name
+}
+  set {ODv_ArHelp(usrColumns,usrGrants)} {Grants on Column.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from user_col_privs
+where owner = '...' and grantee = '...' and table_name = '...' and column_name = '...'
+order by grantor
+}
+  set {ODv_ArHelp(usrColumns,ucoComments)} {Comments on Column.
+
+select comments 
+from user_col_comments 
+where table_name = '...' and column_name = '...' 
+}
+
+
+####################
+# User-Indexes     #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrIndexes)} {All Indexes of User.
+
+select index_name, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from user_indexes
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(usrIndexes,usrTables)} {Table related to Index.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_indexes i, user_objects o
+where i.index_name = '...' and o.object_name = i.table_name and o.object_type = 'TABLE'
+order by o.object_name
+} 
+  set {ODv_ArHelp(usrIndexes,usrColumns)} {Columns related to Index.
+
+select t.column_name, t.table_name, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from user_tab_columns t, user_ind_columns i
+where i.index_name = '...' and t.table_name = i.table_name and t.column_name = i.column_name
+order by t.table_name, t.column_name
+}
+  set {ODv_ArHelp(usrIndexes,usrTablespaces)} {Tablespace of Index.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from user_tablespaces s, user_indexes i
+where i.index_name = '...' and i.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(usrIndexes,usrExtents)} {Extents of Index.
+
+select extent_id, segment_name, segment_type, tablespace_name, bytes, blocks
+from user_extents
+where segment_name = '...'
+order by segment_name, extent_id
+}
+
+
+####################
+# User-Views       #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrViews)} {All Views of User.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'VIEW'
+order by object_name
+}
+  set {ODv_ArHelp(usrViews,usrTables)} {Base-Tables of View.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_dependencies d, user_objects o
+where d.referenced_owner = '...' and d.name = '...' and d.referenced_type = 'TABLE' and d.referenced_name = o.object_name and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrViews,usrColumns)} {Columns of View.
+
+select column_name, table_name, data_type, data_length,  data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from user_tab_columns
+where table_name = '...'
+order by column_name
+}
+  set {ODv_ArHelp(usrViews,uviBaseviews)} {Base-Views of View.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_dependencies d, user_objects o
+where d.name = '...' and d.referenced_type = 'VIEW' and d.referenced_name = o.object_name and d.referenced_owner = '...' and o.object_type = 'VIEW'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrViews,uviDependentviews)} {Dependent-Views on View.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_dependencies d, user_objects o
+where d.referenced_owner = '...' and d.referenced_name = '...' and d.referenced_type = 'VIEW' and o.object_name = d.name and o.object_type = 'VIEW'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrViews,uviBaseobjects)} {Base-Objects of View.
+
+select referenced_owner, referenced_name, referenced_type
+from user_dependencies
+where name = '...'
+order by referenced_name
+}
+  set {ODv_ArHelp(usrViews,usrSynonyms)} {Synonyms for View.
+
+select synonym_name, table_owner, table_name, db_link
+from user_synonyms
+where table_owner = '...' and table_name = '...'
+order by synonym_name
+}
+  set {ODv_ArHelp(usrViews,usrGrants)} {Grants on View.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from user_tab_privs
+where owner = '...' and table_name = '...'
+order by grantor,grantee 
+}
+  set {ODv_ArHelp(usrViews,uviText)} {Text of View.
+
+select text
+from user_views
+where view_name = '...'
+}
+  set {ODv_ArHelp(usrViews,uviComments)} {Comments on View.
+
+select comments 
+from user_tab_comments 
+where table_name = '...' and table_type = 'VIEW' 
+}
+
+
+####################
+# User-Clusters    #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrClusters)} {All Clusters of User.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'CLUSTER'
+order by object_id
+}
+  set {ODv_ArHelp(usrClusters,usrTables)} {Tables of Cluster.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_tables t, user_objects o
+where t.cluster_name = '...' and o.object_name = t.table_name and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrClusters,usrClusterColumns)} {Columns of Cluster.
+
+select cluster_name, clu_column_name, table_name, tab_column_name
+from user_clu_columns
+where cluster_name = '...'
+order by clu_column_name, table_name, tab_column_name
+}
+  set {ODv_ArHelp(usrClusters,usrTablespaces)} {Tablespace of Cluster.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from user_tablespaces s, user_clusters c
+where c.cluster_name = '...' and c.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(usrClusters,usrExtents)} {Extents of Cluster.
+
+select extent_id, segment_name, segment_type, tablespace_name, bytes, blocks
+from user_extents
+where segment_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(usrClusters,usrSynonyms)} {Synonyms for Cluster.
+
+select synonym_name, table_owner, table_name, db_link
+from user_synonyms
+where table_owner = '...' and table_name = '...'
+order by synonym_name
+}
+  set {ODv_ArHelp(usrClusters,uclDetails)} {Details of Cluster.
+
+select cluster_name, tablespace_name,  pct_free, pct_used, key_size, ini_trans, max_trans, initial_extent, next_extent, min_extents, max_extents,  pct_increase, avg_blocks_per_key, cluster_type,  function, hashkeys
+from user_clusters
+where cluster_name = '...'
+order by tablespace_name
+}
+
+
+#######################
+# User-ClusterColumns #
+#######################
+
+
+  set {ODv_ArHelp(usrClusterColumns,usrTables)} {Referenced Table of ClusterColumn.
+
+select object_id, created, status, object_name
+from user_objects
+where object_name = '...' and object_type = 'TABLE'
+}
+  set {ODv_ArHelp(usrClusterColumns,usrColumns)} {Referenced Column of ClusterColumn.
+
+select column_name, table_name, data_type, data_length, data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from user_tab_columns
+where table_name = '...' and column_name = '...'
+order by column_name
+}
+  set {ODv_ArHelp(usrClusterColumns,usrClusters)} {Cluster of ClusterColumn.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'CLUSTER' and object_name = '...'
+order by object_id
+}
+
+
+####################
+# User-Tablespaces #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrTablespaces)} {All Tablespaces containing Extents of User.
+
+select distinct t.tablespace_name, t.initial_extent, t.next_extent, t.min_extents, t.max_extents, t.pct_increase, t.status
+from user_tablespaces t, user_extents e
+where t.tablespace_name = e.tablespace_name
+order by tablespace_name
+}
+  set {ODv_ArHelp(usrTablespaces,usrTables)} {Tables in Tablespace.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o, user_tables t
+where o.object_type = 'TABLE' and t.tablespace_name = '...' and o.object_name = t.table_name
+order by o.object_name
+}
+  set {ODv_ArHelp(usrTablespaces,usrIndexes)} {Indexes in Tablespace.
+
+select index_name, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from user_indexes
+where tablespace_name = '...'
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(usrTablespaces,usrClusters)} {Clusters in Tablespace.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o, user_clusters c
+where o.object_type = 'CLUSTER' and o.object_name = c.cluster_name and c.tablespace_name = '...'
+order by object_id
+}
+  set {ODv_ArHelp(usrTablespaces,usrExtents)} {Extents in Tablespace.
+
+select extent_id, segment_name, segment_type, tablespace_name, bytes, blocks
+from user_extents
+where tablespace_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(usrTablespaces,utsUserquota)} {User-Quota for Tablespace.
+
+select bytes, max_bytes, blocks, max_blocks
+from user_ts_quotas
+where tablespace_name = '...'
+}
+  set {ODv_ArHelp(usrTablespaces,utsSegments)} {Segments in Tablespace.
+
+select segment_name, segment_type, bytes, blocks, extents, initial_extent, next_extent, min_extents, max_extents, pct_increase, freelists, freelist_groups
+from user_segments
+where tablespace_name = '...'
+order by segment_name, segment_type
+}
+
+
+############################
+# User-Extents             #
+############################
+
+
+  set {ODv_ArHelp(usrUser,usrExtents)} {All Extents of User.
+
+select extent_id, segment_name, segment_type, tablespace_name, bytes, blocks
+from user_extents
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(usrExtents,usrTables)} {Table of Extent.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'TABLE' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(usrExtents,usrIndexes)} {Index of Extent.
+
+select index_name, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from user_indexes
+where index_name = '...'
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(usrExtents,usrClusters)} {Cluster of Extent.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'CLUSTER' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(usrExtents,usrTablespaces)} {Tablespace of Extent.
+
+select tablespace_name, initial_extent, next_extent, min_extents, max_extents, pct_increase, status
+from user_tablespaces
+where tablespace_name = '...'
+order by tablespace_name
+}
+
+
+############################
+# User-Sequences           #
+############################
+
+
+  set {ODv_ArHelp(usrUser,uusSequences)} {All Sequences of User.
+
+select sequence_name, min_value, max_value, increment_by,  cycle_flag, order_flag, cache_size, last_number
+from user_sequences
+order by sequence_name
+}
+
+
+############################
+# User-DB-Links            #
+############################
+
+
+  set {ODv_ArHelp(usrUser,uusDblinks)} {All Database-Links of User.
+
+select username, created, db_link, host
+from user_db_links
+order by username, host
+}
+
+
+############################
+# User-Synonyms            #
+############################
+
+
+  set {ODv_ArHelp(usrUser,usrSynonyms)} {All Synonyms of User.
+
+select synonym_name, table_owner, table_name,  db_link
+from user_synonyms
+order by synonym_name, table_owner, table_name
+}
+  set {ODv_ArHelp(usrSynonyms,usrTables)} {Table of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o
+where o.object_type = 'TABLE' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrSynonyms,usrViews)} {View of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o
+where o.object_type = 'VIEW' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrSynonyms,usrClusters)} {Cluster of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_objects o
+where o.object_type = 'CLUSTER' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrSynonyms,usyDblinks)} {Database-Link of Synonym.
+
+select username, created, db_link, host
+from user_db_links
+where db_link = '...'
+order by username, host
+}
+
+
+############################
+# User-Constraints         #
+############################
+
+
+  set {ODv_ArHelp(usrUser,usrConstraints)} {Constraints of user.
+
+select constraint_name, table_name, owner, constraint_type, r_owner, r_constraint_name, search_condition 
+from user_constraints 
+order by constraint_name, r_owner, r_constraint_name
+}
+  set {ODv_ArHelp(usrConstraints,usrTables)} {Table in Constraint definition.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'TABLE' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(usrConstraints,usrColumns)} {Columns in Constraint definition.
+
+select t.column_name, t.table_name, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from user_tab_columns t, user_cons_columns c
+where c.constraint_name = '...' and c.table_name = t.table_name and t.column_name = c.column_name
+order by t.column_name
+}
+
+
+############################
+# User-Triggers/Procedures #
+############################
+
+
+  set {ODv_ArHelp(usrUser,usrTriggers)} {All Triggers of User.
+
+select distinct trigger_name, table_owner, table_name, trigger_type, triggering_event, status, referencing_names
+from user_triggers
+order by trigger_name, table_name
+}
+  set {ODv_ArHelp(usrTriggers,usrTables)} {Table related to Trigger.
+
+select o.object_id, o.created, o.status, o.object_name
+from user_triggers t, user_objects o
+where t.table_name = '...' and t.trigger_name = '...' and o.object_name = '...' and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrTriggers,usrColumns)} {Columns related to Trigger.
+
+select t.column_name, t.table_name, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from user_tab_columns t, user_trigger_cols c
+where t.table_name = '...' and c.trigger_name = '...' and c.table_name = '...' and  t.column_name = c.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(usrTriggers,utrDescription)} {Description of Trigger.
+
+select description
+from user_triggers
+where trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(usrTriggers,utrWhen)} {When-clause of Trigger.
+
+select when_clause
+from user_triggers
+where trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(usrTriggers,utrBody)} {Body of Trigger.
+
+select trigger_body
+from user_triggers
+where trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(usrUser,uusProcedures)} {All Procedures, Funtions and Packages  of User.
+
+select distinct name, type
+from user_source
+order by name
+}
+  set {ODv_ArHelp(usrUser,uusProcSource)} {Source text of Procedure, Function or Package.
+
+select text
+from user_source
+where name = '...'
+order by line
+}
+
+#########################
+# User-Roles/Privileges #
+#########################
+
+
+  set {ODv_ArHelp(usrUser,usrRoles)} {Roles granted to User.
+
+select role
+from session_roles
+order by role
+}
+  set {ODv_ArHelp(usrRoles,usrTables)} {Tables with Privileges granted to Role.
+
+select o.object_id, o.created, o.status, o.object_name
+from sys.user_objects o, sys.role_tab_privs r
+where o.object_type = 'TABLE' and r.role = '...' and o.object_name = r.table_name and r.owner = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(usrRoles,uroPrivileges)} {Privileges of Role.
+
+select privilege, admin_option
+from role_sys_privs
+where role = '...'
+order by privilege
+}
+  set {ODv_ArHelp(usrUser,uusPrivileges)} {Privileges granted to User or his Roles.
+
+select privilege
+from session_privs
+order by privilege
+}
+
+set {ODv_ArHelp(usrUser,uusDevices)} {Objects with Devices of User
+
+select distinct e.extent_id, e.blocks, e.tablespace_name, u.file_id, d.device_id 
+from user_extents e, user_free_space u, sys.device_dfile$ d 
+where u.file_id = d.file_id and e.tablespace_name = u.tablespace_name and e.segment_name = '...' 
+order by e.extent_id, u.file_id
+}
+
+
+####################
+# User-Grants      #
+####################
+
+
+  set {ODv_ArHelp(usrUser,usrGrants)} {Grants to(by) User.
+
+select grantee, owner, table_name, grantor, privilege,  grantable
+from user_tab_privs
+where grantee(grantor) = '...'
+order by owner, table_name, grantee
+}
+  set {ODv_ArHelp(usrGrants,usrTables)} {Table with Grant on it.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'TABLE'  and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(usrGrants,usrColumns)} {Column with Grant on it.
+
+select t.column_name, t.table_name, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from user_tab_columns t, user_col_privs g
+where t.table_name = '...' and g.owner = '...' and g.table_name = '...' and g.grantee = '...' and g.grantor = '...' and t.column_name = g.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(usrGrants,usrViews)} {View with Grant on it.
+
+select object_id, created, status, object_name
+from user_objects
+where object_type = 'VIEW'  and object_name = '...'
+order by object_name
+}
+
+
+###############################
+# AllObjects-Help             #
+###############################
+
+
+####################
+# ALL-Tables       #
+####################
+
+
+  set {ODv_ArHelp(allObjects,allTables)} {All Tables accessible to User.
+
+select object_id, created, status, object_name, owner
+from all_objects
+where object_type = 'TABLE'
+order by owner, object_name
+}
+  set {ODv_ArHelp(allTables,allColumns)} {Columns of Table.
+
+select column_name, table_name, owner, data_type, data_length,  data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from all_tab_columns
+where table_name = '...' and owner = '...'
+order by column_id
+}
+  set {ODv_ArHelp(allTables,allIndexes)} {Indexes on Table.
+
+select index_name, owner, table_owner, table_name, table_type, uniqueness, tablespace_name, ini_trans, max_trans,  initial_extent, next_extent,  min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys,  avg_leaf_blocks_per_key, avg_data_blocks_per_key,  clustering_factor, status
+from all_indexes
+where owner = '...' and table_name = '...'
+order by index_name, table_owner, tablespace_name
+}
+  set {ODv_ArHelp(allTables,allViews)} {Dependent Views on Table.
+
+select o.object_id, o.created, o.status, o.Object_name, o.owner
+from sys.all_dependencies d, sys.all_objects o
+where d.referenced_owner = '...' and d.referenced_name = '...'  and d.referenced_type = 'TABLE' and d.owner = o.owner and d.name = o.object_name and o.object_type = 'VIEW'
+order by o.owner, o.object_name
+}
+  set {ODv_ArHelp(allTables,allTablespaces)} {Tablespace of Table.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from user_tablespaces s, all_tables t
+where t.owner = '...' and t.table_name = '...' and t.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(allTables,allSynonyms)} {Synonyms for Table.
+
+select synonym_name, owner, table_owner, table_name, db_link
+from all_synonyms
+where table_owner = '...' and table_name = '...'
+order by synonym_name, owner
+}
+  set {ODv_ArHelp(allTables,allConstraints)} {Constraint definitions on Table.
+
+select constraint_name, table_name, owner,constraint_type, r_owner, r_constraint_name
+from all_constraints
+where owner = '...' and table_name = '...'
+order by constraint_name, r_owner, r_constraint_name
+}
+  set {ODv_ArHelp(allTables,allTriggers)} {Triggers related to Table.
+
+select distinct trigger_name, owner, table_owner, table_name, trigger_type, triggering_event, status, referencing_names
+from all_triggers
+where table_owner = '...' and table_name = '...'
+order by trigger_name, table_owner, table_name
+}
+  set {ODv_ArHelp(allTables,allGrants)} {Grants to User on Table.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from all_tab_privs_recd
+where owner = '...' and table_name = '...'
+order by grantee,grantor 
+
+OR
+
+Grants by User on Table.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from all_tab_privs_made
+where owner = '...' and table_name = '...'
+order by grantee,grantor 
+}
+  set {ODv_ArHelp(allTables,ataDetails)} {Details of Table.
+
+select tablespace_name, pct_free, pct_used, ini_trans, max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, backed_up, num_rows, blocks, empty_blocks, avg_space, chain_cnt, avg_row_len,cluster_name
+from all_tables
+where owner = '...' and table_name = '...'
+order by tablespace_name
+}
+  set {ODv_ArHelp(allTables,ataComments)} {Comments on Table.
+
+select comments 
+from all_tab_comments 
+where owner = '...' and table_name = '...' and table_type = 'TABLE' 
+}
+
+
+#####################
+# ALL-Columns       #
+#####################
+
+
+  set {ODv_ArHelp(allObjects,allColumns)} {All Columns accessible to User.
+
+select column_name, table_name, owner, data_type, data_length,  data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from all_tab_columns
+order by owner, table_name, column_name
+}
+  set {ODv_ArHelp(allColumns,allTables)} {Table containing Column.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_tab_columns c, all_objects o
+where c.owner = '...' and c.table_name = '...' and c.column_name = '...' and o.object_name = '...' and o.owner = '...' and o.object_type = 'TABLE'
+order by c.table_name
+}
+  set {ODv_ArHelp(allColumns,allIndexes)} {Indexes on Column.
+
+select i.index_name, i.owner, i.table_owner, i.table_name, i.table_type, i.uniqueness, i.tablespace_name, i.ini_trans, i.max_trans, i.initial_extent, i.next_extent, i.min_extents, i.max_extents, i.pct_increase, i.pct_free, i.blevel, i.leaf_blocks, i.distinct_keys, i.avg_leaf_blocks_per_key, i.avg_data_blocks_per_key, i.clustering_factor, i.status
+from all_indexes i, all_ind_columns c
+where i.owner = '...' and c.index_owner = '...' and i.table_name = '...' and c.table_name = '...' and c.column_name = '...' and i.index_name = c.index_name
+order by i.index_name, i.table_owner, i.tablespace_name
+}
+  set {ODv_ArHelp(allColumns,allViews)} {View containing Column.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_objects o, all_tab_columns c
+where  c.owner = '...' and c.table_name = '...' and c.column_name = '...' and o.object_name = '...' and o.owner = '...' and o.object_type = 'VIEW' 
+order by o.object_name
+}
+  set {ODv_ArHelp(allColumns,allConstraints)} {Constraint definitions on Column.
+
+select t.constraint_name, t.table_name, t.owner, t.constraint_type, t.r_owner, t.r_constraint_name
+from all_constraints t, all_cons_columns c
+where t.table_name = '...' and c.table_name = '...' and c.column_name = '...'
+order by t.constraint_name, t.r_owner, t.r_constraint_name
+}
+  set {ODv_ArHelp(allConstraints,allColumns)} {Columns in Constraint definition.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from all_tab_columns t, all_cons_columns c
+where t.table_name = '...' and c.table_name = '...' and t.owner = '...' and c.owner = '...' and c.constraint_name = '...' and c.column_name = t.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(allColumns,allTriggers)} {Triggers on Column.
+
+select distinct t.trigger_name, t.owner, t.table_owner, t.table_name, t.trigger_type, t.triggering_event, t.status, t.referencing_names
+from all_triggers t, all_trigger_cols c
+where t.table_owner = '...' and c.table_owner = '...' and t.table_name = '...' and c.table_name = '...' and t.trigger_name = c.trigger_name and t.owner = c.trigger_owner and c.column_name = '...'
+order by t.trigger_name, t.table_owner, t.table_name
+}
+  set {ODv_ArHelp(allColumns,allGrants)} {Grants to User on Column.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from all_col_privs_recd
+where owner = '...' and table_name = '...' and column_name = '...'
+order by grantee
+
+OR
+
+Grants by User on Column.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from all_col_privs_made
+where owner = '...' and table_name = '...' and column_name = '...'
+order by grantee
+}
+  set {ODv_ArHelp(allColumns,acoComments)} {Comments on Column.
+
+select comments 
+from all_col_comments 
+where column_name = '...' and owner = '...' and table_name = '...' 
+}
+
+
+#####################
+# ALL-Indexes       #
+#####################
+
+
+  set {ODv_ArHelp(allObjects,allIndexes)} {All Indexes accessible to User.
+
+select i.index_name, i.owner, i.table_owner, i.table_name, i.table_type, i.uniqueness, i.tablespace_name, i.ini_trans, i.max_trans, i.initial_extent, i.next_extent, i.min_extents, i.max_extents, i.pct_increase, i.pct_free, i.blevel, i.leaf_blocks, i.distinct_keys, i.avg_leaf_blocks_per_key, i.avg_data_blocks_per_key, i.clustering_factor, i.status
+from all_indexes i
+order by i.owner, i.index_name, i.table_owner, i.tablespace_name
+}
+  set {ODv_ArHelp(allIndexes,allTables)} {Tables related to Index.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_indexes i, all_objects o
+where i.owner = '...' and i.index_name = '...' and o.owner = i.table_owner and i.table_name = o.object_name and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(allIndexes,allColumns)} {Columns related to Index.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length,  t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from all_tab_columns t, all_ind_columns i
+where i.index_name = '...' and i.index_owner = '...' and t.table_name = i.table_name and t.owner = i.table_owner and t.column_name = i.column_name
+order by t.owner, t.table_name, t.column_name
+}
+  set {ODv_ArHelp(allIndexes,allTablespaces)} {Tablespace of Index.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from user_tablespaces s, all_indexes i
+where i.owner = '...' and i.index_name = '...' and i.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+
+
+#####################
+# ALL-Views         #
+#####################
+
+
+  set {ODv_ArHelp(allObjects,allViews)} {All Views accessible to User. 
+
+select object_id, created, status, object_name, owner
+from sys.all_objects
+where object_type = 'VIEW'
+order by owner, object_name
+}
+  set {ODv_ArHelp(allViews,allTables)} {Base-Tables of View.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_dependencies d, all_objects o
+where d.owner = '...' and d.name = '...' and d.referenced_type = 'TABLE' and d.referenced_owner = o.owner and d.referenced_name = o.object_name and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(allViews,allColumns)} {Columns of View.
+
+select column_name, table_name, owner, data_type, data_length,  data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from all_tab_columns
+where table_name = '...' and owner = '...'
+order by column_id
+}
+  set {ODv_ArHelp(allViews,aviBaseviews)} {Base-Views of View.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.all_dependencies d, sys.all_objects o
+where d.owner = '...' and d.name = '...' and d.referenced_type = 'VIEW' and o.owner = d.referenced_owner and o.object_name = d.referenced_name and o.object_type = 'VIEW'
+order by o.owner, o.object_name
+}
+  set {ODv_ArHelp(allViews,aviDependentviews)} {Dependent-Views on View.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.all_dependencies d, sys.all_objects o
+where d.referenced_owner = '...' and d.referenced_name = '...' and d.referenced_type = 'VIEW' and o.owner = d.owner and o.object_name = d.name and o.object_type = 'VIEW'
+order by o.owner, o.object_name
+}
+  set {ODv_ArHelp(allViews,aviBaseobjects)} {Base-Objects of View.
+
+select referenced_owner, referenced_name, referenced_type
+from all_dependencies
+where owner = '...' and name = '...'
+order by referenced_name
+}
+  set {ODv_ArHelp(allViews,allSynonyms)} {Synonyms for View.
+
+select synonym_name, owner, table_owner, table_name, db_link
+from all_synonyms
+where table_owner = '...' and table_name = '...'
+order by synonym_name, owner
+}
+  set {ODv_ArHelp(allViews,allGrants)} {Grants to User on View.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from all_tab_privs_recd
+where owner = '...' and table_name = '...'
+order by grantee,grantor 
+
+OR
+
+Grants by User on View.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from all_tab_privs_made
+where owner = '...' and table_name = '...'
+order by grantee,grantor 
+}
+  set {ODv_ArHelp(allViews,aviText)} {Text of View.
+
+select text
+from all_views
+where view_name = '...' and owner = '...'
+}
+  set {ODv_ArHelp(allViews,aviComments)} {Comments on View.
+
+select comments 
+from all_tab_comments 
+where owner = '...' and table_name = '...' and table_type = 'VIEW' 
+}
+
+
+###########################
+# ALL-Tablespaces         #
+###########################
+
+
+  set {ODv_ArHelp(allObjects,allTablespaces)} {All Tablespaces accessible to User.
+
+select tablespace_name, initial_extent, next_extent,  min_extents, max_extents, pct_increase, status
+from user_tablespaces
+order by tablespace_name
+}
+  set {ODv_ArHelp(allTablespaces,allTables)} {All accessible Tables in Tablespace.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_objects o, sys.dba_tables t
+where o.object_type = 'TABLE' and t.tablespace_name = '...' and o.object_name = t.table_name
+order by o.object_name
+}
+  set {ODv_ArHelp(allTablespaces,allIndexes)} {All accessible Indexes in Tablespace.
+
+select index_name, owner, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from all_indexes
+where tablespace_name = '...'
+order by index_name, table_owner, table_name
+}
+
+
+###########################
+# ALL-Sequences           #
+###########################
+
+
+  set {ODv_ArHelp(allObjects,aobSequences)} {All Sequences accessible to User.
+
+select sequence_name, sequence_owner, min_value, max_value, increment_by,  cycle_flag, order_flag, cache_size, last_number
+from all_sequences
+order by sequence_owner, sequence_name
+}
+
+
+###########################
+# ALL-DB-Links            #
+###########################
+
+
+  set {ODv_ArHelp(allObjects,aobDblinks)} {All Database-Links accessible to User.
+
+select owner, username, created, db_link, host
+from all_db_links
+order by owner, username, host
+}
+
+
+###########################
+# ALL-Synonyms            #
+###########################
+
+
+  set {ODv_ArHelp(allObjects,allSynonyms)} {All Synonyms accessible to User.
+
+select synonym_name, owner, table_owner, table_name,  db_link
+from all_synonyms
+order by owner, synonym_name, table_owner, table_name
+}
+  set {ODv_ArHelp(allSynonyms,allTables)} {Table of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_objects o where o.object_type = 'TABLE' and o.owner = '...' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(allSynonyms,allViews)} {View of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_objects o where o.object_type = 'VIEW' and o.owner = '...' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(allSynonyms,asyDblinks)} {Database-Links of Synonym.
+
+select owner, username, created, db_link, host
+from all_db_links
+where owner = '...'  and db_link = '...'
+order by owner, username, host
+}
+
+
+###########################
+# ALL-Constraints         #
+###########################
+
+
+  set {ODv_ArHelp(allConstraints,allTables)} {Table in constraint definition.
+
+select object_id, created, status, object_name, owner
+from all_objects
+where object_type = 'TABLE' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(allConstraints,allColumns)} {Columns in constraint definition.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from all_tab_columns t, all_cons_columns c
+where c.constraint_name = '...' and t.owner = '...' and c.owner = '...' and c.table_name = t.table_name and t.column_name = c.column_name
+order by t.column_name
+}
+
+
+###########################
+# ALL-Triggers/Procedures #
+###########################
+
+
+  set {ODv_ArHelp(allObjects,allTriggers)} {All Triggers accessible to User.
+
+select distinct trigger_name, owner, table_owner, table_name, trigger_type, triggering_event, status, referencing_names
+from all_triggers
+order by trigger_name, table_name
+}
+  set {ODv_ArHelp(allTriggers,allTables)} {Table related to Trigger.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from all_triggers t, all_objects o
+where t.table_owner = '...' and t.table_name = '...' and t.trigger_name = '...' and o.object_name = '...' and o.owner = '...' and o.object_type = 'TABLE'
+order by o.object_name
+}
+  set {ODv_ArHelp(allTriggers,allColumns)} {Columns related to Trigger.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from all_tab_columns t, all_trigger_cols c
+where t.owner = '...'  and t.table_name = '...' and c.trigger_name = '...' and c.table_owner = '...' and c.table_name = '...' and c.trigger_owner = '...' and c.column_name = t.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(allTriggers,atrDescription)} {Description of Trigger.
+
+select description
+from all_triggers
+where owner = '...' and trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(allTriggers,atrWhen)} {When-clause of Trigger.
+
+select when_clause
+from all_triggers
+where owner = '...' and trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(allTriggers,atrBody)} {Body of Trigger.
+
+select trigger_body
+from all_triggers
+where owner = '...' and trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(allObjects,aobProcedures)} {All Procedures, Funtions and Packages accessible to User.
+
+select distinct owner, name, type
+from all_source
+order by owner, name
+}
+  set {ODv_ArHelp(allObjects,aobProcSource)} {Source text of Procedure, Funtion or Package.
+
+select text
+from all_source
+where owner = '...' and name = '...'
+order by line
+}
+
+
+#####################
+# ALL-Grants        #
+#####################
+
+
+  set {ODv_ArHelp(allObjects,allGrants)} {Grants to User on accessible Objects.
+ 
+select grantee, owner, table_name, grantor, privilege,  grantable
+from all_tab_privs_recd
+order by owner, table_name, grantee
+
+OR
+
+Grants by User on accessible Objects.
+
+select grantee, owner, table_name, grantor, privilege,  grantable
+from all_tab_privs_made 
+order by owner, table_name, grantee
+}
+  set {ODv_ArHelp(allGrants,allTables)} {Table with Grant on it.
+
+select object_id, created, status, object_name, owner
+from all_objects
+where object_type = 'TABLE' and owner = '...' and object_name = '...'
+order by object_name
+} 
+  set {ODv_ArHelp(allGrants,allColumns)} {Columns with Grant on it.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from all_tab_columns t, all_col_privs g
+where t.table_name = '...' and t.owner = '...' and g.table_name = '...' and g.grantee = '...' and g.grantor = '...' and t.column_name = g.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(allGrants,allViews)} {View with Grant on it.
+
+select object_id, created, status, object_name, owner
+from all_objects
+where object_type = 'VIEW' and owner = '...' and object_name = '...'
+order by owner, object_name
+}
+
+
+#########################################
+# System-Help                           #
+#########################################
+
+
+#########################
+# System-User           #
+#########################
+
+
+  set {ODv_ArHelp(sysSystem,sysUser)} {All Users in database.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+order by username
+}
+
+
+##########################
+# System-User-Tables     #
+##########################
+
+  set {ODv_ArHelp(sysUser,sysTables)} {All Tables of User.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'TABLE' and owner = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysTables,sysColumns)} {Columns of Table.
+
+select column_name, table_name, owner, data_type, data_length, data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from sys.dba_tab_columns
+where owner = '...'  and table_name = '...'
+order by column_name
+}
+  set {ODv_ArHelp(sysTables,sysIndexes)} {Indexes on Table.
+
+select index_name, owner, table_owner, table_name, table_type, uniqueness, tablespace_name, ini_trans, max_trans,  initial_extent, next_extent,  min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys,  avg_leaf_blocks_per_key, avg_data_blocks_per_key,  clustering_factor, status
+from sys.dba_indexes
+where owner = '...' and table_name = '...'
+order by index_name, table_owner, tablespace_name
+}
+  set {ODv_ArHelp(sysTables,sysViews)} {Dependent Views on Table.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_dependencies d, sys.dba_objects o
+where d.referenced_owner = '...' and d.referenced_name = '...'  and d.referenced_type = 'TABLE' and o.object_name = d.name and d.owner = o.owner and o.object_type = 'VIEW'
+order by o.owner, o.object_id
+}
+  set {ODv_ArHelp(sysTables,sysClusters)} {Cluster of Table.
+
+select o.object_id, o.created, o.status, o.object_name ,o.owner
+from sys.dba_objects o, sys.dba_tables t
+where o.object_type = 'CLUSTER' and t.owner = '...' and t.table_name = '...' and t.cluster_name = o.object_name
+order by o.object_id
+}
+  set {ODv_ArHelp(sysTables,sysTablespaces)} {Tablespace of Table.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from sys.dba_tablespaces s, sys.dba_tables t
+where t.owner = '...' and t.table_name = '...' and t.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(sysTables,sysExtents)} {Extents of Table.
+
+select extent_id, segment_name, owner, segment_type, tablespace_name, file_id, block_id, bytes, blocks
+from sys.dba_extents
+where owner = '...' and segment_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(sysTables,sysSynonyms)} {Synonyms for Table.
+
+select synonym_name, owner, table_owner, table_name, db_link
+from sys.dba_synonyms
+where owner = '...' and table_name = '...'
+order by synonym_name, table_owner
+}
+  set {ODv_ArHelp(sysTables,sysConstraints)} {Constraint definitions on Table.
+
+select constraint_name, table_name, owner, constraint_type, r_owner, r_constraint_name
+from sys.dba_constraints
+where owner = '...' and table_name = '...'
+order by constraint_name, r_owner, r_constraint_name
+}
+  set {ODv_ArHelp(sysTables,sysTriggers)} {Triggers on Table.
+
+select distinct trigger_name, owner, table_owner, table_name, trigger_type, triggering_event, status, referencing_names
+from sys.dba_triggers
+where table_owner = '...' and table_name = '...'
+order by trigger_name, table_owner, table_name
+}
+  set {ODv_ArHelp(sysTables,sysRoles)} {Roles with granted Privileges on Table.
+
+select role, owner, table_name, privilege, grantable
+from sys.role_tab_privs
+where owner = '...' and table_name = '...'
+order by role, privilege
+}
+  set {ODv_ArHelp(sysTables,sysGrants)} {Grants on Table.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from sys.dba_tab_privs  
+where owner = '...' and table_name = '...'
+order by grantor
+}
+  set {ODv_ArHelp(sysTables,staDetails)} {Details of Table.
+
+select tablespace_name, pct_free, pct_used, ini_trans, max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, backed_up, num_rows, blocks, empty_blocks, avg_space, chain_cnt, avg_row_len, cluster_name
+from sys.dba_tables
+where owner = '...' and table_name = '...'
+order by tablespace_name
+}
+  set {ODv_ArHelp(sysTables,staComments)} {Comments on Table.
+
+select comments 
+from sys.dba_tab_comments 
+where owner = '...' and table_name = '...' and table_type = 'TABLE' 
+}
+  set {ODv_ArHelp(sysTables,sysUser)} {Owner of Table.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+##########################
+# System-User-Columns    #
+##########################
+
+  set {ODv_ArHelp(sysUser,sysColumns)} {All Columns of User.
+
+select column_name, table_name, owner, data_type, data_length, data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from sys.dba_tab_columns
+where owner = '...'
+order by column_name
+}
+  set {ODv_ArHelp(sysColumns,sysTables)} {Table containing Column.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.dba_tab_columns c
+where o.owner = '...' and o.object_name = '...' and o.object_type = 'TABLE' and c.owner = '...' and c.table_name = '...' and c.column_name = '...' order by o.object_name
+}
+  set {ODv_ArHelp(sysColumns,sysViews)} {View containing Column.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.dba_tab_columns c
+where o.owner = '...' and o.object_name = '...' and o.object_type = 'VIEW' and c.owner = '...' and c.table_name = '...' and c.column_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(sysColumns,sysIndexes)} {Indexes on Column.
+
+select t.index_name, t.owner, t.table_owner, t.table_name, t.table_type, t.uniqueness, t.tablespace_name, t.ini_trans, t.max_trans, t.initial_extent, t.next_extent, t.min_extents, t.max_extents, t.pct_increase, t.pct_free, t.blevel, t.leaf_blocks, t.distinct_keys, t.avg_leaf_blocks_per_key, t.avg_data_blocks_per_key,  t.clustering_factor, t.status
+from sys.dba_indexes t , sys.dba_ind_columns c
+where t.owner = '...' and c.index_owner = '...' and t.table_name = '...' and c.table_name = '...' and c.column_name = '...' and t.index_name = c.index_name
+order by t.index_name, t.table_owner, t.tablespace_name
+}
+  set {ODv_ArHelp(sysColumns,sysClusterColumns)} {ClusterColumn related to Column.
+
+select owner, cluster_name, clu_column_name, table_name, tab_column_name
+from sys.dba_clu_columns
+where owner = '...' and tab_column_name = '...' and table_name = '...'
+order by cluster_name, clu_column_name
+}
+  set {ODv_ArHelp(sysColumns,sysConstraints)} {Constraint definitions on Column.
+
+select t.constraint_name, t.table_name, t.owner, t.constraint_type, t.r_owner, t.r_constraint_name
+from sys.dba_constraints t, sys.dba_cons_columns c
+where t.table_name = '...' and c.table_name = '...' and c.column_name = '...'
+order by t.constraint_name, t.r_owner, t.r_constraint_name
+}
+  set {ODv_ArHelp(sysColumns,sysTriggers)} {Triggers on Column.
+
+select distinct t.trigger_name, t.owner, t.table_owner, t.table_name, t.trigger_type, t.triggering_event, t.status, t.referencing_names
+from sys.dba_triggers t, sys.dba_trigger_cols c
+where t.table_owner = '...' and c.table_owner = '...' and t.trigger_name = c.trigger_name and t.owner = c.trigger_owner and c.column_name = '...'
+order by t.trigger_name, t.table_owner, t.table_name
+}
+  set {ODv_ArHelp(sysColumns,sysGrants)} {Grants on Column.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from sys.dba_col_privs
+where owner = '...' and table_name = '...' and column_name = '...'
+order by grantor
+}
+  set {ODv_ArHelp(sysColumns,scoComments)} {Comments on Column.
+
+select comments 
+from sys.dba_col_comments 
+where owner = '...' and table_name = '...' and column_name = '...' 
+}
+  set {ODv_ArHelp(sysColumns,sysUser)} {Owner of Column.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+##########################
+# System-User-Indexes    #
+##########################
+
+  set {ODv_ArHelp(sysUser,sysIndexes)} {All Indexes of User.
+
+select index_name, owner, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from sys.dba_indexes
+where owner = '...'
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(sysIndexes,sysTables)} {Tables related to Index.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'TABLE' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysIndexes,sysColumns)} {Columns related to Index.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from sys.dba_tab_columns t, sys.dba_ind_columns c
+where t.owner = '...'  and c.index_name = '...' and c.index_owner = '...' and c.table_name = '...' and c.table_owner = '...' and t.table_name = '...' and c.column_name = t.column_name
+order by column_name
+}
+  set {ODv_ArHelp(sysIndexes,sysTablespaces)} {Tablespace of Index.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from sys.dba_tablespaces s, sys.dba_indexes i
+where i.owner = '...' and i.index_name = '...' and i.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(sysIndexes,sysExtents)} {Extents of Index.
+
+select extent_id, segment_name, owner, segment_type, tablespace_name, file_id, block_id, bytes, blocks
+from sys.dba_extents
+where owner = '...' and segment_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(sysIndexes,sysUser)} {Owner of Index OR Owner of indexed Object.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users 
+where username = '...'
+order by username
+}
+
+
+##########################
+# System-User-Views      #
+##########################
+
+  set {ODv_ArHelp(sysUser,sysViews)} {All Views of User.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'VIEW' and owner = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysViews,sysTables)} {Base-Tables of View.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.dba_dependencies d
+where o.owner = d.referenced_owner and o.object_name = d.referenced_name and d.referenced_type = 'TABLE' and d.owner = '...' and d.name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(sysViews,sysColumns)} {Columns of View.
+
+select column_name, table_name, owner, data_type, data_length, data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from sys.dba_tab_columns
+where owner = '...'  and table_name = '...'
+order by column_name
+}
+  set {ODv_ArHelp(sysViews,sviBaseviews)} {Base-Views of View.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner  
+from sys.dba_objects o, sys.dba_dependencies d 
+where o.owner = d.referenced_owner and o.object_name = d.referenced_name and d.referenced_type = 'VIEW' and d.owner = '...' and d.name = '...'  
+order by o.object_name
+}
+  set {ODv_ArHelp(sysViews,sviDependentviews)} {Dependent Views on View.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_dependencies d, sys.dba_objects o
+where d.referenced_owner = '...' and d.referenced_name = '...'  and d.referenced_type = 'VIEW' and o.object_name = d.name and d.owner = o.owner and o.object_type = 'VIEW'
+order by o.owner, o.object_id
+}
+  set {ODv_ArHelp(sysViews,sviBaseobjects)} {Base-Objects of View.
+
+select referenced_owner, referenced_name, referenced_type
+from sys.dba_dependencies
+where owner = '...' and name = '...'
+order by referenced_name
+}
+  set {ODv_ArHelp(sysViews,sysSynonyms)} {Synonyms for View.
+
+select synonym_name, owner, table_owner, table_name, db_link
+from sys.dba_synonyms
+where owner = '...' and table_name = '...'
+order by synonym_name, table_owner
+}
+  set {ODv_ArHelp(sysViews,sysGrants)} {Grants on View.
+
+select grantee, owner, table_name, grantor, privilege, grantable
+from sys.dba_tab_privs  
+where owner = '...' and table_name = '...'
+order by grantor
+}
+  set {ODv_ArHelp(sysViews,sviText)} {Text of View.
+
+select text
+from sys.dba_views
+where view_name = '...' and owner = '...'
+}
+  set {ODv_ArHelp(sysViews,sviComments)} {Comments on View.
+
+select comments 
+from sys.dba_tab_comments 
+where owner = '...' and table_name = '...' and table_type = 'VIEW'
+}
+  set {ODv_ArHelp(sysViews,sysUser)} {Owner of View.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+#########################
+# System-User-Cluster   #
+#########################
+
+  set {ODv_ArHelp(sysUser,sysClusters)} {All Clusters of User.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'CLUSTER' and owner = '...'
+order by object_id
+}
+  set {ODv_ArHelp(sysClusters,sysTables)} {Tables of Cluster.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.dba_tables t
+where o.object_type = 'TABLE' and t.cluster_name = '...' and t.table_name = o.object_name and o.owner = t.owner
+order by o.object_name
+}
+  set {ODv_ArHelp(sysClusters,sysClusterColumns)} {Columns of Cluster.
+
+select owner, cluster_name, clu_column_name, table_name, tab_column_name
+from sys.dba_clu_columns
+where owner = '...' and cluster_name = '...'
+order by clu_column_name, table_name, tab_column_name
+}
+  set {ODv_ArHelp(sysClusters,sysTablespaces)} {Tablespace of Cluster.
+
+select s.tablespace_name, s.initial_extent, s.next_extent,  s.min_extents, s.max_extents, s.pct_increase, s.status
+from sys.dba_tablespaces s, sys.dba_clusters c
+where c.owner = '...' and c.cluster_name = '...' and c.tablespace_name = s.tablespace_name
+order by s.tablespace_name
+}
+  set {ODv_ArHelp(sysClusters,sysExtents)} {Extents of Cluster.
+
+select extent_id, segment_name, owner, segment_type, tablespace_name, file_id, block_id, bytes, blocks
+from sys.dba_extents
+where owner = '...' and segment_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(sysClusters,sysSynonyms)} {Synonyms for Cluster.
+
+select synonym_name, owner, table_owner, table_name, db_link
+from sys.dba_synonyms
+where table_owner = '...' and table_name = '...'
+order by synonym_name, owner
+}
+  set {ODv_ArHelp(sysClusters,sclDetails)} {Details of Cluster.
+
+select cluster_name, owner, tablespace_name,  pct_free, pct_used, key_size, ini_trans, max_trans, initial_extent, next_extent, min_extents, max_extents,  pct_increase, avg_blocks_per_key, cluster_type,  function, hashkeys
+from sys.dba_clusters
+where owner = '...' and cluster_name = '...'
+order by tablespace_name
+}
+  set {ODv_ArHelp(sysClusters,sysUser)} {Owner of Cluster.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+######################################
+# System-User-Cluster-ClusterColumns #
+######################################
+
+
+  set {ODv_ArHelp(sysClusterColumns,sysTables)} {Referenced Table of Cluster-Column.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o
+where o.object_type = 'TABLE' and o.object_name = '...' and o.owner = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(sysClusterColumns,sysColumns)} {Referenced Column of Cluster-Column.
+
+select column_name, table_name, owner, data_type, data_length, data_precision, data_scale, nullable, column_id, default_length, data_default, num_distinct, low_value, high_value
+from sys.dba_tab_columns
+where owner = '...'  and table_name = '...' and column_name = '...'
+order by column_name
+}
+  set {ODv_ArHelp(sysClusterColumns,sysClusters)} {Cluster containing Cluster-Column.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'CLUSTER' and owner = '...' and object_name = '...'
+order by object_id
+}
+  set {ODv_ArHelp(sysClusterColumns,sysUser)} {Cluster-Owner of Cluster-Column.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+###################################
+# System-User-Tablespaces         #
+###################################
+
+
+  set {ODv_ArHelp(sysUser,sysTablespaces)} {Tablespaces containing Extents of User.
+
+select distinct t.tablespace_name, t.initial_extent, t.next_extent,  t.min_extents, t.max_extents, t.pct_increase, t.status
+from sys.dba_tablespaces t, sys.dba_extents e
+where e.owner = '...' and e.tablespace_name = t.tablespace_name
+order by t.tablespace_name
+}
+  set {ODv_ArHelp(sysUser,susDefTablespace)} {Default Tablespace of User.
+
+select t.tablespace_name, t.initial_extent, t.next_extent,  t.min_extents, t.max_extents, t.pct_increase, t.status
+from sys.dba_tablespaces t, sys.dba_users u 
+where u.username = '...' and u.default_tablespace = t.tablespace_name
+order by t.tablespace_name
+}
+  set {ODv_ArHelp(sysUser,susTempTablespace)} {Temporary Tablespace of User.
+
+select t.tablespace_name, t.initial_extent, t.next_extent,  t.min_extents, t.max_extents, t.pct_increase, t.status
+from sys.dba_tablespaces t, sys.dba_users u 
+where u.username = '...' and u.temporary_tablespace = t.tablespace_name
+order by t.tablespace_name
+}
+
+
+###############################
+# System-User-Extents         #
+###############################
+
+
+  set {ODv_ArHelp(sysUser,sysExtents)} {All Extents of User.
+
+select extent_id, segment_name, owner, segment_type, tablespace_name, file_id, block_id, bytes, blocks
+from sys.dba_extents
+where owner = '...'
+order by segment_name, extent_id
+}      
+  set {ODv_ArHelp(sysExtents,sysTables)} {Table of Extent.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'TABLE' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysExtents,sysIndexes)} {Index of Extent.
+
+select index_name, owner, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from sys.dba_indexes
+where owner = '...' and index_name = '...'
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(sysExtents,sysClusters)} {Cluster of Extent.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'CLUSTER' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysExtents,sysTablespaces)} {Tablespace containing Extent.
+
+select tablespace_name, initial_extent, next_extent, min_extents, max_extents, pct_increase, status
+from sys.dba_tablespaces
+where tablespace_name = '...'
+order by tablespace_name
+}
+  set {ODv_ArHelp(sysExtents,sysUser)} {User of Extent.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+###############################
+# System-User-Sequences       #
+###############################
+
+
+  set {ODv_ArHelp(sysUser,susSequences)} {All Sequences of User.
+
+select sequence_name, min_value, max_value, increment_by,  cycle_flag, order_flag, cache_size, last_number
+from sys.dba_sequences
+where sequence_owner = '...'
+order by sequence_name
+}
+
+
+###############################
+# System-User-DB-Links        #
+###############################
+
+
+  set {ODv_ArHelp(sysUser,susDblinks)} {All Database-Links of User.
+
+select username, created, db_link, host
+from sys.dba_db_links
+where owner = '...'
+order by username, host
+}
+
+
+###############################
+# System-User-Synonyms        #
+###############################
+
+
+  set {ODv_ArHelp(sysUser,sysSynonyms)} {All Synonyms of User.
+
+select synonym_name, owner, table_owner, table_name,  db_link
+from sys.dba_synonyms
+where owner = '...'
+order by synonym_name, table_owner, table_name
+}
+  set {ODv_ArHelp(sysSynonyms,sysTables)} {Table of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o
+where o.object_type = 'TABLE' and o.owner = '...' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(sysSynonyms,sysViews)} {View of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o
+where o.object_type = 'VIEW' and o.owner = '...' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(sysSynonyms,sysClusters)} {Cluster of Synonym.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o
+where o.object_type = 'CLUSTER' and o.owner = '...' and o.object_name = '...'
+order by o.object_name
+}
+  set {ODv_ArHelp(sysSynonyms,ssyDblinks)} {Database-Link of Synonym.
+
+select username, created, db_link, host
+from sys.dba_db_links
+where owner = '...'  and db_link = '...'
+order by username, host
+}
+  set {ODv_ArHelp(sysSynonyms,sysUser)} {Owner of Synonym / Object_owner of Synonym.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+###################################
+# System-User-Constraints         #
+###################################
+
+
+  set {ODv_ArHelp(sysUser,sysConstraints)} {Constraints of user.
+
+select constraint_name, table_name, owner, constraint_type, r_owner, r_constraint_name, search_condition  
+from sys.dba_constraints  
+where owner = '...'  
+order by constraint_name, r_owner, r_constraint_name
+}
+  set {ODv_ArHelp(sysConstraints,sysTables)} {Table in Constraint definition.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'TABLE' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysConstraints,sysColumns)} {Columns in constraint definition.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from sys.dba_tab_columns t, sys.dba_cons_columns c
+where c.constraint_name = '...' and t.owner = '...' and c.owner = '...' and c.table_name = t.table_name and t.column_name = c.column_name
+order by t.column_name
+}
+
+
+###################################
+# System-User-Triggers/Procedures #
+###################################
+
+
+  set {ODv_ArHelp(sysUser,sysTriggers)} {All Triggers of User.
+
+select distinct trigger_name, owner, table_owner, table_name, trigger_type, triggering_event, status, referencing_names
+from sys.dba_triggers
+where owner = '...'
+order by trigger_name, table_owner, table_name
+}
+  set {ODv_ArHelp(sysTriggers,sysTables)} {Table related to Trigger.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'TABLE' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysTriggers,sysColumns)} {Columns related to Trigger.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from sys.dba_tab_columns t, sys.dba_trigger_cols c
+where t.owner = '...'  and t.table_name = '...' and c.trigger_owner = '...' and c.trigger_name = '...' and c.table_owner = '...' and c.table_name = '...' and  t.column_name = c.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(sysTriggers,strDescription)} {Description of Trigger.
+
+select description
+from sys.dba_triggers
+where owner = '...' and trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(sysTriggers,strWhen)} {When-clause of Trigger.
+
+select when_clause
+from sys.dba_triggers
+where owner = '...' and trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(sysTriggers,strBody)} {Body of Trigger.
+
+select trigger_body
+from sys.dba_triggers
+where owner = '...' and trigger_name = '...' and table_name = '...' and table_owner = '...'
+}
+  set {ODv_ArHelp(sysTriggers,sysUser)} {Owner of Trigger OR Owner of triggered Object.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+  set {ODv_ArHelp(sysUser,susProcedures)} {All Procedures, Functions and Packages of User.
+
+select distinct owner, name, type
+from sys.dba_source
+where owner = '...'
+order by name, type
+}
+  set {ODv_ArHelp(sysUser,susProcSource)} {Source-Text of Procedure, Funtion or Package.
+
+select text
+from sys.dba_source
+where owner = '...' and name = '...'
+order by line
+}
+
+
+##########################
+# System-User-Roles      #
+##########################
+
+
+  set {ODv_ArHelp(sysUser,sysRoles)} {All Roles granted to User.
+
+select granted_role, admin_option, default_role, password_required
+from sys.dba_role_privs, sys.dba_roles
+where grantee = '...' and role = granted_role
+order by granted_role
+}
+
+
+##########################
+# System-User-Privileges #
+##########################
+
+
+  set {ODv_ArHelp(sysUser,susPrivileges)} {All Privileges granted to User directly.
+
+select privilege, admin_option
+from sys.dba_sys_privs
+where grantee = '...'
+order by privilege
+}
+ 
+
+##########################
+# System-User-Grants     #
+##########################
+
+  set {ODv_ArHelp(sysUser,sysGrants)} {Grants to(by) User.
+
+select grantee, owner, table_name, grantor, privilege,  grantable
+from sys.dba_tab_privs
+where grantee(grantor) = '...'
+order by owner, table_name, grantee(grantor)
+}
+  set {ODv_ArHelp(sysGrants,sysTables)} {Table with Grant on it.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = '...' and owner = '...' and object_name = '...' order by object_name
+}
+  set {ODv_ArHelp(sysGrants,sysColumns)} {Columns with Grant on it.
+
+select t.column_name, t.table_name, t.owner, t.data_type, t.data_length, t.data_precision, t.data_scale, t.nullable, t.column_id, t.default_length, t.data_default, t.num_distinct, t.low_value, t.high_value
+from sys.dba_tab_columns t, sys.dba_col_privs g
+where t.owner = '...'  and t.table_name = '...' and g.owner = '...' and g.table_name = '...' and g.grantee = '...' and g.grantor = '...' and t.column_name = g.column_name
+order by t.column_name
+}
+  set {ODv_ArHelp(sysGrants,sysViews)} {View with Grant on it.
+
+select object_id, created, status, object_name, owner
+from sys.dba_objects
+where object_type = 'VIEW' and owner = '...' and object_name = '...'
+order by object_name
+}
+  set {ODv_ArHelp(sysGrants,sysUser)} {Owner/Grantee/Grantor of Grant.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users
+where username = '...'
+order by username
+}
+
+
+##########################
+# System-Tablespaces     #
+##########################
+
+  set {ODv_ArHelp(sysSystem,sysTablespaces)} {All Tablespaces in database.
+
+select tablespace_name, initial_extent, next_extent,  min_extents, max_extents, pct_increase, status
+from sys.dba_tablespaces
+order by tablespace_name
+}
+  set {ODv_ArHelp(sysTablespaces,sysTables)} {All Tables in Tablespace.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.dba_tables t
+where o.object_type = 'TABLE' and t.tablespace_name = '...' and o.object_name = t.table_name
+order by o.object_name
+}
+  set {ODv_ArHelp(sysTablespaces,sysIndexes)} {All Indexes in Tablespace.
+
+select index_name, owner, table_owner, table_name,  table_type, uniqueness, tablespace_name, ini_trans,  max_trans, initial_extent, next_extent, min_extents, max_extents, pct_increase, pct_free, blevel, leaf_blocks,  distinct_keys, avg_leaf_blocks_per_key, avg_data_blocks_per_key, clustering_factor, status
+from sys.dba_indexes
+where tablespace_name = '...'
+order by index_name, table_owner, table_name
+}
+  set {ODv_ArHelp(sysTablespaces,sysClusters)} {All Clusters in Tablespace.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.dba_clusters c
+where o.object_type = 'CLUSTER' and o.owner = c.owner and o.object_name = c.cluster_name and c.tablespace_name = '...'
+order by object_id
+}
+  set {ODv_ArHelp(sysTablespaces,sysExtents)} {All Extents in Tablespace.
+
+select extent_id, segment_name, owner, segment_type, tablespace_name, file_id, block_id, bytes, blocks
+from sys.dba_extents
+where tablespace_name = '...'
+order by segment_name, extent_id
+}
+  set {ODv_ArHelp(sysTablespaces,stsFiles)} {Information about Files of Tablespace.
+
+select file_id, bytes, blocks, status, file_name
+from sys.dba_data_files
+where tablespace_name = '...'
+order by file_name
+}
+  set {ODv_ArHelp(sysTablespaces,stsUserquotas)} {Quotas for all Users in Tablespace.
+
+select username, bytes, max_bytes, blocks, max_blocks
+from sys.dba_ts_quotas
+where tablespace_name = '...'
+order by username
+}
+  set {ODv_ArHelp(sysTablespaces,stsSegments)} {All Segments in Tablespace.
+
+select owner, segment_name, segment_type, header_file, header_block, bytes, blocks, extents, initial_extent, next_extent, min_extents, max_extents, pct_increase, freelists, freelist_groups
+from sys.dba_segments
+where tablespace_name = '...'
+order by owner, segment_name, segment_type
+}
+  set {ODv_ArHelp(sysTablespaces,sysUser)} {Users with Extents in Tablespace.
+
+select distinct u.username, u.user_id, u.default_tablespace, u.temporary_tablespace, u.created, u.profile
+from sys.dba_users u, sys.dba_extents e
+where e.tablespace_name = '...' and e.owner = u.username
+order by u.username
+
+OR
+
+Users with default(temporary) Tablespace.
+
+select username, user_id, default_tablespace, temporary_tablespace, created, profile
+from sys.dba_users 
+where default(temporary)_tablespace = '...'
+order by username
+}
+
+
+###########################
+# System-Roles            #
+###########################
+
+
+  set {ODv_ArHelp(sysSystem,sysRoles)} {All Roles in database.
+
+select role, password_required
+from sys.dba_roles
+order by role
+}
+  set {ODv_ArHelp(sysRoles,sroPrivileges)} {Privileges granted to Role.
+
+select privilege, admin_option
+from role_sys_privs
+where role = '...'
+order by privilege
+}
+  set {ODv_ArHelp(sysRoles,sysUser)} {Users with Role granted to them.
+
+select u.username, u.user_id, u.default_tablespace, u.temporary_tablespace, u.created, u.profile
+from sys.dba_users u, sys.dba_role_privs r
+where r.granted_role = '...' and r.grantee = u.username
+order by username
+}
+  set {ODv_ArHelp(sysRoles,sysTables)} {Tables with Privileges granted to Role.
+
+select o.object_id, o.created, o.status, o.object_name, o.owner
+from sys.dba_objects o, sys.role_tab_privs r
+where o.object_type = 'TABLE' and r.role = '...' and o.object_name = r.table_name and o.owner = r.owner
+order by o.owner, o.object_name
+}
+  set {ODv_ArHelp(sysRoles,sroGrantedRoles)} {Roles granted to Role.
+
+select granted_role, admin_option, default_role, password_required
+from sys.dba_role_privs, sys.dba_roles 
+where grantee = '...' and role = granted_role 
+order by granted_role
+}
+  set {ODv_ArHelp(sysRoles,sroGrantedtoRoles)} {Roles to which Role is granted.
+
+select role, admin_option, default_role, password_required
+from sys.dba_role_privs, sys.dba_roles 
+where granted_role = '...' and role = grantee 
+order by role
+}
+
+
+###########################
+# System-..others..       #
+###########################
+
+  set {ODv_ArHelp(sysSystem,sssRollbacksegs)} {Rollback segments in Database.
+
+select segment_name, owner, tablespace_name,  segment_id, file_id, block_id, initial_extent,  next_extent, min_extents, max_extents, pct_increase,  status, instance_num
+from sys.dba_rollback_segs
+order by segment_name, owner, tablespace_name
+}
+  set {ODv_ArHelp(sysSystem,sssFreespace)} {Free Extents in all Tablespaces.
+
+select tablespace_name, sum(bytes), sum(blocks), count(*), max(bytes)
+from sys.dba_free_space
+group by tablespace_name
+}
+  set {ODv_ArHelp(sysSystem,sssFreespacedetails)} {Details of free Space in Tablespace.
+
+select tablespace_name, file_id, block_id, bytes, blocks
+from sys.dba_free_space
+where tablespace_name = '...'
+order by file_id
+}
+  set {ODv_ArHelp(sysSystem,sssDatafiles)} {Information about Database Files.
+
+select tablespace_name, file_id, bytes, blocks, status,  file_name
+from sys.dba_data_files
+order by file_id
+}
+
+# Regine Kasten
+ set {ODv_ArHelp(sysSystem,sssDevices)} {Information about Devices and Datafiles.
+
+select device_id, fs_system, blocks, used, free, percent, mount 
+from sys.device$ 
+order by device_id
+
+AND
+
+select device_id, tablespace_name, file_id, file_name 
+from sys.device_dfile$
+where device_id = '...'
+}
+
+
+#################################
+# Help-..others..               #
+#################################
+
+
+###################
+# Help-Texts      #
+###################
+
+  
+global {ODv_ArHelpText}
+
+# Used in Help-About ODDIS-Menu File  
+  set {ODv_ArHelpText(tagfile)} {NEW
+Resets the program and the command ring
+
+LOAD
+Load a file with a SQL statement into the integrated editor
+
+SAVE
+Save result the contents of the editor window in a file. If no filename exist a filebox appears to specify one.
+
+SAVE AS
+The same function as SAVE with the difference that always a filebox appears to enter a filename
+
+QUIT
+Disconnect from the database and exit ODDIS
+}
+
+# Used in Help-About ODDIS-Menu Options
+  set {ODv_ArHelpText(tagoption)} {AUTOCOMMIT
+Cascaded menu to change the autocommit function to ON or OFF
+
+FONTSIZE
+Cascaded menu to change the fontsize of all output windows
+
+WINDOWS
+Cascaded menu to provide the following display-options :
+-One window per object (Previous window for this object is deleted.) 
+-One window per relation (One for each different direction reaching this object, previous window for This relation is deleted.)   
+-One window per query (For each request an own window, no window deleted).
+
+DISPLAY
+Cascaded menu to change the display type :
+-Colour or grey
+-Monochrome
+}
+
+# Used in Help-About ODDIS-Menu SQL-Options
+  set {ODv_ArHelpText(tagsqloptions)} {COMMIT NOW
+Execute immediately a commit in the connected database
+
+ROLLBACK
+Execute immediately a rollback in the database
+
+READ LONGFILE
+Fetch the contents of a long field from the database and write it to a file
+
+WRITE LONGFILE
+Read the contents of a file and store it to a long field in the database
+
+PROCEDURE EXEC
+You can execute a PL/SQL-Block from the editor window. You can bind values to :variables
+
+}
+
+# Used in Help-About ODDIS-Menu User-Objects
+  set {ODv_ArHelpText(taguserobjects)} {This menu represents the integrated queries to the data dictionary for ODDIS-users. You can select one item and get an output window which includes detailed information about the selected object owned by you. The queries use the USER-Views of the Oracle Data Dictionary. For further information on the queries itself refer to menu 'Help' and select the item USER-OBJECTS STRUCTURE.
+}  
+
+# Used in Help-About ODDIS-Menu All-Objects
+  set {ODv_ArHelpText(tagallobjects)} {This menu represents the integrated queries to the data dictionary for ODDIS-users. You can select one item and get an output window which includes detailed information about the selected database object which is accessible to you. The queries use the ALL-Views of the Oracle Data Dictinary. For further information on the queries itself refer to menu 'Help' and select the item ALL-OBJECTS STRUCTURE.
+}
+
+# Used in Help-About ODDIS-Menu System
+  set {ODv_ArHelpText(tagsystem)} {This menu represents the integrated
+queries to the data dictionary for database-administrators. You can
+select one item and get an output window which includes detailed
+information about the selected database object. You need DBA rights to execute the queries of the system menu. The queries use the DBA-Views of the Oracle Data Dictionary. And you can create Device-Tables. For further information about the queries itself refer to menu 'Help' and select the item SYSTEM-STRUCTURE.
+}
+
+# Used in Help-About ODDIS-Menubutton Execute
+  set {ODv_ArHelpText(tagexecute)} {Execute a SQL statement, which must be specified in the editor of the main window. The output of the statement is presented in the result window.
+}
+
+# Used in Help-About ODDIS-Menubutton Optimize
+  set {ODv_ArHelpText(tagoptimize)} {
+ANALYZE TABLES/INDEXES/CLUSTERS
+Displays all user tables  (or indexes, clusters)  in a new window. You can select one object and get the actual ( or compute, estimate, delete)  statistics for it.
+
+EXPLAIN 
+Analyze a SQL statement, which must be specified in the editor of the main window and shows the execution plan of the statement in a special window. Here you can select each object in the execution plan and get more information about it. You can get the structure of the execution plan as graphic. And you can save and print the results.  
+}
+
+# Used in Help-About ODDIS-Menu Help
+  set {ODv_ArHelpText(taghelp)} {ORACLE
+You have access to the Oracle help topics. If you select one topic you get detailed information about it in a new window.
+
+USER-OBJECTS STRUCTURE
+Displays the structure of the integrated queries to the data dictionary for objects owned by the user of ODDIS and gives detailed information for every query.
+
+ALL-OBJECTS STRUCTURE
+Displays the structure of the integrated queries to the data dictionary for all accessible objects to the user of ODDIS and gives detailed information for every query.
+
+SYSTEM-STRUCTURE
+Displays the structure of the integrated queries to the data dictionary and detailed information for every query. DBA-rights are needed.
+
+ABOUT ODDIS
+You get the information to which database you are connected to and your login name to the system and database. Also you get an overview of ODDIS and a short description of the functions.
+}
+
+# Used in Help-About ODDIS
+global {ODv_helptext}
+  set {ODv_helptext} {ODDIS - Overview
+
+The Oracle Data Dictionary Information System (ODDIS) shows most of
+the static information about the Data Dictionary of Oracle Version
+7. You can click on a database object and the tool displays detailed
+information about it in a formatted output window. Besides this you
+have the possibility to edit a SQL statement in a special window. You
+can load, save, and execute this statement. Also you can save and
+print the results of the execution of the SQL statement.  ODDIS help
+you to analyze user-objects and statements with an integrated analyze-
+and explain- menu. You can get the structure of the plan as
+graphic. Also you can save and print the results of the analysis of
+the SQL statement. As DBA you can create new tables with information
+about the devices. ODDIS provides an integrated access to the Oracle
+help tables which contain a lot of topics and descriptions. Also ODDIS
+shows you the menu structure of all integrated requests to the Data
+Dictionary in a graphic. You can click on an item in the graphic and
+get a short description including the SQL statement for the
+request. In ODDIS you operate with the mouse and/or with the
+keyboard. For a detailed description refer to the ODDIS manual.  The
+next lines show the menus and buttons available from the main window
+after ODDIS starts. You can click on one of the items to get further
+information.  
+}
+
+# Used in SQL-Options-PLExec..
+global {ODv_plexecinfo}
+  set {ODv_plexecinfo} {PL/SQL Execute allows execution of the SQL text window with binding
+of values to :variable names. The SQL text window may contain eithern
+a complete PL/SQL block, or may be an anonzmous block to call 
+a stored procedure (Version 7)
+The Bind Variables entry should be used to bind values to the :variables.
+Enter the name of a :variable (with leading colon) followed by the
+value to bind. If a value contains spaces, place double quotas around
+the value. If a :variable is output only, a dummy value is required.
+For example, if the SQL window containd a call to a stored procedure
+BEGIN
+  assign_emp(:name, :age, :salary, :dept);
+END;
+then an appropriate entry might be
+:name \\\"John Doe\\\"  :age 42  :salary 4.25  :dept \\\"Widget Mfg.\\\"
+}
+
+# Regine Kasten
+# Used in System-Device-Tables
+global {ODv_sysdevtablesinfo}
+  set {ODv_sysdevtablesinfo} {ORACLE-DEVICE-TABLES 
+
+Before you can use the information about devices, 
+you must create the tables. 
+And you can give grants to roles or users.
+Before insert into the device-tables,
+you may delete the tables.
+}
+
+# Regine Kasten
+# Used in System-Device-Tables-Delete
+global {ODv_sysdevicecreinfo}
+  set {ODv_sysdevicecreinfo} {ORACLE-DEVICE-TABLES-CREATE 
+Drop existing tables and creates two new tables:
+
+information about devices with oracle mounts:
+
+create table device$ (
+device_id 	number(3) 	not null constraint oradev_pk primary key, 
+fs_system 	varchar2(150) 	not null, 
+blocks 		number(10) 	not null, 
+used 		number(10) 	not null, 
+free 		number(10) 	not null, 
+percent 	number(3) 	not null, 
+mount 		varchar2(150) 	not null)
+
+
+information about devices and tablespaces:
+
+create table device_dfile$ (
+device_id 	number(3) 	not null constraint fk_devid references device$(device_id), 
+tablespace_name varchar2(30) 	not null , 
+file_id 	number(2) 	not null constraint devdat_pk primary key, 
+file_name 	varchar2(257) 	not null)
+}
+
+# Regine Kasten
+# Used in System-Device-Tables-Grant
+global {ODv_sysdevicegrainfo}
+  set {ODv_sysdevicegrainfo} {ORACLE-DEVICE-TABLES-GRANT 
+Grant select on the device tables to role or user, 
+which you must specify.  
+}
+
+# Regine Kasten
+# Used in System-Device-Tables-Insert
+global {ODv_sysdeviceinsinfo}
+  set {ODv_sysdeviceinsinfo} {ORACLE-DEVICES-INSERT 
+
+inserts all information about devices 
+and inserts all information about devices and datafiles
+into the device-tables 
+}
+
+# Regine Kasten
+# Used in System-Device-Tables-Delete
+global {ODv_sysdevicedelinfo}
+  set {ODv_sysdevicedelinfo} {ORACLE-DEVICES-DELETE 
+
+removes all information about devices 
+and removes all information about devices and datafiles 
+from the device-tables.
+}
+
+# Regine Kasten
+# Used in Optimize-Analyze-Compute (Tables/Indexes/Clusters)
+global {ODv_analyzecominfo}
+  set {ODv_analyzecominfo} {ANALYZE-COMPUTE
+
+Calculates each value. This option provides the 
+most accurate statistics, but is the slowest to run.
+For example to compute the statistics for a table, 
+you issue the command as follows
+
+analyze table <table_name> compute statistics.
+}
+
+# Regine Kasten
+# Used in Optimize-Analyze-Estimate (Tables/Indexes/Clusters)
+global {ODv_analyzeestinfo}
+  set {ODv_analyzeestinfo} {ANALYZE-ESTIMATE 
+
+allows you to make estimate statistics by examining data dictionary 
+values and performing data sampling. This provides less accurate 
+statistics, but is much faster then compute.
+For example, to analyze a table with 50 percent of rows, 
+you issue the command as follow
+
+analyze table <table_name> estimate statistics sample <50> percent.
+
+To analyze an index  with 30 rows of rows, 
+you issue the command as follows
+
+analyze index <index_name> estimate statistics sample <30> rows.
+}
+
+# Regine Kasten
+# Used in Optimize-Analyze-Delete (Tables/Indexes/Clusters)
+global {ODv_analyzedelinfo}
+  set {ODv_analyzedelinfo} {ANALYZE-DELETE 
+
+removes all table/index/cluster statistics (freeing space) 
+for the specified object.
+For example to delete the statistics for a table, 
+you issue the command as follows
+
+analyze table <table_name> delete statistics.
+}
+
+# Regine Kasten
+# Used in Optimize-Explain
+global {ODv_explainplaninfo}
+  set {ODv_explainplaninfo} {OPERATIONS DISPLAYED IN EXPLAIN_PLAN OUTPUT
+
+ Sign	Operation      Option      Description
+-----------------------------------------------------------------------------------------------------------------
+ AGG	AGGREGATE      GROUP BY    A single row that is the result of a GROUP BY (Version 7 only) 
+ AND	AND-EQUAL                  Accepts multiple ROWIDs and returns the intersection of the sets with no duplicats
+ CON	CONNECT BY                 Tree-walks rows using a CONNECT BY query
+ CAT	CONCATENATION              Returns UNION all rows
+ CNT	COUNTING                   Counts number of rows from a table
+ FILT	FILTER                     Accepts some rows and eliminates others using WHERE conditions in statement
+ FIRST	FIRST ROW                  Returns only first row of query
+ FIXED  FIXED_TABLE                Accesses a FIXED TABLE
+ UPD	FOR UPDATE                 Places row locks on selected rows
+ IDX	INDEX          UNIQUE      Uses UNIQUE index (one row)
+ IDX	INDEX          RANGE SCAN  Uses non-UNIQUE INDEX (more than one row)
+ IDX	INDEX          RANGE SCAN  Same as above, but returns all rows 
+ 	               DESCENDING  in descending order
+ INTER	INTERSECTION               Returns intersection rows (no duplicates)
+ MJ	MERGE JOIN                 Gets two sets of rows, both sorted, and combines each row from one with the other
+ MJ	MERGE JOIN     OUTER       Same as above, but with an outer join
+ -	MINUS                      Uses MINUS function
+ NL	NESTED LOOPS               Compares two sets  of rows and checks each row for a condition before returning data 
+ NL	NESTED LOOPS   OUTER       Same as above, but includes outer join
+ PRO	PROJECTION                 Returns a subset of columns from a table
+ REM	REMOTE                     Uses database link to access another database
+ SEQ	SEQUENCE                   Access a sequence
+ SORT	SORT           UNIQUE      Sorts rows to eliminate duplicates
+ SORT	SORT           GROUP BY    Sorts as result of a GROUP BY clause
+ SORT	SORT           JOIN        Sorts rows prior to a merge join
+ SORT	SORT           ORDER BY    Sorts as result of an ORDER BY clause
+ TAB	TABLE_ACCESS   FULL        Performs a full-table scan
+ TAB	TABLE_ACCESS   CLUSTER     Access a cluster
+ TAB	TABLE_ACCESS   HASH        Uses hashing algorithm based on the key (Version 7 only)
+ TAB	TABLE_ACCESS   ROWID       Accesses a table by its ROWID
+ +	UNION-ALL                  Uses UNION statement
+ VIEW	VIEW                       Does a retrieval from a virtuell table
+}
+
+
+#############################
+# Result-Window             #
+#############################
+
+
+global {ODv_appendclear}
+  set {ODv_appendclear} {1}
+
+
+#############################
+# Menu-File                 #
+#############################
+
+
+global {ODv_filename}
+  set {ODv_filename} {}
+
+global {ODv_longfilename}
+  set {ODv_longfilename} {}
+
+
+#############################
+# Menu-Options              #
+#############################
+
+# Autocommit
+global {ODv_autocommit}
+  set {ODv_autocommit} {off}
+
+# Fontsize
+global {ODv_fontsize}
+  set {ODv_fontsize} {14}
+
+# Window-Selection
+global {ODv_windows}
+  set {ODv_windows} {one}
+global {ODv_wincount}
+  set {ODv_wincount} {0}
+
+# Display-type
+global {ODv_display}
+  set {ODv_display} {colour}
+
+
+#############################
+# Menu-System              #
+############################
+
+# Regine Kasten
+### Devices
+global {ODv_SysDevAll}
+   set {ODv_SysDevAll} {}
+
+
+#############################
+# Menu-Optimize             #
+#############################
+
+# Regine Kasten
+#### Analyze
+global {ODv_analyzeType}
+  set {ODv_analyzeType} {current}
+global {ODv_AnalyzeArgs}
+  set {ODv_AnalyzeArgs} {}
+global {ODv_analyzeest}
+  set {ODv_analyzeest} {percent}
+
+# Regine Kasten
+#### Explain
+global {ODv_ExplainListWins}
+ set {ODv_ExplainListWins} {}
+global {ODv_ExplainListLists}
+  set {ODv_ExplainListLists} {}
+global {ODv_ExplainListIds} 
+  set {ODv_ExplainListIds} {}
+global {ODv_ExplainListStates} 
+  set {ODv_ExplainListStates} {}
+global {ODv_ExplainListTypes}
+  set {ODv_ExplainListTypes} {}
+global {ODv_ExplainList}
+  set {ODv_ExplainList} {}
+global {ODv_ExplainIds} 
+  set {ODv_ExplainIds} {}
+global {ODv_ExplainOpe}
+  set {ODv_ExplainOpe} {TABLE_ACCESS INDEX VIEW}
+
+# Regine Kasten
+# width of a leave, space beetween leave and leave
+global {ODv_LeaveWidth}
+  set {ODv_LeaveWidth}  {4}
+global {ODv_LeaveXSpace}
+  set {ODv_LeaveXSpace} {0.2}
+global {ODv_LeaveHeight}
+  set {ODv_LeaveHeight} {1.5}
+global {ODv_LeaveYSpace}
+  set {ODv_LeaveYSpace} {0.5}
+global {ODv_TextSpace}
+  set {ODv_TextSpace} {3}
+global {ODv_TreeHeight}
+  set {ODv_TreeHeight} {}
+global {ODv_TreeWidth}
+  set {ODv_TreeWidth} {}
+
+
+#############################
+# Execute-Button            #
+#############################
+
+
+global {ODv_cmdExec}
+  set {ODv_cmdExec} {OD_DoSQL}
+global {ODv_cmdIdx}
+  set {ODv_cmdIdx} {4}
+global {ODv_cmdLast}
+  set {ODv_cmdLast} {5}
+
+
+#############################
+# Menu-Help                 #
+#############################
+
+
+# Previous selected User-Objects-item.
+global {ODv_usroldtag}
+  set {ODv_usroldtag} {usrhelp}
+
+# Previous selected All-Objects-item.
+global {ODv_alloldtag}
+  set {ODv_alloldtag} {allhelp}
+
+# Previous selected System-item.
+global {ODv_sysoldtag}
+  set {ODv_sysoldtag} {syshelp}
+
+# Scale-factor of help-canvases in x- and y-direction 
+# Attention ! No scaling of Object-Names (-> Font), only coordinates !!
+global {ODv_xwidth}
+  set {ODv_xwidth} {1}
+global {ODv_ywidth} 
+  set {ODv_ywidth} {0.95}
+
+# Dispacement of graphic in help-canvases in x- and y-direction
+global {ODv_xheight}
+  set {ODv_xheight} {0}
+global {ODv_yheight}
+  set {ODv_yheight} {3}
+
+# Displacement of menus in help-canvases in x- and y-direction
+global {ODv_xmheight}
+  set {ODv_xmheight} {0}
+global {ODv_ymheight}
+  set {ODv_ymheight} {16}
+
+# Graph-Arrow-Differences
+# Difference between two arrows between the same two objects : 0.07c
+global {ODv_d}
+  set {ODv_d} {0.07}
+# Difference between the begin of the first arrow and the end of the back-arrow at the same object : 0.4c
+global {ODv_a}
+  set {ODv_a} {0.4}
+
+
+##############################
+# Fonts                      #
+##############################
+
+
+# Font used for Result-window
+global {ODv_resultfontsize}
+  set {ODv_resultfontsize} {14}
+
+# Font used for HelpAboutODDIS-Procedure 
+global {ODv_selectfont}
+  set {ODv_selectfont} {-*-courier-*-r-*-*-15-*-*-*-*-*-*-*}
+
+# Font used for ShowWindow-Procedures
+global {ODv_font}
+  set {ODv_font} {-*-courier-*-r-*-*-14-*-*-*-*-*-*-*}
+
+# Font used for Help-Graphs in "Additional Menu-Options"
+global {ODv_Help_Menus_Font}
+  set {ODv_Help_Menus_Font} {-*-courier-*-r-*-*-12-*-*-*-*-*-*-*}
+
+
+##############################
+# Colour-definitions         #
+##############################
+
+
+# Global colour-variables
+global {ODv_select}
+global {ODv_next}
+global {ODv_others}
+
+
+#####################################
+# Defaults for Colour/Grey-Display  #
+#####################################
+
+# Display-colour for the selected item.
+global {ODv_colour_select}
+  set {ODv_colour_select} {white}
+
+# Display-colour for the next menu-options.
+global {ODv_colour_next}
+  set {ODv_colour_next} {black}
+
+# Display-colour for the other items.
+global {ODv_colour_others}
+  set {ODv_colour_others} {grey}
+
+#####################################
+# Defaults for Monochrome-Display   #
+#####################################
+
+# Display-mono_colour for the selected item.
+global {ODv_mono_select}
+  set {ODv_mono_select} {black}
+
+# Display-mono_colour for the next menu-options.
+global {ODv_mono_next}
+  set {ODv_mono_next} {black}
+
+# Display-mono_colour for the other items.
+global {ODv_mono_others}
+  set {ODv_mono_others} {black}
+
+
+#############################
+# Try-Connect and HelpAbout #
+#############################
+
+
+# Default server
+global {ODv_server}
+  set {ODv_server} {dbis}
+
+# Default user
+global {ODv_user}
+  set {ODv_user} {scott}
+
+
+#############################
+# Oratcl                    #
+#############################
+
+
+global {ODv_oracursor}
+  set {ODv_oracursor} {oratcl1.1}
+global {ODv_orahandle}
+  set {ODv_orahandle} {oratcl1}
+
+
+#################################
+# Columns-Formats               #
+#################################
+
+# Format used for nullable,backed_up,grantable,admin_option,password_required,default_role,r_constraint_type
+global {ODv_f_small}
+  set {ODv_f_small} {%-5s}
+
+# Format used for triggering_event,privilege
+global {ODv_f_long} 
+  set {ODv_f_long} {%-30s}
+
+# Format used for referencing_names,dblink,host,fs_system
+global {ODv_f_verylong}
+  set {ODv_f_verylong} {%-50s}
+
+# Format used for file_name,mount
+global {ODv_f_longest}
+  set {ODv_f_longest} {%-100s}
+ 
+#Format used for data_length,data_precision,data_scale,default_length,low_value,high_value,initial_extent,next_extent,min_extent,max_extent,pct_increase,pct_free,pct_used,blevel,leaf_blocks,distinct_keys,bytes,blocks,num_rows,length,key_size,function,hashkeys,position,num_ext_free_ext,num_distinct,incr_by,cycle_flag,order_flag,cache_size,last_number,avg_key,extents,instance_num,device_id
+global {ODv_f_nrsmall}
+  set {ODv_f_nrsmall} {%9s}
+
+# Format used for ini_trans,max_trans,clustering_factor,empty_blocks,avg_space,chain_cnt,max_bytes,max_blocks,head_file,head_block,free_list,free_group,used,free,percent
+global {ODv_f_nr}
+  set {ODv_f_nr} {%11s}
+
+# Format used for avg_leaf_blocks_per_key,avg_data_blocks_per_key,avg_row_len
+global {ODv_f_nrlong}
+  set {ODv_f_nrlong} {%13s}
+
+# Format used for min_value,max_value
+global {ODv_f_nrverylong}
+  set {ODv_f_nrverylong} {%30s}
+
+# Format used for column_name,cluster_name,tablespace_name,constraint_name,referenced_names,role,sequence_name,grantee
+global {ODv_f_object}
+  set {ODv_f_object} {%-24s}
+
+# Format used for synonym_name,index_name,trigger_name,table_name,view_name,segment_name
+global {ODv_f_objectlong}
+  set {ODv_f_objectlong} {%-27s}
+
+# Format used for owner,user,grantor
+global {ODv_f_user}
+  set {ODv_f_user} {%-12s}
+
+# Format used for id
+global {ODv_f_id}
+  set {ODv_f_id} {%7s}
+
+# Format used for object_types,data_type,referenced_type
+global {ODv_f_typesmall}
+  set {ODv_f_typesmall} {%-12s}
+
+# Format used for trigger_type,segment_type
+global {ODv_f_typelong}
+  set {ODv_f_typelong} {%-20s}
+
+# Format used for status,profile,created,data_default,uniqueness
+global {ODv_f_rest}
+  set {ODv_f_rest} {%-10s}
+
+
+##########################################
+# User-Objects-Formats and -Headlines    #
+##########################################
+
+
+# User-Tables
+global {ODv_fUsrTables}
+  set {ODv_fUsrTables} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_objectlong"
+global {ODv_hlUsrTables}
+  set {ODv_hlUsrTables} {OBJ_ID/CREATED/STATUS/TABLE_NAME}
+
+# User-TableRoles
+global {ODv_fUsrTableRoles}
+  set {ODv_fUsrTableRoles} "$ODv_f_object $ODv_f_user $ODv_f_objectlong $ODv_f_long $ODv_f_small"
+global {ODv_hlUsrTableRoles}
+  set {ODv_hlUsrTableRoles} {ROLE/OWNER/TABLE_NAME/PRIVILEGE/GRT}
+
+# User-TableDetails
+global {ODv_fUsrTableDetails}
+  set {ODv_fUsrTableDetails} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_small $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_nrlong $ODv_f_object"
+global {ODv_hlUsrTableDetails}
+  set {ODv_hlUsrTableDetails} {TABLESPACE_NAME/PCT_FREE/PCT_USED/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/B_UP/NUM_ROWS/BLOCKS/EMP_BLOCKS/AVG_SPACE/CHAIN_CNT/AVG_ROW_LEN/CLUSTER_NAME}
+
+# User-Columns
+global {ODv_fUsrColumns}
+  set {ODv_fUsrColumns} "$ODv_f_object $ODv_f_objectlong $ODv_f_typesmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_small $ODv_f_id $ODv_f_nrsmall $ODv_f_rest $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlUsrColumns} 
+  set {ODv_hlUsrColumns} {COLUMN_NAME/OBJECT_NAME/DATA_TYPE/LENGTH/PREC/SCALE/NULL/COL_ID/DEF_LEN/DATA_DEF/NUM_DIST/LOW_VAL/HIGH_VAL}
+
+# User-Indexes
+global {ODv_fUsrIndexes}
+  set {ODv_fUsrIndexes} "$ODv_f_objectlong $ODv_f_user $ODv_f_objectlong $ODv_f_typesmall $ODv_f_rest $ODv_f_object $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong $ODv_f_nrlong $ODv_f_nr $ODv_f_rest"
+global {ODv_hlUsrIndexes}
+  set {ODv_hlUsrIndexes} {INDEX_NAME/TABLE_OWNER/TABLE_NAME/TABLE_TYPE/UNIQUE/TABLESPACE_NAME/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/PCT_FREE/BLEVEL/LEAF_BL/DIST_KEY/AVG_LEAF_KEY/AVG_DATA_KEY/CL_FAKTOR/STATUS}
+
+# User-Views
+global {ODv_fUsrViews}
+  set {ODv_fUsrViews} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_objectlong"
+global {ODv_hlUsrViews}
+  set {ODv_hlUsrViews} {OBJ_ID/CREATED/STATUS/VIEW_NAME}
+
+# User-ViewBaseObjects
+global {ODv_fUsrViewBaseObjects}
+  set {ODv_fUsrViewBaseObjects} "$ODv_f_user $ODv_f_object $ODv_f_typesmall"
+global {ODv_hlUsrViewBaseObjects}
+  set {ODv_hlUsrViewBaseObjects} {REF_OWNER/REF_NAME/REF_TYPE}
+
+# User-ViewText
+global {ODv_fUsrViewText}
+  set {ODv_fUsrViewText} "$ODv_f_verylong"
+global {ODv_hlUsrViewText}
+  set {ODv_hlUsrViewText} {TEXT}
+
+# User-Clusters
+global {ODv_fUsrClusters}
+  set {ODv_fUsrClusters} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_object"
+global {ODv_hlUsrClusters}
+  set {ODv_hlUsrClusters} {OBJ_ID/CREATED/STATUS/CLUSTER_NAME}
+
+# User-ClusterDetails
+global {ODv_fUsrClusterDetails}
+  set {ODv_fUsrClusterDetails} "$ODv_f_object $ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong $ODv_f_typesmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlUsrClusterDetails}
+  set {ODv_hlUsrClusterDetails} {CLUSTER_NAME/TABLESPACE_NAME/PCT_FREE/PCT_USED/KEY_SIZE/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/AVG_KEY/CL_TYPE/FUNCTION/HASHKEYS}
+
+# User-ClusterColumns
+global {ODv_fUsrClusterColumns}
+  set {ODv_fUsrClusterColumns} "$ODv_f_object $ODv_f_object $ODv_f_objectlong $ODv_f_object"
+global {ODv_hlUsrClusterColumns}
+  set {ODv_hlUsrClusterColumns} {CLUSTER_NAME/CLU_COLUMN_NAME/TABLE_NAME/TAB_COLUMN_NAME}
+
+# User-Tablespaces
+global {ODv_fUsrTablespaces}
+  set {ODv_fUsrTablespaces} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_rest"
+global {ODv_hlUsrTablespaces}
+  set {ODv_hlUsrTablespaces} {TABLESPACE_NAME/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/STATUS}
+
+# User-TablespaceUserQuota
+global {ODv_fUsrTablespaceUserQuota}
+  set {ODv_fUsrTablespaceUserQuota} "$ODv_f_nrsmall $ODv_f_nr $ODv_f_nrsmall $ODv_f_nr"
+global {ODv_hlUsrTablespaceUserQuota}
+  set {ODv_hlUsrTablespaceUserQuota} {BYTES/MAX_BYTES/BLOCKS/MAX_BLOCKS}
+
+# User-TablespaceSegments
+global {ODv_fUsrTablespaceSegments}
+  set {ODv_fUsrTablespaceSegments} "$ODv_f_objectlong $ODv_f_typelong $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr"
+global {ODv_hlUsrTablespaceSegments}
+  set {ODv_hlUsrTablespaceSegments} {SEGMENT_NAME/SEGMENT_TYPE/BYTES/BLOCKS/EXTENTS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/FREE_LIST/FREE_GROUP}
+
+# User-Extents
+global {ODv_fUsrExtents}
+  set {ODv_fUsrExtents} "$ODv_f_id $ODv_f_objectlong $ODv_f_typelong $ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlUsrExtents}
+  set  {ODv_hlUsrExtents} {EXT_ID/SEGMENT_NAME/SEGMENT_TYPE/TABLESPACE_NAME/BYTES/BLOCKS}
+
+# User-Sequences
+global {ODv_fUsrSequences}
+  set {ODv_fUsrSequences} "$ODv_f_object $ODv_f_nrverylong $ODv_f_nrverylong $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlUsrSequences}
+  set {ODv_hlUsrSequences} {SEQUENCE_NAME/MIN_VAL/MAX_VAL/INCR_BY/CYCLE/ORDER/CACHE/LAST_NUM}
+
+# User-DB-Links
+global {ODv_fUsrDBLinks}
+  set {ODv_fUsrDBLinks} "$ODv_f_user $ODv_f_rest $ODv_f_verylong $ODv_f_verylong"
+global {ODv_hlUsrDBLinks}
+  set {ODv_hlUsrDBLinks} {USERNAME/CREATED/DB_LINK/HOST}
+
+# User-Synonyms
+global {ODv_fUsrSynonyms}
+  set {ODv_fUsrSynonyms} "$ODv_f_objectlong $ODv_f_user $ODv_f_objectlong $ODv_f_verylong"
+global {ODv_hlUsrSynonyms}
+  set {ODv_hlUsrSynonyms} {SYNONYM_NAME/OBJECT_OWNER/OBJECT_NAME/DB_LINK}
+
+# User-Constraints
+global {ODv_fUsrConstraints}
+  set {ODv_fUsrConstraints} "$ODv_f_object $ODv_f_object $ODv_f_user $ODv_f_small $ODv_f_user $ODv_f_object $ODv_f_longest"
+global {ODv_hlUsrConstraints}
+  set {ODv_hlUsrConstraints} {CONSTRAINT_NAME/TABLE_NAME/OWNER/TYPE/REF_OWNER/REF_CONSTRAINT_NAME/SEARCH_CONDITION}
+
+# User-Triggers
+global {ODv_fUsrTriggers}
+  set {ODv_fUsrTriggers} "$ODv_f_objectlong $ODv_f_user $ODv_f_objectlong $ODv_f_typelong $ODv_f_long $ODv_f_rest $ODv_f_verylong"
+global {ODv_hlUsrTriggers}
+  set {ODv_hlUsrTriggers}    {TRIGGER_NAME/TABLE_OWNER/TABLE_NAME/TRIGGER_TYPE/TRIGGERING_EVENT/STATUS/REFERENCING_NAMES}
+
+# User-TrigDesc
+global {ODv_fUsrTrigDesc}
+  set {ODv_fUsrTrigDesc} "$ODv_f_verylong"
+global {ODv_hlUsrTrigDesc}
+  set {ODv_hlUsrTrigDesc} {DESCRIPTION}
+
+# User-TrigWhen
+global {ODv_fUsrTrigWhen}
+  set {ODv_fUsrTrigWhen} "$ODv_f_verylong"
+global {ODv_hlUsrTrigWhen}
+  set {ODv_hlUsrTrigWhen} {WHEN-CLAUSE} 
+
+# User-TrigBody
+global {ODv_fUsrTrigBody}
+  set {ODv_fUsrTrigBody} "$ODv_f_verylong"
+global {ODv_hlUsrTrigBody}
+  set {ODv_hlUsrTrigBody} {BODY}
+
+# User-Procedures
+global {ODv_fUsrProcedures}
+  set {ODv_fUsrProcedures} "$ODv_f_object $ODv_f_typesmall"
+global {ODv_hlUsrProcedures}
+  set {ODv_hlUsrProcedures} {NAME/TYPE}
+
+# User-ProcSource
+global {ODv_fUsrProcSource}
+  set {ODv_fUsrProcSource} "$ODv_f_verylong"
+global {ODv_hlUsrProcSource}
+  set {ODv_hlUsrProcSource} {SOURCE TEXT}
+
+# User-Roles
+global {ODv_fUsrRoles}
+  set {ODv_fUsrRoles} "$ODv_f_object"
+global {ODv_hlUsrRoles}
+  set {ODv_hlUsrRoles} {ROLE}
+
+# User-RolePrivileges
+global {ODv_fUsrRolePrivileges}
+  set {ODv_fUsrRolePrivileges} "$ODv_f_long $ODv_f_small" 
+global {ODv_hlUsrRolePrivileges}
+  set {ODv_hlUsrRolePrivileges} {PRIVILEGE/ADM}
+ 
+# User-Privileges
+global {ODv_fUsrPrivileges}
+  set {ODv_fUsrPrivileges} "$ODv_f_long"
+global {ODv_hlUsrPrivileges}
+  set {ODv_hlUsrPrivileges} {PRIVILEGES}
+
+# User-Grants
+global {ODv_fUsrGrants}
+  set {ODv_fUsrGrants} "$ODv_f_object $ODv_f_user $ODv_f_objectlong $ODv_f_user $ODv_f_long $ODv_f_small"
+global {ODv_hlUsrGrants}
+  set {ODv_hlUsrGrants} {GRANTEE/OWNER/OBJECT_NAME/GRANTOR/PRIVILEGE/GRT}
+
+# User-Comments
+global {ODv_fUsrComments}
+  set {ODv_fUsrComments} "$ODv_f_longest"
+global {ODv_hlUsrComments}
+  set {ODv_hlUsrComments} {COMMENT}
+
+
+#####################################
+# All-Objects-Formats and Headlines #
+#####################################
+
+
+# All-Tables
+global {ODv_fAllTables}
+  set {ODv_fAllTables} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_objectlong $ODv_f_user"
+global {ODv_hlAllTables}
+  set {ODv_hlAllTables} {OBJ_ID/CREATED/STATUS/TABLE_NAME/OWNER}
+
+# All-TableDetails
+global {ODv_fAllTableDetails}
+  set {ODv_fAllTableDetails} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_small $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_nrlong $ODv_f_object"
+global {ODv_hlAllTableDetails}
+  set {ODv_hlAllTableDetails} {TABLESPACE_NAME/PCT_FREE/PCT_USED/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/B_UP/NUM_ROWS/BLOCKS/EMP_BLOCKS/AVG_SPACE/CHAIN_CNT/AVG_ROW_LEN/CLUSTER_NAME}
+
+# All-Columns
+global {ODv_fAllColumns}
+  set {ODv_fAllColumns} "$ODv_f_object $ODv_f_objectlong $ODv_f_user $ODv_f_typesmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_small $ODv_f_id $ODv_f_nrsmall $ODv_f_rest $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlAllColumns} 
+  set {ODv_hlAllColumns} {COLUMN_NAME/OBJECT_NAME/OWNER/DATA_TYPE/LENGTH/PREC/SCALE/NULL/COL_ID/DEF_LEN/DATA_DEF/NUM_DIST/LOW_VAL/HIGH_VAL} 
+
+# All-Indexes
+global {ODv_fAllIndexes}
+  set {ODv_fAllIndexes} "$ODv_f_objectlong $ODv_f_user $ODv_f_user $ODv_f_objectlong $ODv_f_typesmall $ODv_f_rest $ODv_f_object $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong $ODv_f_nrlong $ODv_f_nr $ODv_f_rest"
+global {ODv_hlAllIndexes}
+  set {ODv_hlAllIndexes} {INDEX_NAME/OWNER/TABLE_OWNER/TABLE_NAME/TABLE_TYPE/UNIQUE/TABLESPACE_NAME/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INC/PCT_FREE/BLEVEL/LEAF_BL/DIST_KEY/AVG_LEAF_KEY/AVG_DATA_KEY/CL_FAKTOR/STATUS}
+
+# All-Views
+global {ODv_fAllViews}
+  set {ODv_fAllViews} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_objectlong $ODv_f_user"
+global {ODv_hlAllViews}
+  set {ODv_hlAllViews} {OBJ_ID/CREATED/STATUS/VIEW_NAME/OWNER}
+
+# All-ViewBaseObjects
+global {ODv_fAllViewBaseObjects}
+  set {ODv_fAllViewBaseObjects} "$ODv_f_user $ODv_f_object $ODv_f_typesmall"
+global {ODv_hlAllViewBaseObjects}
+  set {ODv_hlAllViewBaseObjects} {REF_OWNER/REF_NAME/REF_TYPE}
+
+# All-ViewText
+global {ODv_fAllViewText}
+  set {ODv_fAllViewText} "$ODv_f_verylong"
+global {ODv_hlAllViewText}
+  set {ODv_hlAllViewText} {TEXT}
+
+# All-Tablespaces
+global {ODv_fAllTablespaces}
+  set {ODv_fAllTablespaces} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_rest"
+global {ODv_hlAllTablespaces}
+  set {ODv_hlAllTablespaces} {TABLESPACE_NAME/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/STATUS}
+
+# All-Sequences
+global {ODv_fAllSequences}
+  set {ODv_fAllSequences} "$ODv_f_object $ODv_f_user $ODv_f_nrverylong $ODv_f_nrverylong $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlAllSequences}
+  set {ODv_hlAllSequences} {SEQUENCE_NAME/OWNER/MIN_VAL/MAX_VAL/INCR_BY/CYCLE/ORDER/CACHE/LAST_NUM}
+
+# All-DB-Links
+global {ODv_fAllDBLinks}
+  set {ODv_fAllDBLinks} "$ODv_f_user $ODv_f_user $ODv_f_rest $ODv_f_verylong $ODv_f_verylong"
+global {ODv_hlAllDBLinks}
+  set {ODv_hlAllDBLinks} {OWNER/USERNAME/CREATED/DB_LINK/HOST}
+
+# All-Synonyms
+global {ODv_fAllSynonyms}
+  set {ODv_fAllSynonyms} "$ODv_f_objectlong $ODv_f_user $ODv_f_user $ODv_f_objectlong $ODv_f_long"
+global {ODv_hlAllSynonyms}
+  set {ODv_hlAllSynonyms} {SYNONYM_NAME/OWNER/OBJECT_OWNER/OBJECT_NAME/DB_LINK}
+
+# All-Constraints
+global {ODv_fAllConstraints}
+  set {ODv_fAllConstraints} "$ODv_f_object $ODv_f_object $ODv_f_user $ODv_f_small $ODv_f_user $ODv_f_object $ODv_f_longest"
+global {ODv_hlAllConstraints}
+  set {ODv_hlAllConstraints} {CONSTRAINT_NAME/TABLE_NAME/OWNER/TYPE/REF_OWNER/REF_CONSTRAINT_NAME/SEARCH_CONDITION}
+
+# All-Triggers
+global {ODv_fAllTriggers}
+  set {ODv_fAllTriggers} "$ODv_f_objectlong $ODv_f_user $ODv_f_user $ODv_f_objectlong $ODv_f_typelong $ODv_f_long $ODv_f_rest $ODv_f_verylong"
+global {ODv_hlAllTriggers}
+  set {ODv_hlAllTriggers} {TRIGGER_NAME/OWNER/TABLE_OWNER/TABLE_NAME/TRIGGER_TYPE/TRIGGERING_EVENT/STATUS/REFERENCING_NAMES}
+
+# All-TrigDesc
+global {ODv_fAllTrigDesc}
+  set {ODv_fAllTrigDesc} "$ODv_f_verylong"
+global {ODv_hlAllTrigDesc}
+  set {ODv_hlAllTrigDesc} {DESCRIPTION}
+
+# All-TrigWhen
+global {ODv_fAllTrigWhen}
+  set {ODv_fAllTrigWhen} "$ODv_f_verylong"
+global {ODv_hlAllTrigWhen}
+  set {ODv_hlAllTrigWhen} {WHEN-CLAUSE}
+
+# All-TrigBody
+global {ODv_fAllTrigBody}
+  set {ODv_fAllTrigBody} "$ODv_f_verylong"
+global {ODv_hlAllTrigBody}
+  set {ODv_hlAllTrigBody} {BODY}
+
+# All-Procedures
+global {ODv_fAllProcedures}
+  set {ODv_fAllProcedures} "$ODv_f_user $ODv_f_object $ODv_f_typesmall"
+global {ODv_hlAllProcedures}
+  set {ODv_hlAllProcedures} {OWNER/NAME/TYPE}
+
+# All-ProcSource
+global {ODv_fAllProcSource}
+  set {ODv_fAllProcSource} "$ODv_f_verylong"
+global {ODv_hlAllProcSource}
+  set {ODv_hlAllProcSource} {SOURCE TEXT}
+
+# All-Grants
+global {ODv_fAllGrants}
+  set {ODv_fAllGrants} "$ODv_f_object $ODv_f_user $ODv_f_objectlong $ODv_f_user $ODv_f_long $ODv_f_small"
+global {ODv_hlAllGrants}
+  set {ODv_hlAllGrants} {GRANTEE/OWNER/OBJECT_NAME/GRANTOR/PRIVILEGE/GRT}
+
+# All-Comments
+global {ODv_fAllComments}
+  set {ODv_fAllComments} "$ODv_f_longest"
+global {ODv_hlAllComments}
+  set {ODv_hlAllComments} {COMMENT}
+
+
+###################################
+# System-Formats and Headlines    #
+###################################
+
+
+# Sys-User
+global {ODv_fSysUser}
+  set {ODv_fSysUser} "$ODv_f_user $ODv_f_id $ODv_f_object $ODv_f_object $ODv_f_rest $ODv_f_rest"
+global {ODv_hlSysUser}
+  set {ODv_hlSysUser} {USERNAME/USE_ID/DEFAULT_TABLESPACE/TEMPORARY_TABLESPACE/CREATED/PROFILE}
+
+# Sys-UserRoles
+global {ODv_fSysUserRoles}
+  set {ODv_fSysUserRoles} "$ODv_f_object $ODv_f_small $ODv_f_small $ODv_f_small"
+global {ODv_hlSysUserRoles}
+  set {ODv_hlSysUserRoles} {GRANTED_ROLE/ADM/D_RO/PASS}
+
+# Sys-Tables
+global {ODv_fSysTables}
+  set {ODv_fSysTables} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_objectlong $ODv_f_user"
+global {ODv_hlSysTables}
+  set {ODv_hlSysTables} {OBJ_ID/CREATED/STATUS/TABLE_NAME/OWNER}
+
+# Sys-TableRoles
+global {ODv_fSysTableRoles}
+  set {ODv_fSysTableRoles} "$ODv_f_object $ODv_f_user $ODv_f_objectlong $ODv_f_long $ODv_f_small"
+global {ODv_hlSysTableRoles}
+  set {ODv_hlSysTableRoles} {ROLE/OWNER/TABLE_NAME/PRIVILEGE/GRT}
+
+# Sys-TableDetails
+global {ODv_fSysTableDetails}
+  set {ODv_fSysTableDetails} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_small $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_nrlong $ODv_f_object"
+global {ODv_hlSysTableDetails}
+  set {ODv_hlSysTableDetails} {TABLESPACE_NAME/PCT_FREE/PCT_USED/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/B_UP/NUM_ROWS/BLOCKS/EMP_BLOCKS/AVG_SPACE/CHAIN_CNT/AVG_ROW_LEN/CLUSTER_NAME}
+
+# Sys-Columns
+global {ODv_fSysColumns}
+  set {ODv_fSysColumns} "$ODv_f_object $ODv_f_objectlong $ODv_f_user $ODv_f_typesmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_small $ODv_f_id $ODv_f_nrsmall $ODv_f_rest $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlSysColumns} 
+  set {ODv_hlSysColumns} {COLUMN_NAME/OBJECT_NAME/OWNER/DATA_TYPE/LENGTH/PREC/SCALE/NULL/COL_ID/DEF_LEN/DATA_DEF/NUM_DIST/LOW_VAL/HIGH_VAL} 
+
+# Sys-Indexes
+global {ODv_fSysIndexes}
+  set {ODv_fSysIndexes} "$ODv_f_objectlong $ODv_f_user $ODv_f_user $ODv_f_objectlong $ODv_f_typesmall $ODv_f_rest $ODv_f_object $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong $ODv_f_nrlong $ODv_f_nr $ODv_f_rest"
+global {ODv_hlSysIndexes}
+  set {ODv_hlSysIndexes} {INDEX_NAME/OWNER/TABLE_OWNER/TABLE_NAME/TABLE_TYPE/UNIQUE/TABLESPACE_NAME/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/PCT_FREE/BLEVEL/LEAF_BL/DIST_KEY/AVG_LEAF_KEY/AVG_DATA_KEY/CL_FAKTOR/STATUS}
+
+# Sys-Views
+global {ODv_fSysViews}
+  set {ODv_fSysViews} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_objectlong $ODv_f_user"
+global {ODv_hlSysViews}
+  set {ODv_hlSysViews} {OBJ_ID/CREATED/STATUS/VIEW_NAME/OWNER}
+
+# Sys-ViewBaseObjects
+global {ODv_fSysViewBaseObjects}
+  set {ODv_fSysViewBaseObjects} "$ODv_f_user $ODv_f_object $ODv_f_typesmall"
+global {ODv_hlSysViewBaseObjects}
+  set {ODv_hlSysViewBaseObjects} {REF_OWNER/REF_NAME/REF_TYPE}
+
+# Sys-ViewText
+global {ODv_fSysViewText}
+  set {ODv_fSysViewText} "$ODv_f_verylong"
+global {ODv_hlSysViewText}
+  set {ODv_hlSysViewText} {TEXT}
+
+# Sys-Clusters
+global {ODv_fSysClusters}
+  set {ODv_fSysClusters} "$ODv_f_id $ODv_f_rest $ODv_f_rest $ODv_f_object $ODv_f_user"
+global {ODv_hlSysClusters}
+  set {ODv_hlSysClusters} {OBJ_ID/CREATED/STATUS/CLUSTER_NAME/OWNER}
+
+# Sys-ClusterDetails
+global {ODv_fSysClusterDetails}
+  set {ODv_fSysClusterDetails} "$ODv_f_object $ODv_f_user $ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong $ODv_f_typesmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlSysClusterDetails}
+  set {ODv_hlSysClusterDetails} {CLUSTER_NAME/OWNER/TABLESPACE_NAME/PCT_FREE/PCT_USED/KEY_SIZE/INI_TRANS/MAX_TRANS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/AVG_KEY/CL_TYPE/FUNCTION/HASHKEYS}
+
+# Sys-ClusterColumns
+global {ODv_fSysClusterColumns}
+  set {ODv_fSysClusterColumns} "$ODv_f_user $ODv_f_object $ODv_f_object $ODv_f_objectlong $ODv_f_object"
+global {ODv_hlSysClusterColumns}
+  set {ODv_hlSysClusterColumns} {OWNER/CLUSTER_NAME/CLU_COLUMN_NAME/TABLE_NAME/TAB_COLUMN_NAME}
+
+# Sys-Tablespaces
+global {ODv_fSysTablespaces}
+  set {ODv_fSysTablespaces} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_rest"
+global {ODv_hlSysTablespaces}
+  set {ODv_hlSysTablespaces} {TABLESPACE_NAME/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/STATUS}
+
+# Sys-TablespaceFiles
+global {ODv_fSysTablespaceFiles}
+  set {ODv_fSysTablespaceFiles} "$ODv_f_id $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_rest $ODv_f_longest"
+global {ODv_hlSysTablespaceFiles}
+  set {ODv_hlSysTablespaceFiles} {FIL_ID/BYTES/BLOCKS/STATUS/FILE_NAME}
+
+# Sys-TablespaceUserQuotas
+global {ODv_fSysTablespaceUserQuotas}
+  set {ODv_fSysTablespaceUserQuotas} "$ODv_f_user $ODv_f_nrsmall $ODv_f_nr $ODv_f_nrsmall $ODv_f_nr"
+global {ODv_hlSysTablespaceUserQuotas}
+  set {ODv_hlSysTablespaceUserQuotas} {USERNAME/BYTES/MAX_BYTES/BLOCKS/MAX_BLOCKS}
+
+# Sys-TablespaceSegments
+global {ODv_fSysTablespaceSegments}
+  set {ODv_fSysTablespaceSegments} "$ODv_f_user $ODv_f_objectlong $ODv_f_typelong $ODv_f_nr $ODv_f_nr $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr"
+global {ODv_hlSysTablespaceSegments}
+  set {ODv_hlSysTablespaceSegments} {OWNER/SEGMENT_NAME/SEGMENT_TYPE/HEAD_FILE/HEAD_BLOCK/BYTES/BLOCKS/EXTENTS/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INC/FREELIST/FREE_GROUP}
+
+# Sys-Extents
+global {ODv_fSysExtents}
+  set {ODv_fSysExtents} "$ODv_f_id $ODv_f_objectlong $ODv_f_user $ODv_f_typelong $ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlSysExtents}
+  set  {ODv_hlSysExtents} {EXT_ID/SEGMENT_NAME/OWNER/SEGMENT_TYPE/TABLESPACE_NAME/FIL_ID/BLK_ID/BYTES/BLOCKS}
+
+# Sys-Sequences
+global {ODv_fSysSequences}
+  set {ODv_fSysSequences} "$ODv_f_object $ODv_f_nrverylong $ODv_f_nrverylong $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlSysSequences}
+  set {ODv_hlSysSequences} {SEQUENCE_NAME/MIN_VAL/MAX_VAL/INCR_BY/CYCLE/ORDER/CACHE/LAST_NUM}
+
+# Sys-DB-Links
+global {ODv_fSysDBLinks}
+  set {ODv_fSysDBLinks} "$ODv_f_user $ODv_f_rest $ODv_f_verylong $ODv_f_verylong"
+global {ODv_hlSysDBLinks}
+  set {ODv_hlSysDBLinks} {USERNAME/CREATED/DB_LINK/HOST}
+
+# Sys-Synonyms
+global {ODv_fSysSynonyms}
+  set {ODv_fSysSynonyms} "$ODv_f_objectlong $ODv_f_user $ODv_f_user $ODv_f_objectlong $ODv_f_verylong"
+global {ODv_hlSysSynonyms}
+  set {ODv_hlSysSynonyms} {SYNONYM_NAME/OWNER/OBJECT_OWNER/OBJECT_NAME/DB_LINK}
+
+# Sys-Constraints
+global {ODv_fSysConstraints}
+  set {ODv_fSysConstraints} "$ODv_f_object $ODv_f_object $ODv_f_user $ODv_f_small $ODv_f_user $ODv_f_object $ODv_f_longest"
+global {ODv_hlSysConstraints}
+  set {ODv_hlSysConstraints} {CONSTRAINT_NAME/TABLE_NAME/OWNER/TYPE/REF_OWNER/REF_CONSTRAINT_NAME/SEARCH_CONDITION}
+
+# Sys-Triggers
+global {ODv_fSysTriggers}
+  set {ODv_fSysTriggers} "$ODv_f_objectlong $ODv_f_user $ODv_f_user $ODv_f_objectlong $ODv_f_typelong $ODv_f_long $ODv_f_rest $ODv_f_verylong"
+global {ODv_hlSysTriggers}
+  set {ODv_hlSysTriggers} {TRIGGER_NAME/OWNER/TABLE_OWNER/TABLE_NAME/TRIGGER_TYPE/TRIGGERING_EVENT/STATUS/REFERENCING_NAMES}
+
+# Sys-TrigDesc
+global {ODv_fSysTrigDesc}
+  set {ODv_fSysTrigDesc} "$ODv_f_verylong"
+global {ODv_hlSysTrigDesc}
+  set {ODv_hlSysTrigDesc} {DESCRIPTION}
+
+# Sys-TrigWhen
+global {ODv_fSysTrigWhen}
+  set {ODv_fSysTrigWhen} "$ODv_f_verylong"
+global {ODv_hlSysTrigWhen}
+  set {ODv_hlSysTrigWhen} {WHEN-CLAUSE}
+
+# Sys-TrigBody
+global {ODv_fSysTrigBody}
+  set {ODv_fSysTrigBody} "$ODv_f_verylong"
+global {ODv_hlSysTrigBody}
+  set {ODv_hlSysTrigBody} {BODY}
+
+# Sys-Procedures
+global {ODv_fSysProcedures}
+  set {ODv_fSysProcedures} "$ODv_f_user $ODv_f_object $ODv_f_typesmall"
+global {ODv_hlSysProcedures}
+  set {ODv_hlSysProcedures} {OWNER/NAME/TYPE}
+
+# Sys-ProcSource
+global {ODv_fSysProcSource}
+  set {ODv_fSysProcSource} "$ODv_f_verylong"
+global {ODv_hlSysProcSource}
+  set {ODv_hlSysProcSource} {SOURCE TEXT}
+
+# Sys-Roles
+global {ODv_fSysRoles}
+  set {ODv_fSysRoles} "$ODv_f_object $ODv_f_small"
+global {ODv_hlSysRoles}
+  set {ODv_hlSysRoles} {ROLE/PASS}
+ 
+# Sys-Privileges
+global {ODv_fSysPrivileges}
+  set {ODv_fSysPrivileges} "$ODv_f_long $ODv_f_small"
+global {ODv_hlSysPrivileges}
+  set {ODv_hlSysPrivileges} {PRIVILEGE/ADM}
+
+# Sys-Grants
+global {ODv_fSysGrants}
+  set {ODv_fSysGrants} "$ODv_f_object $ODv_f_user $ODv_f_objectlong $ODv_f_user $ODv_f_long $ODv_f_small"
+global {ODv_hlSysGrants}
+  set {ODv_hlSysGrants} {GRANTEE/OWNER/OBJECT_NAME/GRANTOR/PRIVILEGE/GRT}
+
+# Sys-Rollbacksegments
+global {ODv_fSysRollbackSegs}
+  set {ODv_fSysRollbackSegs} "$ODv_f_objectlong $ODv_f_user $ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_rest $ODv_f_nrsmall"
+global {ODv_hlSysRollbackSegs}
+  set {ODv_hlSysRollbackSegs} {SEGMENT_NAME/OWNER/TABLESPACE_NAME/SEG_ID/FIL_ID/BLK_ID/INI_EXT/NXT_EXT/MIN_EXT/MAX_EXT/PCT_INCR/STATUS/INST_NUM}
+
+# Sys-Freespacesum
+global {ODv_fSysFreeSpaceSum}
+  set {ODv_fSysFreeSpaceSum} "$ODv_f_object $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_nr"
+global {ODv_hlSysFreeSpaceSum}
+  set {ODv_hlSysFreeSpaceSum} {TABLESPACE_NAME/BYTES/BLOCKS/NUM_EXT/FREE_EXT}
+
+# Sys-Freespacedetails
+global {ODv_fSysFreeSpaceDetails}
+  set {ODv_fSysFreeSpaceDetails} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlSysFreeSpaceDetail}
+  set {ODv_hlSysFreeSpaceDetail} {TABLESPACE_NAME/FIL_ID/BLK_ID/BYTES/BLOCKS}
+
+# Sys-Datafiles
+global {ODv_fSysDataFiles}
+  set {ODv_fSysDataFiles} "$ODv_f_object $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_longest"
+global {ODv_hlSysDataFiles}
+  set {ODv_hlSysDataFiles} {TABLESPACE_NAME/FIL_ID/BYTES/BLOCKS/STATUS/FILE_NAME}
+
+# Sys-Comments
+global {ODv_fSysComments}
+  set {ODv_fSysComments} "$ODv_f_longest"
+global {ODv_hlSysComments}
+  set {ODv_hlSysComments} {COMMENT}
+
+
+# Regine Kasten
+# Sys-Devices
+global {ODv_fSysDevices}
+  set {ODv_fSysDevices} "$ODv_f_nrsmall $ODv_f_verylong $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_longest"
+global {ODv_hlSysDevices}
+  set {ODv_hlSysDevices} {DEVICE_ID/FS_SYSTEM/BLOCKS/USED/FREE/PERCENT/MOUNT}
+
+# Regine Kasten
+# Sys-DevicesDfiles
+global {ODv_fSysDevDataFiles}
+  set {ODv_fSysDevDataFiles} "$ODv_f_nrsmall $ODv_f_object $ODv_f_nrsmall $ODv_f_longest"
+global {ODv_hlSysDevDataFiles}
+  set {ODv_hlSysDevDataFiles} {DEVICE_ID/TABLESPACE_NAME/FILE_ID/FILE_NAME}
+
+
+
+##################################
+# Optimize-Formats and Headlines #
+##################################
+
+# Regine Kasten
+# Analyze-Tables
+global {ODv_fAnalyzedTablesTab}
+  set {ODv_fAnalyzedTablesTab} "$ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nr $ODv_f_nr $ODv_f_nr $ODv_f_nrlong"
+global {ODv_hlAnalyzedTablesTab}
+  set {ODv_hlAnalyzedTablesTab} {NUM_ROWS/BLOCKS/EMPTY_BLOCKS/AVG_SPACE/CHAIN_CNT/AVG_ROW_LEN}
+global {ODv_fAnalyzedTablesCol}
+  set {ODv_fAnalyzedTablesCol} "$ODv_f_object $ODv_f_objectlong $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall"
+global {ODv_hlAnalyzedTablesCol}
+  set {ODv_hlAnalyzedTablesCol} {COLUMN_NAME/TABLE_NAME/LOW_VALUE/HIGH_VALUE/NUM_DISTINCT}
+
+# Regine Kasten
+# Analyze-Indexes
+global {ODv_fAnalyzedIndexes}
+  set {ODv_fAnalyzedIndexes} "$ODv_f_objectlong $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong $ODv_f_nrlong $ODv_f_nr"
+global {ODv_hlAnalyzedIndexes}
+  set {ODv_hlAnalyzedIndexes} {TABLE_NAME/BELEVEL/LEAF_BL/DIST_KEYS/AVG_LEAF_KEY/AVG_DATA_KEY/CL_FACTOR}
+
+# Regine Kasten
+# Explain-Plan Statement
+global {ODv_fExplainplan}
+  set {ODv_fExplainplan} "$ODv_f_verylong $ODv_f_typesmall $ODv_f_object  $ODv_f_user $ODv_f_nrsmall $ODv_f_nrsmall $ODv_f_nrlong"
+global {ODv_hlExplainplan}
+  set {ODv_hlExplainplan} {OPERATION/OPTIONS/OBJECT_NAME/OBJECT_OWNER/ID/PARENT_ID/COST}
+
+
+
+#########################
+# Help - Headlines      #
+#########################
+
+global {ODv_hlHelpOraInfo}
+  set {ODv_hlHelpOraInfo} {INFO}
+global {ODv_hlHelpOraTopics}
+  set {ODv_hlHelpOraTopics} {TOPIC}
+
+
+
+##########################################
+# Headlines for Find                     #
+##########################################
+global {ODv_hlSysObjects}
+set {ODv_hlSysObjects} {OWNER/OBJECT_NAME/OBJECT_TYPE}
+
+global {ODv_fSysObjects}
+set {ODv_fSysObjects} "$ODv_f_user $ODv_f_object $ODv_f_typelong"
+
+global {ODv_hlAllObjects}
+set {ODv_hlAllObjects} {OWNER/OBJECT_NAME/OBJECT_TYPE}
+
+global {ODv_fAllObjects}
+set {ODv_fAllObjects} "$ODv_f_user $ODv_f_object $ODv_f_typelong"
+
+global {ODv_hlUsrObjects}
+set {ODv_hlUsrObjects} {OBJECT_NAME/OBJECT_TYPE}
+
+global {ODv_fUsrObjects}
+set {ODv_fUsrObjects} "$ODv_f_object $ODv_f_typelong"
+}
+
+
+
+
+##########################################################
+# Pathnames for Subprocesses                             #
+##########################################################
+
+# used in OD_DoSysDevAll,OD_DoSysDevTabIns 
+global {ODv_dfPath}
+   set {ODv_dfPath} {/bin/df}
+
+
+# used in OD_PrintExplain, OD_PrintResult
+# send ascii-file to a postscript-printer with
+# path for ascii to postscript print programm
+global {ODv_printPSPath}
+   set {ODv_printPSPath} {a2ps}
+
+
+# used in OD_PrintExplainTree
+# path for a postscript printer
+global {ODv_printTreePath}
+   set {ODv_printTreePath} {lpr}
+
+
+##########################################################
+# startup source                                         #
+##########################################################
+
+InitGlobals
+OD_StartUp
+
+
+##########################################################
+# end source                                             #
+##########################################################
+
+
+# eof
+#

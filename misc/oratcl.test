@@ -1,0 +1,26 @@
+# sortcl.test - a simple test script
+
+package require Oratcl
+
+puts stdout "oratcl.test - testing oratcl commands"
+puts stdout "Enter your Oracle connect string (e.g. scott/tiger)"
+set id [gets stdin]
+
+puts stdout "Trying to connect to dataserver..."
+oralogon $id
+puts stdout "Connected, trying orasql..."
+oraopen oratcl0
+orasql oratcl0.0 "select * from scott.emp"
+puts stdout "Fetching a few return rows..."
+puts stdout [orafetch oratcl0.0]
+puts stdout [orafetch oratcl0.0]
+puts stdout [orafetch oratcl0.0]
+puts stdout [orafetch oratcl0.0]
+puts stdout [orafetch oratcl0.0]
+puts stdout "Finding column names..."
+puts stdout [oracols oratcl0.0]
+puts stdout "Looking at oramsg array..."
+parray oramsg
+puts stdout "Disconnecting..."
+oralogoff oratcl0
+exit

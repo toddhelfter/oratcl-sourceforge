@@ -1,0 +1,37 @@
+			OSQL
+	      ORACLE Visual SQL Query Tool
+
+---------------------------------------------------------------
+		   PL/SQL Menu Bar
+---------------------------------------------------------------
+
+The following menu buttons and associated menu items are
+available on the PL/SQL menu bar:
+
+%%hyperhelp_mark File%%
+----------
+  File
+----------
+
+  Load SQL...		Load a file into the PL/SQL statement
+			text entry area using a file selector
+			widget.
+
+  Save			Save the text in the PL/SQL statement text
+  			entry area in to the current save file
+  			as indicated.
+			
+  Save SQL As...		Save into a file the text in the PL/SQL
+  			statement text entry area using a file
+  			selector widget.
+
+  Close Window		Close this instance of the PL/SQL tool.
+
+%%hyperhelp_mark Help%%
+----------
+  Help
+----------
+
+  Osql...			Display help on how to use osql.
+
+  PL/SQL...		Display help on how to use the PL/SQL tool.

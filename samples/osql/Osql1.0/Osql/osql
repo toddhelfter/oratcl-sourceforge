@@ -1,0 +1,31 @@
+#!/home/schendr/bin/owish4 -f
+#- Edit the previous line and substute the path to your version of wish 
+#- which must include BLT, [incr tcl], oratcl and tclX.
+
+#------------------------------------------------------------------------------#
+#  Program - osql
+#  Author - Dan R. Schenck - POSC 1996
+#  Abstract - Tcl/Tk-based program to allow entry of SQL queries to a database.
+#	      Taken from the Sybase version VSQL
+#------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+#  Requirements - Minimum Tcl7.4/Tk4.0; wish must include tclX7.4a-b6, 
+#                 [incr Tcl] (older than V2.0) and oratcl.
+#  		  Wish must set the Tk Class to the capitalized name of the 
+#		  executed program file, i.e.- if the program file is "osql",
+#		  then the Tk Class should be "Osql"
+#------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+#  global procedures (all prefixed with VSQL_)
+#------------------------------------------------------------------------------#
+
+#-- Comment out the following line if you have not made tcl_cruncher.  Otherwise
+#-- edit the path to match where tcl_cruncher is found on your system.
+proc source file {uplevel #0 [exec /home/schendr/bin/tcl_cruncher -s $file]}
+
+#-- Edit the directory reference below to reflect where you placed the Osql
+#-- home directory
+set vsqlHome /home/schendr/Apps/Osql
+
+#-- Don't change anything below this line.
+source $vsqlHome/osql.tcl

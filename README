@@ -1,0 +1,317 @@
+
+Oratcl -  Tcl interface to Oracle database server
+
+
+ * Oracle interface to Tcl
+ *
+ * Copyright 1993 Tom Poindexter and U S WEST Advanced Technologies, Inc.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose and without fee is hereby granted, provided
+ * that the above copyright notice appear in all copies.  
+ * Tom Poindexter and U S WEST make no representations about the suitability 
+ * of this software for any purpose.  It is provided "as is" without express or
+ * implied warranty.  By use of this software the user agrees to 
+ * indemnify and hold harmless Tom Poindexter and U S WEST from any 
+ * claims or liability for loss arising out of such use.
+ *
+ *-----------------------------------------------------------------------
+ * Version 1.0 July, 1993
+ * Tom Poindexter, Boulder Colorado
+ * tpoind@advtech.uswest.com  or  tpoindex@nyx.cs.du.edu   
+ *-----------------------------------------------------------------------
+ * Version 2.0 November, 1993
+ * Tom Poindexter, Boulder Colorado
+ * tpoind@advtech.uswest.com  or  tpoindex@nyx.cs.du.edu   
+ *-----------------------------------------------------------------------
+ * Version 2.1 February, 1994
+ * Tom Poindexter, Boulder Colorado
+ * tpoind@advtech.uswest.com  or  tpoindex@nyx.cs.du.edu   
+ *-----------------------------------------------------------------------
+ * Version 2.11 April, 1994
+ * Tom Poindexter, Boulder Colorado
+ * tpoind@advtech.uswest.com  or  tpoindex@nyx.cs.du.edu   
+ *-----------------------------------------------------------------------
+ * Version 2.2 October, 1994
+ * Tom Poindexter, Denver Colorado
+ * tpoindex@nyx.cs.du.edu      <<<note new address!
+ *-----------------------------------------------------------------------
+ * Version 2.3 August, 1995
+ * Tom Poindexter, Denver Colorado
+ * tpoindex@nyx.cs.du.edu 
+ *-----------------------------------------------------------------------
+ * Version 2.4 September, 1996
+ * Tom Poindexter, Denver Colorado
+ * tpoindex@nyx.net
+ *-----------------------------------------------------------------------
+ * Version 2.41 December, 1996
+ * Tom Poindexter, Denver Colorado
+ * tpoindex@nyx.net
+ *-----------------------------------------------------------------------
+ * Version 2.5 November, 1997
+ * Tom Poindexter, Denver Colorado
+ * tpoindex@nyx.net
+ *
+ *
+
+
+
+WHAT IS ORATCL?
+
+Oratcl is an extension to Tool Command Language (Tcl) that provides access
+to a Oracle Database server.  Oratcl adds additional Tcl commands that 
+login to an Oracle Server, pass SQL code, read results, etc.  Oratcl was 
+inspired by similar tools written for Perl (sybperl, oraperl) but was written 
+from scratch instead of borrowing on the work of either Perl extension.
+
+Oratcl was based on my earlier effort with Sybtcl.  The sample program
+"wosql" is a direct descendent of Sybtcl's "wisql".
+
+
+Oratcl features:
+  -supports multiple connections to the same or different Oracle Servers
+  -sends Sql code or anonymous PL blocks to the server
+  -supports nonblocking (asynchronous) SQL execution (Oracle 7.2+)
+  -caches return rows from the server for efficiency
+  -converts results to strings and returns rows as Tcl lists
+  -allows cursor variables to be returned from PL/SQL (Oracle 7.2+)
+  -allows user defined null values to be returned
+  -Version 7 stored procedures can be executed and return values accessed
+  -accesses column names, lengths, and datatypes of rows & return values
+  -provides feedback of Oracle messages and codes
+  -reads/writes long columns to files
+  -commit, rollback, and autocommit options
+
+
+
+ACKNOWLEDGEMENTS
+
+	John Ousterhout (john.ousterhout@eng.sun.com) for Tcl and Tk -
+	    wonderful software in my opinion.
+
+	Karl Lehenbauer (karl@NeoSoft.com) and 
+	    Mark Diekhans (markd@Grizzly.com) for Extended Tcl -
+	    more good stuff.
+
+	Michael Peppler (mpeppler@datamig.com) for sybperl, which gave me
+	    the inspiration to write Oratcl.  
+
+
+REQUIREMENTS
+
+Since Oratcl is an extension to Tcl, you should already have Tcl, or be
+prepared to get it via Ftp [sites listed below].
+
+Of course, you must also have access to a Oracle Databaser Server.  
+Oratcl must be linked with the Oracle OCI libraries.
+
+Starting with version 2.4, Oratcl supports building a dynamic load library on
+systems that support dynamic loading.  If you build static libraries and
+executables, I recommend building with Extended Tcl.
+
+The specific software versions I used:
+
+ 
+        Tcl - 7.6p2           ftp.sunlabs.com:/pub/tcl/tcl7.6p2.tar.gz
+        Tk  - 4.2p2           ftp.sunlabs.com:/pub/tcl/tk4.2p2.tar.gz
+                              also avaible at
+                              ftp.neosoft.com:/pub/tcl/mirror/ftp.smli.com
+			      and 
+			      http://www.neosoft.com/tcl
+ 
+        Extended Tcl - 7.6.0  ftp.neosoft.com
+                                /pub/tcl/TclX/tclX7.6.0.tar.gz
+
+
+	Also works with:
+
+	Tcl - 8.0p2           ftp.sunlabs.com:/pub/tcl/tcl8.0p2.tar.gz
+	Tk - 8.0p2            ftp.sunlabs.com:/pub/tcl/tk8.0p2.tar.gz
+	Extended Tcl - 8.0.2  ftp.neosoft.com
+				/pub/tcl/TclX/tclX8.0.2.tar.gz
+
+
+	Oracle SQL Server - Version 6 or Version 7.0, 7.1, 7.2, 7.3   
+	Oracle OCI libraries
+
+	There are some notes about working with Oracle 8.  See the file
+	'oracle8.mods'
+
+>>>>>>>	I've put oratcl-2.5.tar.gz on ftp.neosoft.com 
+        in /pub/tcl/sorted/databases/oratcl-2.5/oratcl-2.5.tar.gz
+
+	Also available at:  
+	http://www.neosoft.com/tcl/ftparchive/sorted/databases
+
+	see the newsgroup comp.lang.tcl for general Tcl discussion and
+	the Tcl Frequently Asked Questions.
+
+
+
+I've built Oratcl in SunOS 4.1.2 (BSD), Solaris 2.5 (Sys 5.4),
+Dec Unix V4.x, and HP-UX 10.x, and Windows NT 4.0/VC++ 4.0.
+
+Other users have reported successful compiles on: 
+
+Data General DG/UX
+Sequent PTX 2.1
+IBM AIX
+SGI Irix
+
+(mail to me on a successful port on other platforms; I'll add to this list)
+
+
+WINDOWS NT/95 AND MACINTOSH
+
+DLLs for Windows NT/95 are supplied in the ./win directory.  Two DLLs are
+supplied, one compiled with Tcl 7.6, the other compiled with Tcl 8.0.
+Run the 'install.tcl' to install the correct version.
+
+** Windows users can use 'WinZip' to unpack .tar.gz files.  
+
+See the win/README.win file for more information.
+
+At this time, no Macintosh libraries are supplied.  (Anyone with a Mac,
+a C compiler, and Oracle libraries care to contribute?  email me!)
+
+
+SAMPLES
+
+Some samples are included using the Extended Tcl tcl(1) and wishx(1)
+interpreters.    In particular, the "wosql" (Windowing Oracle SQL) program 
+is a handy replacement for Sql*Plus for ad hoc queries.  Wosql does not 
+attempt to provide any of the report generating and formatting 
+capabilities of Sql*Plus.
+
+Also in ./samples is iud_maker, an Oratcl that builds insert-update-delete
+applications for a single table.
+
+The ODDIS graphical data dictionary application is included in ./samples/oddis.
+OSQL in ./samples/osql - another SQL query tool (requires TclX, [incr tcl], 
+Blt).
+Check them out!  
+
+See ./samples/README.samples plus each file's comments and code.
+
+
+MAN PAGE
+
+You're in luck! I've written one.
+
+
+OTHER DOCUMENTATION
+
+Oratcl is explained in greater detail in "Tcl/Tk Tools", edited by Mark 
+Harrison, and published by O'Reilly and Associates.  "Tcl/Tk Tools" is 
+a new book that covers many of the popular Tcl extensions, written by
+the authors of each extension (I wrote the chapters on Sybtcl and Oratcl.)
+1st Edition published September 1997, ISBN: 1-56592-218-2
+See your local bookstore, or try: 
+	http://www.softpro.com
+	http://www.amazon.com
+	http://www.ora.com
+	http://www.barnesandnoble.com
+
+
+BUG REPORTS
+
+Comments, suggestions, et.al., should be mailed to me at the above email
+address, or posted to comp.lang.tcl if general enough nature.  
+Hell, you can even mail to me if you like Oratcl!
+
+Mail bug reports to:	tpoindex@nyx.net
+
+If you post a question or bug report to comp.lang.tcl, I may not see it,
+so please copy me also.
+
+Please ALWAYS include: 
+        -version of Oratcl
+        -version of Tcl, Tk, and TclX
+        -version of Oracle server and OCI libary
+        -version of your operating system
+	-switches used with configure (see config.status)
+        -compiler used, stock cc or Gcc
+        -samples of SQL or Oratcl code causing problems
+        -relevant database table definitions, views, procedures
+
+
+KNOWN BUGS !!!
+
+Certain bugs in Oracle's OCI library may cause problems for Oratcl.
+Oracle's 7.1.4 and 7.1.5 releases seems to have introduced several problems 
+with their Oracle Call Interface (OCI) libraries that Oratcl uses.  Symptoms 
+include excessively long connect times (2+ minutes) when using Sql*Net, or
+possibly "fetch out of sequence" errors when retrieving rows.  Use 
+7.0.x or 7.1.6+ OCI libraries if you experience problems with 7.1.4 or 7.1.5.  
+
+See the file OCI714.bug for additional details.
+
+Oracle's 7.3.2.3 release also exhibits a tendency to core dump when using
+oralogon.  This is a known bug in Oracle's OCI library build.
+
+See the file OCI7323.bug for addititional details.
+
+I've also received a few reports of Oratcl (OCI problems again) having some bad 
+interaction with Tcl's 'exec' command.  It sounds like OCI and the 'exec'
+command are battling over signals.  If you're having problems using 'exec' with
+Oratcl, try using 'exec' with in a 'catch' command.   Mail to me on this 
+problem if you have any explanations, and again, contact Oracle tech support.
+
+
+ORATCL WWW PAGE
+ 
+I keep terse, but usually up to date information at: 
+	http://www.nyx.net/~tpoindex
+ 
+
+TCL DATABASE MAILING LIST
+
+A mailing list is available for specific discussions about using Tcl with
+databases, including Oratcl, Sybtcl, etc.  Feel free to join and mail to the
+list.  The list is hosted by De Clarke.
+
+To subscribe to this list send mail to
+ 
+        listserv@ucolick.org
+ 
+and in the body of the message write
+ 
+        subscribe tcldb
+ 
+To unsubscribe... (well, you get the idea).
+ 
+Please remember to write to tcldb-owner with problems about the
+list itself, or to postmaster@ucolick.org if you have difficulties
+getting through to the tcldb-owner address.  Please do not send
+subscribe and unsubscribe messages to the list itself.
+
+ 
+INSTALLATION
+ 
+Quickie install instructions:
+ 
+        ./configure --prefix=/same/prefix/path/as/with/tcl/configure  \
+                    --exec-prefix=/same/exec-prefix/path/as/with/tcl/configure 
+        make
+        make install
+ 
+Didn't work? You'll have to read the INSTALL file.  Maybe you should read it
+anyway.
+
+NOTE!!! I strongly advise that you build Tcl with the '--enable-shared' option.
+Oratcl uses information that Tcl's configure finds, particularly information    
+about compiling and linking for dynamic shared libraries.  Oratcl by 
+default builds a shared library.  See the INSTALL file for additional notes.
+
+
+
+OTHER
+
+Try out the Oratcl C API.  It allows your C programs to access Oracle 
+using the Oratcl model. It's experimental; please mail to me if
+it works for you, or if you have improvements.  See ./oratcl-capi/*
+
+See the file CHANGES for changes in versions of Oratcl.
+
+-finis-
+

@@ -1,0 +1,105 @@
+			OSQL
+	      ORACLE Visual SQL Query Tool
+
+---------------------------------------------------------------
+		       Menu Bar
+---------------------------------------------------------------
+
+The following menu buttons and associated menu items are
+available on the menu bar:
+
+%%hyperhelp_mark File%%
+----------
+  File
+----------
+
+  Load SQL...		Load a file into the SQL statement
+			text entry area using a file selector
+			widget.
+
+  Save			Save the text in the SQL statement text
+  			entry area in to the current save file
+  			as indicated.
+			
+  Save SQL As...		Save into a file the text in the SQL
+  			statement text entry area using a file
+  			selector widget.
+
+  Clear SQL Stmt Buffer	Clear all statements in the current
+  			SQL query buffer.
+			
+  New Connection...	Terminate this connection and login
+  			again with a new userid and password.
+
+  Exit			Logout of ORACLE and exit osql.
+
+
+%%hyperhelp_mark Props%%
+----------
+  Props
+----------
+
+  Print...			Edit the command used to print output.
+  			The default is "lpr".
+
+  Results Query Window	Set toggle to either "Show" or "Hide" the SQL
+  			statement that created the results displayed
+  			in the Results Window.  The default is to 
+  			"Hide" the SQL.
+
+
+%%hyperhelp_mark Options%%
+----------
+  DB Options
+----------
+
+  Autocommit		Turn autocommit mode "on" or "off".
+  			Osql defaults to autocommit on.
+
+  Commit Now		Commit all transactions executed since
+  			last commit.
+
+  Rollback Now		Rollback outstanding transactions.
+
+  SQL Trace		Turn SQL trace facility on or off.
+
+  Execute PL/SQL...	Start a %%
+  hyperhelp_link "tool" Osql.plsql%% to execute PL/SQL code.
+  
+  
+%%hyperhelp_mark Objects%%
+----------
+  Objects
+----------
+
+  Describe Table...	Describe a particular table owned by 
+  			a specific owner.  If no owner information 
+  			is entered, a list of all tables matching 
+  			the requested name will be returned.
+
+  Tables			List all of the tables in this ORACLE
+  			instance.
+
+  Views			List all of the views in this ORACLE
+			instance.
+
+  Indexes		List all of the indexes in this ORACLE
+			instance.
+
+
+  Procedures		List all of the procedures in this
+			ORACLE instance.
+
+
+  Triggers		List all of the triggers in this ORACLE
+			instance.
+
+%%hyperhelp_mark Help%%
+----------
+  Help
+----------
+
+  Version...		Display current program information.
+
+  Application...		Display help on how to use osql.
+  
