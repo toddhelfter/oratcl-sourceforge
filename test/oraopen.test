@@ -1,0 +1,59 @@
+# ora02open.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise oraopen and oraclose
+#
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+test oraopen-1.0 {oraopen: no arguments} {
+	catch {oraopen} res
+	set res
+} {wrong # args: should be "oraopen lda_handle"}
+
+test oraopen-1.1 {oraopen: all arguments} {
+	global ora_lda
+	catch {set cur [oraopen $ora_lda]} res
+	catch {oraclose $cur}
+	unset cur
+	set res
+} {oratcl0.3}
+
+test oraopen-1.2 {oraopen: many cursors} {
+	global ora_lda
+
+        set lcur(0) {}
+	set ores(0) {}
+	set cres(0) {}
+
+	set ix 3
+	set res 1
+	while {$res} {
+		set lcur($ix) {}
+		catch {set lcur($ix) [oraopen $ora_lda]} ores($ix)
+		if { [string range $lcur($ix) 0 5] != {oratcl}} {
+			set res 0
+		} else {
+                        if {$ix > 100} {
+                                break
+                        }
+			incr ix
+		}
+	}
+
+	for {set jx 3} {$jx < $ix} {incr jx} {
+		catch {oraclose $lcur($jx)} cres($jx)
+	}
+	set res $ores($ix)
+	unset lcur
+	unset cres
+	unset ores
+   set res
+} {oratcl0.102}
+
+::tcltest::cleanupTests
+return
