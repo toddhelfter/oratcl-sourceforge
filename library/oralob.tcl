@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.9.2.2 2002-02-11 00:45:05 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.9.2.3 2002-02-11 15:14:50 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -937,7 +937,7 @@ proc ::oratcl::lob_append {handle1 handle2} {
 			  tcl_res] 
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: [oramsg $handle error] $info"
+		set err_txt "oralob $fn: [oramsg $handle1 error] $info"
 		return -code error $err_txt
 	}
 
@@ -1018,7 +1018,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		set tcl_rc [catch {::oratcl::lob_length $handle1} tcl_res]
 		if {$tcl_rc} {
 			set info $errorInfo
-			set err_txt "oralob $fn: [oramsg $handle error] $info"
+			set err_txt "oralob $fn: [oramsg $handle1 error] $info"
 			return -code error $err_txt
 		}
 		set han1_len $tcl_res
@@ -1027,7 +1027,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		set tcl_rc [catch {::oratcl::lob_length $handle2} tcl_res]
 		if {$tcl_rc} {
 			set info $errorInfo
-			set err_txt "oralob $fn: [oramsg $handle error] $info"
+			set err_txt "oralob $fn: [oramsg $handle1 error] $info"
 			return -code error $err_txt
 		}
 		set han2_len $tcl_res
@@ -1054,7 +1054,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 			  tcl_res] 
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: [oramsg $handle error] $info"
+		set err_txt "oralob $fn: [oramsg $handle1 error] $info"
 		return -code error $err_txt
 	}
 	orafetch $stm1 -datavariable tcl_res
