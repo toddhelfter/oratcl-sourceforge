@@ -248,5 +248,6 @@ Version 3.1 October, 2000
     -	added the library file oralong.tcl to implement a new oralong command.
     -	added "longpsize" to oraconfig to manage the piece size in oralong
 	read/writes.
+    -   reorganized the windows prebuilt files directory once again.
 
 -----------------------------------------------------------------------------

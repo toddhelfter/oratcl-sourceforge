@@ -4325,7 +4325,6 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
-	OCIBind         *bindp;		/* bind pointer */
         OCIDefine       *defnp;		/* define pointer */
 
 	char		*sql;
@@ -4615,7 +4614,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 
 	char		*pData;
 	char		*pLast;
-	int		pSize;
+	ub4		pSize;
 
 	int		buffer_size;
 	ub2		buffer_rcode;
