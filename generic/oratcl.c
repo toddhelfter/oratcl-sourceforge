@@ -597,7 +597,7 @@ Oratcl_Init (interp)
 	native = Tcl_FSGetNativePath(tmp_obj);
 	Tcl_DecrRefCount(tmp_obj);
 
-	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
 	if (handle == NULL) {
 		fprintf(stderr, "%s(): %s with error",
