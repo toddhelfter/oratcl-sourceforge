@@ -1087,6 +1087,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 		case SQLT_RDD:					/* 104	*/
 			new_col->column.valuesz = 23;
 			break;
+#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 		case SQLT_TIMESTAMP:				/* 187	*/
 		case SQLT_TIMESTAMP_TZ:				/* 188  */
 		case SQLT_INTERVAL_YM:				/* 189  */
@@ -1094,6 +1095,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 		case SQLT_TIMESTAMP_LTZ:			/* 232  */
 			new_col->column.valuesz = 75;
 			break;
+#endif
 #if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
                 case SQLT_CLOB:                                 /* 112  */
                 case SQLT_BLOB:                                 /* 113  */
