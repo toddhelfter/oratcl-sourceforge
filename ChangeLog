@@ -1,3 +1,8 @@
+2005-03-18  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in (AR): ues @AR@
+	* configure, configure.in, tclconfig/tcl.m4: TEA 3.2 update
+
 Feb 14 2005
 	
 	Relocate a Tcl_DecrRefCount() call to after the call to DLOPEN.
