@@ -54,7 +54,7 @@ typedef struct OratclDesc OratclDesc;
 struct OratclCols {
 	struct OratclCols *next;	 	/* pointer to next OratclCols in list */
 	ub2		dty;		
-#if ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0
+#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
 	OCILobLocator	*lobp;
 #endif
 	OCIDefine   	*defnp;			/* define pointer */

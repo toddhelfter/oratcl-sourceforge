@@ -1723,35 +1723,57 @@ oratest3=${oratest3:-.}
 oratest4=`(niscat passwd.org_dir | egrep ^oracle | awk -F: '{print $6}') 2>/dev/null`
 oratest4=${oratest4:-.}
 
+FOUND_ORACLE=0
 
-echo "checking for Oracle 8.1+-style toplevel (libclient8.a)" 1>&6
-echo "configure:1729: checking for Oracle 8.1+-style toplevel (libclient8.a)" >&5
+echo "checking for Oracle 9.0 style toplevel (libclient9.a)" 1>&6
+echo "configure:1730: checking for Oracle 9.0 style toplevel (libclient9.a)" >&5
 for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
-    echo "$ac_t""looking for lib/libclient8.a in $f" 1>&6
-    if test -r "$f/lib/libclient8.a" ; then
+    echo "$ac_t""looking for lib/libclient9.a in $f" 1>&6
+    if test -r "$f/lib/libclient9.a" ; then
         ORA="$f/lib"
 	ORACLE_HOME=$f
         echo "$ac_t""setting ORA to $ORA" 1>&6
-	testver=8
-	ORA_MINOR_VERSION=1
-	# might be >81 but for now all we care is that it's not 8.0
-        break
-    fi
-done
-
-echo "checking for Oracle 8.0-style toplevel (libclient.a)" 1>&6
-echo "configure:1744: checking for Oracle 8.0-style toplevel (libclient.a)" >&5
-for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
-    echo "$ac_t""looking for lib/libclient.a in $f" 1>&6
-    if test -r "$f/lib/libclient.a" ; then
-        ORA="$f/lib"
-	ORACLE_HOME=$f
-        echo "$ac_t""setting ORA to $ORA" 1>&6
-	testver=8
+	testver=9
+	ORA_MAJOR_VERSION=9
 	ORA_MINOR_VERSION=0
+	FOUND_ORACLE=1
         break
     fi
 done
+
+if test "${FOUND_ORACLE}" = "0" ; then
+    echo "checking for Oracle 8.1 style toplevel (libclient8.a)" 1>&6
+echo "configure:1747: checking for Oracle 8.1 style toplevel (libclient8.a)" >&5
+    for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+        echo "$ac_t""looking for lib/libclient8.a in $f" 1>&6
+        if test -r "$f/lib/libclient8.a" ; then
+            ORA="$f/lib"
+	    ORACLE_HOME=$f
+            echo "$ac_t""setting ORA to $ORA" 1>&6
+	    testver=8
+	    ORA_MINOR_VERSION=1
+	    # might be >81 but for now all we care is that it's not 8.0
+	    FOUND_ORACLE=1
+            break
+        fi
+    done
+fi
+
+if test "${FOUND_ORACLE}" = "0" ; then
+    echo "checking for Oracle 8.0 style toplevel (libclient.a)" 1>&6
+echo "configure:1765: checking for Oracle 8.0 style toplevel (libclient.a)" >&5
+    for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+        echo "$ac_t""looking for lib/libclient.a in $f" 1>&6
+        if test -r "$f/lib/libclient.a" ; then
+            ORA="$f/lib"
+	    ORACLE_HOME=$f
+            echo "$ac_t""setting ORA to $ORA" 1>&6
+	    testver=8
+	    ORA_MINOR_VERSION=0
+            break
+        fi
+    done
+fi
 
 
 ;;
@@ -1771,7 +1793,7 @@ case "`uname -s`" in
 	;;
     *)
 	echo "checking for Oracle version" 1>&6
-echo "configure:1775: checking for Oracle version" >&5
+echo "configure:1797: checking for Oracle version" >&5
 	;;
 esac
 
@@ -1789,6 +1811,12 @@ fi
 
 
 case $oracle_version in
+    9)
+	echo "$ac_t""using --with-oracle-version = $oracle_version" 1>&6
+        ORA_DB_VER="-DVERSION9DB"
+	ORA_MAJOR_VERSION=9
+	ORA_MAJOR_VERSION=0
+	;;
     8)
 	echo "$ac_t""using --with-oracle-version = $oracle_version" 1>&6
         ORA_DB_VER="-DVERSION8DB"
@@ -1973,7 +2001,7 @@ TCL_LIB_DIR=$TCL_PREFIX/lib
 
 
     echo $ac_n "checking for tclsh""... $ac_c" 1>&6
-echo "configure:1977: checking for tclsh" >&5
+echo "configure:2005: checking for tclsh" >&5
 
     if eval "test \"`echo '$''{'ac_cv_path_tclsh'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
