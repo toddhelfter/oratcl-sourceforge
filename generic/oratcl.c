@@ -472,8 +472,6 @@ static char *OraHandlePrefix = "oratcl";  /* prefix used to identify handles*/
 static char *OraMsgArray = "oramsg";  /* array to place errors & messages */
 static char *EnvArray = "env"; /* global Tcl array for environment vars */
 
-
-
 /* rip off from example.c: defines plus .dll entry point function */
  
 #ifdef __WIN32__
@@ -481,33 +479,15 @@ static char *EnvArray = "env"; /* global Tcl array for environment vars */
 #   define WIN32_LEAN_AND_MEAN
 #   include <windows.h>
 #   undef WIN32_LEAN_AND_MEAN
- 
-#   if defined(_MSC_VER)
-#       define EXPORT(a,b) __declspec(dllexport) a b
-#       define DllEntryPoint DllMain
-#   else
-#       if defined(__BORLANDC__)
-#           define EXPORT(a,b) a _export b
-#       else
-#           define EXPORT(a,b) a b
-#       endif
-#   endif
-#else
-#   define EXPORT(a,b) a b
 #endif
+ 
+#undef TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS DLLEXPORT
+ 
+EXTERN int	Oratcl_Init _ANSI_ARGS_((Tcl_Interp *interp));
 
- 
-EXTERN EXPORT(int,Oratcl_Init) _ANSI_ARGS_((Tcl_Interp *interp));
- 
-BOOL APIENTRY
-DllEntryPoint(hInst, reason, reserved)
-HINSTANCE hInst;            /* Library instance handle. */
-DWORD reason;               /* Reason this function is being called. */
-LPVOID reserved;            /* Not used. */
-{
-    return TRUE;
-}
- 
+#undef TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS DLLIMPORT
 
 #define strncasecmp strnicmp
  
@@ -799,9 +779,10 @@ free_cols (col_list_ptr)
 	if (col_list_ptr->col_data != NULL) {
 	    ckfree(col_list_ptr->col_data);
 	}
-	ckfree(col_list_ptr);
+	ckfree((char *)col_list_ptr);
 	col_list_ptr = next;
     }
+    return 1;
 }
 
 
@@ -823,7 +804,7 @@ free_curs (lda_owner)
 	    OraCurs[i].cur_in_use = 0;
 	    OraCurs[i].lda_num    = 0;
 	    oclose(OraCurs[i].cda);
-	    ckfree(OraCurs[i].cda);
+	    ckfree((char *)OraCurs[i].cda);
 	    OraCurs[i].cda        = NULL;
 	    free_cols(OraCurs[i].col_list);
 	    OraCurs[i].col_list   = NULL;;
@@ -831,6 +812,7 @@ free_curs (lda_owner)
 	    OraCurs[i].bind_list   = NULL;;
 	}
     }
+    return 1;
 }
 
 
@@ -922,7 +904,7 @@ parse_columns (interp, hand)
        
 	if (OraCurs[hand].cda->rc == NO_MORE_COLUMNS) {
 	    last_col->next_buf = NULL;
-	    ckfree(new_col);
+	    ckfree((char *)new_col);
 	    break;
 	}
 
@@ -1104,7 +1086,7 @@ Oratcl_Kill (clientData)
 	    }
 #endif
 	    ologof(OraLdas[i].lda);
-	    ckfree(OraLdas[i].lda);
+	    ckfree((char *)OraLdas[i].lda);
 	    ckfree(OraLdas[i].hda);
 	}
     }
@@ -1169,7 +1151,7 @@ Oratcl_Init (interp)
 
         OratclInitFlag = 1;
 
-	Tcl_CreateExitHandler (Oratcl_Kill, (ClientData)NULL);
+	Tcl_CreateExitHandler ((Tcl_ExitProc *)Oratcl_Kill, (ClientData)NULL);
     }
 
     /*
@@ -1332,7 +1314,7 @@ Oratcl_Logon (clientData, interp, argc, argv)
 	return TCL_ERROR;
     }
     if ( (OraLdas[hand].hda = ckalloc(ORA_HOST_AREA)) == NULL) {
-        ckfree(OraLdas[hand].lda);
+        ckfree((char *)OraLdas[hand].lda);
 	Tcl_AppendResult (interp, argv[0], ": oralogon failed in malloc(hda)",
 			  (char *) NULL);
 	return TCL_ERROR;
@@ -1359,8 +1341,8 @@ Oratcl_Logon (clientData, interp, argc, argv)
            "logon failed: invalid id/password or unable to connect to server",
 	    TCL_GLOBAL_ONLY);
 
-        ckfree(OraLdas[hand].lda);
-        ckfree(OraLdas[hand].hda);
+        ckfree((char *)OraLdas[hand].lda);
+        ckfree((char *)OraLdas[hand].hda);
 	Tcl_AppendResult (interp, argv[0], ": oralogon failed in orlon",
 			  (char *) NULL);
 	return TCL_ERROR;
@@ -1442,13 +1424,13 @@ Oratcl_Logoff (clientData, interp, argc, argv)
     if (ologof(OraLdas[hand].lda) != 0) {
 	/* logoff failed, get error msg */
 	get_lda_err(interp,hand);
-        ckfree(OraLdas[hand].lda);
+        ckfree((char *)OraLdas[hand].lda);
         ckfree(OraLdas[hand].hda);
 
 	return TCL_ERROR;
     }
 
-    ckfree(OraLdas[hand].lda);
+    ckfree((char *)OraLdas[hand].lda);
     ckfree(OraLdas[hand].hda);
 
     return TCL_OK;
@@ -1527,7 +1509,7 @@ Oratcl_Open (clientData, interp, argc, argv)
     if (oopen(OraCurs[hand].cda,OraLdas[lda_hand].lda,NULL,-1,-1,NULL,-1) !=0) {
 	/* open failed, cleanup */
 	get_ora_err(interp,hand);
-        ckfree(OraCurs[hand].cda);
+        ckfree((char *)OraCurs[hand].cda);
 	Tcl_AppendResult (interp, argv[0], ": oraopen failed in oopen",
 			  (char *) NULL);
 	return TCL_ERROR;
@@ -1590,7 +1572,7 @@ Oratcl_Close (clientData, interp, argc, argv)
     OraCurs[hand].lda_num    = 0;
     oclose(OraCurs[hand].cda);
     bzero(OraCurs[hand].cda, sizeof(cda_def));
-    ckfree(OraCurs[hand].cda);
+    ckfree((char *)OraCurs[hand].cda);
     OraCurs[hand].cda        = NULL;
     free_cols(OraCurs[hand].col_list);
     OraCurs[hand].col_list   = NULL;
