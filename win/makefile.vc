@@ -9,8 +9,8 @@
 #
 MACHINE		= IX86
 
-ORATCL_VERSION = 3.2
-DLL_VERSION = 32
+ORATCL_VERSION = 4.1
+DLL_VERSION = 41
 
 PROJECT = oratcl$(DLL_VERSION)
 
@@ -63,7 +63,7 @@ INCLUDES =	-I$(TOOLS32)/include	\
 		-I$(ORACLE_OCI)/include	\
 		-I../generic
 
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DUSE_TCL_STUBS -DVERSION8DB -DVERSION=\"3.1\" 
+DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DUSE_TCL_STUBS -DVERSION8DB -DVERSION=\"4.1\" -DLIBRARY1=\"oralob.tcl\" -DLIBRARY2=\"oralong.tcl\"
 
 !include <ntwin32.mak>
 
