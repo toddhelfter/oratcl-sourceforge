@@ -4299,7 +4299,19 @@ common_exit:
 	return tcl_return;
 }
 
-/* finis */
+/*
+ *----------------------------------------------------------------------
+ *
+ * Oratcl_LongRead --
+ *    Implements the ::oratcl::longread command:
+ *    usage: oradesc stm_handle sql_stmt data_var
+ *	                
+ *    results:
+ *	table information
+ *      TCL_OK - 
+ *      TCL_ERROR - 
+ *----------------------------------------------------------------------
+ */
 
 int
 Oratcl_LongRead (clientData, interp, objc, objv)
@@ -4784,3 +4796,5 @@ common_exit:
 
 	return tcl_return;
 }
+
+/* finis */
