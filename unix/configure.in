@@ -128,7 +128,7 @@ for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u
         break
     fi
     AC_MSG_RESULT(looking for lib/libclient.a in $f)
-    if test -r "$f/lib/libclient.a" ; then
+    if test -r "$f/lib/libclient8.a" ; then
         ORA="$f/lib"
 	ORACLE_HOME=$f
         AC_MSG_RESULT(setting ORA to $ORA)
@@ -224,12 +224,12 @@ case $ORAVER in
     # Oracle 7 has different libs for 7.0.x & 7.1.x, 7.2.x
     # and now 7.3.x   sheesh!!!  can't Oracle make up their mind!!
 
-    if test -r "$ORA/libclient.a" ; then
+    if test -r "$ORA/libclient8.a" ; then
       # it's Oracle 7.3.2
         OCIIGNORE="snmspu.o snmsp.o snmd.o snmitcl.o"
         AC_MSG_RESULT(using oracle libraries for 7.3.2+)
         ORA72FEATURES="-DNONBLOCK_CURSOR"
-        OCILIB="$mili \${ORA}/libclient.a \${ORA}/libcommon.a \${ORA}/libgeneric.a  \${ORA}/libsqlnet.a \${ORA}/libncr.a \${ORA}/libepc.a  \${ORA}/libcore3.a $libnlsrtl3 \${ORA}/libc3v6.a $__fstd $libosn $libasync"
+        OCILIB="$mili \${ORA}/libclient8.a \${ORA}/libcommon.a \${ORA}/libgeneric.a  \${ORA}/libsqlnet.a \${ORA}/libncr.a \${ORA}/libepc.a  \${ORA}/libcore3.a $libnlsrtl3 \${ORA}/libc3v6.a $__fstd $libosn $libasync"
     else
       # it's either 7.2 or 7.0/7.1
       testfeat=`(nm $ORA/libocic.a | grep onbclr) 2>/dev/null`
