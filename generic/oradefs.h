@@ -674,4 +674,11 @@ typedef struct
 }
 OCIFocbkStruct;
 
+
+#define SQLCS_IMPLICIT 1		/* for CHAR, VARCHAR2, CLOB w/o a specified set */
+#define SQLCS_NCHAR    2                /* for NCHAR, NCHAR VARYING, NCLOB */
+#define SQLCS_EXPLICIT 3		/* for CHAR, etc, with "CHARACTER SET ..." syntax */
+#define SQLCS_FLEXIBLE 4		/* for PL/SQL "flexible" parameters */
+#define SQLCS_LIT_NULL 5		/* for typecheck of NULL and empty_clob() lits */
+
 #endif  /* _ORADEFS_H */

@@ -3,6 +3,16 @@ Oratcl change history
 
 Version 4.3,  Nov, 2004
 
+Dec 17 2004
+
+	Add code to obtain additional symbols in the oracle library:
+		OCIDescriptorAlloc
+		OCIDescriptorFree
+		OCILobRead
+		OCILobGetLength
+	These library functions are not yet used but will be needed to read CLOB and BLOB
+	columns directly with SQL.
+
 Nov 29 2004
 
 	**  Incorporate patches provided by Christian Traber (christian@traber-net.de)

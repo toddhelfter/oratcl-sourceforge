@@ -121,6 +121,17 @@ OCIHANDLEALLOC	OCI_HandleAlloc;
 typedef sword (*OCIHANDLEFREE)	(dvoid *hndlp, CONST ub4 type); 
 OCIHANDLEFREE	OCI_HandleFree;
 
+typedef sword  (*OCIDESCRIPTORALLOC) (CONST dvoid *parenth,
+				      dvoid **descpp,
+				      CONST ub4 type,
+				      CONST size_t xtramem_sz,
+				      dvoid **usrmempp);
+OCIDESCRIPTORALLOC OCI_DescriptorAlloc;
+
+typedef sword (*OCIDESCRIPTORFREE) (dvoid *descp,
+				    CONST ub4 type);
+OCIDESCRIPTORFREE OCI_DescriptorFree;
+
 typedef sword (*OCIATTRGET)	(dvoid *trgthndlp,
 				 ub4 trghndltyp,
 				 dvoid *attributep,
@@ -297,6 +308,28 @@ typedef sword (*OCIBINDBYNAME)	(OCIStmt *stmtp,
 				 ub4 *curelep,
 				 ub4 mode);
 OCIBINDBYNAME	OCI_BindByName;
+
+typedef sword (*OCILOBREAD) (OCISvcCtx *svchp,
+			     OCIError *errhp,
+			     OCILobLocator *locp,
+                             ub4 *amtp,
+			     ub4 offset,
+			     dvoid *bufp,
+			     ub4 bufl,
+                             dvoid *ctxp,
+			     sb4 (*cbfp)(dvoid *ctxp,
+					 CONST dvoid *bufp,
+					 ub4 len,
+					 ub1 piece),
+			     ub2 csid,
+			     ub1 csfrm);
+OCILOBREAD OCI_LobRead;
+
+typedef sword (*OCILOBGETLENGTH) (OCISvcCtx *svchp,
+				  OCIError *errhp,
+				  OCILobLocator *locp,
+				  ub4 *lenp);
+OCILOBGETLENGTH OCI_LobGetLength;
 
 
 /*
@@ -682,6 +715,14 @@ Oratcl_Init (interp)
 		OCISTMTGETPIECEINFO);
 	DLSYM(handle, "OCIStmtSetPieceInfo", OCI_StmtSetPieceInfo,
 		OCISTMTSETPIECEINFO);
+	DLSYM(handle, "OCIDescriptorAlloc",  OCI_DescriptorAlloc, 
+		OCIDESCRIPTORALLOC);
+	DLSYM(handle, "OCIDescriptorFree",   OCI_DescriptorFree, 
+		OCIDESCRIPTORFREE);
+	DLSYM(handle, "OCILobRead",          OCI_LobRead, 
+		OCILOBREAD);
+	DLSYM(handle, "OCILobGetLength",     OCI_LobGetLength, 
+		OCILOBGETLENGTH);
 
 	/* sanity check at least one symbol */
 	if (OCI_Initialize == NULL) {
@@ -1229,6 +1270,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	Tcl_Obj		*val_obj;
 	Tcl_Obj		*tmp_obj;
 	Tcl_Obj		*lst_obj;
+	OratclLogs	*LogPtr;
 
 	/* quick sanity check */
 	rn = StmPtr->fetchidx;
@@ -1252,6 +1294,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
+	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 	Tcl_DStringSetLength(&StmPtr->datavar, 0);
 
 	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
