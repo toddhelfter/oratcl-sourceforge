@@ -344,14 +344,18 @@ case $oracle_version in
     6)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
         ORAVER="-DVERSION6"
+        ORA_DB_VER="-DVERSION7DB"
+
 	;;
     7)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
 	ORAVER="-DVERSION7"
+        ORA_DB_VER="-DVERSION7DB"
 	;;
     8)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
-	ORAVER="-DVERSION7"
+        ORAVER="-DVERSION7"
+        ORA_DB_VER="-DVERSION8DB"
 	;;
 esac
 		
@@ -359,12 +363,15 @@ if test -z "$ORAVER" ; then
   case $testver in
       6)
 	  ORAVER="-DVERSION6"
+          ORA_DB_VER="-DVERSION7DB"
 	  ;;
       7)
 	  ORAVER="-DVERSION7"
+          ORA_DB_VER="-DVERSION7DB"
 	  ;;
       8)
 	  ORAVER="-DVERSION7"
+          ORA_DB_VER="-DVERSION8DB"
 	  ;;
   esac
 fi
@@ -611,6 +618,7 @@ AC_SUBST(ORATCL_LIBVER)
 AC_SUBST(ORACLE_HOME)
 AC_SUBST(ORA)
 AC_SUBST(ORAVER)
+AC_SUBST(ORA_DB_VER)
 AC_SUBST(ORA72FEATURES)
 AC_SUBST(OCILIB)
 AC_SUBST(OCIMILI)
