@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<!-- $Id: FAQ.html,v 1.1 2000-11-08 14:24:17 bhlewis Exp $ -->
+<!-- $Id: FAQ.html,v 1.2 2000-12-05 20:18:58 bhlewis Exp $ -->
 <html>
   <head>
     <title>Oratcl Frequently Asked Questions</title>
@@ -40,6 +40,9 @@
     <h3><a href="#SEC4">Section 4: Using Oratcl</a></h3>
     <ul>
       <li><a href="#Q4.1">Q4.1 Is there documentation for Oratcl?</a>
+      <li><a href="#Q4.2">Q4.2 How do I configure SQL*NET for Oratcl?</a>
+      <li><a href="#Q4.3">Q4.3 What might a <tt>tnsnames.ora</tt> 
+	  file look like?</a>
     </ul>
 
     <h3><a href="#SEC5">Section 5: Getting Help</a></h3>
@@ -312,6 +315,66 @@ make && make install
 	    </a>
 	    also at <a href="http://sourceforge.net/">SourceForge</a>.
 	  </p>
+	<dt>
+	  <a name="Q4.2" href="#TOC">
+	    Q4.2 How do I configure SQL*NET for Oratcl?
+	  </a>
+	<dd>
+	  <p>
+	    Oratcl requires no special configuration to connect with a
+	    database other than that required by the Oracle client tools
+	    (SQL*Plus, tnsping, etc.).  If you are having trouble
+	    connecting to an Oracle database, try using SQL*Plus
+	    with the same connect string.
+	  </p>
+	  <p>
+	    Recent versions of Oratcl are built against recent Oracle
+	    libraries, and therefore require SQL*NETv2/Net8 style
+	    configuration files (tnsnames.ora).  If you are unfamiliar
+	    with configuring SQL*NET, the Oracle <tt>dbassist</tt>
+	    tool can generate the proper files, or you can ask your
+	    Oracle administrator.
+	  </p>
+	<dt>
+	  <a name="Q4.3" href="#TOC">
+	    Q4.3 What might a <tt>tnsnames.ora</tt> file look like?
+	  </a>
+	<dd>
+	  <p>
+	    The SQL*NET configuration for a database connection may be
+	    very complex, and is outside the scope of this document.
+	    However, at its simplest, a <tt>tnsnames.ora</tt> file
+	    may resemble this for TCP/IP connected databases:
+	  </p>
+	  <pre>
+mydb =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (COMMUNITY = MY_COMM)
+          (PROTOCOL = TCP)
+          (HOST = mydbhost.domain.com)
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+      (SID = db)
+    )
+  )
+	  </pre>
+	  <p>
+	    In this case, the connect string given to
+	    <tt>oralogon</tt> should resemble
+	    <tt>"username/password@mydb"</tt>.
+	  </p>
+	  <p>
+	    Please note that the database alias ("mydb") need not be
+	    the same as the SID ("db"), but you must use the alias in
+	    the connect string.  Also, Net8 introduced some new syntax
+	    and features and you may find that your configuration
+	    files look quite different than this stripped-down
+	    example.
+	  </p>
       </dl>
     </blockquote>
 
@@ -381,7 +444,7 @@ make && make install
     <address><a href="mailto:bhlewis@users.sourceforge.net">Benjamin Lewis</a></address>
 <!-- Created: Mon Nov  6 09:02:57 EST 2000 -->
 <!-- hhmts start -->
-Last modified: Mon Nov  6 14:02:45 EST 2000
+Last modified: Tue Dec  5 15:16:13 EST 2000
 <!-- hhmts end -->
   </body>
 </html>
