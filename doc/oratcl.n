@@ -622,6 +622,7 @@ if {[string equal $chr_data $out_data]} {
 .fi
 .RE
 .RE
+.RE
 .RS
 .sp
 .TP 
@@ -706,6 +707,15 @@ the new commit status (1 for on, 0 for off) for validation purposes.
 The automatic commit feature defaults to "off".  \fBOraautocom\fR raises a
 Tcl error if the \fIlogon-handle\fR specified is not open.
 .sp
+.TP 
+.B oraldalist
+.br
+Return a list of all opened logon-handles.
+.TP 
+.B orastmlist \fIlogon-handle\fR
+.br
+Return a list of all opened statement-handles associated with the
+\fIlogon-handle\fR.
 .TP
 .B orainfo \fIoption ?args?\fR
 .br

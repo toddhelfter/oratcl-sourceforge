@@ -603,113 +603,113 @@
                }
 
 
-          <B>oracols</B> <I>statement</I>-<I>handle</I> ?<I>option</I>?
-               Return the names of  the  columns  from  the  last
-               <B>orasql,</B>  <B>orafetch,</B>  or  <B>oraplexec</B> command as a Tcl
-               list.  The <B>oracols</B> may be used after <B>oraplexec</B>, in
-               which  case the bound variable names are returned.
-               The <I>option</I> parameter can  be  used  to  alter  the
-               result as follows:
+     <B>oracols</B> <I>statement</I>-<I>handle</I> ?<I>option</I>?
+          Return the names of the columns from the  last  <B>orasql,</B>
+          <B>orafetch,</B>  or  <B>oraplexec</B>  command  as  a Tcl list.  The
+          <B>oracols</B> may be used after <B>oraplexec</B>, in which case  the
+          bound  variable names are returned.  The <I>option</I> parame-
+          ter can be used to alter the result as follows:
 
-               <I>all</I>       returns all values as a list of lists in
-                         the  format  {{name  size type precision
-                         scale nullok} {...}}
+          <I>all</I>       returns all values as a list of lists in  the
+                    format  {{name size type precision scale nul-
+                    lok} {...}}
 
-               <I>name</I>      returns a list of column names.  This is
-                         the default.
+          <I>name</I>      returns a list of column names.  This is  the
+                    default.
 
-               <I>size</I>      returns a list of column sizes.
+          <I>size</I>      returns a list of column sizes.
 
-               <I>type</I>      returns a list of column types.
+          <I>type</I>      returns a list of column types.
 
-               <I>precision</I> returns a list of column precisions.
+          <I>precision</I> returns a list of column precisions.
 
-               <I>scale</I>     returns a list of column scales.
+          <I>scale</I>     returns a list of column scales.
 
-               <I>nullok</I>    returns  a  list  of   column   "NULLOK"
-                         values.   "NULLOK"  will  be  1  if  the
-                         column may be NULL, or 0 otherwise.
+          <I>nullok</I>    returns a list  of  column  "NULLOK"  values.
+                    "NULLOK" will be 1 if the column may be NULL,
+                    or 0 otherwise.
 
-               The <B>oracols</B> command raises  a  Tcl  error  if  the
-               <I>statement</I>-<I>handle</I>   specified  is  not  open.   The
-               <B>oracols</B> command raises a Tcl error if  the  <I>option</I>
-               is not valid.
+          The  <B>oracols</B>  command  raises  a  Tcl  error   if   the
+          <I>statement</I>-<I>handle</I>  specified  is  not open.  The <B>oracols</B>
+          command raises a Tcl error if the <I>option</I> is not valid.
 
-
-          <B>oradesc</B> <I>logon</I>-<I>handle</I> <I>table</I>-<I>name</I>
-               Describes the columns of  <I>table</I>-<I>name</I>.   Returns  a
-               list  containing  lists  in  the format {name size
-               type precision scale nullok} for  each  column  of
-               the table.  <B>Oradesc</B> will also describe the columns
-               of a table  referenced  by  a  private  or  public
-               synonym  when  given  the name of a synonym as the
-               <I>table</I>-<I>name</I> arguement.  <B>Oradesc</B>  will  describe  an
-               object  in the connecting schema before describing
-               a public synonym when the names are the same.
+     <B>oradesc</B> <I>logon</I>-<I>handle</I> <I>table</I>-<I>name</I>
+          Describes the columns of <I>table</I>-<I>name</I>.   Returns  a  list
+          containing  lists  in the format {name size type preci-
+          sion scale nullok} for each column of the table.   <B>Ora-</B>
+          <B>desc</B>  will  also describe the columns of a table refer-
+          enced by a private or public  synonym  when  given  the
+          name of a synonym as the <I>table</I>-<I>name</I> arguement.  <B>Oradesc</B>
+          will describe an object in the connecting schema before
+          describing  a  public  synonym  when  the names are the
+          same.
 
 
-          <B>oracommit</B> <I>logon</I>-<I>handle</I>
-               Commit any pending transactions from prior <B>orasql,</B>
-               <B>orabindexec,</B>  or  <B>oraplexec</B>  commands  that  use a
-               statement handle  opened  through  the  connection
-               specified  by <I>logon</I>-<I>handle</I>. <I>Logon</I>-<I>handle</I> must be a
-               valid  handle  previously  opened  with  <B>oralogon</B>.
-               <B>Oracommit</B>  raises  a Tcl error if the <I>logon</I>-<I>handle</I>
-               specified is not open.
+     <B>oracommit</B> <I>logon</I>-<I>handle</I>
+          Commit any pending transactions from prior <B>orasql,</B> <B>ora-</B>
+          <B>bindexec,</B>  or  <B>oraplexec</B>  commands that use a statement
+          handle  opened  through  the  connection  specified  by
+          <I>logon</I>-<I>handle</I>.  <I>Logon</I>-<I>handle</I> must be a valid handle pre-
+          viously opened with <B>oralogon</B>.  <B>Oracommit</B> raises  a  Tcl
+          error if the <I>logon</I>-<I>handle</I> specified is not open.
 
 
-          <B>oraroll</B> <I>logon</I>-<I>handle</I>
-               Rollback  any  pending  transactions  from   prior
-               <B>orasql,</B>  <B>orabindexec,</B>  or  <B>oraplexec</B> commands that
-               use a statement handle opened through the  connec-
-               tion  specified by <I>logon</I>-<I>handle</I>. <I>Logon</I>-<I>handle</I> must
-               be a valid handle previously opened with <B>oralogon</B>.
-               <B>Oraroll</B>  raises  a  Tcl  error if the <I>logon</I>-<I>handle</I>
-               specified is not open.
+     <B>oraroll</B> <I>logon</I>-<I>handle</I>
+          Rollback any pending transactions  from  prior  <B>orasql,</B>
+          <B>orabindexec,</B> or <B>oraplexec</B> commands that use a statement
+          handle  opened  through  the  connection  specified  by
+          <I>logon</I>-<I>handle</I>.  <I>Logon</I>-<I>handle</I> must be a valid handle pre-
+          viously opened with <B>oralogon</B>.   <B>Oraroll</B>  raises  a  Tcl
+          error if the <I>logon</I>-<I>handle</I> specified is not open.
 
 
-          <B>oraautocom</B> <I>logon</I>-<I>handle</I> <I>boolean</I>
-               Enables or disables automatic commit of  SQL  data
-               manipulation  statements  using a statement handle
-               opened  through  the   connection   specified   by
-               <I>logon</I>-<I>handle</I>.  <I>Logon</I>-<I>handle</I> must be a valid handle
-               previously opened with <B>oralogon</B>.  <I>Boolean</I>  may  be
-               any  value  that evaluates to boolean true (1, on,
-               true) to enable automatic commit, or boolean false
-               to  disable.   After  setting the automatic commit
-               status, <B>oraautocom</B> returns the new  commit  status
-               (1  for  on,  0  for off) for validation purposes.
-               The automatic commit feature  defaults  to  "off".
-               <B>Oraautocom</B>  raises a Tcl error if the <I>logon</I>-<I>handle</I>
-               specified is not open.
+     <B>oraautocom</B> <I>logon</I>-<I>handle</I> <I>boolean</I>
+          Enables or disables automatic commit of SQL data  mani-
+          pulation  statements  using  a  statement handle opened
+          through  the  connection  specified  by   <I>logon</I>-<I>handle</I>.
+          <I>Logon</I>-<I>handle</I>  must  be a valid handle previously opened
+          with <B>oralogon</B>.  <I>Boolean</I> may be any value that evaluates
+          to  boolean true (1, on, true) to enable automatic com-
+          mit, or boolean false to disable.   After  setting  the
+          automatic  commit  status,  <B>oraautocom</B>  returns the new
+          commit status (1 for on, 0 for off) for validation pur-
+          poses.  The automatic commit feature defaults to "off".
+          <B>Oraautocom</B> raises  a  Tcl  error  if  the  <I>logon</I>-<I>handle</I>
+          specified is not open.
 
 
-          <B>orainfo</B> <I>option</I> ?<I>args</I>?
-               Retrieves information about oratcl.  <I>Option</I> may be
-               either   "version",  "server",  or  "loginhandle".
-               "orainfo version" returns the current oratcl  ver-
-               sion.   "orainfo  server"  requires  a valid logon
-               handle previously opened with <B>oralogon</B> as an argu-
-               ment  and  returns  the oracle server information.
-               "orainfo logonhandle" requires a statement  handle
-               previously  opened  with  <B>oraopen</B>  and returns the
-               login handle that  the  login  handle  was  opened
-               under.
+     <B>oraldalist</B>
+          Return a list of all opened logon-handles.
 
-               <B>EXAMPLES</B>
-                    puts [orainfo version]
+     <B>orastmlist</B> <I>logon</I>-<I>handle</I>
+          Return a list of all opened  statement-handles  associ-
+          ated with the <I>logon</I>-<I>handle</I>.
 
-                    set lda [oralogon username/password@db]
-                    puts [orainfo server $lda]
+     <B>orainfo</B> <I>option</I> ?<I>args</I>?
+          Retrieves information  about  oratcl.   <I>Option</I>  may  be
+          either "version", "server", or "loginhandle".  "orainfo
+          version" returns the current oratcl version.   "orainfo
+          server" requires a valid logon handle previously opened
+          with <B>oralogon</B> as an argument  and  returns  the  oracle
+          server  information.   "orainfo logonhandle" requires a
+          statement handle previously  opened  with  <B>oraopen</B>  and
+          returns  the  login  handle  that  the login handle was
+          opened under.
 
-                    set sth [oraopen $lda]
-                    set mylda [orainfo loginhandle $sth]
+          <B>EXAMPLES</B>
+               puts [orainfo version]
+
+               set lda [oralogon username/password@db]
+               puts [orainfo server $lda]
+
+               set sth [oraopen $lda]
+               set mylda [orainfo loginhandle $sth]
 
 
-          <B>NOTE</B>
-          The <B>oramsg</B> array ha been removed in <B>Oratcl</B> version 4.0.
-          Equivalent  functionality  for  this array is available
-          via the <B>oramsg</B> <I>command</I>.
+     <B>NOTE</B>
+     The <B>oramsg</B> array ha been  removed  in  <B>Oratcl</B>  version  4.0.
+     Equivalent functionality for this array is available via the
+     <B>oramsg</B> <I>command</I>.
 
 
 
