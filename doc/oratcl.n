@@ -22,6 +22,7 @@ the tcl \fBpackage\fR command.
 .B Example
 .IP
 package require Oratcl
+package require -exact Oratcl 4.0
 .sp
 .SH "ORATCL COMMANDS"
 .TP
@@ -135,6 +136,12 @@ causes \fIorasql\fR, \fIorabindexec\fR, \fIoraplexec\fR, \fIorafetch\fR,
 and read from the database with the system encoding.  It is not recommended that
 this function be enabled when reading or writting long raw type values
 with \fIoralong\fR. The default is false. 
+.IP \fInumbsize\fR
+Sets or returns the amount of of data (in characters) used to store a number
+column.  \fINumbsize\fR defaults to 40 characters and the maximum is 4000 characters.
+.IP \fIdatesize\fR
+Sets or returns the amount of of data (in characters) used to store a date
+column.  \fIDatesize\fR defaults to 75 characters and the maximum is 7500 characters.
 .RE
 .sp
 .TP
