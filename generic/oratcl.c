@@ -4657,6 +4657,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			parm_cnt += 2;
 		}
 	}
+	Tcl_SetObjResult(interp, OMV_zero);
   
 common_exit:
 
