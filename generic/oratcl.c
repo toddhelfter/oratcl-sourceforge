@@ -1048,7 +1048,8 @@ Oratcl_ColAppend (interp, StmPtr)
 
 		if (oColsc >= StmPtr->oColslen) {
 			StmPtr->oColslen += 10;
-			StmPtr->oColsv = (Tcl_Obj **) ckrealloc ((char *) StmPtr->oColsv, StmPtr->oColslen * sizeof(*StmPtr->oColsv));
+			StmPtr->oColsv = (Tcl_Obj **) ckrealloc ((char *) StmPtr->oColsv,
+								 StmPtr->oColslen * sizeof(*StmPtr->oColsv));
 		}
 
 
@@ -3142,8 +3143,8 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	OratclCols	*new_col = NULL;
 	OratclCols	*last_col = NULL;
 
-	char	*pl_str;
-	int	pl_len;
+	char		*pl_str;
+	int		pl_len;
 
 	ub4		oci_mode = OCI_DEFAULT;
 
