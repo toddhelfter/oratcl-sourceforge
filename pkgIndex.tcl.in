@@ -6,4 +6,5 @@ package ifneeded Oratcl @ORATCL_VERSION@ "
 		load [file join $dir .. .. bin @oratcl_LIB_FILE@]
 	}
         source [file join $dir oralob.tcl]
+        source [file join $dir oralong.tcl]
 "

@@ -23,6 +23,8 @@
 #define ORA_FETCH_ROWS	10
 #define ORA_LOBP_SIZE	10000
 #define MAX_LOBP_SIZE	15000
+#define ORA_LONGP_SIZE  50000
+#define MAX_LONGP_SIZE	2147483647
 
 struct OratclDesc {
 	ub2		typecode;		/* column type code	*/
@@ -87,7 +89,8 @@ typedef struct OratclStms {
 	int		bindsize;	/* bind size allocation */
 	Tcl_Obj		*nullvalue;	/* null display value	*/
 	int		fetchrows;	/* rows to fetch	*/
-	int		lobpsize;	/* lob size allocation	*/
+	int		lobpsize;	/* lob piece size allocation	*/
+	int		longpsize;	/* long piece size allocation	*/
 	int		fetchmem;	/* save value at parse time 	*/
 	int		fetchidx;	/* current row in cache to fetch */
 	int		fetch_end;	/* true when fetches exhausted */

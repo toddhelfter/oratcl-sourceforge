@@ -25,8 +25,8 @@ extern Tcl_ObjCmdProc  Oratcl_Fetch;
 extern Tcl_ObjCmdProc  Oratcl_PLexec;
 extern Tcl_ObjCmdProc  Oratcl_Config;
 
-extern Tcl_ObjCmdProc  Oratcl_Wrlong;
-extern Tcl_ObjCmdProc  Oratcl_Rdlong;
+extern Tcl_ObjCmdProc  Oratcl_LongRead;
+extern Tcl_ObjCmdProc  Oratcl_LongWrite;
 
 extern Tcl_ExitProc Oratcl_Kill;
 

@@ -228,7 +228,7 @@ Version 3.0.1 August, 2000
 -----------------------------------------------------------------------------
 
 
-Version 3.1 September, 2000
+Version 3.1 October, 2000
 
     Todd M. Helfter, Purdue University
     tmh@purdue.edu
@@ -244,6 +244,9 @@ Version 3.1 September, 2000
 	statement handle back to loginhandle.
     -	added the library file oralob.tcl to implement a new oralob command.
     -	added "lobpsize" to oraconfig to manage the piece size in oralob
+	read/writes.
+    -	added the library file oralong.tcl to implement a new oralong command.
+    -	added "longpsize" to oraconfig to manage the piece size in oralong
 	read/writes.
 
 -----------------------------------------------------------------------------
