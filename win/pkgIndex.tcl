@@ -7,4 +7,3 @@ package ifneeded Oratcl 3.1
 	}
         source [file join $dir oralob.tcl]
         source [file join $dir oralong.tcl]
-
