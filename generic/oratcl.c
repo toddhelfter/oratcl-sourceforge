@@ -4354,8 +4354,6 @@ Oratcl_Bind (clientData, interp, objc, objv)
 						": bind variable ",
 						objv[parm_cnt],
 						"does not begin with ':'");
-				StmPtr->ora_rc = 1036;
-				Tcl_SetObjResult(interp, Tcl_NewIntObj(1036));
 				tcl_return = TCL_ERROR;
 				goto common_exit;
 			}
