@@ -1,1 +1,1 @@
-package ifneeded Oratcl 4.0 [list load [file join $dir .. oratcl40.dll]]
+package ifneeded Oratcl 4.1 [list load [file join $dir .. oratcl41.dll]]
