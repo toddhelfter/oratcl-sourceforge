@@ -6,6 +6,9 @@
 # exercise various combinations of oraexec
 #
 
+package require tcltest
+::tcltest::configure -verbose ept
+
 if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
@@ -43,7 +46,7 @@ test oraexec-1.4 {oraexec OCI_STMT_DELETE code == 3} {
 } {0}
 
 test oraexec-1.5 {oraexec OCI_STMT_ALTER code == 7} {
-	set sql {alter session set nls_date_format = 'DD-MON-YYYY'}
+	set sql {alter session set nls_date_format = 'DD-MM-YYYY'}
 	oraparse $ora_cur $sql
 	oraexec $ora_cur
 	oramsg $ora_cur rc
@@ -67,5 +70,76 @@ test oraexec-1.9 {oraexec OCI_STMT_DECLARE code == 9} {
 
 oraroll $ora_lda
 
+oraplexec $ora_cur {
+CREATE OR REPLACE TRIGGER oratcl___tests
+BEFORE INSERT ON oratcl___tests
+FOR EACH ROW
+DECLARE
+
+   OCI_CONTINUE             EXCEPTION;
+   OCI_ERROR                EXCEPTION;
+   OCI_INVALID_HANDLE       EXCEPTION;
+   OCI_STILL_EXECUTING      EXCEPTION;
+
+   PRAGMA EXCEPTION_INIT(OCI_CONTINUE,-24200);
+   PRAGMA EXCEPTION_INIT(OCI_ERROR,-1);
+   PRAGMA EXCEPTION_INIT(OCI_INVALID_HANDLE,-2);
+   PRAGMA EXCEPTION_INIT(OCI_STILL_EXECUTING,-3123);
+
+   notToBeFound oratcl___tests.v_varchar2%TYPE;
+
+BEGIN
+
+   CASE :new.v_varchar2
+       WHEN 'OCI_CONTINUE'        THEN RAISE OCI_CONTINUE;
+       WHEN 'OCI_ERROR'           THEN RAISE OCI_ERROR;
+       WHEN 'OCI_INVALID_HANDLE'  THEN RAISE OCI_INVALID_HANDLE;
+       WHEN 'OCI_STILL_EXECUTING' THEN RAISE OCI_STILL_EXECUTING;
+       WHEN 'OCI_NO_DATA' THEN
+        BEGIN
+           SELECT v_varchar2
+           INTO notToBeFound
+           FROM oratcl___tests
+           WHERE v_varchar2='####';
+        END;
+       WHEN 'OCI_NEED_DATA' THEN NULL;
+       WHEN 'OCI_RESERVED_FOR_INT_USE' THEN NULL;
+       WHEN 'OCI_SUCCESS' THEN NULL;
+       WHEN 'OCI_SUCCESS_WITH_INFO' THEN NULL;
+   END CASE;
+END;
+}
+
+test oraexec-2.1 {oraexec OCI_CONTINUE} {
+    set sql {insert into oratcl___tests (v_varchar2) values ('OCI_CONTINUE')}
+    oraparse $ora_cur $sql
+    catch {oraexec $ora_cur}
+    return [oramsg $ora_cur rc]
+} {24200}
+
+test oraexec-2.2 {oraexec OCI_ERROR} {
+    set sql {insert into oratcl___tests (v_varchar2) values ('OCI_ERROR')}
+    oraparse $ora_cur $sql
+    catch {oraexec $ora_cur}
+    return [oramsg $ora_cur rc]
+} {1}
+
+test oraexec-2.3 {oraexec OCI_INVALID_HANDLE} {
+    set sql {insert into oratcl___tests (v_varchar2) values ('OCI_INVALID_HANDLE')}
+    oraparse $ora_cur $sql
+    catch {oraexec $ora_cur}
+    return [oramsg $ora_cur rc]
+} {2}
+
+test oraexec-2.4 {oraexec OCI_NO_DATA} {
+    set sql {insert into oratcl___tests (v_varchar2) values ('OCI_NO_DATA')}
+    oraparse $ora_cur $sql
+    catch {oraexec $ora_cur}
+    return [oramsg $ora_cur rc]
+} {1403}
+
+oraplexec $ora_cur "DROP TRIGGER oratcl___tests"
+
+::tcltest::configure -verbose b
 ::tcltest::cleanupTests
 return

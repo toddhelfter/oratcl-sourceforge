@@ -458,3 +458,7 @@ Version 4.2 May, 2003
 	giving info. For example, OCI_SUCCESS_WITH_INFO is not an error,
 	but still gives info.
         Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
+
+20-Aug-2003
+    -   Added a test to the oraexec.test file for the new error detections.
+        Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
