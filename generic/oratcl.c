@@ -70,6 +70,7 @@ LPVOID reserved;            /* Not used. */
 #define DLOPEN(libname, flags)	shl_load(libname, \
 	BIND_DEFERRED|BIND_VERBOSE|DYNAMIC_PATH, 0L)
 #define DLCLOSE(path)		shl_unload((shl_t) path)
+#define DLERROR ""
 #define DLSYM(handle, symbol, proc, type) \
 	if (shl_findsym(&handle, symbol, (short) TYPE_PROCEDURE, \
 		(void *) &proc) != 0) { proc = NULL; }
@@ -82,6 +83,7 @@ LPVOID reserved;            /* Not used. */
 #define HMODULE void *
 #define DLOPEN	dlopen
 #define DLCLOSE	dlclose
+#define DLERROR dlerror()
 #define DLSYM(handle, symbol, proc, type) \
 	(proc = (type) dlsym(handle, symbol))
 
@@ -661,16 +663,19 @@ Oratcl_Init (interp)
 	tmp_obj = Tcl_FSJoinPath(pathList, -1);
 	Tcl_IncrRefCount(tmp_obj);
 	native = Tcl_FSGetNativePath(tmp_obj);
-	Tcl_DecrRefCount(tmp_obj);
 
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
 	if (handle == NULL) {
-		fprintf(stderr, "%s(): %s with error",
+		fprintf(stderr, "%s(): Failed to load %s with error %s",
 			"Oratcl_Init",
-			"Failed to load %");
+			native,
+			DLERROR);
+		Tcl_DecrRefCount(tmp_obj);
 		return TCL_ERROR;
 	}
+        
+        Tcl_DecrRefCount(tmp_obj);
 
 #else
 

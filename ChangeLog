@@ -1,3 +1,8 @@
+Feb 14 2005
+
+        Relocate a Tcl_DecrRefCount() call to after the call to DLOPEN.
+        Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
+
 2005-01-28  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* generic/oratcl.c: include dl.h on hpux
@@ -8,6 +13,11 @@
 
 Oratcl change history
 
+Version 4.4,  Beta
+
+	Add support for information returned by the dlerror() system call.
+	HPUX still needs to be supported.
+        Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
 
 Version 4.3,  Nov, 2004
 
