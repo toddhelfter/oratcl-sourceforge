@@ -1156,11 +1156,12 @@ ac_exeext=$EXEEXT
 #       and set ORATCL_LIBVER
 #----------------------------------------------------------------------------
 
-eval `egrep '^#define ORATCL_VERSION' ${srcdir}/../generic/oratcl.c | \
-      sed -e 's/#define //' -e 's/ *"/="/'`
-
+#eval `egrep '^#define ORATCL_VERSION' ${srcdir}/../generic/oratcl.c | \
+      #sed -e 's/#define //' -e 's/ *"/="/'`
+#
 # set the library version as with . stripped out
 
+ORATCL_VERSION=$VERSION
 ORATCL_LIBVER=`echo $ORATCL_VERSION | sed -e 's/\.//'`
 
 #----------------------------------------------------------------------------

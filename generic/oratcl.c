@@ -526,6 +526,10 @@ Oratcl_Init (interp)
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
 
+#if 0
+	Tcl_EvalFile(interp, "/opt/tcl8.3.2/lib/oratcl3.0.2/oraclob.tcl");
+#endif
+
 	/* other indices - correspond to error and message handler arguments */
 	Oratcl_ClearGAV(interp);
 
@@ -1883,6 +1887,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->fetchrows	= ORA_FETCH_ROWS;
 	StmPtr->fetchmem	= ORA_FETCH_ROWS;
 	StmPtr->longsize	= ORA_LONG_SIZE;
+	StmPtr->lobpsize	= ORA_LOBP_SIZE;
 	StmPtr->bindsize	= ORA_BIND_SIZE;
 	StmPtr->nullvalue	= Tcl_NewStringObj("default", -1);
 	Tcl_IncrRefCount(StmPtr->nullvalue);
@@ -4043,9 +4048,9 @@ Oratcl_Config (clientData, interp, objc, objv)
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 
-	char 		*options[] = {"longsize", "bindsize", "nullvalue", "fetchrows", NULL};
-	enum		optindex {OPT_LONG, OPT_BIND, OPT_NULL, OPT_CACHE};
-	int		optlength = 8;
+	char 		*options[] = {"longsize", "bindsize", "nullvalue", "fetchrows", "lobpsize", NULL};
+	enum		optindex {OPT_LONG, OPT_BIND, OPT_NULL, OPT_CACHE, OPT_LOBP};
+	int		optlength = 10;
 
 	int		option;
 	int		value;
@@ -4095,6 +4100,8 @@ Oratcl_Config (clientData, interp, objc, objv)
 		infoObjv[infoObjc++] = Tcl_DuplicateObj(StmPtr->nullvalue);
 		infoObjv[infoObjc++] = Tcl_NewStringObj(options[3], -1);
 		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->fetchrows);
+		infoObjv[infoObjc++] = Tcl_NewStringObj(options[4], -1);
+		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->lobpsize);
 		Tcl_SetObjResult(interp, Tcl_NewListObj(infoObjc, infoObjv));
 		ckfree((char *) infoObjv);
 		tcl_return = TCL_OK;
@@ -4124,6 +4131,9 @@ Oratcl_Config (clientData, interp, objc, objv)
 		}
 		if (option == OPT_CACHE) {
 			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->bindsize));
+		}
+		if (option == OPT_LOBP) {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->lobpsize));
 		}
 		tcl_return = TCL_OK;
 		goto common_exit;
@@ -4184,6 +4194,20 @@ Oratcl_Config (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 			StmPtr->fetchrows = value;
+		}
+		if (option == OPT_LOBP) {
+			tcl_rc = Tcl_GetIntFromObj(interp, objv[i], &value);
+			/* test for valid integer */
+			if (tcl_rc != TCL_OK || value < 0 || value > MAX_LOBP_SIZE) {
+				Oratcl_ErrorMsg(interp,
+						objv[0],
+						": invalid value",
+						(Tcl_Obj *) NULL,
+						(char *) NULL);
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
+			StmPtr->lobpsize = value;
 		}
 	}
 
