@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.2 2000-09-25 21:38:36 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.3 2000-09-26 21:04:29 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -12,6 +12,9 @@ namespace eval oratcl {
 	variable plsql
 	variable loblst
 	variable lobidx 0
+
+	set oralob(oratcl_ok) 0
+	set oralob(oratcl_error) 1
 
 	set plsql(clob_read) { \
 		declare \
@@ -168,7 +171,7 @@ namespace eval oratcl {
 		begin \
 			select %s into lob_loc1 from %s where rowid = :rid1 for update; \
 			select %s into lob_loc2 from %s where rowid = :rid2; \
-			:lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt); \
+			:lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt, :lob_of1, :lob_of2); \
 		end; \
 	}
 
@@ -179,7 +182,7 @@ namespace eval oratcl {
 		begin \
 			select %s into lob_loc1 from %s where rowid = :rid1 for update; \
 			select %s into lob_loc2 from %s where rowid = :rid2; \
-			:lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt); \
+			:lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt, :lob_of1, :lob_of2); \
 		end; \
 	}
 }
@@ -209,6 +212,8 @@ proc ::oratcl::parse_args {args} {
 			-nth	 { set ::oratcl::oralob(nth) $value }
 			-start	 { set ::oratcl::oralob(start) $value }
 			-stop	 { set ::oratcl::oralob(stop) $value }
+			-start1	 { set ::oratcl::oralob(start1) $value }
+			-start2	 { set ::oratcl::oralob(start2) $value }
 		}
 	}		
 }
@@ -220,7 +225,7 @@ proc oralob {command handle args} {
 	foreach idx [list rowid table column pattern datavar] {
 		set ::oratcl::oralob($idx) {}
 	}
-	foreach idx [list start stop length] {
+	foreach idx [list start stop length start1 start2] {
 		set ::oratcl::oralob($idx) 0
 	}
 	foreach idx [list nth] {
@@ -358,6 +363,7 @@ proc ::oratcl::lob_alloc {handle args} {
 #
 proc ::oratcl::lob_free {handle} {
 
+	variable oralob
 	variable loblst
 
 	set fn free
@@ -373,7 +379,7 @@ proc ::oratcl::lob_free {handle} {
 		return -code error $err_txt
 	}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 
@@ -462,7 +468,7 @@ proc ::oratcl::lob_read {handle args} {
 		return -code error -errorinfo $err_txt
 	}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 #
@@ -547,7 +553,7 @@ proc ::oratcl::lob_write {handle args} {
 		return -code error -errorinfo $err_txt
 	}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 #
@@ -627,7 +633,7 @@ proc ::oratcl::lob_trim {handle args} {
 		return -code error $err_txt
 	}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 #
@@ -691,7 +697,7 @@ proc ::oratcl::lob_erase {handle args} {
 		return -code error $err_txt
 	}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 #
@@ -796,7 +802,7 @@ proc ::oratcl::lob_substr {handle args} {
 
 	catch {oraconfig $stm bindsize $bsz}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 #
@@ -931,7 +937,7 @@ proc ::oratcl::lob_append {handle1 handle2} {
 		return -code error $err_txt
 	}
 
-	return -code ok
+	return -code ok $oralob(oratcl_ok)
 }
 
 #
@@ -986,17 +992,22 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		return -code error $err_txt
 	}
 
-	if {![string is integer $oralob(start)] || $oralob(start) < 0} {
-		set err_txt "oralob $fn: -start value '$oralob(start)' must be a non negative integer."
+	if {![string is integer $oralob(start1)] || $oralob(start1) < 0} {
+		set err_txt "oralob $fn: -start1 value '$oralob(start1)' must be a non negative integer."
 		return -code error $err_txt
 	}
+	incr oralob(start1)
 
-	if {![string is integer $oralob(nth)] || $oralob(nth) < 1} {
-		set err_txt "oralob $fn: -nth value '$oralob(nth)' must be a positive integer."
+	if {![string is integer $oralob(start2)] || $oralob(start2) < 0} {
+		set err_txt "oralob $fn: -start2 value '$oralob(start2)' must be a non negative integer."
 		return -code error $err_txt
 	}
+	incr oralob(start2)
 
-	set amount [expr {$oralob(stop) - $oralob(start) + 1}]
+	if {![string is integer $oralob(length)] || $oralob(length) < 1} {
+		set err_txt "oralob $fn: -length value '$oralob(length)' must be a positive integer."
+		return -code error $err_txt
+	}
 
 	set pl [format $::oratcl::plsql(${lobtype1}_compare) $column1 $table1 $column2 $table2]
 	set tcl_rc [catch {oraplexec $stm1 \
@@ -1004,7 +1015,9 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 				     :rid1 $rowid1 \
 				     :rid2 $rowid2 \
 				     :lob_cmp {} \
-				     :lob_amt $amount} \
+				     :lob_amt $oralob(length) \
+				     :lob_of1 $oralob(start1) \
+				     :lob_of2 $oralob(start2)} \
 			  tcl_res] 
 	if {$tcl_rc} {
 		set info $errorInfo
