@@ -1,21 +1,6 @@
 /* $RCSfile: oratypes.h,v $ $Date: 20-jul-00.13:44:19 
    ----------------------------------------------------------------------
-   ORACLE, Copyright (c) 1982, 1983, 1986, 1990, 1995, 1998, 1999, 2000 
-        Oracle Corporation
-
-   ORACLE Utilities, Copyright (c) 1981, 1982, 1983, 1986, 1990,, 2000 1991,
-        1995, 1998, 1999, 2000 Oracle Corporation
- 
-                       *** Restricted Rights ***
-
-    This program is an unpublished work under the Copyright Act of the
-    United States and is subject to the terms and conditions stated in
-    your  license  agreement  with  ORACORP  including  retrictions on
-    use, duplication, and disclosure.
- 
-    Certain uncopyrighted ideas and concepts are also contained herein.
-    These are trade secrets of ORACORP and cannot be  used  except  in
-    accordance with the written permission of ORACLE Corporation.
+   Copyright (c) 1982, 2003, Oracle.  All rights reserved.
    ---------------------------------------------------------------------- */
  
 #ifndef ORATYPES
@@ -37,25 +22,6 @@
 # define TRUE  1
 # define FALSE 0
 #endif
-
-#ifdef lint
-# ifndef mips
-#  define signed
-# endif 
-#endif 
-
-#ifdef ENCORE_88K
-# ifndef signed
-#  define signed
-# endif 
-#endif 
-
-#if defined(SYSV_386) || defined(SUN_OS)
-# ifdef signed
-#  undef signed
-# endif 
-# define signed
-#endif 
 
 /* --- Signed/Unsigned one-byte scalar (sb1/ub1) --- */
 
@@ -166,6 +132,51 @@
 #define MINEB4MAXVAL ((eb4) 2147483647)
 #define MAXEB4MINVAL ((eb4)          0)
 
+/* --- Signed/Unsigned eight-byte scalar (orasb8/oraub8) --- */
+
+#if __STDC__ - 0 == 0 && !defined(_NO_LONGLONG) || defined(__unix__) ||\
+ defined(lint) || defined(_LP64)
+/* The above is defined so that orasb8/oraub8 get picked up if any of the 
+   following conditions are true:
+   1. Sparcworks compiler except for -Xc (strict ANSI mode) (32 bits only)
+   2. gcc compiler
+   3. Olint
+   4. 64 bits
+*/
+# define ORAXB8_DEFINED
+# ifndef lint
+#  ifdef _LP64
+    typedef unsigned long oraub8;
+    typedef   signed long orasb8;
+#  else
+    typedef unsigned long long oraub8;
+    typedef   signed long long orasb8;
+#  endif /* _LP64 */
+   typedef oraub8 ub8;
+   typedef orasb8 sb8;
+# else
+#  define ub8 oraub8
+#  define sb8 orasb8
+#  ifdef _LP64
+#   define oraub8 unsigned long
+#   define orasb8 signed long
+#  else
+#   define oraub8 unsigned long long
+#   define orasb8 signed long long
+#  endif /* _LP64 */
+# endif /* !lint */
+
+# define ORAUB8MINVAL    ((oraub8)0)
+# define ORAUB8MAXVAL    ((oraub8)18446744073709551615)
+# define ORASB8MINVAL    ((orasb8)-9223372036854775808)
+# define ORASB8MAXVAL    ((orasb8) 9223372036854775807)
+
+# define MAXORAUB8MINVAL ((oraub8)0)
+# define MINORAUB8MAXVAL ((oraub8)18446744073709551615)
+# define MAXORASB8MINVAL ((orasb8)-9223372036854775807)
+# define MINORASB8MAXVAL ((orasb8) 9223372036854775807)
+#endif /* __STDC__ etc */
+
 /* backwards compatibility */
 
 #ifndef lint
@@ -176,80 +187,6 @@
 
 #define B4MAXVAL SB4MAXVAL
 #define B4MINVAL SB4MINVAL
-
-/* --- Unsigned 8-byte scalar (ub8) --- */
-
-#ifndef lint
-# if (__STDC__ != 1)
-#  define SLU8NATIVE
-#  define SLS8NATIVE
-# endif
-#endif
-
-#ifdef SLU8NATIVE
-
-#ifdef SS_64BIT_SERVER
-# ifndef lint
-   typedef unsigned long ub8;
-# else
-#  define ub8 unsigned long
-# endif 
-#else
-# ifndef lint
-   typedef unsigned long long ub8;
-# else
-#  define ub8 unsigned long long
-# endif 
-#endif
-
-#define UB8ZERO      ((ub8)0)
-
-#define UB8MINVAL    ((ub8)0)
-#define UB8MAXVAL    ((ub8)18446744073709551615)
-
-#define MAXUB8MINVAL ((ub8)0)
-#define MINUB8MAXVAL ((ub8)18446744073709551615)
-
-#endif 
-
-/* --- Signed 8-byte scalar (sb8) --- */
-
-#ifdef SLS8NATIVE
-
-#ifdef SS_64BIT_SERVER
-# ifndef lint
-   typedef signed long sb8;
-# else
-#  define sb8 signed long
-# endif 
-#else
-# ifndef lint
-   typedef signed long long sb8;
-# else
-#  define sb8 signed long long
-# endif 
-#endif
-
-#define SB8ZERO      ((sb8)0)
-
-#define SB8MINVAL    ((sb8)-9223372036854775808)
-#define SB8MAXVAL    ((sb8) 9223372036854775807)
-
-#define MAXSB8MINVAL ((sb8)-9223372036854775807)
-#define MINSB8MAXVAL ((sb8) 9223372036854775807)
-
-#endif 
-
-/* --- Bits, masks, bit vectors --- */
-
-typedef ub1   bitvec;    
-#define BITVEC(n) (((n)+(UB1BITS-1))>>3)
-
-#ifndef uiXT
-  typedef  ub1 BITS8;
-  typedef  ub2 BITS16;
-  typedef  ub4 BITS32;
-#endif
 
 /* --- Character pointer --- */
 
@@ -290,43 +227,7 @@ typedef ub1   bitvec;
 # endif
 #endif
 
-#ifndef lint
-  typedef sb4 dboolean;
-#else
-# define dboolean sb4
-#endif
-
-/* --- Backwards compatibility scalars --- */
-
-#ifndef lint
-  typedef eb4     deword;
-  typedef ub4     duword;
-  typedef sb4     dsword;
-  typedef dsword  dword;
-#else
-# define deword eb4
-# define duword ub4
-# define dsword sb4
-# define dword  dsword
-#endif
-
-#define  DUWORDMAXVAL       UB4MAXVAL
-#define  DUWORDMINVAL       UB4MINVAL
-#define  DSWORDMAXVAL       SB4MAXVAL
-#define  DSWORDMINVAL       SB4MINVAL
-
-#define  MINDUWORDMAXVAL    MINUB4MAXVAL
-#define  MAXDUWORDMINVAL    MAXUB4MINVAL
-#define  MINDSWORDMAXVAL    MINSB4MAXVAL
-#define  MAXDSWORDMINVAL    MAXSB4MINVAL
-
-#define  DEWORDMAXVAL       EB4MAXVAL
-#define  DEWORDMINVAL       EB4MINVAL
-#define  MINDEWORDMAXVAL    MINEB4MAXVAL
-#define  MAXDEWORDMINVAL    MAXEB4MINVAL
-
-#define  DWORDMAXVAL        DSWORDMAXVAL
-#define  DWORDMINVAL        DSWORDMINVAL
+/* --- Other data types --- */
 
 #ifndef lint
   typedef          int eword;
@@ -385,38 +286,7 @@ typedef ub1   bitvec;
 
 /* --- Misc --- */
 
-#ifndef lint
-  typedef ub4 dsize_t;
-#else
-# define dsize_t ub4
-#endif
-
-#define DSIZE_TMAXVAL    UB4MAXVAL
-#define MINDSIZE_TMAXVAL (dsize_t)65535
-
-#ifndef lint
-  typedef ub4 dptr_t;
-#else
-# define dptr_t ub4
-#endif
-
-#define M_IDEN 30
-
-#ifdef AIXRIOS
-# define SLMXFNMLEN 256
-#else
-# define SLMXFNMLEN 512
-#endif 
-
-#ifdef lint
-# define dvoid void
-#else
-# ifdef UTS2
-#  define dvoid char
-# else
-#  define dvoid void
-# endif
-#endif
+#define dvoid void
 
 typedef void (*lgenfp_t)( void );
 

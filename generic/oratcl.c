@@ -15,6 +15,12 @@
 #include <windows.h>
 #endif
 
+#if defined(WIN32) || defined(_WIN32)
+#ifndef __WIN32__
+#define __WIN32__
+#endif
+#endif
+
 #include "oratypes.h"
 #include "oratclInt.h"
 #include "oratcl.h"
@@ -30,12 +36,6 @@
 
 #include <ctype.h>
 #include <stdlib.h>
-
-#if defined(WIN32) || defined(_WIN32)
-#ifndef __WIN32__
-#define __WIN32__
-#endif
-#endif
 
 #ifdef __WIN32__
 #undef  TCL_STORAGE_CLASS
