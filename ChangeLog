@@ -403,6 +403,9 @@ Version 4.1 August, 2002
 	Returns 1 if server status is OCI_SERVER_NORMAL
 	Returns 0 if server status is OCI_SERVER_NOT_CONNECTED
 	This is useful for detected loss of server, due to crash or shutdown.
+    -   Rebuilt Oratcl_ColAppend() to use a Tcl_DString instead of a 
+	Tcl_Obj ** in the building of the -datavariable option result.
+	This eliminates a Tcl_Obj (24 byte) leak for each result column.
 
 
 -----------------------------------------------------------------------------
