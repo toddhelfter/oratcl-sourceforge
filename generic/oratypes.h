@@ -131,7 +131,7 @@
 
 
 
-#ifndef __WIN32
+#ifndef __WIN32__
 
 
 
