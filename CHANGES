@@ -198,21 +198,5 @@ Version 3.0 June, 2000
  	extended orainfo to return oratcl version information.
     -	modified test suite.
     -	renamed oracurlist to orastmlist
-    -	oraautocom change to accept any value acceptable to 
-	Tcl_GetBooleanFromObj and to return the setting as "0" for off
-	and "1" for on. 
-	This is a fix for TR#3573 and TR#3583.
-    -	all commands changed to use Tcl_Hash values and a clientData structure.
-    -	Handle limits are now imposed by the database/hardware.
-	Modified the test suite to match.  
-    -   The define variables ORATCLLDAS and ORATCLSMTS no longer exist.
-    -   oracols now takes optional arguments, array variable no longer set.
-    -	Change oracols to accept optional configuration settings to retrieve
-	information formerly available in the oramsg() array.
-    -	add new command oraconfig to allow memory management of long fields
-	binding, and fetch rows and null values.
-    -   add new command oradesc to allow table describes.
-    -	changed oracols to return the oracle defined byte size instead of
-	the oratcl defined storage size.
 
 -----------------------------------------------------------------------------
