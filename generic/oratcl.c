@@ -1220,7 +1220,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 
-	(void) OCIInitialize( (ub4) OCI_DEFAULT,
+	(void) OCIInitialize( (ub4) OCI_OBJECT,
 			      (dvoid *)0,
 			      (dvoid * (*)(dvoid *, size_t)) 0,
 			      (dvoid * (*)(dvoid *, dvoid *, size_t)) 0,
