@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.1.2.1 2004-11-14 19:25:03 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.1.2.2 2004-11-14 19:31:10 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
     set files [glob ../test/*.tes]
