@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.3 2000-09-26 21:04:29 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.4 2000-09-27 20:45:28 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -996,18 +996,47 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		set err_txt "oralob $fn: -start1 value '$oralob(start1)' must be a non negative integer."
 		return -code error $err_txt
 	}
-	incr oralob(start1)
 
 	if {![string is integer $oralob(start2)] || $oralob(start2) < 0} {
 		set err_txt "oralob $fn: -start2 value '$oralob(start2)' must be a non negative integer."
 		return -code error $err_txt
 	}
-	incr oralob(start2)
 
-	if {![string is integer $oralob(length)] || $oralob(length) < 1} {
+	if {![string is integer $oralob(length)]} {
 		set err_txt "oralob $fn: -length value '$oralob(length)' must be a positive integer."
 		return -code error $err_txt
 	}
+
+	# handle some default situation : no length specified 
+	if {$oralob(length) < 1} {
+
+		# get length of lob1
+		set tcl_rc [catch {::oratcl::lob_length $handle1} tcl_res]
+		if {$tcl_rc} {
+			set info $errorInfo
+			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			return -code error $err_txt
+		}
+		set han1_len $tcl_res
+		set han1_siz [expr {$han1_len - $oralob(start1)}]
+
+		set tcl_rc [catch {::oratcl::lob_length $handle2} tcl_res]
+		if {$tcl_rc} {
+			set info $errorInfo
+			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			return -code error $err_txt
+		}
+		set han2_len $tcl_res
+		set han2_siz [expr {$han1_len - $oralob(start2)}]
+
+		if {$han1_siz != $han2_siz} {
+			return -code ok 1
+		}
+		set oralob(length) $han1_siz
+	}
+
+	incr oralob(start1)
+	incr oralob(start2)
 
 	set pl [format $::oratcl::plsql(${lobtype1}_compare) $column1 $table1 $column2 $table2]
 	set tcl_rc [catch {oraplexec $stm1 \
