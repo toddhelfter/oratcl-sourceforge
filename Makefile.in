@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.11 1999-09-23 23:07:06 wart Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.12 1999-10-07 02:45:50 mtariq Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -86,6 +86,7 @@ ORAVER        = @ORAVER@
 ORA72FEATURES = @ORA72FEATURES@
 ORA_SH_LIB    = @ORA_SH_LIB@
 ORA_SYS_LIBS  = @ORA_SYS_LIBS@
+ORA_DB_VER    = @ORA_DB_VER@
 
 OCILIB        = @OCILIB@
 
@@ -216,7 +217,7 @@ LDFLAGS = $(LDFLAGS_DEFAULT)
 
 INCLUDES = @TCL_INCLUDES@
 
-EXTRA_CFLAGS = $(TCL_DEFS) $(PROTO_FLAGS) $(SECURITY_FLAGS) $(MEM_DEBUG_FLAGS) $(KEYSYM_FLAGS) $(NO_DEPRECATED_FLAGS) $(ORAVER) $(ORA72FEATURES)
+EXTRA_CFLAGS = $(TCL_DEFS) $(PROTO_FLAGS) $(SECURITY_FLAGS) $(MEM_DEBUG_FLAGS) $(KEYSYM_FLAGS) $(NO_DEPRECATED_FLAGS) $(ORAVER) $(ORA72FEATURES) $(ORA_DB_VER)
 
 DEFS = @DEFS@ $(EXTRA_CFLAGS)
 
