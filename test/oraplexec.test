@@ -152,9 +152,12 @@ test oraplexec-1.11 {oraplexec: procedure(:bind_ref_cursor)} {
 	set cnt
 } 30
 
-orasql $pl_stm "drop function oratcl___test1"
-orasql $pl_stm "drop function oratcl___test2"
-orasql $pl_stm "drop package oratcl___test_pkg"
+oraparse $pl_stm "drop function oratcl___test1"
+oraexec $pl_stm
+oraparse $pl_stm "drop function oratcl___test2"
+oraexec $pl_stm
+oraparse $pl_stm "drop package oratcl___test_pkg"
+oraexec $pl_stm
 
 oraclose $pl_get
 oraclose $pl_exe

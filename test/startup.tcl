@@ -36,15 +36,24 @@ flush stdout
 
 proc truncate_table {} {
     global ora_lda ora_cur
-    orasql $ora_lda {truncate table oratcl___tests}
+    oraparse $ora_cur {truncate table oratcl___tests}
+    oraexec $ora_cur
 }
 
 proc drop_table {} {
     global ora_lda ora_cur
 
-    catch {orasql $ora_cur "drop procedure oratcl___test1"}
-    catch {orasql $ora_cur "drop procedure oratcl___test2"}
-    orasql $ora_cur "drop table oratcl___tests"
+    set sql1 {drop procedure oratcl___test1}
+    set sql2 {drop procedure oratcl___test2}
+    set sql3 {drop table oratcl___tests}
+
+    foreach sql [list $sql1 $sql2 $sql3] {
+        catch {
+	    oraparse $ora_cur $sql
+            oraexec $ora_cur
+        }
+    }
+
 }
 
 set sql {select table_name from user_tables where table_name = 'ORATCL___TESTS'}
@@ -72,9 +81,6 @@ if {$table_exists} {
     }
 }
 
-puts "creating test table oratcl___tests & procedure oratcl___test1"
-flush stdout
-
 proc create_table {} {
     global ora_lda ora_cur
 
@@ -85,7 +91,10 @@ proc create_table {} {
                 v_varchar2     varchar2(36))
     }
 
-    set res [catch {orasql $ora_cur $sql} reason]
+    set res [catch { 
+	oraparse $ora_cur $sql
+	oraexec $ora_cur
+    } reason]
 
     if {$res != 0} {
         oraclose $ora_cur
@@ -94,50 +103,43 @@ proc create_table {} {
         puts "$reason:\n[oramsg $ora_cur error]"
         exit
     }
-if 0 {
-   orasql $ora_cur {
-       create or replace function oratcl___test1 (
-         arg_x number, arg_y char) return date as
-
-        nres number(10);
-        dres date;
-
-
-        cursor cur_tests(arg_x number, arg_y char)
-                is select v_number, v_date from oratcl___tests
-                        where v_number = arg_x
-                        and v_char = arg_y;
-       begin
-
-           open cur_tests(arg_x, arg_y);
-           fetch cur_tests into nres, dres;
-           close cur_tests;
-           return dres;
-       end;
-     }
 }
-}
-
-create_table
 
 proc insert_data {} {
         global ora_cur ora_lda
 
         set sql {alter session set nls_date_format = 'DD-MON-YYYY'}
-        orasql $ora_cur $sql
+        oraparse $ora_cur $sql
+        oraexec $ora_cur
 
-        puts -nonewline "inserting 30 rows in oratcl___tests"; flush stdout
+	set ins_sql { \
+		insert into oratcl___tests ( \
+			v_number, \
+			v_date,  \
+			v_char,  \
+			v_varchar2 \
+		)  values (  \
+			:cnt1, \
+			:cnt2, \
+			:cnt3, \
+			:cnt4 \
+		) \
+	}
+
+	oraparse $ora_cur $ins_sql
         for {set cnt 0} {$cnt < 30} {incr cnt} {
-                set ins_sql "insert into oratcl___tests (v_number, \
-                        v_date, v_char, v_varchar2) values ( $cnt, \
-                        [clock format [clock seconds] -format {'%d-%b-%Y'}], \
-                        '$cnt', '$cnt 1234567890')"
-
-                orasql $ora_cur $ins_sql
+		set clk [clock format [clock seconds] -format {%d-%b-%Y}]
+		set str "$cnt 1234567890"
+		orabind $ora_cur :cnt1 $cnt :cnt2 $clk :cnt3 $cnt :cnt4 $str
+		oraexec $ora_cur
                 puts -nonewline "." ; flush stdout
-        }
+	}
         puts "\ndone.\n" ; flush stdout
+
 }
 
+puts "creating test table oratcl___tests & procedure oratcl___test1"
+flush stdout
+create_table
 insert_data
 oracommit $ora_lda

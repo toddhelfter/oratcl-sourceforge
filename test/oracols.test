@@ -23,12 +23,9 @@ set scale_result [list 0 {} {} {}]
 set null_result [list 1 1 1 1]
 set all_result [list {V_NUMBER 22 NUMBER 2 0 1} {V_DATE 7 DATE {} {} 1} {V_CHAR 2 CHAR {} {} 1} {V_VARCHAR2 36 VARCHAR2 {} {} 1}]
 
-
-
-
-test oracols-1.1 {oracols: all options after orasql} {
+test oracols-1.1 {oracols: all options after oraparse} {
   global oracol_sql name_result size_result type_result
-  orasql $ora_cur $oracol_sql
+  oraparse $ora_cur $oracol_sql
   set cols1 [oracols $ora_cur]
   set cols2 [oracols $ora_cur size]
   set cols3 [oracols $ora_cur type]

@@ -26,7 +26,8 @@ set block_stm [oraopen $block_lda]
 set async_lda [oralogon $ora_constr -async]
 set async_stm [oraopen $async_lda]
 
-orasql $block_stm $oratcl___async1
+oraparse $block_stm $oratcl___async1
+oraexec $block_stm
 
 proc looping_async_parse { handle statement } {
 	oraparse $handle $statement
@@ -235,7 +236,8 @@ test oratcl::async_fetch-5.0 {oraasync (PL/SQL) use + reuse} {
 } [list [list 60 38] [list 50 28]]
 
 
-orasql $block_stm "drop function oratcl___async1"
+oraparse $block_stm {drop function oratcl___async1}
+oraexec $block_stm
 
 oraclose $async_stm
 oralogoff $async_lda
