@@ -938,7 +938,8 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 								 col->column.valuep + (rn * col->column.valuesz),
 								 -1,
 								 &valStr);
-                                        StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&valStr), -1);
+                                        StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&valStr),
+										    Tcl_DStringLength(&valStr));
                                         Tcl_DStringFree(&valStr);
                                 } else {
 					StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(
@@ -954,7 +955,8 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 			if (hashType) {
 				Tcl_ObjSetVar2(interp,
 						arrayvar,
-						Tcl_NewStringObj((char *) col->column.name, -1),
+						Tcl_NewStringObj((char *) col->column.name,
+								 (int) col->column.namesz),
 						StmPtr->oColsv[oColsc - 1],
 						TCL_LEAVE_ERR_MSG);
 			} else {
@@ -3760,9 +3762,14 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		}
 
 		piece_data[piece_len] = '\0';
-		Tcl_DStringAppend(&resStr, piece_data, strlen(piece_data));
+		Tcl_DStringAppend(&resStr, piece_data, piece_len);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, frc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				frc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (frc != OCI_NEED_DATA && frc != 0) {
 			tcl_return = TCL_ERROR;
@@ -4481,7 +4488,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 						   (OCIBind **) &tmp_col->bindp,
 						   LogPtr->errhp,
 						   (text *) tmp_col->column.name,
-						   (sb4) -1,
+						   (sb4) tmp_col->column.namesz,
 						   (dvoid *) tmp_col->column.valuep,
 						   (sb4) tmp_col->column.valuesz + 1,
 						   (ub2) SQLT_STR,
