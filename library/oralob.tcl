@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.8 2001-09-03 21:51:04 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.9 2001-09-08 17:14:32 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -452,6 +452,7 @@ proc ::oratcl::lob_read {handle args} {
 			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			::break
 		}
+		orafetch $stm -datavar tcl_res
 		set out [lindex $tcl_res 3]
 
 		if {[string equal $lobtype blob]} {
@@ -589,7 +590,7 @@ proc ::oratcl::lob_length {handle} {
 		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
-
+	orafetch $stm -datavariable tcl_res
 	return [lindex $tcl_res 1]
 }
 
@@ -790,6 +791,7 @@ proc ::oratcl::lob_substr {handle args} {
 			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			return -code error $err_txt
 		}
+		orafetch $stm -datavariable tcl_res
 
 		set rem [expr {$rem - $par}]
 		incr off $par
@@ -878,6 +880,7 @@ proc ::oratcl::lob_instr {handle args} {
 		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
+	orafetch $stm -datavariable tcl_res
 
 	return -code ok [expr [lindex $tcl_res 1] - 1]
 }
@@ -1054,6 +1057,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
+	orafetch $stm1 -datavariable tcl_res
 
 	return -code ok [lindex $tcl_res 2]
 }
