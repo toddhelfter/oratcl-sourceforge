@@ -1,4 +1,0 @@
-The files located here are to build Oratcl as a statically linked
-executable, if you so desired.   You should copy these files to your
-Tcl source distribution, and use the supplied Makefile.
-
