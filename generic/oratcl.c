@@ -86,7 +86,6 @@ extern int	  Oratcl_ColDescribe	_ANSI_ARGS_((Tcl_Interp 	*interp,
 						     OratclStms		*StmPtr));
 extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     OratclStms		*StmPtr,
-						     int		setResult,
 						     Tcl_Obj		*listvar,
 						     Tcl_Obj		*arrayvar,
 						     int		hashType));
@@ -859,10 +858,9 @@ Oratcl_LogFree (LogPtr)
  */
 
 void
-Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
+Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	Tcl_Interp	*interp;
 	OratclStms	*StmPtr;
-	int		setResult;
 	Tcl_Obj		*listvar;
 	Tcl_Obj		*arrayvar;
 	int		hashType;
@@ -978,20 +976,12 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 
 	}
 
-	if (setResult || listvar != NULL) {
+	if (listvar != NULL) {
 		lst_obj = Tcl_NewListObj(oColsc, StmPtr->oColsv);
 		Tcl_IncrRefCount(lst_obj);
-
-		if (setResult) {
-			Tcl_SetObjResult(interp, lst_obj);
-		}
-		if (listvar != NULL) {
-			Tcl_ObjSetVar2(interp, listvar, NULL, lst_obj, 0);
-		}
-
+		Tcl_ObjSetVar2(interp, listvar, NULL, lst_obj, 0);
 		Tcl_DecrRefCount(lst_obj);
 	}
-
 
 	StmPtr->fetchidx += 1;
 	StmPtr->append_cnt += 1;
@@ -4871,7 +4861,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			StmPtr->fetchidx    = 0;
 
 			/* set results, same as orafetch */
-			Oratcl_ColAppend(interp, StmPtr, 0, NULL, NULL, 0);
+			Oratcl_ColAppend(interp, StmPtr, NULL, NULL, 0);
 
 			StmPtr->fetch_end  = 1;
 			StmPtr->fetch_cnt  = 1;
@@ -5202,7 +5192,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		StmPtr->fetchidx = 0;
 	}
 
-	Oratcl_ColAppend(interp, StmPtr, 0, dvarObjPtr, avarObjPtr, hashType);
+	Oratcl_ColAppend(interp, StmPtr, dvarObjPtr, avarObjPtr, hashType);
 
 	/* preserve the result we have set for this command */
 	oResult = Tcl_GetObjResult(interp);
