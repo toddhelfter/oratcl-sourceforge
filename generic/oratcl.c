@@ -472,7 +472,7 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "::oratcl::parse",
+			      "::oratcl::oraparse",
 			      Oratcl_Parse,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
@@ -484,7 +484,7 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "::oratcl::bind",
+			      "::oratcl::orabind",
 			      Oratcl_Bind,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
@@ -496,7 +496,7 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "::oratcl::exec",
+			      "::oratcl::oraexec",
 			      Oratcl_Exec,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
@@ -508,7 +508,7 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "::oratcl::fetch",
+			      "::oratcl::orafetch",
 			      Oratcl_Fetch,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
@@ -520,7 +520,7 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "::oratcl::break",
+			      "::oratcl::orabreak",
 			      Oratcl_Break,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
@@ -4072,8 +4072,8 @@ common_exit:
 /*
  *----------------------------------------------------------------------
  * Oratcl_Parse --
- *    Implements the ::oratcl::parse command:
- *    usage: ::oratcl::parse stm_handle sql_string
+ *    Implements the ::oratcl::oraparse command:
+ *    usage: ::oratcl::oraparse stm_handle sql_string
  *	                
  *    results:
  *	return code from OCIStmtPrepare or OCIStmtExecute
@@ -4248,7 +4248,7 @@ common_exit:
  * Oratcl_Bind --
  *    Implements the orabind command:
  *    usage: orabind stm_handle :bindname value ...
- *    usage: ::oratcl::bind stm_handle :bindname value ...
+ *    usage: ::oratcl::orabind stm_handle :bindname value ...
  *	                
  *    results:
  *	return code from OCIBindByName
@@ -4583,7 +4583,7 @@ common_exit:
  * Oratcl_Exec --
  *    Implements the oraexec command:
  *    usage: oraexec stm_handle
- *    usage: ::oratcl::exec stm_handle
+ *    usage: ::oratcl::oraexec stm_handle
  *	                
  *    results:
  *	return code from OCIStmtExecute
@@ -4840,7 +4840,7 @@ common_exit:
  * Oratcl_Break --
  *    Implements the orabreak command:
  *    usage: orabreak stm_handle
- *    usage: ::oratcl::break stm_handle
+ *    usage: ::oratcl::orabreak stm_handle
  *	                
  *    results:
  *	return code from OCIBreak or OCIReset

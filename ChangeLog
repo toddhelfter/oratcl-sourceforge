@@ -302,10 +302,10 @@ Version 4.0 September, 2001
 	oramsg array can be obtained with the new _oramsg_ command.
     -	Oratcl is now thread safe.
     -   Added new commands:
-	oraparse - ::oratcl::parse - Oratcl_Parse()
-	orabind  - ::oratcl::bind  - Oratcl_Bind()
-	oraexec  - ::oratcl::exec  - Oratcl_Exec()
-	orabreak - ::oratcl::break - Oratcl_Break()
+	oraparse - ::oratcl::oraparse - Oratcl_Parse()
+	orabind  - ::oratcl::orabind  - Oratcl_Bind()
+	oraexec  - ::oratcl::oraexec  - Oratcl_Exec()
+	orabreak - ::oratcl::orabreak - Oratcl_Break()
 	These commands operate in normal and async mode.
 	These commands operate on either SQL or PL/SQL statements.
     -	The commands: orasql, orabindexec, and oraplexec have new internals
@@ -320,5 +320,11 @@ Version 4.0 September, 2001
 		Oratcl_Parse()
 		Oratcl_Bind()
 		Oratcl_Exec()
+    -   **** oraplexec **** no longer returns the bind values as a list,
+	but rather returns the return code like orasql and orabindexec.
+	Use orafetch to retrieve the binded columns.
+    -	**** orafetch **** has a completely new API.  See the man page 
+	for details.  This is not backwards compatible.  Also see the
+	test suite for examples.
 
 -----------------------------------------------------------------------------
