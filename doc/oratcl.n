@@ -111,6 +111,10 @@ and the maximum is dependent upon available memory.
 Sets or returns the amount of of data (in characters) used in piecewise
 reads and writes to LOB types in the \fBoralob\fR command.  \fILobpsize\fR
 defaults to 10,000 characters and the maximum is 15,000 characters.
+.IP \fIlongpsize\fR
+Sets or returns the amount of of data (in characters) used in piecewise
+reads and writes to LONG types in the \fBoralong\fR command.  \fILongpsize\fR
+defaults to 50,000 characters and the maximum is 2,147,483,648 characters.
 .RE
 .sp
 .TP
@@ -182,6 +186,7 @@ possible values.
 .sp
 .RE
 \fBorafetch\fR \fIstatement\-handle ?commands? ?substitution_character? \fI?varname colnum ...?\fR
+.RS
 .RS
 Return the next row from the last SQL statement executed with \fBorasql\fR as a
 Tcl list.
@@ -359,16 +364,17 @@ bytes.
 Returns the length (in characters or bytes) of the LOB specified by
 \fILOB\-handle\fR.
 .sp
-.TP
+.RE
+.RS 1i
 \fBinstr \fILOB\-handle \-pattern $pattern \-start $start \-nth $nth\fR
 .br
+.RS
 Returns the position in the LOB specified by \fILOB\-handle\fR at which the
 \fI$nth\fR occurrence of the pattern \fI$pattern\fR appears.  The
 search is started at \fI$start\fR.  \fI$start\fR defaults to 0
 and \fI$nth\fR defaults to 1.
 .sp
 .RE
-.RS
 \fBcompare \fILOB\-handle1 LOB\-handle2 \-start1 $start1 \-start2 $start2 \-length $length\fR
 .br
 .RS
@@ -381,7 +387,7 @@ return value indicates that the two LOBs differ.
 .RE
 .sp
 .RE
-.RS
+.RS .5i
 The \fBoralob\fR commands are a collection of TCL and anonymous
 PL/SQL wrappers for the Oracle \fBdbms_lob\fR PL/SQL package and
 therefore require the \fIrowid\fR (as well as the table name and
@@ -412,6 +418,79 @@ set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
 .fi
 .RE
 .RE
+.RS
+.sp
+.TP 
+.B oralong \fIsub\-command handle ?options ...?\fR
+.br
+Perform operations on Oracle LONG column-types.
+.sp
+\fIHandle\fR must be either a valid statement handle previously opened
+with \fBoraopen\fR or a LONG handle created with the \fBalloc\fR
+sub-command.  Both LONG and LONG RAW columns are supported by the
+\fBoralong\fR command.
+.sp
+The following \fIsub\-commands\fR are
+available:
+.RE
+.RS 1i
+.sp
+\fBalloc \fIstatement\-handle -table $table -column $column -rowid $rowid\fR
+.RS
+Create and return a LONG handle that refers to the LONG specified by
+(\fI$table\fR, \fI$column\fR, \fI$rowid\fR).  \fIstatement\-handle\fR
+must be a statement handle previously created with \fBoraopen\fR and
+will be used implicitly by the other \fBoralong\fR sub-commands that
+operate on this LONG.
+.RE
+.sp
+.TP
+.B free \fILONG\-handle\fR
+.br
+Destroy the LONG handle and free any resources associated with it.
+.sp
+.TP
+.B read \fILONG\-handle \-datavar varname\fR
+.br
+Read the LONG specified by \fILONG\-handle\fR into the variable identified by
+\fIvarname\fR.
+.sp
+.TP
+.B write \fILONG\-handle \-datavar varname\fR
+.br
+Write the data in the variable identified by \fIvarname\fR into the
+LONG specified by \fILONG\-handle\fR.
+.RE
+.sp
+.RS .5i
+.B LONG Example
+.sp
+.RS 
+.nf
+# Assume that $sth is a valid statement-handle 
+# opened earlier with logon handle $lda
+set chr_data [string repeat 0123456789---------- 10000]
+
+# Find the ROWID for the LONG handle
+orasql $sth {select rowid from oratcl_long \\
+		where field = 'value'}
+orafetch $sth "set rowid @1"
+set longid [oralong alloc $sth -table oratcl_long \\
+		-column mp3 -rowid $rowid]
+
+oralong write $longid -datavar chr_data
+oracommit $lda
+oralong read $longid -datavar out_data
+oralong free $longid
+
+if {[string equal $chr_data $out_data]} {
+        puts "write/read results are equal"
+}
+.br
+.fi
+.RE
+.RE
+.RS
 .sp
 .TP 
 .B oracols \fIstatement-handle ?option?\fR
