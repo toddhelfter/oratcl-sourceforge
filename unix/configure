@@ -467,7 +467,7 @@ echo > confdefs.h
 
 # A filename unique to this package, relative to the directory that
 # configure is in, which we can look for to find out if srcdir is correct.
-ac_unique_file=../generic/oratcl.c
+ac_unique_file=generic/oratcl.c
 
 # Find the source files, if location was not specified.
 if test -z "$srcdir"; then
@@ -557,7 +557,7 @@ ac_config_guess=$ac_aux_dir/config.guess
 ac_config_sub=$ac_aux_dir/config.sub
 ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
-CONFIGDIR=${srcdir}/../config
+CONFIGDIR=${srcdir}/config
 
 
 echo $ac_n "checking for bcopy""... $ac_c" 1>&6
@@ -1150,18 +1150,9 @@ echo "$ac_t""${ac_cv_exeext}" 1>&6
 ac_exeext=$EXEEXT
 
 
-
-#----------------------------------------------------------------------------
-#       Get oratcl.c version, set sh variable ORATCL_VERSION
-#       and set ORATCL_LIBVER
-#----------------------------------------------------------------------------
-
-#eval `egrep '^#define ORATCL_VERSION' ${srcdir}/../generic/oratcl.c | \
-      #sed -e 's/#define //' -e 's/ *"/="/'`
-#
-# set the library version as with . stripped out
-
 ORATCL_VERSION=$VERSION
+
+# set the library version as with . stripped out
 ORATCL_LIBVER=`echo $ORATCL_VERSION | sed -e 's/\.//'`
 
 #----------------------------------------------------------------------------
@@ -1205,7 +1196,7 @@ esac
 #--------------------------------------------------------------------
 
     echo $ac_n "checking for Tcl public headers""... $ac_c" 1>&6
-echo "configure:1208: checking for Tcl public headers" >&5
+echo "configure:1200: checking for Tcl public headers" >&5
 
     # Check whether --with-tclinclude or --without-tclinclude was given.
 if test "${with_tclinclude+set}" = set; then
@@ -1288,7 +1279,7 @@ if test "${with_tcl+set}" = set; then
 fi
 
 	echo $ac_n "checking for Tcl configuration""... $ac_c" 1>&6
-echo "configure:1291: checking for Tcl configuration" >&5
+echo "configure:1283: checking for Tcl configuration" >&5
 	if eval "test \"`echo '$''{'ac_cv_c_tclconfig'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1359,7 +1350,7 @@ fi
 
 
     echo $ac_n "checking for existence of $TCL_BIN_DIR/tclConfig.sh""... $ac_c" 1>&6
-echo "configure:1362: checking for existence of $TCL_BIN_DIR/tclConfig.sh" >&5
+echo "configure:1354: checking for existence of $TCL_BIN_DIR/tclConfig.sh" >&5
 
     if test -f "$TCL_BIN_DIR/tclConfig.sh" ; then
         echo "$ac_t""loading" 1>&6
@@ -1442,7 +1433,7 @@ esac
 
 
     echo $ac_n "checking for building with threads""... $ac_c" 1>&6
-echo "configure:1445: checking for building with threads" >&5
+echo "configure:1437: checking for building with threads" >&5
     # Check whether --enable-threads or --disable-threads was given.
 if test "${enable_threads+set}" = set; then
   enableval="$enable_threads"
@@ -1469,7 +1460,7 @@ EOF
 		;;
 	    *)
 		echo $ac_n "checking for pthread_mutex_init in -lpthread""... $ac_c" 1>&6
-echo "configure:1472: checking for pthread_mutex_init in -lpthread" >&5
+echo "configure:1464: checking for pthread_mutex_init in -lpthread" >&5
 ac_lib_var=`echo pthread'_'pthread_mutex_init | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1477,7 +1468,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lpthread  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1480 "configure"
+#line 1472 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1488,7 +1479,7 @@ int main() {
 pthread_mutex_init()
 ; return 0; }
 EOF
-if { (eval echo configure:1491: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:1483: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1534,7 +1525,7 @@ fi
 
 
     echo $ac_n "checking how to build libraries""... $ac_c" 1>&6
-echo "configure:1537: checking how to build libraries" >&5
+echo "configure:1529: checking how to build libraries" >&5
     # Check whether --enable-shared or --disable-shared was given.
 if test "${enable_shared+set}" = set; then
   enableval="$enable_shared"
@@ -1601,7 +1592,7 @@ SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
     esac
 
     echo $ac_n "checking for build with symbols""... $ac_c" 1>&6
-echo "configure:1604: checking for build with symbols" >&5
+echo "configure:1596: checking for build with symbols" >&5
     # Check whether --enable-symbols or --disable-symbols was given.
 if test "${enable_symbols+set}" = set; then
   enableval="$enable_symbols"
@@ -1734,7 +1725,7 @@ oratest4=${oratest4:-.}
 
 
 echo "checking for Oracle 8.1+-style toplevel (libclient8.a)" 1>&6
-echo "configure:1737: checking for Oracle 8.1+-style toplevel (libclient8.a)" >&5
+echo "configure:1729: checking for Oracle 8.1+-style toplevel (libclient8.a)" >&5
 for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
     echo "$ac_t""looking for lib/libclient8.a in $f" 1>&6
     if test -r "$f/lib/libclient8.a" ; then
@@ -1749,7 +1740,7 @@ for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u
 done
 
 echo "checking for Oracle 8.0-style toplevel (libclient.a)" 1>&6
-echo "configure:1752: checking for Oracle 8.0-style toplevel (libclient.a)" >&5
+echo "configure:1744: checking for Oracle 8.0-style toplevel (libclient.a)" >&5
 for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
     echo "$ac_t""looking for lib/libclient.a in $f" 1>&6
     if test -r "$f/lib/libclient.a" ; then
@@ -1780,7 +1771,7 @@ case "`uname -s`" in
 	;;
     *)
 	echo "checking for Oracle version" 1>&6
-echo "configure:1783: checking for Oracle version" >&5
+echo "configure:1775: checking for Oracle version" >&5
 	;;
 esac
 
@@ -1982,7 +1973,7 @@ TCL_LIB_DIR=$TCL_PREFIX/lib
 
 
     echo $ac_n "checking for tclsh""... $ac_c" 1>&6
-echo "configure:1985: checking for tclsh" >&5
+echo "configure:1977: checking for tclsh" >&5
 
     if eval "test \"`echo '$''{'ac_cv_path_tclsh'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
