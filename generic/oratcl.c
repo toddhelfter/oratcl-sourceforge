@@ -3085,7 +3085,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
 
 	/* check for a private synonym */
-	if (LogPtr->ora_rc == 4043) {
+	while (LogPtr->ora_rc == 4043) {
 
 		rc = OCIAttrSet( (dvoid *) dschp,
 			         (ub4) OCI_HTYPE_DESCRIBE,

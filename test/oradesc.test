@@ -71,6 +71,11 @@ catch {orasql $desc_stm { \
 	create synonym oratcl_desc_syn_2 for oratcl_desc_tbl_2 \
 }}
 
+# create a private synonym for tbl_2
+catch {orasql $desc_stm { \
+	create synonym oratcl_desc_syn_2_2 for oratcl_desc_syn_2 \
+}}
+
 # create a public synonym for tbl_1
 catch {orasql $desc_stm { \
 	create public synonym oratcl_public_syn_1 for oratcl_desc_tbl_1 \
@@ -180,6 +185,13 @@ test oradesc-3.3 {oradesc: describe schema.synonym} {
 	set test_res
 } {1}
 
+test oradesc-3.4 {oradesc: describe nested private synonym} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda oratcl_desc_syn_2_2]}
+	set test_res [test_list desc_res desc_tbl_2]
+	set test_res
+} {1}
+
 test oradesc-4.0 {oradesc: describe public synonym} {
 	set desc_res {}
 	catch {set desc_res [oradesc $desc_lda oratcl_public_syn_1]}
@@ -192,6 +204,7 @@ test oradesc-4.0 {oradesc: describe public synonym} {
 catch {orasql $desc_stm {drop public synonym oratcl_public_syn_1}}
 catch {orasql $desc_stm {drop synonym oratcl_desc_syn_1}}
 catch {orasql $desc_stm {drop synonym oratcl_desc_syn_2}}
+catch {orasql $desc_stm {drop synonym oratcl_desc_syn_2_2}}
 catch {orasql $desc_stm {drop table oratcl_desc_tbl_1}}
 catch {orasql $desc_stm {drop table oratcl_desc_tbl_2}}
 
