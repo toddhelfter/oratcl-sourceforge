@@ -646,4 +646,32 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define OCI_PTYPE_DATABASE      18                               /* database */
 /*---------------------------------------------------------------------------*/
 
+
+/*----------------------- Fail Over Events ----------------------------------*/
+#define OCI_FO_END		0x00000001
+#define OCI_FO_ABORT		0x00000002
+#define OCI_FO_REAUTH		0x00000004
+#define OCI_FO_BEGIN		0x00000008
+#define OCI_FO_ERROR		0x00000010
+/*------------------------- Fail Over Types ---------------------------------*/
+#define OCI_FO_NONE		0x00000001
+#define OCI_FO_SESSION		0x00000002
+#define OCI_FO_SELECT		0x00000004
+#define OCI_FO_TXNAL		0x00000008
+/*---------------------------------------------------------------------------*/
+
+/*--------------------------Failover Callback Structure ---------------------*/
+typedef sb4 (*OCICallbackFailover)(dvoid *svcctx,
+					 dvoid *envctx,
+					 dvoid *fo_ctx,
+					 ub4 fo_type,
+					 ub4 fo_event);
+
+typedef struct
+{
+  OCICallbackFailover callback_function;
+  dvoid *fo_ctx;
+}
+OCIFocbkStruct;
+
 #endif  /* _ORADEFS_H */
