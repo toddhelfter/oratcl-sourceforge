@@ -667,6 +667,7 @@ Oratcl_Init (interp)
 		fprintf(stderr, "%s(): %s with error",
 			"Oratcl_Init",
 			"Failed to load %");
+		Tcl_DecrRefCount(tmp_obj);
 		return TCL_ERROR;
 	}
 
