@@ -198,6 +198,14 @@ Version 3.0 June, 2000
  	extended orainfo to return oratcl version information.
     -	modified test suite.
     -	renamed oracurlist to orastmlist
+
+-----------------------------------------------------------------------------
+
+Version 3.0.1 August, 2000
+
+    Todd M. Helfter, Purdue University
+    tmh@purdue.edu
+
     -	oraautocom change to accept any value acceptable to 
 	Tcl_GetBooleanFromObj and to return the setting as "0" for off
 	and "1" for on. 
@@ -205,6 +213,7 @@ Version 3.0 June, 2000
     -	all commands changed to use Tcl_Hash values and a clientData structure.
     -	Handle limits are now imposed by the database/hardware.
 	Modified the test suite to match.  
+
     -   The define variables ORATCLLDAS and ORATCLSMTS no longer exist.
     -   oracols now takes optional arguments, array variable no longer set.
     -	Change oracols to accept optional configuration settings to retrieve
