@@ -561,14 +561,16 @@ typedef struct ocisvch ocisvch;                        /* OCI service handle */
             
 #define OCI_DEFAULT  0x00 /* the default value for parameters and attributes */
 
-static OCIEnv     *p_env;
-static OCIError   *p_err;
-static OCISvcCtx  *p_svc; 
+static OCIEnv     *p_env[ORATCLLDAS];
+static OCIError   *p_err[ORATCLLDAS];
+static OCISvcCtx  *p_svc[ORATCLLDAS];
 
 
 #define OCI_HTYPE_ERROR 2                                    /* error handle */
 #define OCI_HTYPE_SVCCTX 3                                 /* service handle */
 #endif
+
+
 
 /* 
  *----------------------------------------------------------------------
@@ -1380,12 +1382,12 @@ Oratcl_Logon (clientData, interp, argc, argv)
             (dvoid * (*)(dvoid *, dvoid *, size_t))0,
             (void (*)(dvoid *, dvoid *)) 0 );
 
-   rc = OCIEnvInit( (OCIEnv **) &p_env, OCI_DEFAULT, (size_t) 0, (dvoid **) 0);
+   rc = OCIEnvInit( (OCIEnv **) &p_env[hand], OCI_DEFAULT, (size_t) 0, (dvoid **) 0);
 
-   rc = OCIHandleAlloc( (dvoid *) p_env, (dvoid **) &p_err, OCI_HTYPE_ERROR,
+   rc = OCIHandleAlloc( (dvoid *) p_env[hand], (dvoid **) &p_err[hand], OCI_HTYPE_ERROR,
          (size_t) 0, (dvoid **) 0);
 
-   rc = OCIHandleAlloc( (dvoid *) p_env, (dvoid **) &p_svc, OCI_HTYPE_SVCCTX,
+   rc = OCIHandleAlloc( (dvoid *) p_env[hand], (dvoid **) &p_svc[hand], OCI_HTYPE_SVCCTX,
          (size_t) 0, (dvoid **) 0);
  
     
@@ -1402,9 +1404,9 @@ Oratcl_Logon (clientData, interp, argc, argv)
       connlen = strlen(conn);
     else connlen = 0;
 
-    rc = OCILogon(p_env, p_err, &p_svc, name, namelen, pword, pwlen , conn, connlen);
+    rc = OCILogon(p_env[hand], p_err[hand], &p_svc[hand], name, namelen, pword, pwlen , conn, connlen);
 
-    OCISvcCtxToLda (p_svc, p_err, OraLdas[hand].lda);
+    OCISvcCtxToLda (p_svc[hand], p_err[hand], OraLdas[hand].lda);
     
 #endif
     
@@ -1497,6 +1499,8 @@ Oratcl_Logoff (clientData, interp, argc, argv)
     /* logoff and free data areas */
     OraLdas[hand].lda_in_use = 0;
     OraLdas[hand].async      = 0;
+    
+#ifdef VERSION7DB
     if (ologof(OraLdas[hand].lda) != 0) {
 	/* logoff failed, get error msg */
 	get_lda_err(interp,hand);
@@ -1505,7 +1509,21 @@ Oratcl_Logoff (clientData, interp, argc, argv)
 
 	return TCL_ERROR;
     }
+#else
+   OCILdaToSvcCtx(&p_svc[hand], p_err[hand], OraLdas[hand].lda);
+   if (OCILogoff(p_svc[hand], p_err[hand]) != 0) {
+       OCISvcCtxToLda (p_svc[hand], p_err[hand], OraLdas[hand].lda);
+       get_lda_err(interp,hand);
+       ckfree((char *)OraLdas[hand].lda);
+       ckfree(OraLdas[hand].hda);
 
+       return TCL_ERROR;
+    }
+       
+       
+#endif
+    
+    
     ckfree((char *)OraLdas[hand].lda);
     ckfree(OraLdas[hand].hda);
 
