@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.13 2000-09-21 18:47:34 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.14 2000-09-21 20:40:32 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -9,6 +9,8 @@
 namespace eval oratcl {
 
 	variable plsql
+	variable loblst
+	variable lobidx 0
 
 	set plsql(read) { \
 		declare \
@@ -76,7 +78,7 @@ namespace eval oratcl {
 }
 
 
-proc oraclob {stm command args} {
+proc oraclob {command handle args} {
 
 	foreach idx [list rowid table column length pattern datavar] {
 		set oraclob($idx) {}
@@ -109,83 +111,63 @@ proc oraclob {stm command args} {
 		}
 	}		
 
-	if {[string is space $oraclob(rowid)]} {
-		error "oraclob :: invalid rowid value."
-	}
-
-	if {[string is space $oraclob(table)]} {
-		error "oraclob :: invalid table value."
-	}
-
-	if {[string is space $oraclob(column)]} {
-		error "oraclob :: invalid column value."
-	}
-
 	set result {}
 	switch $command {
 
-		read	{
-			set result [eval [list oratcl::clob_read \
-					       $stm \
-					       $oraclob(rowid) \
+		alloc 	{
+			set result [eval [list ::oratcl::clob_alloc \
+					       $handle \
 					       $oraclob(table) \
 					       $oraclob(column) \
+					       $oraclob(rowid)]]
+		}
+
+		free 	{
+			set result [eval [list ::oratcl::clob_free \
+					       $handle]]
+		}
+
+		read	{
+			set result [eval [list ::oratcl::clob_read \
+					       $handle \
 					       $oraclob(datavar)]]
 		}
 
 		write	{
-			set result [eval [list oratcl::clob_write \
-					       $stm \
-					       $oraclob(rowid) \
-					       $oraclob(table) \
-					       $oraclob(column) \
+			set result [eval [list ::oratcl::clob_write \
+					       $handle \
 					       $oraclob(datavar)]]
 		}
 
 		length	{
-			set result [eval [list oratcl::clob_length \
-					       $stm \
-					       $oraclob(rowid) \
-					       $oraclob(table) \
-					       $oraclob(column)]]
+			set result [eval [list ::oratcl::clob_length \
+					       $handle]]
 		}
 
 		trim	{
-			set result [eval [list oratcl::clob_trim \
-					       $stm \
-					       $oraclob(rowid) \
-					       $oraclob(table) \
-					       $oraclob(column) \
+			set result [eval [list ::oratcl::clob_trim \
+					       $handle \
 					       $oraclob(length)]]
 		}
 
 		erase	{
-			set result [eval [list oratcl::clob_erase \
-					       $stm \
-					       $oraclob(rowid) \
-					       $oraclob(table) \
-					       $oraclob(column) \
+			set result [eval [list ::oratcl::clob_erase \
+					       $handle \
 					       $oraclob(start) \
 					       $oraclob(stop)]]
 		}
 
 		substr	{
-			set result [eval [list oratcl::clob_substr \
-					       $stm \
-					       $oraclob(rowid) \
-					       $oraclob(table) \
-					       $oraclob(column) \
+			set result [eval [list ::oratcl::clob_substr \
+					       $handle \
 					       $oraclob(start) \
 					       $oraclob(stop) \
 					       $oraclob(datavar)]]
 		}
 
 		instr	{
-			set result [eval [list oratcl::clob_instr \
-					       $stm \
-					       $oraclob(rowid) \
-					       $oraclob(table) \
-					       $oraclob(column) \
+			set result [eval [list ::oratcl::clob_instr \
+					       $handle \
 					       $oraclob(pattern) \
 					       $oraclob(start) \
 					       $oraclob(nth)]]
@@ -198,16 +180,87 @@ proc oraclob {stm command args} {
 
 
 #
-#  read the contents of a lob field.
+#  allocate a clob identifier
 #
-proc oratcl::clob_read {stm rowid table column datavar} {
+proc ::oratcl::clob_alloc {handle table column rowid} {
 
 	global oramsg errorInfo
+
+	variable lobidx 
+	variable loblst
+
+	if {[string is space $rowid]} {
+		error "oraclob alloc :: invalid rowid value."
+	}
+
+	if {[string is space $table]} {
+		error "oraclob alloc :: invalid table value."
+	}
+
+	if {[string is space $column]} {
+		error "oraclob alloc :: invalid column value."
+	}
+
+	set pl [format $::oratcl::plsql(getlength) $column $table]
+	set tcl_rc [catch {oraplexec $handle \
+				     $pl \
+				     :rid $rowid \
+				     :rlen {} } \
+			  tcl_res]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob alloc: error \n$info"
+	}
+
+	set lob oralob.$lobidx
+	incr lobidx
+	set loblst($lob) [list $handle $table $column $rowid]
+
+	return $lob
+}
+
+#
+#  free a clob identifier
+#
+proc ::oratcl::clob_free {handle} {
+
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob free: handle $handle not open."
+	}
+
+	set tcl_rc [catch {unset loblst($handle)} tcl_res]
+	if {$tcl_rc} {
+		error "oraclob free: handle $handle not open."
+	}
+
+	return -code ok
+}
+
+
+#
+#  read the contents of a lob field.
+#
+proc ::oratcl::clob_read {handle datavar} {
+
+	global oramsg errorInfo
+
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob read: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
 
 	upvar 2 $datavar result
 	set result {}
 
-	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
+	set tcl_rc [catch {::oratcl::clob_length $handle} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
 		error "oraclob read: value error \n$info"
@@ -219,7 +272,7 @@ proc oratcl::clob_read {stm rowid table column datavar} {
 	set pos 1
 	while {$pos < $len} {
 
-		set pl [format $oratcl::plsql(read) $column $table]
+		set pl [format $::oratcl::plsql(read) $column $table]
 		set out [lindex [oraplexec $stm \
 					   $pl \
 					   :rid $rowid \
@@ -237,9 +290,20 @@ proc oratcl::clob_read {stm rowid table column datavar} {
 #
 #  write data to a lob field.
 #
-proc oratcl::clob_write {stm rowid table column datavar} {
+proc ::oratcl::clob_write {handle datavar} {
 
 	global oramsg errorInfo
+
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob write: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
 
 	upvar 2 $datavar data
 
@@ -251,7 +315,7 @@ proc oratcl::clob_write {stm rowid table column datavar} {
 		set str [string range $data [expr {$pos - 1}] [expr {$pos - 2 + $siz}] ]
 		set amt [string length $str]
 
-		set pl [format $oratcl::plsql(write) $column $table]
+		set pl [format $::oratcl::plsql(write) $column $table]
 		set tcl_rc [catch {oraplexec $stm \
 					     $pl \
 					     :rid $rowid \
@@ -267,7 +331,7 @@ proc oratcl::clob_write {stm rowid table column datavar} {
 		incr pos $amt
 	}
 
-	set tcl_rc [catch {oratcl::clob_trim $stm $rowid $table $column $tot} tcl_res]
+	set tcl_rc [catch {::oratcl::clob_trim $handle $tot} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
 		error "oraclob read: value error \n$info"
@@ -278,11 +342,22 @@ proc oratcl::clob_write {stm rowid table column datavar} {
 #
 #  return then length of a lob field.
 #
-proc oratcl::clob_length {stm rowid table column} {
+proc ::oratcl::clob_length {handle} {
 
 	global oramsg errorInfo
 
-	set pl [format $oratcl::plsql(getlength) $column $table]
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob length: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
+
+	set pl [format $::oratcl::plsql(getlength) $column $table]
 	set tcl_rc [catch {oraplexec $stm \
 				     $pl \
 				     :rid $rowid \
@@ -299,12 +374,22 @@ proc oratcl::clob_length {stm rowid table column} {
 #
 #  trim a lob field.
 #
-proc oratcl::clob_trim {stm rowid table column length} {
+proc ::oratcl::clob_trim {handle length} {
 
 	global oramsg errorInfo
 
-	set pl [format $oratcl::plsql(trim) $column $table]
+	variable loblst
 
+	if {![info exists loblst($handle)]} {
+		error "oraclob trim: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
+
+	set pl [format $::oratcl::plsql(trim) $column $table]
 	set tcl_rc [catch {oraplexec $stm \
 			             $pl \
 			             :rid $rowid \
@@ -319,9 +404,20 @@ proc oratcl::clob_trim {stm rowid table column length} {
 #
 #  erase a lob field.
 #
-proc oratcl::clob_erase {stm rowid table column start stop} {
+proc ::oratcl::clob_erase {handle start stop} {
 
 	global oramsg errorInfo
+
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob trim: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
 
 	if {![string is integer $start] || $start < 0} {
 		error "oraclob erase: value error\n \
@@ -337,7 +433,7 @@ proc oratcl::clob_erase {stm rowid table column start stop} {
 	set amt [expr {$stop - $start + 1}]
 	set off [expr {$start + 1}]
 
-	set pl [format $oratcl::plsql(erase) $column $table]
+	set pl [format $::oratcl::plsql(erase) $column $table]
 
 	set tcl_rc [catch {oraplexec $stm \
 				     $pl \
@@ -354,9 +450,20 @@ proc oratcl::clob_erase {stm rowid table column start stop} {
 #
 #  substr a lob field.
 #
-proc oratcl::clob_substr {stm rowid table column start stop datavar} {
+proc ::oratcl::clob_substr {handle start stop datavar} {
 
 	global oramsg errorInfo
+
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob substr: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
 
 	upvar 2 $datavar result
 	set result {}
@@ -372,7 +479,7 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 			-stop value may not be less than -start value"
 	}
 
-	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
+	set tcl_rc [catch {::oratcl::clob_length $handle} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
 		error "oraclob substr: value error \n$info"
@@ -385,7 +492,7 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 	set rem [expr {$stop - $start + 1}]
 	set off [expr {$start + 1}]
 
-	set pl [format $oratcl::plsql(substr) $column $table]
+	set pl [format $::oratcl::plsql(substr) $column $table]
 
 	while {$rem > 0} {
 
@@ -416,9 +523,20 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 #
 #  instr a lob field.
 #
-proc oratcl::clob_instr {stm rowid table column pattern start nth} {
+proc ::oratcl::clob_instr {handle pattern start nth} {
 
 	global oramsg errorInfo
+
+	variable loblst
+
+	if {![info exists loblst($handle)]} {
+		error "oraclob trim: handle $handle not open."
+	}
+
+	set stm [lindex $loblst($handle) 0]
+	set table [lindex $loblst($handle) 1]
+	set column [lindex $loblst($handle) 2]
+	set rowid [lindex $loblst($handle) 3]
 
 	if {![string is integer $start] || $start < 0} {
 		error "oraclob instr: value error\n \
@@ -427,7 +545,7 @@ proc oratcl::clob_instr {stm rowid table column pattern start nth} {
 
 	set offset [expr {$start + 1}]
 
-	set pl [format $oratcl::plsql(instr) $column $table]
+	set pl [format $::oratcl::plsql(instr) $column $table]
 	set tcl_rc [catch {oraplexec $stm \
 				     $pl \
 				     :rid $rowid \
