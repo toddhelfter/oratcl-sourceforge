@@ -195,10 +195,12 @@ Valid values are:
 .br
 9 == DECLARE corresponds to OCI_STMT_DECLARE
 .br
-.sp
 .RE
+.sp
+.RS .5i
 \fBOramsg\fR raises a Tcl error if the \fIhandle\fR cannot be located
 in the set of open statement-handles and connected logon-handle.
+.RE
 .sp
 .TP
 .B oraparse \fIstatement-handle statement-text\fR
@@ -283,8 +285,10 @@ This script may reference the variable and array specified by other options.
 .br
 .RE
 .sp
+.RS .5i
 \fBOrafetch\fR raises a Tcl error if the \fIstatement\-handle\fR specified is not 
 open, or if an unknown option is specified.
+.RE
 .sp
 .TP
 .B orasql \fIstatement-handle sql-statement  ?-parseonly?  ?-commit? \fR
@@ -338,7 +342,6 @@ has not been parsed with orasql; "1008" if not all SQL bind variables have
 been specified.  Refer to Oracle error numbers and messages for other
 possible values.
 .sp
-.RE
 .TP 
 .B oraplexec \fIstatement-handle  pl-block  ?:varname  value ...?\fR
 .br

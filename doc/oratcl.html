@@ -198,9 +198,9 @@
                     8 == BEGIN   corresponds to OCI_STMT_BEGIN
                     9 == DECLARE corresponds to OCI_STMT_DECLARE
 
-     <B>Oramsg</B> raises a Tcl error if the <I>handle</I> cannot be located in
-     the  set  of  open  statement-handles  and  connected logon-
-     handle.
+          <B>Oramsg</B> raises a Tcl  error  if  the  <I>handle</I>  cannot  be
+          located  in  the set of open statement-handles and con-
+          nected logon-handle.
 
 
      <B>oraparse</B> <I>statement</I>-<I>handle</I> <I>statement</I>-<I>text</I>
@@ -294,8 +294,9 @@
                           script may reference the  variable  and
                           array specified by other options.
 
-     <B>Orafetch</B> raises a Tcl error if the  <I>statement</I>-<I>handle</I>  speci-
-     fied is not open, or if an unknown option is specified.
+          <B>Orafetch</B> raises a Tcl  error  if  the  <I>statement</I>-<I>handle</I>
+          specified  is  not  open,  or  if  an unknown option is
+          specified.
 
 
      <B>orasql</B> <I>statement</I>-<I>handle</I> <I>sql</I>-<I>statement</I> ?-<I>parseonly</I>? ?-<I>commit</I>?
@@ -320,7 +321,6 @@
           <B>Orasql</B> raises a  Tcl  error  if  the  statement  handle
           specified  is not open, or if the SQL statement is syn-
           tactically incorrect.
-
           Table inserts made with orasql should follow conversion
           rules in the Oracle SQL Reference manual.
 
@@ -353,43 +353,47 @@
 
 
      <B>oraplexec</B> <I>statement</I>-<I>handle</I> <I>pl</I>-<I>block</I> ?:<I>varname</I> <I>value</I> ...?
-     Execute an anonymous PL block, optionally binding values  to
-     PL/SQL variables.
+          Execute  an  anonymous  PL  block,  optionally  binding
+          values to PL/SQL variables.
 
-     <I>Statement</I>-<I>handle</I> must be a valid  handle  previously  opened
-     with <B>oraopen</B>.  <I>Pl</I>-<I>block</I> may either be a complete PL/SQL pro-
-     cedure or a call to a stored procedure coded as an anonymous
-     PL/SQL  block.  Optional :<I>varname</I> <I>value</I> pairs may follow the
-     pl-block.  Varnames must be prefixed by  a  colon  ":",  and
-     match the subsitution bind names used in the procedure.  Any
-     :varname that is not matched with a value is ignored.  If  a
-     :varname  is used for output, the value should be coded as a
-     null list, {}.
+          <I>Statement</I>-<I>handle</I> must  be  a  valid  handle  previously
+          opened with <B>oraopen</B>.  <I>Pl</I>-<I>block</I> may either be a complete
+          PL/SQL procedure or a call to a stored procedure  coded
+          as  an anonymous PL/SQL block.  Optional :<I>varname</I> <I>value</I>
+          pairs may follow the pl-block.  Varnames must  be  pre-
+          fixed  by  a  colon ":", and match the subsitution bind
+          names used in the procedure.  Any :varname that is  not
+          matched with a value is ignored.  If a :varname is used
+          for output, the value should be coded as a  null  list,
+          {}.
 
-     Ref-cursor variables may be returned from a PL/SQL block  by
-     specifing  an  open <I>statement</I>-<I>handle</I> as the bind value for a
-     :varname bind variable. The handle must have previously been
-     opened  by <B>oraopen</B> using the same <I>logon</I>-<I>handle</I> as the cursor
-     used to execute the <B>oraplexec</B> command.  After <B>oraplexec</B> com-
-     pletes, the handle may be used to fetch result rows by using
-     orafetch; column information is available by using <B>oracols</B>.
-     <B>Oraplexec</B> will return "0" when executed  successfully;   Use
-     the command <B>orafetch</B> to retrieve the bind results.
+          Ref-cursor variables may  be  returned  from  a  PL/SQL
+          block by specifing an open <I>statement</I>-<I>handle</I> as the bind
+          value for a :varname bind  variable.  The  handle  must
+          have  previously  been opened by <B>oraopen</B> using the same
+          <I>logon</I>-<I>handle</I> as the cursor used  to  execute  the  <B>ora-</B>
+          <B>plexec</B>  command.  After <B>oraplexec</B> completes, the handle
+          may be used to fetch result  rows  by  using  orafetch;
+          column information is available by using <B>oracols</B>.
 
-     <B>Oraplexec</B> raises a Tcl error if the cursor handle  specified
-     is not open, or if the PL/SQL block is in error.
+          <B>Oraplexec</B> will return "0" when  executed  successfully;
+          Use the command <B>orafetch</B> to retrieve the bind results.
+
+          <B>Oraplexec</B> raises a  Tcl  error  if  the  cursor  handle
+          specified  is  not  open,  or if the PL/SQL block is in
+          error.
 
 
      <B>oralob</B> <I>sub</I>-<I>command</I> <I>handle</I> ?<I>options</I> ...?
-     Perform operations on Oracle Long Objects.
+          Perform operations on Oracle Long Objects.
 
-     <I>Handle</I> must be either a valid  statement  handle  previously
-     opened  with  <B>oraopen</B> or a LOB handle created with the <B>alloc</B>
-     sub-command.  Both Binary Long Object (BLOB)  and  Character
-     Long  Object (CLOB) columns are supported by the <B>oralob</B> com-
-     mand.
+          <I>Handle</I> must be either a valid statement  handle  previ-
+          ously  opened with <B>oraopen</B> or a LOB handle created with
+          the <B>alloc</B> sub-command.  Both Binary Long Object  (BLOB)
+          and  Character Long Object (CLOB) columns are supported
+          by the <B>oralob</B> command.
 
-     The following <I>sub</I>-<I>commands</I> are available:
+          The following <I>sub</I>-<I>commands</I> are available:
 
                <B>alloc</B>  <I>statement</I>-<I>handle</I>  -<I>table</I>   $<I>table</I>   -<I>column</I>
                $<I>column</I> -<I>rowid</I> $<I>rowid</I>
@@ -473,7 +477,6 @@
           as  the table name and column name) of the LOB in order
           to operate.  The <I>rowid</I>  of  a  row  may  be  determined
           easily, as shown in the example below.
-
           <B>LOB</B> <B>Example</B>
 
                # Assume that $sth is a valid statement-handle
@@ -529,6 +532,7 @@
                     # Create a new row in test_lob_2 with lob_clob
                     # and lob_blob properly initialized.
                     orabindexec $sth :lob_key "AAAAAAAAAA"
+
 
      <B>oralong</B> <I>sub</I>-<I>command</I> <I>handle</I> ?<I>options</I> ...?
           Perform operations on Oracle LONG column-types.
@@ -633,8 +637,8 @@
 
 
      <B>oracommit</B> <I>logon</I>-<I>handle</I>
-          Commit any  pending  transactions  from  prior  <B>orasql,</B>
-          <B>orabindexec,</B> or <B>oraplexec</B> commands that use a statement
+          Commit any pending transactions from prior <B>orasql,</B> <B>ora-</B>
+          <B>bindexec,</B>  or  <B>oraplexec</B>  commands that use a statement
           handle  opened  through  the  connection  specified  by
           <I>logon</I>-<I>handle</I>.  <I>Logon</I>-<I>handle</I> must be a valid handle pre-
           viously opened with <B>oralogon</B>.  <B>Oracommit</B> raises  a  Tcl
@@ -681,9 +685,9 @@
 
                set lda [oralogon username/password@db]
                puts [orainfo server $lda]
-
                set sth [oraopen $lda]
                set mylda [orainfo loginhandle $sth]
+
 
 
 
@@ -811,11 +815,6 @@
      tember 2001.
 
      tmh@purdue.edu
-
-
-
-
-
 
 
 
