@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.11 2000-09-21 15:45:49 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.12 2000-09-21 15:50:58 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -78,7 +78,7 @@ namespace eval oratcl {
 
 proc oraclob {stm command args} {
 
-	foreach idx [list rowid table column length amount pattern datavar] {
+	foreach idx [list rowid table column length pattern datavar] {
 		set oraclob($idx) {}
 	}
 	foreach idx [list start stop] {
@@ -102,7 +102,6 @@ proc oraclob {stm command args} {
 			-column	 { set oraclob(column) $value }
 			-datavar { set oraclob(datavar) $value }
 			-length	 { set oraclob(length) $value }
-			-amount	 { set oraclob(amount) $value }
 			-pattern { set oraclob(pattern) $value }
 			-nth	 { set oraclob(nth) $value }
 			-start	 { set oraclob(start) $value }
@@ -335,16 +334,16 @@ proc oratcl::clob_erase {stm rowid table column start stop} {
 			-stop value may not be less than -start value"
 	}
 
-	set amount [expr {$stop - $start + 1}]
-	set offset [expr {$start + 1}]
+	set amt [expr {$stop - $start + 1}]
+	set off [expr {$start + 1}]
 
 	set pl [format $oratcl::plsql(erase) $column $table]
 
 	set tcl_rc [catch {oraplexec $stm \
 				     $pl \
 				     :rid $rowid \
-				     :lob_amt $amount \
-				     :lob_off $offset}]
+				     :lob_amt $amt \
+				     :lob_off $off}]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
 		error "oraclob erase: value error \n$info"
@@ -373,24 +372,20 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 			-stop value may not be less than -start value"
 	}
 
-	set amount [expr {$stop - $start + 1}]
-	set offset [expr {$start + 1}]
-
-	set pl [format $oratcl::plsql(substr) $column $table]
 	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
 		error "oraclob substr: value error \n$info"
 	}
-	set len $tcl_res
 
-	set off $offset
-	set rem $amount
-
-	if {[string is integer $off] \
-	  && $len + $off - 1 < $amount} {
-		set rem [expr {$len + $off - 1}]
+	if {$tcl_res > $stop} {
+		set stop $tcl_res
 	}
+
+	set rem [expr {$stop - $start + 1}]
+	set off [expr {$start + 1}]
+
+	set pl [format $oratcl::plsql(substr) $column $table]
 
 	while {$rem > 0} {
 
