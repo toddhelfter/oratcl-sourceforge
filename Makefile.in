@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.29 2000-09-19 04:52:41 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.30 2000-09-19 04:57:42 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -94,7 +94,8 @@ ORA_MINOR_VERSION_CFLAG = -DORA_MINOR_VERSION=$(ORA_MINOR_VERSION)
 ORAINCLUDE    = -I$(ORACLE_HOME)/rdbms/demo \
 		-I$(ORACLE_HOME)/rdbms/public \
 		-I$(ORACLE_HOME)/plsql/public \
-		-I$(ORACLE_HOME)/network/public
+		-I$(ORACLE_HOME)/network/public \
+		-I$(ORACLE_HOME)/oci/include
 
 # some versions of oracle require explicit linking with libc,  without -lc,
 # the link appears fine, but executing 'oralogon' causes a core dump.  default
