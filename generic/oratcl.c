@@ -4213,8 +4213,6 @@ Oratcl_Parse (clientData, interp, objc, objv)
 		return TCL_ERROR;
 	}
 
-	Tcl_DStringInit(&stmStr);
-
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);
 	}
@@ -4235,10 +4233,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
-	StmPtr->ora_rc  = 0;
-	Tcl_DStringInit(&StmPtr->ora_err);
-	StmPtr->ora_row = 0;
-
+	Tcl_DStringInit(&stmStr);
 	stmt = Tcl_GetStringFromObj(objv[2], (int *) &stln);
 	if (StmPtr->utfmode) {
 		Tcl_UtfToExternalDString(NULL, stmt, stln, &stmStr);
@@ -4246,23 +4241,32 @@ Oratcl_Parse (clientData, interp, objc, objv)
 		Tcl_DStringAppend(&stmStr, stmt, stln);
 	}
 
-	/* clear any previous results */
-	Oratcl_ColFree(StmPtr->col_list);
-	StmPtr->col_list   	= NULL;
-	Oratcl_ColFree(StmPtr->bind_list);
-	StmPtr->bind_list	= NULL;
+	if (LogPtr->async == 1 && StmPtr->ora_rc == OCI_STILL_EXECUTING) {
+		/* NULL Statement */
+	} else {
 
-	rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
-			     LogPtr->errhp,
-			     (text *) Tcl_DStringValue(&stmStr),
-			     (ub4) Tcl_DStringLength(&stmStr),
-			     (ub4) OCI_NTV_SYNTAX,
-			     (ub4) OCI_DEFAULT);
+		/* clear any previous results */
+		StmPtr->ora_rc  = 0;
+		Tcl_DStringInit(&StmPtr->ora_err);
+		StmPtr->ora_row = 0;
+		Oratcl_ColFree(StmPtr->col_list);
+		StmPtr->col_list   	= NULL;
+		Oratcl_ColFree(StmPtr->bind_list);
+		StmPtr->bind_list	= NULL;
 
-	if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-		tcl_return = TCL_ERROR;
-		goto common_exit;
+		/* prepare the new statement */
+		rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
+				     LogPtr->errhp,
+				     (text *) Tcl_DStringValue(&stmStr),
+				     (ub4) Tcl_DStringLength(&stmStr),
+				     (ub4) OCI_NTV_SYNTAX,
+				     (ub4) OCI_DEFAULT);
+
+		if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
+			Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
 	}
 
 	/* get sql type */

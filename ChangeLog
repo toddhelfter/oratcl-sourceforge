@@ -377,4 +377,8 @@ Version 4.0 December, 2001
     -   Removed several unused variables eliminating compile warnings.
         Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
 
+    -   (29-AUG-2002) fixed a bug in oraparse that prevented asynchronous
+	transactions from parsing properly with the supplied examples.
+        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
+
 -----------------------------------------------------------------------------
