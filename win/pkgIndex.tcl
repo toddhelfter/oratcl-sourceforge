@@ -6,4 +6,5 @@ package ifneeded Oratcl 3.1 "
 		load [file join $dir .. .. bin oratcl31.dll]
 	}
         source [file join $dir oralob.tcl]
+        source [file join $dir oralong.tcl]
 "
