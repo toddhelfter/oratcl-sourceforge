@@ -1,4 +1,4 @@
-package ifneeded Oratcl @ORATCL_VERSION@ "
+package ifneeded Oratcl @ORATCL_VERSION@
 	global tcl_platform
 	if {[string equal $tcl_platform(platform) unix]} {
 		load [file join $dir .. @oratcl_LIB_FILE@]
@@ -7,4 +7,3 @@ package ifneeded Oratcl @ORATCL_VERSION@ "
 	}
         source [file join $dir oralob.tcl]
         source [file join $dir oralong.tcl]
-"
