@@ -198,7 +198,7 @@ test i18n-orabindexec-1.0 {tests oratcl orabindex cmd} {
      catch {orasql $ora_cur $str} error
      set str "insert into test_obindexi18n (ename, id) values ('$unistr', 100)"
      catch {orasql $ora_cur $str} error
-     catch {orasql $ora_cur {select id from test_obindexi18n where ename = :name} -parseonly} error
+     catch {oraparse $ora_cur {select id from test_obindexi18n where ename = :name}} error
      catch {orabindexec $ora_cur :name $unistr} error
      orafetch $ora_cur -datavariable res
      orasql $ora_cur {drop table test_obindexi18n}

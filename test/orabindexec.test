@@ -14,7 +14,7 @@ test orabindexec-1.1 {orabindexec: one bind value} {
 	set tst_lda [oralogon $ora_constr]
 	set tst_cur [oraopen $tst_lda]
 	set sql1 {select v_number from oratcl___tests where v_char = :n1}
-	orasql $tst_cur $sql1 -parseonly
+	oraparse $tst_cur $sql1
 	orabindexec $tst_cur :n1 {10}
 	orafetch $tst_cur -datavariable rv1
 	oraclose $tst_cur
@@ -30,7 +30,7 @@ test orabindexec-1.1 {orabindexec: one bind value} {
 test orabindexec-1.2 {orabindexec: many bind values} {
   set sql2 {select v_number from oratcl___tests \
 	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
-  orasql $ora_cur3 $sql2 -parseonly
+  oraparse $ora_cur3 $sql2
   orabindexec $ora_cur3 :n1 {10} :n2 {10} :n3 {10%}
   orafetch $ora_cur3 -datavariable rv1
   set res $rv1
@@ -41,7 +41,7 @@ test orabindexec-1.2 {orabindexec: many bind values} {
 test orabindexec-1.4 {orabindexec: too few bind values :: result} {
   set sql4 {select v_number from oratcl___tests \
 	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
-  orasql $ora_cur3 $sql4 -parseonly
+  oraparse $ora_cur3 $sql4
   catch {orabindexec $ora_cur3 :n1 {10} :n2 {10}} res
   set res
 } {orabindexec: SQL execution failed.}
@@ -49,7 +49,7 @@ test orabindexec-1.4 {orabindexec: too few bind values :: result} {
 test orabindexec-1.5 {orabindexec: too few bind values :: error code} {
   set sql4 {select v_number from oratcl___tests \
 	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
-  orasql $ora_cur3 $sql4 -parseonly
+  oraparse $ora_cur3 $sql4
   catch {orabindexec $ora_cur3 :n1 {10} :n2 {10}} res
   oramsg $ora_cur3 rc
 } {1008}

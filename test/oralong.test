@@ -48,11 +48,11 @@ set long_sql(drop_longraw_table) {
 
 catch {orasql $long_stm $long_sql(drop_long_table)}
 orasql $long_stm $long_sql(create_long_table)
-orasql $long_stm $long_sql(insert_long_table) -parseonly
+oraparse $long_stm $long_sql(insert_long_table)
 orabindexec $long_stm :long_key l1
 orabindexec $long_stm :long_key l2
 oracommit $long_lda
-orasql $long_stm $long_sql(select_long_table) -parseonly
+oraparse $long_stm $long_sql(select_long_table)
 orabindexec $long_stm :long_key l1
 orafetch $long_stm -datavariable rowid1
 orabindexec $long_stm :long_key l2
@@ -60,11 +60,11 @@ orafetch $long_stm -datavariable rowid2
 
 catch {orasql $long_stm $long_sql(drop_longraw_table)}
 orasql $long_stm $long_sql(create_longraw_table)
-orasql $long_stm $long_sql(insert_longraw_table) -parseonly
+oraparse $long_stm $long_sql(insert_longraw_table)
 orabindexec $long_stm :long_key l3
 orabindexec $long_stm :long_key l4
 oracommit $long_lda
-orasql $long_stm $long_sql(select_longraw_table) -parseonly
+oraparse $long_stm $long_sql(select_longraw_table)
 orabindexec $long_stm :long_key l3
 orafetch $long_stm -datavariable rowid3
 orabindexec $long_stm :long_key l4
