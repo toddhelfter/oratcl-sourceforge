@@ -407,5 +407,11 @@ Version 4.1 August, 2002
 	Tcl_Obj ** in the building of the -datavariable option result.
 	This eliminates a Tcl_Obj (24 byte) leak for each result column.
 
+22-NOV-2002
+
+    -   Added support for sysdba and sysoper connections to 'oralogon'
+	usage: oralogon sysdba
+	usage: oralogon sysoper
+	Thanks to Aleksey Kurbatov (akurbatov@borlas.ru) for the patch.
 
 -----------------------------------------------------------------------------

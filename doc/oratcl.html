@@ -41,6 +41,12 @@
                /
                /@<I>dbname</I>
 
+          If connecting as SYSOPER or SYSDBA, the connect string
+          should be in the form:
+
+               <I>sysdba</I>
+               <I>sysoper</I>
+
           A logon handle is returned and should be used  for  all
           other   Oratcl  commands  using  this  connection  that
           require a logon handle.  Multiple  connections  to  the

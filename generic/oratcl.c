@@ -1157,12 +1157,14 @@ Oratcl_ColDescribe (interp, StmPtr)
  *----------------------------------------------------------------------
  * Oratcl_Logon --
  *    Implements the oralogon command:
- *    usage: oralogon connect_str
- *       connect_str should be a valid oracle logon string, consisting of:
+ *    usage: oralogon connect_string ?-async?
+ *    connect_string should be a valid oracle logon string:
  *         name
  *         name/password
  *         name@d:dbname
  *         name/password@d:dbname
+ *	   sysdba
+ *	   sysoper
  *
  *    results:
  *	handle - a character string of newly open logon handle
@@ -1199,6 +1201,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	int		ora_connlen = 0;
 
 	ub4		oci_cred = OCI_CRED_RDBMS;
+	ub4		oci_conn = OCI_DEFAULT;
 
 	char		*p;
 	char		buf[20];
@@ -1209,7 +1212,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "connect_str ?-async?");
+		Tcl_WrongNumArgs(interp, objc, objv, "connect_string ?-async?");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -1249,26 +1252,36 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		ora_name = cpy_str;
 		ora_pass = cpy_pos1 + 1;
 		ora_conn = cpy_pos2 + 1;
-                ora_namelen = strlen(ora_name);
-                ora_passlen = strlen(ora_pass);
-                ora_connlen = strlen(ora_conn);
 	} else if (cpy_pos1 != NULL) {
 		*cpy_pos1 = '\0';
 		ora_name = cpy_str;
 		ora_pass = cpy_pos1 + 1;
-                ora_namelen = strlen(ora_name);
-                ora_passlen = strlen(ora_pass);
 	} else if (cpy_pos2 != NULL) {
 		*cpy_pos2 = '\0';
 		ora_name = cpy_str;
 		ora_conn = cpy_pos2 + 1;
-                ora_namelen = strlen(ora_name);
-                ora_connlen = strlen(ora_conn);
 	} else {
-		ora_name = cpy_str;
-                ora_namelen = strlen(ora_name);
+		if (strcasecmp(cpy_str, "sysdba") == 0) {
+			oci_conn = OCI_SYSDBA;
+			ora_name = "";
+			ora_pass = "";
+		} else if (strcasecmp(cpy_str, "sysoper") == 0) {
+			oci_conn = OCI_SYSOPER;
+			ora_name = "";
+			ora_pass = "";
+		} else {
+			ora_name = cpy_str;
+		}
 	}
 
+	if (ora_name)
+		ora_namelen = strlen(ora_name);
+
+	if (ora_pass)
+		ora_passlen = strlen(ora_pass);
+
+	if (ora_conn)
+                ora_connlen = strlen(ora_conn);
 
 	(void) OCIInitialize( (ub4) OCI_OBJECT,
 			      (dvoid *)0,
@@ -1343,7 +1356,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			      LogPtr->errhp,
 			      LogPtr->usrhp,
 			      (ub4) oci_cred,
-			      (ub4) OCI_DEFAULT);
+			      (ub4) oci_conn);
 
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
 
