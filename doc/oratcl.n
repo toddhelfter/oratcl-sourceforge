@@ -156,7 +156,7 @@ open.
 .RS .5i
 .IP \fIall\fR 1i
 returns all values as a list in the format
-{rc error rows peo ocicode sqlcode}
+{rc error rows peo ocicode sqltype}
 .IP \fIrc\fR
 returns the result code of the last OCI library function called by Oratcl
 with this handle.  This code is a numeric value that often corresponds to
@@ -184,7 +184,7 @@ failed to parse due to a syntax error.
 .IP \fIocicode\fR 
 returns the OCI code of the last OCI function called by Oratcl.  See the OCI
 manual for descriptions.
-.IP \fIsqlcode\fR 
+.IP \fIsqltype\fR 
 returns a code set by last SQL or PL/SQL parsed with \fBoraparse\fR.
 Valid values are:
 .sp
@@ -239,8 +239,8 @@ Bind values SQL variables in a previously parsed SQL statement.
 An SQL or PL/SQL statement must have previously been parsed by executing
 \fBoraparse\fR.
 \fBOrabind\fR may be executed repeatedly on a previously parsed statement.
-Binding should only be done in conjunction with sqlcode (1-4)
-select, insert, update, delete and with the PL/SQL codes (8-9) begin
+Binding should only be done in conjunction with sql types (1-4)
+select, insert, update, delete and with the PL/SQL types (8-9) begin
 and declare type statements.
 .sp
 Optional \fI:varname value\fR pairs allow substitutions on SQL bind variables.
