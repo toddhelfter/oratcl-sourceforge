@@ -428,7 +428,7 @@ Version 4.1 August, 2002
 
 13-DEC-2002
 
-    -   Corrected an incorrect work in the documentation, the man page
+    -   Corrected an incorrect word in the documentation, the man page
 	indicated a 'sqlcode' option to the oramsg command.  The option
 	is really 'sqltype'
 
