@@ -2297,6 +2297,7 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	}
 
 	if (parseonly) {
+		StmPtr->ora_rc = 0;
 		Tcl_SetObjResult(interp, OMV_zero);
 		tcl_return = TCL_OK;
 		goto common_exit;
