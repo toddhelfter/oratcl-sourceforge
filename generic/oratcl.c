@@ -93,10 +93,15 @@
  *  problems with Tcl 8.0
  * -add 'rowid' oramsg element, thanks to Dennis I. Urasov
  *-----------------------------------------------------------------------------
+ * Version 2.6 August, 1999
+ * Mariam Tariq, Scriptics Corporation
+ * mtariq@scriptics.com
+ * -added support for Internationalization features of Tcl8.1
+ *-----------------------------------------------------------------------------
  */
 
 
-#define ORATCL_VERSION "2.5"
+#define ORATCL_VERSION "2.6"
 
 /* support for version 6 or version 7; if not 7 assume 6  */
 #ifndef VERSION7
@@ -465,6 +470,7 @@ static char *OraHandlePrefix = "oratcl";  /* prefix used to identify handles*/
 /* a cursor handle could be passed to a proc that needs an lda handle */
 
 static char *OraMsgArray = "oramsg";  /* array to place errors & messages */
+static char *EnvArray = "env"; /* global Tcl array for environment vars */
 
 
 
@@ -1124,8 +1130,13 @@ Oratcl_Init (interp)
     int i;
     char info[200];
     static int OratclInitFlag = 0;    /* check if already initialized */
-
-
+    
+#ifdef USE_TCL_STUBS
+    if (Tcl_InitStubs(interp, "8.0", 0) == NULL) {
+	return TCL_ERROR;
+    }
+#endif
+    
     /* check if already initialized */
     if (!OratclInitFlag) {
  
@@ -1202,6 +1213,14 @@ Oratcl_Init (interp)
 		      (Tcl_CmdDeleteProc *) NULL);
 #endif
 
+#ifdef TCL81
+    /* Set the Oracle environment variable NLS_LANG to UTF8. This tell Oracle
+     * that data will be sent to it in UTF-8 format. This allows Oratcl
+     * to be used with the internationalization features of TCL8.1
+     */
+     
+      Tcl_SetVar2(interp, EnvArray, "NLS_LANG", "American_America.UTF8",TCL_GLOBAL_ONLY);
+#endif      
     /*
      * Initialize oramsg global array, inital null elements
      */
