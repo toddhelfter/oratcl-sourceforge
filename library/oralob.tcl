@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.7 2001-09-03 21:32:32 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.8 2001-09-03 21:51:04 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -317,7 +317,7 @@ proc ::oratcl::lob_alloc {handle args} {
 	foreach row $tcl_res {
 		if {[string equal [lindex $row 0] [string toupper $oralob(column)]]} {
 			set autotype [lindex $row 2]
-			break
+			::break
 		}
 	}
 
@@ -450,7 +450,7 @@ proc ::oratcl::lob_read {handle args} {
 			set tcl_err 1
 			set info $errorInfo
 			set err_txt "oralob $fn: [oramsg $handle error] $info"
-			break
+			::break
 		}
 		set out [lindex $tcl_res 3]
 
@@ -542,7 +542,7 @@ proc ::oratcl::lob_write {handle args} {
 			set tcl_err 1
 			set info $errorInfo
 			set err_txt "oralob $fn: [oramsg $handle error] $info"
-			break
+			::break
 		}
 
 		incr pos $amt

@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.5 2001-09-03 21:32:32 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.6 2001-09-03 21:51:04 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -136,7 +136,7 @@ proc ::oratcl::long_alloc {handle args} {
 	foreach row $tcl_res {
 		if {[string equal [lindex $row 0] [string toupper $oralong(column)]]} {
 			set autotype [lindex $row 2]
-			break
+			::break
 		}
 	}
 
