@@ -1968,9 +1968,11 @@ Oratcl_Sql (clientData, interp, objc, objv)
 
 		cols = parse_columns(interp, stm_hand);
 
+#if DEBUG
 		if (cols < 0) {
 			fprintf(stderr, "cols = %d\n", cols);
 		}
+#endif
 
 		/* cause first orafetch to fetch */
 		OraStms[stm_hand].row_num   = OraStms[stm_hand].cache_size;
