@@ -90,7 +90,7 @@ test oralong-1.1 {oralong: write long} {
 	list $write $free
 } {0 0}
 
-test oralob-1.2 {oralong: read long} {
+test oralong-1.2 {oralong: read long} {
 	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
 	catch {oralong read $long -datavar chr_out} res
 	set read [string equal $chr_data $chr_out]
@@ -111,7 +111,7 @@ test oralong-2.1 {oralong: write long raw} {
 	list $write $free
 } {0 0}
 
-test oralob-2.2 {oralong: read long raw} {
+test oralong-2.2 {oralong: read long raw} {
 	catch {oralong alloc $long_stm -table oratcl_longraw -column long_fld -rowid $rowid3} long
 	catch {oralong read $long -datavar bin_out} res
 	set read [string equal $bin_data $bin_out]
