@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.4 2000-09-18 15:26:51 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.5 2000-09-19 20:51:37 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -89,7 +89,7 @@ proc oraclob {stm command args} {
 	for {set argx 0} {$argx < $argc} {incr argx} {
 		set option [lindex $args $argx]
 		if {[incr argx] >= $argc} {
-			error "missing argument to $option"
+			error "oraclob: argument to $option is missing."
 		}
 		set value [lindex $args $argx]
 
@@ -105,6 +105,18 @@ proc oraclob {stm command args} {
 			-nth	 { set oraclob(nth) $value }
 		}
 	}		
+
+	if {[string is space $oraclob(rowid)]} {
+		error "oraclob :: invalid rowid value."
+	}
+
+	if {[string is space $oraclob(table)]} {
+		error "oraclob :: invalid table value."
+	}
+
+	if {[string is space $oraclob(column)]} {
+		error "oraclob :: invalid column value."
+	}
 
 	set result {}
 	switch $command {
@@ -154,8 +166,9 @@ proc oraclob {stm command args} {
 							 	   $oraclob(rowid) \
 							 	   $oraclob(table) \
 							 	   $oraclob(column) \
+							 	   $oraclob(amount) \
 								   $oraclob(offset) \
-							 	   $oraclob(amount)]]
+								   $oraclob(datavar)]]
 		}
 
 		instr	{
@@ -175,63 +188,22 @@ proc oraclob {stm command args} {
 
 
 #
-#  return then length of a lob field.
-#
-proc oratcl::clob_length {stm rowid table column} {
-
-	global oramsg
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for length option."
-	}
-
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for length option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for length option."
-	}
-
-	set pl [format $oratcl::plsql(getlength) $column $table]
-	set len [lindex [oraplexec $stm \
-				   $pl \
-				   :rid $rowid \
-				   :rlen {}] \
-		 1]
-	return $len
-}
-
-#
 #  read the contents of a lob field.
 #
 proc oratcl::clob_read {stm rowid table column datavar} {
 
-	global oramsg
+	global oramsg errorInfo
 
-	if {[string is space $datavar]} {
-		error "oraclob :: invalid datavar value for read option."
-	}
 	upvar 2 $datavar result
 	set result {}
 
-	##
-	# Need to test cursor for validity??
-	##
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for read option."
+	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob instr: value error \n$info"
 	}
+	set len $tcl_res
 
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for read option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for read option."
-	}
-
-	set len [oratcl::clob_length $stm $rowid $table $column]
 	set siz [oraconfig $stm lobpsize]
 
 	set pos 1
@@ -257,25 +229,9 @@ proc oratcl::clob_read {stm rowid table column datavar} {
 #
 proc oratcl::clob_write {stm rowid table column datavar} {
 
-	global oramsg
-
-	if {[string is space $datavar]} {
-		error "oraclob :: invalid datavar value for write option."
-	}
+	global oramsg errorInfo
 
 	upvar 2 $datavar data
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for write option."
-	}
-
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for write option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for write option."
-	}
 
 	set tot [string length $data]
 	set pos 1
@@ -286,17 +242,48 @@ proc oratcl::clob_write {stm rowid table column datavar} {
 		set amt [string length $str]
 
 		set pl [format $oratcl::plsql(write) $column $table]
-		oraplexec $stm \
-			  $pl \
-			  :rid $rowid \
-			  :lob_amt $amt \
-			  :lob_pos $pos \
-			  :lob_str $str
+		set tcl_rc [catch {oraplexec $stm \
+					     $pl \
+					     :rid $rowid \
+					     :lob_amt $amt \
+					     :lob_pos $pos \
+					     :lob_str $str } \
+				  tcl_res]
+		if {$tcl_rc} {
+			set info "$oramsg(errortxt) $errorInfo"
+			error "oraclob trim: value error \n$info"
+		}
+
 		incr pos $amt
 	}
 
-	oratcl::clob_trim $stm $rowid $table $column $tot
+	set tcl_rc [catch {oratcl::clob_trim $stm $rowid $table $column $tot} tcl_res]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob instr: value error \n$info"
+	}
 
+}
+
+#
+#  return then length of a lob field.
+#
+proc oratcl::clob_length {stm rowid table column} {
+
+	global oramsg errorInfo
+
+	set pl [format $oratcl::plsql(getlength) $column $table]
+	set tcl_rc [catch {oraplexec $stm \
+				     $pl \
+				     :rid $rowid \
+				     :rlen {} } \
+			  tcl_res]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob trim: value error \n$info"
+	}
+
+	return [lindex $tcl_res 1]
 }
 
 #
@@ -304,31 +291,19 @@ proc oratcl::clob_write {stm rowid table column datavar} {
 #
 proc oratcl::clob_trim {stm rowid table column length} {
 
-	global oramsg
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for trim option."
-	}
-
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for trim option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for trim option."
-	}
-
-	if {! [string is integer $length]} {
-		error "oraclob :: invalid length value for trim option."
-	}
+	global oramsg errorInfo
 
 	set pl [format $oratcl::plsql(trim) $column $table]
 
-	oraplexec $stm \
-		  $pl \
-		  :rid $rowid \
-		  :lob_len $length 
-
+	set tcl_rc [catch {oraplexec $stm \
+			             $pl \
+			             :rid $rowid \
+			             :lob_len $length}]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob trim: value error \n$info"
+	}
+	return -code ok
 }
 
 #
@@ -336,76 +311,78 @@ proc oratcl::clob_trim {stm rowid table column length} {
 #
 proc oratcl::clob_erase {stm rowid table column amount offset} {
 
-	global oramsg
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for erase option."
-	}
-
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for erase option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for erase option."
-	}
-
-	if {! [string is integer $amount]} {
-		error "oraclob :: invalid amount value for erase option."
-	}
-
-	if {! [string is integer $offset]} {
-		error "oraclob :: invalid offset value for erase option."
-	}
+	global oramsg errorInfo
 
 	set pl [format $oratcl::plsql(erase) $column $table]
 
-	oraplexec $stm \
-		  $pl \
-		  :rid $rowid \
-		  :lob_amt $amount \
-		  :lob_off $offset
-
+	set tcl_rc [catch {oraplexec $stm \
+				     $pl \
+				     :rid $rowid \
+				     :lob_amt $amount \
+				     :lob_off $offset}]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob erase: value error \n$info"
+	}
+	return -code ok
 }
 
 #
 #  substr a lob field.
 #
-proc oratcl::clob_substr {stm rowid table column offset amount} {
+proc oratcl::clob_substr {stm rowid table column amount offset datavar} {
 
-	global oramsg
+	global oramsg errorInfo
 
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for substr option."
-	}
+	upvar 2 $datavar result
+	set result {}
 
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for substr option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for substr option."
-	}
-
-	if {! [string is integer $offset]} {
-		error "oraclob :: invalid offset value for substr option."
-	}
-
-	if {! [string is integer $amount]} {
-		error "oraclob :: invalid amount value for substr option."
+	if {![string is integer $amount]} {
+		error "oraclob instr: value error\n \
+			numeric or value error: character to number conversion error"
 	}
 
 	set pl [format $oratcl::plsql(substr) $column $table]
 
-	set res [lindex [oraplexec $stm \
-				   $pl \
-				   :rid $rowid \
-				   :sub_str {} \
-				   :lob_amt $amount \
-				   :lob_off $offset] \
-			1]
+	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob instr: value error \n$info"
+	}
+	set len $tcl_res
 
-	return $res
+	set off $offset
+	set rem $amount
+
+	if {[string is integer $off] \
+	  && $len + $off - 1 < $amount} {
+		set rem [expr {$len + $off - 1}]
+	}
+
+	while {$rem > 0} {
+
+		if {$rem > 2000} {
+			set par 2000
+		} else {
+			set par $rem
+		}
+
+		set tcl_rc [catch {oraplexec $stm \
+					     $pl \
+					     :rid $rowid \
+					     :sub_str {} \
+					     :lob_amt $par \
+					     :lob_off $off} \
+				  tcl_res] 
+		if {$tcl_rc} {
+			set info "$oramsg(errortxt) $errorInfo"
+			error "oraclob instr: value error \n$info" 
+		}
+
+		set rem [expr {$rem - $par}]
+		incr off $par
+		append result [lindex $tcl_res 1]
+	}
 }
 
 #
@@ -413,38 +390,21 @@ proc oratcl::clob_substr {stm rowid table column offset amount} {
 #
 proc oratcl::clob_instr {stm rowid table column pattern offset nth} {
 
-	global oramsg
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for instr option."
-	}
-
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for instr option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for instr option."
-	}
-
-	if {! [string is integer $offset]} {
-		error "oraclob :: invalid offset value for instr option."
-	}
-
-	if {! [string is integer $nth]} {
-		error "oraclob :: invalid nth value for instr option."
-	}
+	global oramsg errorInfo
 
 	set pl [format $oratcl::plsql(instr) $column $table]
+	set tcl_rc [catch {oraplexec $stm \
+				     $pl \
+				     :rid $rowid \
+				     :ins_pos {} \
+				     :lob_ptn $pattern \
+				     :lob_off $offset \
+				     :lob_nth $nth} \
+			  tcl_res] 
+	if {$tcl_rc} {
+		set info "$oramsg(errortxt) $errorInfo"
+		error "oraclob instr: value error \n$info"
+	}
 
-	set res [lindex [oraplexec $stm \
-				   $pl \
-				   :rid $rowid \
-				   :ins_pos {} \
-				   :lob_ptn $pattern \
-				   :lob_off $offset \
-				   :lob_nth $nth] \
-			1]
-
-	return $res
+	return [lindex $tcl_res 1]
 }
