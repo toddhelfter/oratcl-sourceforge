@@ -13,7 +13,7 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 #
-# RCS: @(#) $Id: i18n3.test,v 1.1 1999-08-09 18:21:25 mtariq Exp $
+# RCS: @(#) $Id: i18n3.test,v 1.2 1999-09-22 05:45:52 mtariq Exp $
 
 package require Oratcl
 
@@ -22,7 +22,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     namespace import ::tcltest::*
 }
 
-set handle [oralogon scott/tiger]
+set handle [oralogon scott/tiger@or8i]
 set cursor [oraopen $handle]
 set tclstr \u592a\u9177
 
