@@ -4445,7 +4445,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 			Tcl_SetObjResult(interp, Tcl_DuplicateObj(StmPtr->nullvalue));
 		}
 		if (option == OPT_CACHE) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->bindsize));
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->fetchrows));
 		}
 		if (option == OPT_LOBP) {
 			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->lobpsize));

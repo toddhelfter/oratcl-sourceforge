@@ -225,6 +225,16 @@ test oralob-3.1 {oralob: compare blob} {
 	set res
 } {0}
 
+test oralob-4.0 {oralob: write clob 'single character'} {
+	set one_chr z
+	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+	catch {oralob write $lob -datavar one_chr} write
+	catch {oralob read $lob -datavar one_out} res
+	set res [string equal $one_chr $one_out]
+	catch {oralob free $lob} free
+	set res
+} {1}
+
 orasql $lob_stm $lob_sql(drop_lob_table)
 oraclose $lob_stm
 oralogoff $lob_lda
