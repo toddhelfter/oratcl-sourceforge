@@ -5150,7 +5150,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	} else {
 
 		/* clear any previous results */
-		StmPtr->ora_rc  = 0;
+		StmPtr->ora_rc = 0;
 		Tcl_DStringInit(&StmPtr->ora_err);
 		StmPtr->ora_row = 0;
 		Oratcl_ColFree(StmPtr->col_list);
