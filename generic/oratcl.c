@@ -96,6 +96,7 @@ extern int	  Oratcl_ColDescribe	_ANSI_ARGS_((Tcl_Interp 	*interp,
 extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     OratclStms		*StmPtr,
 						     int		setResult,
+						     int		useBindList,
 						     Tcl_Obj		*listvar,
 						     Tcl_Obj		*arrayvar));
 extern void       Oratcl_PrintStm 	_ANSI_ARGS_((Tcl_Interp		*interp,
@@ -1083,14 +1084,16 @@ if (lob) {
  */
 
 void
-Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
+Oratcl_ColAppend (interp, StmPtr, setResult, useBindList, listvar, arrayvar)
 	Tcl_Interp	*interp;
 	OratclStms	*StmPtr;
 	int		setResult;
+        int		useBindList;
 	Tcl_Obj		*listvar;
 	Tcl_Obj		*arrayvar;
 {
 	int		rn;
+	OratclCols 	*ColPtr;
 	OratclCols	*col, *src;
 	char		*null_str;
 	int		oColsc = 0;
@@ -1100,12 +1103,22 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
 	/* quick sanity check */
 	rn = StmPtr->fetchidx;
 	if (rn < 0 || rn >= StmPtr->fetchmem) {
+		/* TMH Does this ever happen ??? if so can it be tested for? */
 		return;
+	}
+
+	if (useBindList == 1) {
+		ColPtr = StmPtr->bind_list;
+	} else {
+		ColPtr = StmPtr->col_list;
 	}
 
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
 
+#if 0
 	for (col = StmPtr->col_list; col != NULL; col = col->next) {
+#endif
+	for (col = ColPtr; col != NULL; col = col->next) {
       
 		/* for cursor type, just return a null */
 		/* get pointer to next row column data buffer */
@@ -2856,7 +2869,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 
 	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
 	    StmPtr->sqltype == OCI_STMT_DECLARE) {
-		if (StmPtr->bind_list == NULL) {   
+		if (StmPtr->bind_list == NULL && StmPtr->col_list == NULL) {   
 	fprintf(stderr, "Oratcl_Fetch() bind_list is null\n");
 			tcl_return = TCL_OK;
 			goto common_exit;
@@ -3017,7 +3030,7 @@ Oratcl_FetchOne (StmPtr, interp, objc, objv)
 	}
 
 
-	Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
+	Oratcl_ColAppend(interp, StmPtr, 1, 0, NULL, NULL);
 
 common_exit:
 
@@ -3816,7 +3829,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	StmPtr->fetchidx    = 0;
 
 	/* get results, same as orafetch */
-	Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
+	Oratcl_ColAppend(interp, StmPtr, 1, 0, NULL, NULL);
    
 	StmPtr->fetch_end  = 1;
 	StmPtr->fetch_cnt  = 1;
@@ -5435,6 +5448,9 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 	StmPtr->sqltype		= 0;
 #endif
 
+	rc = OCIReset((dvoid *) LogPtr->srvhp,
+		       LogPtr->errhp);
+
 	rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
 			     LogPtr->errhp,
 			     (text *) Tcl_DStringValue(&stmStr),
@@ -5442,9 +5458,8 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 			     (ub4) OCI_NTV_SYNTAX,
 			     (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+	if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -5477,7 +5492,7 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		if (rc != OCI_SUCCESS) {
+		if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
 			#ifdef OCI_ATTR_PARSE_ERROR_OFFSET
 				OCIAttrGet( (dvoid *) StmPtr->stmhp,
 					    (ub4) OCI_HTYPE_STMT,
@@ -5932,7 +5947,7 @@ fprintf(stderr, "orafetch() really in a PL/SQL statement\n");
 			StmPtr->fetchidx    = 0;
 
 			/* get results, same as orafetch */
-			Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
+			Oratcl_ColAppend(interp, StmPtr, 1, 0, NULL, NULL);
 
 			StmPtr->fetch_end  = 1;
 			StmPtr->fetch_cnt  = 1;
@@ -6327,7 +6342,7 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 		StmPtr->fetchidx = 0;
 	}
 
-	Oratcl_ColAppend(interp, StmPtr, 0, objv[3], NULL);
+	Oratcl_ColAppend(interp, StmPtr, 0, 0, objv[3], NULL);
 
 common_exit:
 
