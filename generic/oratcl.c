@@ -363,6 +363,7 @@ Oratcl_Init (interp)
 	}
 #endif
 
+
 	OratclStatePtr = (OratclState *) ckalloc (sizeof(OratclState));
 	StateListPtr = (OratclStateList *) ckalloc (sizeof(OratclStateList));
 
@@ -420,7 +421,6 @@ Oratcl_Init (interp)
 		Tcl_CreateExitHandler ((Tcl_ExitProc *) Oratcl_Exit,
 				       (ClientData) OratclStatePtr);
 	}
-
 
 	/*
 	 * Initialize the new Tcl commands
@@ -549,32 +549,33 @@ Oratcl_Init (interp)
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
 
-	Tcl_SplitPath(Tcl_GetNameOfExecutable(), &pargc, &pargv);
+	if (Tcl_GetNameOfExecutable() != NULL) {
+		Tcl_SplitPath(Tcl_GetNameOfExecutable(), &pargc, &pargv);
+		Tcl_DStringInit(&tcllibPath);
+		pargv[pargc -2] = "lib";
+		pargv[pargc -1] = "oratcl" VERSION;
+		Tcl_JoinPath(pargc, pargv, &tcllibPath);
 
-	Tcl_DStringInit(&tcllibPath);
-	pargv[pargc -2] = "lib";
-	pargv[pargc -1] = "oratcl" VERSION;
-	Tcl_JoinPath(pargc, pargv, &tcllibPath);
+		for (libix=0; OraLibraryList[libix] != NULL; libix++) {
 
-	for (libix=0; OraLibraryList[libix] != NULL; libix++) {
-
-		pcnt = 0;
-		path[pcnt++] = tcllibPath.string;
+			pcnt = 0;
+			path[pcnt++] = tcllibPath.string;
 #if 0
-		path[pcnt++] = "lib";
+			path[pcnt++] = "lib";
 #endif
-		path[pcnt++] = OraLibraryList[libix];
-		if (pcnt > sizeof(path)/sizeof(path[0])) {
-			/* this is really bad :: we killed memory */
-			abort();
-		}
+			path[pcnt++] = OraLibraryList[libix];
+			if (pcnt > sizeof(path)/sizeof(path[0])) {
+				/* this is really bad :: we killed memory */
+				abort();
+			}
 
-		Tcl_DStringInit(&oratclPath);
-		Tcl_JoinPath(pcnt, path, &oratclPath);
-		Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
-		Tcl_DStringFree(&oratclPath);
+			Tcl_DStringInit(&oratclPath);
+			Tcl_JoinPath(pcnt, path, &oratclPath);
+			Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
+			Tcl_DStringFree(&oratclPath);
+		}
+		Tcl_DStringInit(&tcllibPath);
 	}
-	Tcl_DStringInit(&tcllibPath);
 
 	if (Tcl_PkgProvide(interp, "Oratcl", VERSION) != TCL_OK) {
 		return TCL_ERROR;
