@@ -1,0 +1,652 @@
+dnl  
+dnl Oratcl-2.5 configure.in   Relies heavily on Tcl/Tk/TclX being installed
+dnl and finding tclConfig.sh, tkConfig.sh, tclxConfig.sh, tkxConfig.sh
+dnl Tom Poindexter
+dnl
+
+AC_INIT(generic/oratcl.c)
+
+AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
+
+
+PACKAGE=oratcl
+
+MAJOR_VERSION=2
+MINOR_VERSION=6
+PATCHLEVEL=
+
+VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
+NODOT_VERSION=${MAJOR_VERSION}${MINOR_VERSION}
+
+
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
+#--------------------------------------------------------------------
+# We put this here so that you can compile with -DVERSION="1.2" to
+# encode the package version directly into the source files.
+#--------------------------------------------------------------------
+
+eval AC_DEFINE_UNQUOTED(VERSION, "${VERSION}")
+
+#--------------------------------------------------------------------
+# Check whether --enable-gcc or --disable-gcc was given.  Do this 
+# before AC_CYGWIN is called so the compiler can 
+# be fully tested by built-in autoconf tools.
+# This macro also calls AC_PROG_CC to set the compiler if --enable-gcc
+# was not used.
+#--------------------------------------------------------------------
+
+SC_ENABLE_GCC
+AC_PROG_INSTALL
+
+#--------------------------------------------------------------------
+# Checks to see if the make program sets the $MAKE variable.
+#--------------------------------------------------------------------
+
+AC_PROG_MAKE_SET
+
+#--------------------------------------------------------------------
+# Find ranlib
+#--------------------------------------------------------------------
+
+AC_PROG_RANLIB
+
+#--------------------------------------------------------------------
+# This macro performs additional compiler tests.
+#--------------------------------------------------------------------
+
+AC_CYGWIN
+
+#--------------------------------------------------------------------
+# Determines the correct binary file extension (.o, .obj, .exe etc.)
+#--------------------------------------------------------------------
+
+AC_OBJEXT
+AC_EXEEXT
+
+
+#----------------------------------------------------------------------------
+#       Get oratcl.c version, set sh variable ORATCL_VERSION
+#       and set ORATCL_LIBVER
+#----------------------------------------------------------------------------
+
+eval `egrep '^#define ORATCL_VERSION' ../generic/oratcl.c | \
+      sed -e 's/#define //' -e 's/ *"/="/'`
+
+# set the library version as with . stripped out
+
+ORATCL_LIBVER=`echo $ORATCL_VERSION | sed -e 's/\.//'`
+
+#----------------------------------------------------------------------------
+#       Check where Tcl/Tk and maybe TclX is installed 
+#       based on prefix and exec_prefix value
+#----------------------------------------------------------------------------
+#--------------------------------------------------------------------
+# "cygpath" is used on windows to generate native path names for include
+# files.
+# These variables should only be used with the compiler and linker since
+# they generate native path names.
+#
+# Unix tclConfig.sh points SRC_DIR at the top-level directory of
+# the Tcl sources, while the Windows tclConfig.sh points SRC_DIR at
+# the win subdirectory.  Hence the different usages of SRC_DIR below.
+#
+# This must be done before calling SC_PUBLIC_TCL_HEADERS
+#--------------------------------------------------------------------
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*)
+	CYGPATH="cygpath -w"
+    ;;
+    *)
+	CYGPATH=echo
+    ;;
+esac
+
+AC_SUBST(CYGPATH)
+
+#--------------------------------------------------------------------
+# __CHANGE__
+# Choose which headers you need.  Extension authors should try very
+# hard to only rely on the Tcl public header files.  Internal headers
+# contain private data structures and are subject to change without
+# notice.
+# This MUST be called before SC_PATH_TCLCONFIG/SC_LOAD_TCLCONFIG
+#--------------------------------------------------------------------
+SC_PUBLIC_TCL_HEADERS
+#SC_PRIVATE_TCL_HEADERS
+
+#--------------------------------------------------------------------
+# Load the tclConfig.sh file
+#--------------------------------------------------------------------
+
+SC_PATH_TCLCONFIG
+SC_LOAD_TCLCONFIG
+SEARCH_DIRS="$TCL_BIN_DIR"
+
+TCL_LIB_DIR=$TCL_BIN_DIR
+TCL_INC_DIR=$TCL_INCLUDES
+
+if test -z "$TCL_INC_DIR" ; then
+  AC_ERROR(could not find include/tcl.h)
+fi
+if test -z "$TCL_LIB_DIR" ; then
+  AC_ERROR(could not find lib/tclConfig.sh )
+fi
+
+#--------------------------------------------------------------------
+# __CHANGE__
+# A few miscellaneous platform-specific items:
+#
+# Define a special symbol for Windows (BUILD_exampleA in this case) so
+# that we create the export library with the dll.  See sha1.h on how
+# to use this.
+#
+# Windows creates a few extra files that need to be cleaned up.
+# You can add more files to clean if your extension creates any extra
+# files.
+#
+# Define any extra compiler flags in the PACKAGE_CFLAGS variable.
+# These will be appended to the current set of compiler flags for
+# your system.
+#--------------------------------------------------------------------
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*)
+	AC_DEFINE(BUILD_oratcl)
+	CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch"
+	AC_SUBST(CLEANFILES)
+    ;;
+    *)
+	CLEANFILES=
+    ;;
+esac
+
+#--------------------------------------------------------------------
+# Check whether --enable-threads or --disable-threads was given.
+# So far only Tcl responds to this one.
+#--------------------------------------------------------------------
+
+SC_ENABLE_THREADS
+
+#--------------------------------------------------------------------
+# The statement below defines a collection of symbols related to
+# building as a shared library instead of a static library.
+#--------------------------------------------------------------------
+
+SC_ENABLE_SHARED
+
+#--------------------------------------------------------------------
+# This macro figures out what flags to use with the compiler/linker
+# when building shared/static debug/optimized objects.  This information
+# is all taken from the tclConfig.sh file.
+#--------------------------------------------------------------------
+
+CFLAGS_DEBUG=${TCL_CFLAGS_DEBUG}
+CFLAGS_OPTIMIZE=${TCL_CFLAGS_OPTIMIZE}
+LDFLAGS_DEBUG=${TCL_LDFLAGS_DEBUG}
+LDFLAGS_OPTIMIZE=${TCL_LDFLAGS_OPTIMIZE}
+SHLIB_LD=${TCL_SHLIB_LD}
+STLIB_LD=${TCL_STLIB_LD}
+SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
+
+AC_SUBST(CFLAGS_DEBUG)
+AC_SUBST(CFLAGS_OPTIMIZE)
+AC_SUBST(STLIB_LD)
+AC_SUBST(SHLIB_LD)
+AC_SUBST(SHLIB_CFLAGS)
+AC_SUBST(SHLIB_LDFLAGS)
+
+#--------------------------------------------------------------------
+# Set the default compiler switches based on the --enable-symbols 
+# option.
+#--------------------------------------------------------------------
+
+SC_ENABLE_SYMBOLS
+
+if test "${SHARED_BUILD}" = "1" ; then
+    CFLAGS='${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}'
+else
+    CFLAGS='${CFLAGS_DEFAULT} ${CFLAGS_WARNING}'
+fi
+
+#--------------------------------------------------------------------
+# Everyone should be linking against the Tcl stub library.  If you
+# can't for some reason, remove this definition.  If you aren't using
+# stubs, you also need to modify the SHLIB_LD_LIBS setting below to
+# link against the non-stubbed Tcl library.
+#--------------------------------------------------------------------
+
+AC_DEFINE(USE_TCL_STUBS)
+
+#--------------------------------------------------------------------
+# This macro generates a line to use when building a library.  It
+# depends on values set by the SC_ENABLE_SHARED, SC_ENABLE_SYMBOLS,
+# and SC_LOAD_TCLCONFIG macros above.
+#--------------------------------------------------------------------
+
+SC_MAKE_LIB
+
+#--------------------------------------------------------------------
+# eval these two values to dereference the ${DBGX} variable.
+#--------------------------------------------------------------------
+
+eval "SHARED_LIB_SUFFIX=${TCL_SHARED_LIB_SUFFIX}"
+eval "UNSHARED_LIB_SUFFIX=${TCL_UNSHARED_LIB_SUFFIX}"
+
+#----------------------------------------------------------------------------
+#       Check where oracle is installed on this system. Honour the options:
+#               --with-oracle-directory=DIR
+#               --with-oracle-version=x   x=6 or x=7
+#----------------------------------------------------------------------------
+
+AC_ARG_WITH(oracle-directory, [  --with-oracle-directory=DIR  Oracle home directory DIR (default=\$ORACLE_HOME)], oracle_directory=$withval)
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*)
+AC_CHECKING(for Oracle toplevel ociw32.lib)
+ AC_MSG_RESULT(looking for oci73/lib/msvc/ociw32.lib in $oracle_directory)
+    if test -r "$oracle_directory/oci73/lib/msvc/ociw32.lib" ; then
+        ORA="$oracle_directory/lib/msvc"
+	ORACLE_HOME=$oracle_directory
+        AC_MSG_RESULT(setting ORA to $ORA)
+        break
+    fi
+    AC_MSG_RESULT(looking for oci80/lib/msvc/ociw32.dll in $oracle_directory)
+    if test -r "$oracle_directory/oci80/lib/msvc/ociw32.lib" ; then
+        ORA="$oracle_directory/oci80/lib/msvc"
+	ORACLE_HOME=$oracle_directory
+        AC_MSG_RESULT(setting ORA to $ORA)
+        break
+    fi
+    ;;
+    *)
+oratest1=${ORACLE_HOME:-.}
+oratest2=`(egrep ^oracle /etc/passwd | awk -F: '{print $6}' ) 2>/dev/null`
+oratest2=${oratest2:-.}
+oratest3=`(ypcat passwd | egrep ^oracle | awk -F: '{print $6}' ) 2>/dev/null`
+oratest3=${oratest3:-.}
+oratest4=`(niscat passwd.org_dir | egrep ^oracle | awk -F: '{print $6}') 2>/dev/null`
+oratest4=${oratest4:-.}
+
+AC_CHECKING(for Oracle toplevel (libocic.a or libclient8.a))
+for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+    AC_MSG_RESULT(looking for rdbms/lib/libocic.a in $f)
+    if test -r "$f/rdbms/lib/libocic.a" ; then
+        ORA="$f/rdbms/lib"
+	ORACLE_HOME=$f
+        AC_MSG_RESULT(setting ORA to $ORA)
+        break
+    fi
+    AC_MSG_RESULT(looking for lib/libocic.a in $f)
+    if test -r "$f/lib/libocic.a" ; then
+        ORA="$f/lib"
+	ORACLE_HOME=$f
+        AC_MSG_RESULT(setting ORA to $ORA)
+        break
+    fi
+    AC_MSG_RESULT(looking for lib/libclient8.a in $f)
+    if test -r "$f/lib/libclient8.a" ; then
+        ORA="$f/lib"
+	ORACLE_HOME=$f
+        AC_MSG_RESULT(setting ORA to $ORA)
+	testver=7
+        break
+    fi
+done
+;;
+esac
+if test -z "$ORA" ; then
+    AC_MSG_RESULT(you can adjust the oracle path to your directory with)
+    AC_MSG_RESULT(your oracle distribution:)
+    AC_MSG_RESULT(        --with-oracle-directory=DIR)
+    AC_ERROR(Could not find the oracle home header/library files.)
+fi
+
+SEARCH_DIRS="${SEARCH_DIRS}:${ORA}"
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*)
+	CYGPATH="cygpath -w"
+    ;;
+    *)
+AC_CHECKING(for Oracle version)
+
+if test -z "$testver" ; then
+  # test for function odescr(), it is in V7, not in V6
+
+  testver=`(nm $ORA/libocic.a | grep odescr) 2>/dev/null`
+  if test -z "$testver" ; then
+      testver=6
+  else
+      testver=7
+  fi
+fi
+;;
+esac
+AC_MSG_RESULT(found oracle version = $testver)
+
+# check if --with-oracle-version= was specified, otherwise use guess
+
+AC_ARG_WITH(oracle-version, [  --with-oracle-version=x      set Oracle version 6 or 7 (default auto)], oracle_version=$withval, oracle_version=0)
+
+case $oracle_version in
+    6)
+	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
+        ORAVER="-DVERSION6"
+	;;
+    7)
+	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
+	ORAVER="-DVERSION7"
+	;;
+    8)
+	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
+	ORAVER="-DVERSION7"
+	;;
+esac
+		
+if test -z "$ORAVER" ; then
+  case $testver in
+      6)
+	  ORAVER="-DVERSION6"
+	  ;;
+      7)
+	  ORAVER="-DVERSION7"
+	  ;;
+      8)
+	  ORAVER="-DVERSION7"
+	  ;;
+  esac
+fi
+
+ORA72FEATURES=""
+
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*)
+    ORA72FEATURES="-DNONBLOCK_CURSOR"
+    ;;
+    *)
+# get the other libs oracle might need to link
+OTHER_ORA_LIBS=`cat -s $ORACLE_HOME/rdbms/lib/sysliblist`
+# list of unwanted oracle objects
+OCIIGNORE=""
+
+case $ORAVER in
+  -DVERSION6)
+    OCILIB='${ORA}/libocic.a ${ORA}/osntab.o ${ORA}/libsqlnet.a ${ORA}/libora.a'
+    OCIMILI=''
+  ;;
+  -DVERSION7)
+    # V7.1 might have even more libs; solaris needs __fstd.o, aix needs mili.exp
+   for oraxlib in libnlsrtl.a libnlsrtl3.a __fstd.o mili.exp libosn.a libasync.a
+    do 
+      AC_CHECKING(for Oracle extra library/object $oraxlib)
+      varname=`basename $oraxlib .a`
+      varname=`basename $varname .o`
+      varname=`basename $varname .exp`
+      if test -r "$ORA/$oraxlib" ; then
+        eval $varname='\${ORA}/$oraxlib'
+        AC_MSG_RESULT(  found)
+      else
+  	eval $varname=''
+        AC_MSG_RESULT(  none)
+      fi
+    done
+    if test "$mili"  ; then
+      OCIMILI="-bI:$ORA/mili.exp"
+    else
+      OCIMILI=''
+    fi
+
+    # Oracle 7 has different libs for 7.0.x & 7.1.x, 7.2.x
+    # and now 7.3.x and  8   sheesh!!!  can't Oracle make up their mind!!
+    if test -r "$ORA/libclient8.a" ; then
+      # it's Oracle 8
+        OCIIGNORE="snmspu.o snmsp.o snmd.o snmitcl.o"
+        AC_MSG_RESULT(using oracle libraries for 8)
+        ORA72FEATURES="-DNONBLOCK_CURSOR"
+        OCILIB="$mili \${ORA}/libclient8.a \${ORA}/libcommon.a \${ORA}/libgeneric.a  \${ORA}/libsqlnet.a \${ORA}/libncr.a \${ORA}/libepc.a  \${ORA}/libcore3.a $libnlsrtl3 \${ORA}/libc3v6.a $__fstd $libosn $libasync"
+    else
+    if test -r "$ORA/libclient.a" ; then
+      # it's Oracle 7.3.2
+        OCIIGNORE="snmspu.o snmsp.o snmd.o snmitcl.o"
+        AC_MSG_RESULT(using oracle libraries for 7.3.2+)
+        ORA72FEATURES="-DNONBLOCK_CURSOR"
+        OCILIB="$mili \${ORA}/libclient.a \${ORA}/libcommon.a \${ORA}/libgeneric.a  \${ORA}/libsqlnet.a \${ORA}/libncr.a \${ORA}/libepc.a  \${ORA}/libcore3.a $libnlsrtl3 \${ORA}/libc3v6.a $__fstd $libosn $libasync"
+    else
+      # it's either 7.2 or 7.0/7.1
+      testfeat=`(nm $ORA/libocic.a | grep onbclr) 2>/dev/null`
+      if test -z "$testfeat" ; then
+        # looks like Oracle 7.0.x or 7.1.x
+        ORA72FEATURES=""
+        AC_MSG_RESULT(using oracle libraries for 7.0.x/7.1.x)
+        OCILIB="$mili \${ORA}/libocic.a \${ORA}/osntab.o \${ORA}/libsqlnet.a \${ORA}/libora.a   \${ORA}/libcore.a $libnlsrtl \${ORA}/libcv6.a \${ORA}/libnetwork.a $__fstd $libosn $libasync"
+      else
+        # looks like Oracle 7.2
+        ORA72FEATURES="-DNONBLOCK_CURSOR"
+        AC_MSG_RESULT(using oracle libraries for 7.2.x)
+        OCILIB="$mili \${ORA}/libocic.a \${ORA}/osntab.o \${ORA}/libsqlnet.a \${ORA}/libora.a   \${ORA}/libcore3.a $libnlsrtl3 \${ORA}/libc3v6.a $__fstd $libosn $libasync"
+      fi
+
+    fi
+  fi
+  ;;
+esac
+;;
+esac
+
+if test "$ORA72FEATURES" ; then
+  AC_MSG_RESULT(using oracle 7.2+ features: nonblocking and cursor variables)
+fi
+
+#----------------------------------------------------------------------------
+#       Check for libraries need by sybase on some systems
+#       borrowed from Tcl 7.6 configure.in
+#----------------------------------------------------------------------------
+ 
+tcl_checkBoth=0
+AC_CHECK_FUNC(connect, tcl_checkSocket=0, tcl_checkSocket=1)
+if test "$tcl_checkSocket" = 1; then
+    AC_CHECK_LIB(socket, main, ORA_SYS_LIBS="$ORA_SYS_LIBS -lsocket", tcl_checkBoth=1)
+fi
+if test "$tcl_checkBoth" = 1; then
+    tk_oldLibs=$ORA_SYS_LIBS
+    ORA_SYS_LIBS="$ORA_SYS_LIBS -lsocket -lnsl"
+    AC_CHECK_FUNC(accept, tcl_checkNsl=0, [ORA_SYS_LIBS=$tk_oldLibs])
+fi
+AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main, [ORA_SYS_LIBS="$ORA_SYS_LIBS -lnsl"]))
+
+AC_CHECK_LIB(dnet_stub, main, [ORA_SYS_LIBS="$ORA_SYS_LIBS -ldnet_stub"])
+
+
+#----------------------------------------------------------------------------
+#       Check whether shared library should be built
+#----------------------------------------------------------------------------
+
+
+ORA_SH_LIB=""
+
+case "`uname -s`" in
+    *win32* | *WIN32* | *CYGWIN_NT*)
+        if test "${SHARED_BUILD}" = "1" ; then
+	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/ociw32.lib`"\"
+	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${SHARED_LIB_SUFFIX}"
+	    RANLIB=:
+	else
+	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${UNSHARED_LIB_SUFFIX}"
+	fi
+    INSTALL_TARGET=install-shared 
+    ;;
+
+    *)
+if test "${SHARED_BUILD}" = "1" -a "${TCL_SHLIB_SUFFIX}" != ""; then
+  if test -r "$ORA/liboracle${TCL_SHLIB_SUFFIX}" -o -r "$ORA/libclntsh${TCL_SHLIB_SUFFIX}" ; then
+    RANLIB=':'
+    AC_MSG_RESULT(will build shared library)
+    if test -r "$ORA/liboracle${TCL_SHLIB_SUFFIX}" ; then
+      # 7.1 shared library name
+      ORA_SH_LIB="-L$ORA -loracle"
+    else
+      # 7.3 shared library name
+      ORA_SH_LIB="-L$ORA -lclntsh"
+    fi
+  else
+    AC_MSG_RESULT(--enable-shared requested but Oracle shared library not found as)
+    AC_MSG_RESULT($ORA/liboracle${TCL_SHLIB_SUFFIX} or)
+    AC_MSG_RESULT($ORA/libclntsh${TCL_SHLIB_SUFFIX})
+    AC_MSG_RESULT(Building a dynamic shared library for Oratcl is not possible.)
+    AC_MSG_RESULT(Check the INSTALL file for more information,)
+    AC_MSG_ERROR(halted.)
+  fi
+else
+  if test "${SHARED_BUILD}" = "1" ; then
+    AC_MSG_RESULT(--enable-shared requested but Tcl is not configure for dynamic loading.)
+    AC_MSG_RESULT(Building a dynamic shared library for Oratcl is not possible.)
+    AC_MSG_RESULT(reconfigure Oratcl with --disable-shared or)
+    AC_MSG_RESULT(reconfigure Tcl with --enable-shared.)
+    AC_MSG_ERROR(halted.)
+  else
+    AC_MSG_RESULT(will build static library and executables)
+  fi
+fi
+
+if test "${SHARED_BUILD}" = "1" ; then
+  PROGS="libOratcl${ORATCL_LIBVER}${TCL_SHLIB_SUFFIX}"
+  INSTALL_TARGET=install-shared
+  tk=no
+  tclx=no
+else
+  INSTALL_TARGET=install-static
+fi
+
+   
+        if test "${SHARED_BUILD}" = "1" ; then
+	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB}"
+	    eval "${PACKAGE}_LIB_FILE=lib${PACKAGE}${SHARED_LIB_SUFFIX}"
+	    RANLIB=:
+	else
+	    eval "${PACKAGE}_LIB_FILE=lib${PACKAGE}${UNSHARED_LIB_SUFFIX}"
+	fi
+
+
+;;
+esac
+
+
+
+
+
+#--------------------------------------------------------------------
+#       sigh. TCL_LD_SEARCH_FLAGS is built for cc, we need one built for
+#       ld.  try to coerce '-Wl,<flag>,<parm>' into just '<flag> <parm>'
+#       other flags are left as is.
+#--------------------------------------------------------------------
+ 
+OTHER_LD_SEARCH_FLAGS=''
+SPACE=''
+for arg in $TCL_LD_SEARCH_FLAGS
+do
+  newarg=''
+  case $arg in
+    -Wl*)
+      IFS_SAVE=$IFS
+      IFS=,
+      for p in $arg
+      do
+        case $p in
+          -Wl)
+            ;;
+          *)
+            newarg="$newarg $p"
+            ;;
+        esac
+      done
+      IFS=$IFS_SAVE
+      ;;
+    *)
+      newarg=$arg
+      ;;
+  esac
+  OTHER_LD_SEARCH_FLAGS="${OTHER_LD_SEARCH_FLAGS}${SPACE}${newarg}"
+  SPACE=' '
+done
+
+#--------------------------------------------------------------------
+#  	Substitute all variables for Makefile
+#--------------------------------------------------------------------
+
+# fix TCL_LIB_DIR to platform independent lib dir
+TCL_LIB_DIR=$TCL_PREFIX/lib
+
+AC_SUBST(T_EXEC)
+AC_SUBST(W_EXEC)
+AC_SUBST(PROGS)
+AC_SUBST(INSTALL_TARGET)
+AC_SUBST(ORATCL_VERSION)
+AC_SUBST(ORATCL_LIBVER)
+AC_SUBST(ORACLE_HOME)
+AC_SUBST(ORA)
+AC_SUBST(ORAVER)
+AC_SUBST(ORA72FEATURES)
+AC_SUBST(OCILIB)
+AC_SUBST(OCIMILI)
+AC_SUBST(OCIIGNORE)
+AC_SUBST(ORA_SH_LIB)
+AC_SUBST(OTHER_ORA_LIBS)
+AC_SUBST(TCL_VERSION)
+AC_SUBST(TCL_PREFIX)
+AC_SUBST(TCL_EXEC_PREFIX)
+AC_SUBST(TCL_INC_DIR)
+AC_SUBST(TCL_LIB_DIR)
+AC_SUBST(TCL_LIB_SPEC)
+AC_SUBST(TCL_LIBS)
+AC_SUBST(TCL_CC)
+AC_SUBST(TCL_DEFS)
+AC_SUBST(TCL_LD_FLAGS)
+AC_SUBST(TCL_LD_SEARCH_FLAGS)
+AC_SUBST(TCL_SHLIB_SUFFIX)
+AC_SUBST(TCL_SHLIB_CFLAGS)
+AC_SUBST(TCL_SHLIB_LD)
+AC_SUBST(TCL_SHLIB_LD_LIBS)
+AC_SUBST(SEARCH_DIRS)
+AC_SUBST(OTHER_LD_SEARCH_FLAGS)
+AC_SUBST(ORA_SYS_LIBS)
+
+
+
+#--------------------------------------------------------------------
+# __CHANGE__
+# Change the name from exampeA_LIB_FILE to match your package name.
+#--------------------------------------------------------------------
+
+AC_SUBST(oratcl_LIB_FILE)
+AC_SUBST(SHLIB_LD_LIBS)
+
+#--------------------------------------------------------------------
+# Find tclsh so that we can run pkg_mkIndex to generate the pkgIndex.tcl
+# file during the install process.  Don't run the TCLSH_PROG through
+# ${CYGPATH} because it's being used directly by make.
+# Require that we use a tclsh shell version 8.2 or later since earlier
+# versions have bugs in the pkg_mkIndex routine.
+#--------------------------------------------------------------------
+
+AC_PATH_PROGS(TCLSH_PROG, tclsh8.2${EXEEXT} tclsh82${EXEEXT} tclsh${EXEEXT}, :, ${exec_prefix}:${PATH})
+
+
+if test "x${TCLSH_PROG}" = "x:" ; then
+    AC_MSG_WARN(No tclsh executable found.  You will have to build the pkgIndex.tcl file manually.)
+fi
+
+AC_SUBST(TCLSH_PROG)
+
+
+#--------------------------------------------------------------------
+# Finally, substitute all of the various values into the Makefile.
+#--------------------------------------------------------------------
+
+AC_OUTPUT([Makefile mkIndex.tcl])
+
+
+#AC_OUTPUT(Makefile pkgIndex.tcl)
