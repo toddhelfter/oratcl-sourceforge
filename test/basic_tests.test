@@ -7,7 +7,7 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 #
-# RCS: @(#) $Id: basic_tests.test,v 1.1 1999-08-09 18:17:30 mtariq Exp $
+# RCS: @(#) $Id: basic_tests.test,v 1.2 1999-09-22 05:42:18 mtariq Exp $
 
 package require Oratcl
 
@@ -17,7 +17,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 }
 
 test oratcl-1.0 {oralogon} { 
-    oralogon system/manager 
+    oralogon system/manager@or8i 
 } {oratcl0}
 
 test oratcl-2.0 {oraopen} {
@@ -48,10 +48,13 @@ test oratcl-8.0 {oracols} {
     oracols oratcl0.0
 } {NAME}
 
-test oratcl-9.9 {drop table} {
+test oratcl-9.0 {drop table} {
    orasql oratcl0.0 "drop table tcl_temp"
 } {0}
 
+test oratcl-10.0 {oralogoff} {
+  oralogoff oratcl0 
+   } {}
 ::tcltest::cleanupTests
 
 return
