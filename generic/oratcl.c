@@ -1087,8 +1087,15 @@ Oratcl_ColDescribe (interp, StmPtr)
 		case SQLT_RDD:					/* 104	*/
 			new_col->column.valuesz = 23;
 			break;
+		case SQLT_TIMESTAMP:				/* 187	*/
+		case SQLT_TIMESTAMP_TZ:				/* 188  */
+		case SQLT_INTERVAL_YM:				/* 189  */
+		case SQLT_INTERVAL_DS:				/* 190  */
+		case SQLT_TIMESTAMP_LTZ:			/* 232  */
+			new_col->column.valuesz = 75;
+			break;
 #if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
-		case SQLT_CLOB:
+		case SQLT_CLOB:					/* 112	*/
 			/* 
 			 * TMH :: need an OCILobLocator
 			 *        must by to a SQLT_CLOB type
@@ -1098,7 +1105,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 			new_col->dty = SQLT_CLOB;
 			lob = 1;
 			break;
-		case SQLT_BLOB:
+		case SQLT_BLOB:					/* 113	*/
 			/* 
 			 * TMH :: need an OCILobLocator
 			 *        must by to a SQLT_BLOB type
@@ -2971,6 +2978,21 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 		break;
 	case 106:
 		column->typename = "RAW MLSLABEL";
+		break;
+	case SQLT_TIMESTAMP:
+		column->typename = "TIMESTAMP";
+		break;
+	case SQLT_TIMESTAMP_TZ:
+		column->typename = "TIMESTAMP WITH TIME ZONE";
+		break;
+	case SQLT_INTERVAL_YM:
+		column->typename = "INTERVAL YEAR TO MONTH";
+		break;
+	case SQLT_INTERVAL_DS:
+		column->typename = "INTERVAL DAY TO SECOND";
+		break;
+	case SQLT_TIMESTAMP_LTZ:
+		column->typename = "TIMESTAMP WITH LOCAL TIME ZONE";
 		break;
 	default:
 		column->typename = "UNKNOWN";

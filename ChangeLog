@@ -337,5 +337,13 @@ Version 4.0 September, 2001
     -   Reduce dependency on autodetection of EOL i.e. '\0' by using
         actual string lengths as arguements instead of relying on -1
         behavior.
+    -	Enabled proper behavior for new internal datatypes in Oracle 9i
+	in the functions oradesc and oracols.  Since these types are
+	defined in the 8i OCI files, this should be safe for all versions.
+		TIMESTAMP
+		TIMESTAMP WITH TIME ZONE
+		INTERVAL YEAR TO MONTH
+		INTERVAL DAY TO SECOND
+		TIMESTAMP WITH LOCAL TIME ZONE
 
 -----------------------------------------------------------------------------
