@@ -119,7 +119,7 @@ puts "installing $package"
 puts ""
 puts "steps to be performed:"
 puts ""
-puts "  copy  $proj_dll [file join $tcllib oratcl30 $inst_dll]"
+puts "  copy  $proj_dll [file join $tcllib oratcl301 $inst_dll]"
 if {! [file isdirectory [file join $proj_dir]] } {
   puts "  mkdir [file join $proj_dir]"
 }

@@ -9,8 +9,8 @@
 #
 MACHINE		= IX86
 
-ORATCL_VERSION = 3.0
-DLL_VERSION = 30
+ORATCL_VERSION = 3.0.1
+DLL_VERSION = 301
 
 PROJECT = oratcl$(DLL_VERSION)
 
@@ -63,7 +63,7 @@ INCLUDES =	-I$(TOOLS32)/include	\
 		-I$(ORACLE_OCI)/include	\
 		-I../generic
 
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION8DB -DVERSION=\"3.0\" 
+DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION8DB -DVERSION=\"3.0.1\" 
 
 !include <ntwin32.mak>
 
