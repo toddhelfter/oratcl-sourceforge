@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.3 2000-09-18 14:21:39 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.4 2000-09-18 15:26:51 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -9,15 +9,6 @@
 namespace eval oratcl {
 
 	variable plsql
-
-	set plsql(getlength) { \
-		declare \
-			lob_loc CLOB; \
-		begin \
-			select %s into lob_loc from %s where rowid = :rid; \
-			:rlen := DBMS_LOB.GETLENGTH(lob_loc); \
-		end; \
-	}
 
 	set plsql(read) { \
 		declare \
@@ -37,12 +28,30 @@ namespace eval oratcl {
 		end; \
 	}
 
+	set plsql(getlength) { \
+		declare \
+			lob_loc CLOB; \
+		begin \
+			select %s into lob_loc from %s where rowid = :rid; \
+			:rlen := DBMS_LOB.GETLENGTH(lob_loc); \
+		end; \
+	}
+
 	set plsql(trim) { \
 		declare \
 			lob_loc CLOB; \
 		begin \
 			select %s into lob_loc from %s where rowid = :rid for update; \
 			DBMS_LOB.TRIM(lob_loc, :lob_len); \
+		end; \
+	}
+
+	set plsql(erase) { \
+		declare \
+			lob_loc CLOB; \
+		begin \
+			select %s into lob_loc from %s where rowid = :rid for update; \
+			DBMS_LOB.ERASE(lob_loc, :lob_amt, :lob_off); \
 		end; \
 	}
 
@@ -64,18 +73,10 @@ namespace eval oratcl {
 		end; \
 	}
 
-	set plsql(erase) { \
-		declare \
-			lob_loc CLOB; \
-		begin \
-			select %s into lob_loc from %s where rowid = :rid for update; \
-			DBMS_LOB.ERASE(lob_loc, :lob_amt, :lob_off); \
-		end; \
-	}
 }
 
 
-proc oraclob {stmhndl command args} {
+proc oraclob {stm command args} {
 
 	foreach idx [list rowid table column length start amount pattern datavar] {
 		set oraclob($idx) {}
@@ -108,15 +109,8 @@ proc oraclob {stmhndl command args} {
 	set result {}
 	switch $command {
 
-		length	{
-			set result [eval [list oratcl::clob_length $stmhndl \
-								   $oraclob(rowid) \
-								   $oraclob(table) \
-								   $oraclob(column)]]
-		}
-
 		read	{
-			set result [eval [list oratcl::clob_read $stmhndl \
+			set result [eval [list oratcl::clob_read $stm \
 								 $oraclob(rowid) \
 								 $oraclob(table) \
 								 $oraclob(column) \
@@ -124,44 +118,54 @@ proc oraclob {stmhndl command args} {
 		}
 
 		write	{
-			set result [eval [list oratcl::clob_write $stmhndl \
+			set result [eval [list oratcl::clob_write $stm \
 							 	  $oraclob(rowid) \
 							 	  $oraclob(table) \
 							 	  $oraclob(column) \
 							 	  $oraclob(datavar)]]
 		}
 
+		length	{
+			set result [eval [list oratcl::clob_length $stm \
+								   $oraclob(rowid) \
+								   $oraclob(table) \
+								   $oraclob(column)]]
+		}
+
 		trim	{
-			set result [eval [list oratcl::clob_trim $stmhndl \
+			set result [eval [list oratcl::clob_trim $stm \
 							 	 $oraclob(rowid) \
 							 	 $oraclob(table) \
 							 	 $oraclob(column) \
 							 	 $oraclob(length)]]
 		}
+
+		erase	{
+			set result [eval [list oratcl::clob_erase $stm \
+							 	  $oraclob(rowid) \
+							 	  $oraclob(table) \
+							 	  $oraclob(column) \
+								  $oraclob(amount) \
+								  $oraclob(offset)]]
+		}
+
 		substr	{
-			set result [eval [list oratcl::clob_substr $stmhndl \
+			set result [eval [list oratcl::clob_substr $stm \
 							 	   $oraclob(rowid) \
 							 	   $oraclob(table) \
 							 	   $oraclob(column) \
 								   $oraclob(offset) \
 							 	   $oraclob(amount)]]
 		}
+
 		instr	{
-			set result [eval [list oratcl::clob_instr $stmhndl \
+			set result [eval [list oratcl::clob_instr $stm \
 							 	  $oraclob(rowid) \
 							 	  $oraclob(table) \
 							 	  $oraclob(column) \
 								  $oraclob(pattern) \
 								  $oraclob(offset) \
 							 	  $oraclob(nth)]]
-		}
-		erase	{
-			set result [eval [list oratcl::clob_erase $stmhndl \
-							 	  $oraclob(rowid) \
-							 	  $oraclob(table) \
-							 	  $oraclob(column) \
-								  $oraclob(amount) \
-								  $oraclob(offset)]]
 		}
 
 	}
@@ -173,7 +177,7 @@ proc oraclob {stmhndl command args} {
 #
 #  return then length of a lob field.
 #
-proc oratcl::clob_length {cur rowid table column} {
+proc oratcl::clob_length {stm rowid table column} {
 
 	global oramsg
 
@@ -190,7 +194,7 @@ proc oratcl::clob_length {cur rowid table column} {
 	}
 
 	set pl [format $oratcl::plsql(getlength) $column $table]
-	set len [lindex [oraplexec $cur \
+	set len [lindex [oraplexec $stm \
 				   $pl \
 				   :rid $rowid \
 				   :rlen {}] \
@@ -201,7 +205,7 @@ proc oratcl::clob_length {cur rowid table column} {
 #
 #  read the contents of a lob field.
 #
-proc oratcl::clob_read {cur rowid table column datavar} {
+proc oratcl::clob_read {stm rowid table column datavar} {
 
 	global oramsg
 
@@ -227,14 +231,14 @@ proc oratcl::clob_read {cur rowid table column datavar} {
 		error "oraclob :: invalid column value for read option."
 	}
 
-	set len [oratcl::clob_length $cur $rowid $table $column]
-	set siz [oraconfig $cur lobpsize]
+	set len [oratcl::clob_length $stm $rowid $table $column]
+	set siz [oraconfig $stm lobpsize]
 
 	set pos 1
 	while {$pos < $len} {
 
 		set pl [format $oratcl::plsql(read) $column $table]
-		set out [lindex [oraplexec $cur \
+		set out [lindex [oraplexec $stm \
 					   $pl \
 					   :rid $rowid \
 					   :lob_amt $siz \
@@ -251,7 +255,7 @@ proc oratcl::clob_read {cur rowid table column datavar} {
 #
 #  write data to a lob field.
 #
-proc oratcl::clob_write {cur rowid table column datavar} {
+proc oratcl::clob_write {stm rowid table column datavar} {
 
 	global oramsg
 
@@ -259,7 +263,6 @@ proc oratcl::clob_write {cur rowid table column datavar} {
 		error "oraclob :: invalid datavar value for write option."
 	}
 
-puts "datavar = $datavar"
 	upvar 2 $datavar data
 
 	if {[string is space $rowid]} {
@@ -276,27 +279,30 @@ puts "datavar = $datavar"
 
 	set tot [string length $data]
 	set pos 1
-	set siz [oraconfig $cur lobpsize]
+	set siz [oraconfig $stm lobpsize]
 
 	while {$pos < $tot} {
 		set str [string range $data [expr {$pos - 1}] [expr {$pos - 2 + $siz}] ]
 		set amt [string length $str]
 
 		set pl [format $oratcl::plsql(write) $column $table]
-		oraplexec $cur $pl \
-			:rid	 $rowid \
-			:lob_amt $amt \
-			:lob_pos $pos \
-			:lob_str $str
+		oraplexec $stm \
+			  $pl \
+			  :rid $rowid \
+			  :lob_amt $amt \
+			  :lob_pos $pos \
+			  :lob_str $str
 		incr pos $amt
 	}
+
+	oratcl::clob_trim $stm $rowid $table $column $tot
 
 }
 
 #
 #  trim a lob field.
 #
-proc oratcl::clob_trim {cur rowid table column length} {
+proc oratcl::clob_trim {stm rowid table column length} {
 
 	global oramsg
 
@@ -318,47 +324,85 @@ proc oratcl::clob_trim {cur rowid table column length} {
 
 	set pl [format $oratcl::plsql(trim) $column $table]
 
-	oraplexec $cur $pl \
-			:rid	 $rowid \
-			:lob_len $length 
+	oraplexec $stm \
+		  $pl \
+		  :rid $rowid \
+		  :lob_len $length 
 
 }
 
-
 #
-#  substr a lob field.
+#  erase a lob field.
 #
-proc oratcl::clob_substr {cur rowid table column offset amount} {
+proc oratcl::clob_erase {stm rowid table column amount offset} {
 
 	global oramsg
 
 	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for trim option."
+		error "oraclob :: invalid rowid value for erase option."
 	}
 
 	if {[string is space $table]} {
-		error "oraclob :: invalid table value for trim option."
+		error "oraclob :: invalid table value for erase option."
 	}
 
 	if {[string is space $column]} {
-		error "oraclob :: invalid column value for trim option."
-	}
-
-	if {! [string is integer $offset]} {
-		error "oraclob :: invalid offset value for trim option."
+		error "oraclob :: invalid column value for erase option."
 	}
 
 	if {! [string is integer $amount]} {
-		error "oraclob :: invalid amount value for trim option."
+		error "oraclob :: invalid amount value for erase option."
+	}
+
+	if {! [string is integer $offset]} {
+		error "oraclob :: invalid offset value for erase option."
+	}
+
+	set pl [format $oratcl::plsql(erase) $column $table]
+
+	oraplexec $stm \
+		  $pl \
+		  :rid $rowid \
+		  :lob_amt $amount \
+		  :lob_off $offset
+
+}
+
+#
+#  substr a lob field.
+#
+proc oratcl::clob_substr {stm rowid table column offset amount} {
+
+	global oramsg
+
+	if {[string is space $rowid]} {
+		error "oraclob :: invalid rowid value for substr option."
+	}
+
+	if {[string is space $table]} {
+		error "oraclob :: invalid table value for substr option."
+	}
+
+	if {[string is space $column]} {
+		error "oraclob :: invalid column value for substr option."
+	}
+
+	if {! [string is integer $offset]} {
+		error "oraclob :: invalid offset value for substr option."
+	}
+
+	if {! [string is integer $amount]} {
+		error "oraclob :: invalid amount value for substr option."
 	}
 
 	set pl [format $oratcl::plsql(substr) $column $table]
 
-	set res [lindex [oraplexec $cur $pl \
-					:rid	 $rowid \
-					:sub_str {} \
-					:lob_amt $amount \
-					:lob_off $offset] \
+	set res [lindex [oraplexec $stm \
+				   $pl \
+				   :rid $rowid \
+				   :sub_str {} \
+				   :lob_amt $amount \
+				   :lob_off $offset] \
 			1]
 
 	return $res
@@ -367,75 +411,40 @@ proc oratcl::clob_substr {cur rowid table column offset amount} {
 #
 #  instr a lob field.
 #
-proc oratcl::clob_instr {cur rowid table column pattern offset nth} {
+proc oratcl::clob_instr {stm rowid table column pattern offset nth} {
 
 	global oramsg
 
 	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for trim option."
+		error "oraclob :: invalid rowid value for instr option."
 	}
 
 	if {[string is space $table]} {
-		error "oraclob :: invalid table value for trim option."
+		error "oraclob :: invalid table value for instr option."
 	}
 
 	if {[string is space $column]} {
-		error "oraclob :: invalid column value for trim option."
+		error "oraclob :: invalid column value for instr option."
 	}
 
 	if {! [string is integer $offset]} {
-		error "oraclob :: invalid offset value for trim option."
+		error "oraclob :: invalid offset value for instr option."
 	}
 
 	if {! [string is integer $nth]} {
-		error "oraclob :: invalid nth value for trim option."
+		error "oraclob :: invalid nth value for instr option."
 	}
 
 	set pl [format $oratcl::plsql(instr) $column $table]
 
-	set res [lindex [oraplexec $cur $pl \
-					:rid	 $rowid \
-					:ins_pos {} \
-					:lob_ptn $pattern \
-					:lob_off $offset \
-					:lob_nth $nth] \
+	set res [lindex [oraplexec $stm \
+				   $pl \
+				   :rid $rowid \
+				   :ins_pos {} \
+				   :lob_ptn $pattern \
+				   :lob_off $offset \
+				   :lob_nth $nth] \
 			1]
 
 	return $res
-}
-
-#
-#  erase a lob field.
-#
-proc oratcl::clob_erase {cur rowid table column amount offset} {
-
-	global oramsg
-
-	if {[string is space $rowid]} {
-		error "oraclob :: invalid rowid value for trim option."
-	}
-
-	if {[string is space $table]} {
-		error "oraclob :: invalid table value for trim option."
-	}
-
-	if {[string is space $column]} {
-		error "oraclob :: invalid column value for trim option."
-	}
-
-	if {! [string is integer $amount]} {
-		error "oraclob :: invalid amount value for trim option."
-	}
-
-	if {! [string is integer $offset]} {
-		error "oraclob :: invalid offset value for trim option."
-	}
-
-	set pl [format $oratcl::plsql(erase) $column $table]
-
-	oraplexec $cur $pl \
-			:rid	 $rowid \
-			:lob_amt $amount \
-			:lob_off $offset
-
 }
