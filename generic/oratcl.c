@@ -53,6 +53,7 @@ LPVOID reserved;            /* Not used. */
 }
  
 #define strncasecmp strnicmp
+#define strcasecmp stricmp
  
 #endif
 
