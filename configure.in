@@ -3,7 +3,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tcl installation
 dnl	to configure the system for the local environment.
 #
-# RCS: @(#) $Id: configure.in,v 1.30.2.1 2004-11-14 19:21:23 tmh Exp $
+# RCS: @(#) $Id: configure.in,v 1.30.2.2 2004-11-23 06:35:42 hobbs Exp $
 
 #-----------------------------------------------------------------------
 # Sample configure.in for Tcl Extensions.  The only places you should
@@ -104,6 +104,9 @@ else
     #TEA_ADD_LIBS([-lsuperfly])
 fi
 AC_SUBST(CLEANFILES)
+
+# We want the shared library suffix defined
+AC_DEFINE_UNQUOTED(SHLIB_SUFFIX, "${SHLIB_SUFFIX}")
 
 #--------------------------------------------------------------------
 # __CHANGE__
