@@ -11,23 +11,13 @@ Change to the ./unix directory to run configure and make.
 
 Oratcl supports building a shared library by default that can be
 loaded using Tcl's 'package require' or 'load' commands.
-Static libraries and executables can be built by configuring 
-with --disable-shared.
+Static libraries can be built by configuring with --disable-shared.
 
-First, I would recommend that you start from a working Tcl/TclX/Tk base.
-Compile all the code, run the 'test' targets, try out the tcl and wishx
-interpreters.  Install tcl and wishx into public directories (e.g.
-/usr/local/bin) and the Tcl, TclX, and Tk library code (e.g., /usr/local/lib)
-Also try out the widget demos from the Tk package.  Everything works? Good,
-now you can start on Oratcl.
+First, you must start from a working Tcl base.
 
-Un-tar the Oratcl distribution in a sibling directory to tcl7.6, tk4.2,
-and tclX7.6.0, or tcl8.0, tk8.0, tclX8.0.0 (or the most current versions of 
-each distribution.)
+Un-tar the Oratcl distribution in a sibling directory to tcl.
 
-Still using Tcl 7.4?  see ./unix/conf-tcl-74/*
-
-Oratcl uses GNU Autoconf to build a Makefile.  Run "./configure" in the
+Oratcl uses GNU Autoconf to build a Makefile.  Run "../configure" in the
 unix directory.  Configure recognizes the following options:
 
 
@@ -39,26 +29,10 @@ unix directory.  Configure recognizes the following options:
                        was installed by Tcl in these locations.
 
 
-  package options:     --with-tk --with-tclx --disable-shared
-
-  --with-tk            build static executable with Tk.
-                       use "--without-tk" if you don't have Tk installed,
-		       default is "--with-tk".  This is only recognized if
-		       you also have specified "--disable-shared"
-
-  --with-tclx          build static executable with Extended Tcl (TclX).
-                       use "--without-tclx" if you don't have TclX installed, 
-                       default is "--without-tclx".  This is only recognized if
-		       you also have specified "--disable-shared"
+  package options:     --disable-shared
 
   --disable-shared     disable building shared library, build static libraries
-		       and executables instead.
 		       The default is to build a shared library.  
-
-		       if you use "--enable-shared", configure sets
-		       "--without-tk" and "--without-tclx", since the shared
-		       library can be loaded into tclsh, tcl, wish, and/or 
-		       wishx as needed.
 
 		     * NOTE: --enable-shared can only be specified if your
 		       Oracle distribution includes a shared library object,
@@ -93,24 +67,22 @@ unix directory.  Configure recognizes the following options:
 
   --with-oracle-directory=DIR    where to find the Oracle home directory,
                                  for rdbms/lib/libocic.a or lib/libocic.a
-  --with-oracle-version=<x>      use a specific Oracle version, "6" or "7", 
+  --with-oracle-version=<x>      use a specific Oracle version, "8" or "9", 
 				 configure will try to determine the version
 				 based on libocic.
 
 
 You should specify the same "--prefix=DIR" and "--exec-prefix=DIR" as when you
-built Tcl, Tk, and TclX.
+built Tcl.
 
-The configure script tries to find Tcl, Tk, and TclX installation files in the
-same directory path as specified with --prefix= (default /usr/local). Configure
-expects to find $prefix/lib/tclConfig.sh, tkConfig.sh, and tclxConfig.sh; 
-$prefix/include/ for tcl/tk/tclx include files; $prefix/lib/ for 
-tcl/tk/tclx libraries.  
+The configure script tries to find Tcl installation files in the
+same directory path as specified with --prefix= (default /usr/local).
+Configure expects to find $prefix/lib/tclConfig.sh  
 
 The environment variable ORACLE_HOME is used to find the Oracle libraries, or
 specify the Oracle home using --with-oracle-directory=DIR
 
-If configure cannot find the paths to Tcl, Tk, TclX, or Oracle, configure
+If configure cannot find the paths to Tcl or Oracle, configure
 will halt with a message.  
 
 Manual editing of the Makefile may be necessary if configure reports a warning.
@@ -121,39 +93,21 @@ After configure runs, examine 'Makefile', or just 'make' and see what happens.
  
 If you specified '--enable-shared' (the default)  while running configure, a 
 shared library will be built.  Otherwise, if you specified '--disable-shared',
-a static library will be built and executables created.  If a static library 
-is built, the Makefile gathers up all of the Oracle libraries and bundles the 
-objects into libOratcl.a along with oratcl.o.
+a static library will be built.  
 
-The default executables are `tcl' and `wishx', or `tclsh' and `wish' if
---without-tclx is specified.  If different executable names are desired,
-you should edit the Makefile.
-
-"make" will copy the AppInit files from Tcl or TclX and add a call to Oratcl's 
-initialization function via a sed(1) script.  The oratcl.c and AppInit c 
-files will them be compiled, and executables produced.
-
-"make install" will copy the resulting executables, library and man page into
+"make install" will copy the resulting scripts, library and man page into
 the specified directories.  If you specified '--enable-shared' (the default), a
 pkgIndex.tcl file is built or modified.
 
 Note on pkgIndex.tcl:  The Makefile builds a pkgIndex.tcl file, and installs
-it into a versioned Sybtcl directory.  This scheme works for Tcl 7.6 and 
-later.  If you are using Tcl 7.5, you will have to manually install this
-file into your Tcl library directory (e.g. /usr/local/lib/tcl7.5)
+it into a versioned Oratcl directory.  
 
-Optionally, you can "make install-wosql" to copy the wosql program to
-a directory, and change the #! interpreter line to reflect the Makefile
-values.  
-
-"make clean" will delete the .o files, executables, formatted man page, and
+"make clean" will delete the .o files, formatted man page, and
 configure cache files.
 
 You can add Oratcl to other Tcl/Tk interpreters.  Add a call to
 "Oratcl_Init(interp)" to your tclAppInit.c or tkAppInit.c module, and link
-with libOratcl.a.  If you are linking several extensions you may consider
-using Tcl-my-fancy, a small package I wrote to aid this task.  See
-ftp://ftp.neosoft.com/pub/tcl/NEW/tcl-my-fancy-2.0.tar.gz
+with libOratcl.a.  
 
 Try out the sample Oratcl scripts.  It's also fun to start the tcl
 interpreter, and just type in code on the fly.  Try benign SQL commands
@@ -165,19 +119,7 @@ at first, say:
 	tcl> orafetch oratcl0.0
 	tcl> orafetch oratcl0.0
 	tcl> oracols oratcl0.0
-	tcl> parray oramsg
+	tcl> oramsg oratcl0.0 all
 
 Oratcl seems to fit in to the rest of Tcl/Extended Tcl/Tk without
-name conflicts;  it does add a large chunk of Oracle libraries to
-the tcl and wishx binaries on my machine.
-
-The man page was written using -man macros.  Use your favorite nroff/troff
-formatter, e.g. 
-	nroff -man oratcl.man > oratcl.nr
-	troff -Talw -man oratcl.man | alw > oratcl.ps
-	psroff -Tdtps -t -man oratcl.man > oratcl.ps
-	whatever
-
-
-Tom Poindexter
-tpoindex@nyx.net
+name conflicts;  
