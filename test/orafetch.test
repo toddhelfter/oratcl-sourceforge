@@ -1,0 +1,34 @@
+# orafetch.test
+#
+# Copyright (c) 2001 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise various combinations of oraexec
+#
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+test oraexec-1.1 {oraexec OCI_STMT_SELECT code == 1} {
+	set sql {select * from oratcl___tests where v_number = :num}
+	oraparse $ora_cur $sql
+	orabind $ora_cur :num 0
+	oraexec $ora_cur
+	orafetch $ora_cur
+	oramsg $ora_cur rc
+} {0}
+
+test oraexec-1.2 {oraexec OCI_STMT_SELECT code == 1} {
+	set sql {select * from oratcl___tests where v_number = :num}
+	oraparse $ora_cur $sql
+	orabind $ora_cur :num 0
+	oraexec $ora_cur
+	set rc [orafetch $ora_cur]
+	set rc
+} {0}
+
+oraroll $ora_lda
+
+::tcltest::cleanupTests
+return
