@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.15 2001-09-08 13:38:06 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.16 2001-09-10 13:31:57 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
     set files [glob ../test/*.tes]
@@ -38,7 +38,7 @@ set testlist [list \
 		orabindexec.test \
 		oraplexec.test \
 		i18n.test \
-		oratcl::codes.test \
+		codes.test \
 		async.test \
 	]
 
