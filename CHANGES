@@ -128,3 +128,59 @@ Version 2.5, November 1997
      wosql - modified to run without requiring TclX, remove unix-only
      code to allow to run in windows also.
 
+-----------------------------------------------------------------------------
+
+Version 2.6 September, 1999
+
+    Mariam Tariq, Scriptics Corporation
+    mtariq@scriptics.com
+    -Note: Oracle 7 OCI API is still used. Oracle 8 libraries still support
+     the Oracle 7 calls. However, new Oracle 8 features such as functions
+     to manipulate LOB's are not accessible by Oratcl. Oratcl needs to be
+     rewritten with the new Oracle 8 API's to take advantage of the new
+     features.
+    -add support for Internationalization features of Tcl8.1
+    -add stub awareness
+    -OCI 7 call called orlon does not work with some versions of Oracle 8i(e.g.
+     version 8.1.5 on NT). So Oracle 8 OCILogon is used for logging in. The
+     service context handle is then converted to an lda such that the Oracle
+     7 calls can be used again. Default is to use OCILogon. If using an Oracle
+     7 DB then -DVERSION7DB compile flag must be used to use orlon
+
+-----------------------------------------------------------------------------
+
+Version 2.7 August, 1999
+
+    Todd M. Helfter, Purdue University
+    tmh@purdue.edu
+
+    -   use Tcl_Obj type constructs for all commands.
+
+    -   2 new functions available in tcl as 
+	oraldalist - return a list of all opened ldas
+	oracurlist $lda - return a list of all opened curs for an lda
+
+    -   Oratcl_Fetch (orafetch) returns the correct number of spaces between
+	columns.  Because of Tcl list operations, this is still a valid list.
+
+                        old "@0 @1 @2"
+			"foo  bar  rod"
+                        new "@0 @1 @2"
+			"foo bar rod"
+
+
+    -   Oratcl_FetchAll changed extensively.
+          handle both of the following properly
+          orafetch $cur {} {} foo 1 bar 2
+          orafetch $cur {} {} {foo 1 bar 2}
+
+	  Greater tuning of the evaluation string.  No calls to strcpy, bcopy,
+		or memset are used to find the replacement columns.  
+		So all the following work more efficiently
+
+                orafetch $cur {puts "@0 @1 @2"} 
+                orafetch $cur {puts "@0 @1 @2"} {}
+
+
+
+

@@ -1,0 +1,79 @@
+# ora04poll.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+# 
+# exercise various combinations of orasql -async and orapoll
+#
+
+if {[info exists ora_lda] == 0} {source defs.tcl}
+
+test orapoll-1.1 {orasql: async with blocking orafetch } {
+  orasql $ora_cur {select * from oratcl___tests} -async
+  set cnt1 0
+  set i 0
+  set op [orapoll $ora_cur]
+  orafetch $ora_cur {incr cnt1}
+  format "$cnt1 $op"
+} "30 $ora_cur"
+
+test orapoll-1.2 {orasql: async with polling} {
+  orasql $ora_cur {select * from oratcl___tests} -async
+  while {[orapoll $ora_cur] == ""} {}
+  set cnt1 0
+  set i 0
+  orafetch $ora_cur {incr cnt1}
+  format "$cnt1 $oramsg(rc)"
+} {30 1403}
+
+
+test orapoll-1.3 {orasql: async with polling wait} {
+  orasql $ora_cur "select * from oratcl___tests" -async
+  orapoll $ora_cur -1
+  set cnt1 0
+  set i 0
+  orafetch $ora_cur {incr cnt1}
+  format "$cnt1 $oramsg(rc)"
+} {30 1403}
+
+test orapoll-1.4 {orasql: async with long polling wait} {
+  orasql $ora_cur "select * from oratcl___tests" -async
+  orapoll $ora_cur 10000
+  set cnt1 0
+  set i 0
+  orafetch $ora_cur {incr cnt1}
+  format "$cnt1 $oramsg(rc)"
+} {30 1403}
+
+test orapoll-1.5 {orasql: async with long polling wait} {
+
+	set lda [oralogon $ora_constr]
+
+	set cur1 [oraopen $lda]
+	set cur2 [oraopen $lda]
+
+	set sql1 {select * from oratcl___tests order by v_number desc}
+	set sql2 {select * from oratcl___tests}
+
+	# If the next 2 statements are reversed, an sql error occurs. Why ???
+	orasql $cur2 $sql2 
+	orasql $cur1 $sql1 -async
+
+	set result [orapoll $cur1 -1 -all]
+
+	catch {orafetch $cur1}
+	catch {orafetch $cur2}
+	catch {oracancel $cur1}
+	catch {oracancel $cur2}
+
+	set cnt1 [expr {[llength $result] >= 1}]
+
+	oraclose $cur2
+	oraclose $cur1
+	oralogoff $lda
+
+	set cnt1
+} {1}
+
+::tcltest::cleanupTests
+return

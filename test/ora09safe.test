@@ -1,0 +1,71 @@
+# ora09safe.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+# 
+# exercise various safe interp
+#
+
+# ora11text should have run before this 
+
+if {[info exists ora_lda] == 0} {source defs.tcl}
+
+test orasafeinterp-1.1 {safeinterp: load package into safe interp} {
+	interp create -safe s
+	load {} Oratcl s
+} {}
+
+if {[interp exists s]} {
+	test orasafeinterp-1.2 {safeinterp: open connection} {
+		global ora_constr
+		global ora_slda
+
+		set ora_slda [s eval "oralogon $ora_constr"]
+		set ora_slda
+	} {oratcl2}
+} else {
+	puts {	skipping test :: orasafeinterp-1.2 'safeinterp: open connection'}
+}
+
+if {[interp exists s]} {
+	test orasafeinterp-1.3 {safeinterp: open cursor} {
+		global ora_constr ora_slda ora_scur
+
+		set ora_scur [s eval "oraopen $ora_slda"]
+		set ora_scur
+	} {oratcl2.3}
+} else {
+	puts {	skipping test :: orasafeinterp-1.3 'safeinterp: open cursor'}
+}
+
+
+if {[interp exists s]} {
+	test orasafeinterp-1.4 {safeinterp: is safe} {
+		set rval [s eval " info command orawrlong"]
+		set rval
+	} {}
+} else {
+	puts {	skipping test :: orasafeinterp-1.4 'slaveinterp: is safe'}
+}
+
+if {[interp exists s]} {
+	test orasafeinterp-1.5 {safeinterp: is safe} {
+		set rval [s eval " info command orardlong"]
+		set rval
+	} {}
+} else {
+	puts {	skipping test :: orasafeinterp-1.5 'slaveinterp: is safe'}
+}
+
+if {[interp exists s]} {
+	test orasafeinterp-1.6 {safeinterp: delete interp} {
+		global ora_slda
+		catch {interp delete s} res
+		set res
+	} {}
+} else {
+	puts {	skipping test :: oraslaveinterp-1.6 'delete interp'}
+}
+
+::tcltest::cleanupTests
+return

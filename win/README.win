@@ -1,33 +1,35 @@
 Oratcl for Windows
 
-ORATCL WITH TCL8.1
+ORATCL WITH TCL8.3
 
-The oratcl81.dll in this directory has been linked with tcl8.1.
+The oratcl27.dll in this directory has been linked with tcl8.3.
 This version takes advantage of the internationalization
-featured of Tcl 8.1 and was compiled with the stubs library.
+featured of Tcl 8.3 and was compiled with the stubs library.
 
 
 BEFORE YOU BEGIN
 
 Oratcl has been ported to WindowsNT.  Oratcl also works under Windows95.
-It has been tested with the latest version of Tcl, 8.0p2.  If you are
-running on Windows95 with an earlier version of Tcl (7.6p2 or 8.0) you 
+It has been tested with the latest version of Tcl, 8.3.1.  If you are
+running on Windows95 with an earlier version of Tcl (8.0 - 8.2) you 
 may experience problems when Tcl exits.  If this is the case, you 
-should upgrade to Tcl 8.0p2 or better.  
+should upgrade to Tcl 8.3.1 or better.  The oratcl27.dll in this
+directory will not work with Tcl older than 8.0.
 
 NT has not exhibited this behavior, and Oratcl should work fine with 
-Tcl 7.6p2, Tcl 8.0, or Tcl 8.0p1.
+Tcl 8.0 or newer.
  
 You must also have a working Oracle client installation on your machine,
-as Oratcl uses Oracle DLLs, notably 'ociw32.dll'.
+as Oratcl uses Oracle DLLs, notably 'oci32w.dll'.
   
+To build this library with Oracle 8, you must install the Oracle OCI
+on you NT or Windows machine and link with 'oci.lib'.
 
 INSTALLING ORATCL FOR WINDOWS
 
 Easy install:
 
-I've written a tiny install script.  It figures out which of the two
-DLLs to install based on your Tcl version, copies that file to your
+I've written a tiny install script.  It copies the dll file to your
 Tcl library, makes a pkgIndex.tcl and installs it into a project directory.
 First, copy all files in this directory to some directory on your Windows
 PC.  e.g., c:\oratcl
@@ -35,10 +37,7 @@ PC.  e.g., c:\oratcl
 To install, copy ALL of the files in the Oratcl ./win directory to your PC, 
 and simply run the install.tcl file with your tclsh:
 
-	tclsh76 install.tcl
-	or
-	tclsh80 install.tcl
-	answer 'yes' when prompted.
+	tclsh83 install.tcl
 
 Manual installation instructions:
 
@@ -52,17 +51,10 @@ Manual installation instructions:
     You should also have the enviroment variable 'ORACLE_HOME' pointing to
     your Oracle installation directory.
 
-2.  Copy the correct oratcl.dll to your Tcl .\lib directory.  Two versions of
-    oratcl.dll are supplied, one compiled with Tcl 7.6 (oratcl2576.dll), and 
-    the other compiled with Tcl 8.0 (oratcl2580.dll).  Choose the oratcl.dll 
-    that corresponds to your Tcl installation, and copy that file to your
-    Tcl library directory, changing the version number to that of the
-    Oratcl version.
+2.  Copy the correct oratcl.dll to your Tcl .\lib directory.  
 
     Eg. if you installed Tcl in C:\Program Files\Tcl, then you should:
-    copy oratcl2576.dll  c:\program files\tcl\lib\oratcl25.dll
-    or
-    copy oratcl2580.dll  c:\program files\tcl\lib\oratcl25.dll
+    copy oratcl27.dll  c:\program files\tcl\lib\Oratcl27\oratcl27.dll
 
 3.  Copy or add pkgIndex.tcl to your Tcl lib directory.  This is so
     the 'package unknown' scripts can resolve the 'package ifneeded' to 
@@ -70,19 +62,16 @@ Manual installation instructions:
     cause problems if you have spaces in the path name (e.g. c:\program files\)
     However, it should work fine from the same place where 'init.tcl' is
     located.  E.g.:
-	    copy pkgIndex.tcl c:\program files\tcl\lib\tcl7.6
+	    copy pkgIndex.tcl c:\program files\tcl\lib\Oratcl27
 
     The 'install.tcl' script makes a directory adjacent to your Tcl lib
-    called 'oratcl25', and creates the pkgIndex.tcl there.
-
-    If you are using Tcl 8.0, you should of course substitute tcl8.0 for the
-    Tcl library directory.
+    called 'oratcl27', and creates the pkgIndex.tcl there.
 
 4.  Try it out!
 
-    c:\> tclsh80
+    c:\> tclsh83
     % package require Oratcl
-    2.5
+    2.7
     % set h [oralogon id/password@SERVER]
     oratcl0
     % set c [oraopen $h]
@@ -93,7 +82,7 @@ Manual installation instructions:
     If 'package require' says it can't find package Oratcl:
 	    -make sure you've installed the pkgIndex.tcl.
 	    -or just load the oratcl.dll manually
-		    % load "c:/program files/tcl/lib/oratcl25.dll"
+		    % load "c:/program files/tcl/lib/oratcl27.dll"
 		    (or wherever you put it)
     If 'oralogon' complains about resolving symbols:
 	    -make sure you have the Oracle libraries installed and
@@ -108,36 +97,26 @@ Manual installation instructions:
 BUILDING ORATCL FOR WINDOWS
 
 My development environment is:
-	Windows NT 4.0
-	Microsoft Visual C++ 4.0
-	Tcl 7.6p2 for Windows
-	Tcl 8.0p2 for Windows
-	Oracle 7.3 for NT
+	Windows 98
+	Developer Studio Visual C++ 6.0
+	Tcl 8.1.5 for Windows
+	Oracle 8.1.6 for Windows
 
+I have built this with these Tcl's {8.0.5 8.1.0 8.2.0 8.2.1 8.2.3 8.3.0 8.3.1}
 
-To rebuild the dll: 
+To rebuild the dll using Dev Studio: 
 
-1.  Get the VC libs zip file from Sun.  Unzip these into your Tcl lib
-    directory:
+1.  Open a new workspace in the ./win directory
 
-	cd \progra~1\tcl\lib
-	C:\progra~1\tcl\lib> ftp ftp.sunlabs.com
-	ftp> cd pub/tcl
-	ftp> get vclibs76.zip
+2.  Copy the oratcl.c file from ../generic into the win directory
 
-	C:\progra~1\tcl\lib> pkunzip vclibs76
-
-	Tcl 8.0p2 includes the VC libs in the full installation as
-	tcl80vc.lib
-
-2.  Modify the makefile as needed.  You'll probably have to change the
+3.  Modify the makefile as needed.  You'll probably have to change the
     values for the TCL and ORACLE defines to suit.
     The linker will need to find the ociw32.lib file, as well as the
     Tcl include and lib files.
+    *NOTE ) Oracle8 needs the "oci.lib" file.
 
-3.  Make it!  
-	C:\oratcl> nmake -f makefile.vc
+4.  Make it!  
+	Select Build Makefile
 
-4.  Install it as noted above.
-
-
+5.  Install it as noted above.

@@ -1,0 +1,46 @@
+# ora06bindexec.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+# 
+# exercise various orabindexec
+#
+
+if {[info exists ora_lda] == 0} {source defs.tcl}
+
+test orabindexec-1.1 {orabindexec: one bind value} {
+  set sql1 {select v_number from oratcl___tests where v_char = :n1}
+  orasql $ora_cur3 $sql1 -parseonly
+  orabindexec $ora_cur3 :n1 {10}
+  set rv1 [orafetch $ora_cur3]
+  set rv1
+} {10}
+
+test orabindexec-1.2 {orabindexec: many bind values} {
+  set sql2 {select v_number from oratcl___tests \
+	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
+  orasql $ora_cur3 $sql2 -parseonly
+  orabindexec $ora_cur3 :n1 {10} :n2 {10} :n3 {10%}
+  set rv1 [orafetch $ora_cur3]
+  set rv1
+} {10}
+
+test orabindexec-1.3 {orabindexec: async} {
+  set sql3 {select v_number from oratcl___tests \
+	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
+  orasql $ora_cur3 $sql3 -parseonly
+  catch {orabindexec $ora_cur3 -async :n1 {10} :n2 {10} :n3 {10%}} res
+  set rv1 [orafetch $ora_cur3]
+  set res
+} {3123}
+
+test orabindexec-1.4 {orabindexec: too few bind values} {
+  set sql4 {select v_number from oratcl___tests \
+	where v_char = :n1 and v_number = :n2 and v_varchar2 like :n3}
+  orasql $ora_cur3 $sql4 -parseonly
+  catch {orabindexec $ora_cur3 :n1 {10} :n2 {10}} res
+  set res
+} {1008}
+
+::tcltest::cleanupTests
+return

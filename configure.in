@@ -1,10 +1,13 @@
 dnl  
-dnl Oratcl-2.5 configure.in   Relies heavily on Tcl/Tk/TclX being installed
-dnl and finding tclConfig.sh, tkConfig.sh, tclxConfig.sh, tkxConfig.sh
-dnl Tom Poindexter
+dnl Oratcl-2.6 configure.in based on the work of Tom Poindexter   
+dnl Support for TEA Compliance has been added
 dnl
 
 AC_INIT(generic/oratcl.c)
+
+AC_CONFIG_AUX_DIR(config)
+CONFIGDIR=${srcdir}/config
+AC_SUBST(CONFIGDIR)
 
 AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
 
@@ -12,7 +15,7 @@ AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
 PACKAGE=oratcl
 
 MAJOR_VERSION=2
-MINOR_VERSION=6
+MINOR_VERSION=7
 PATCHLEVEL=
 
 VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
@@ -96,15 +99,18 @@ ORATCL_LIBVER=`echo $ORATCL_VERSION | sed -e 's/\.//'`
 #--------------------------------------------------------------------
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	CYGPATH="cygpath -w"
+	RELPATH=".. .. bin"
     ;;
     *)
 	CYGPATH=echo
+	RELPATH=..
     ;;
 esac
 
 AC_SUBST(CYGPATH)
+AC_SUBST(RELPATH)
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -120,7 +126,7 @@ SC_PUBLIC_TCL_HEADERS
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
 #--------------------------------------------------------------------
-
+AC_MSG_RESULT(Looking for TclConfig.sh)
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 SEARCH_DIRS="$TCL_BIN_DIR"
@@ -153,7 +159,7 @@ fi
 #--------------------------------------------------------------------
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	AC_DEFINE(BUILD_oratcl)
 	CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch"
 	AC_SUBST(CLEANFILES)
@@ -244,7 +250,7 @@ eval "UNSHARED_LIB_SUFFIX=${TCL_UNSHARED_LIB_SUFFIX}"
 AC_ARG_WITH(oracle-directory, [  --with-oracle-directory=DIR  Oracle home directory DIR (default=\$ORACLE_HOME)], oracle_directory=$withval)
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	AC_CHECKING(for Oracle toplevel ociw32.lib)
 	AC_MSG_RESULT(looking for oci73/lib/msvc/ociw32.lib in $oracle_directory)
 	if test -r "$oracle_directory/oci73/lib/msvc/ociw32.lib" ; then
@@ -255,6 +261,12 @@ case "`uname -s`" in
 	fi
 	AC_MSG_RESULT(looking for oci80/lib/msvc/ociw32.dll in $oracle_directory)
 	if test -r "$oracle_directory/oci80/lib/msvc/ociw32.lib" ; then
+	    ORA="$oracle_directory/oci80/lib/msvc"
+	    ORACLE_HOME=$oracle_directory
+	    AC_MSG_RESULT(setting ORA to $ORA)
+	    break
+	fi
+        if test -r "$oracle_directory/oci80/lib/msvc/oci.lib" ; then
 	    ORA="$oracle_directory/oci80/lib/msvc"
 	    ORACLE_HOME=$oracle_directory
 	    AC_MSG_RESULT(setting ORA to $ORA)
@@ -286,6 +298,14 @@ for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u
         AC_MSG_RESULT(setting ORA to $ORA)
         break
     fi
+    AC_MSG_RESULT(looking for lib/libclient.a in $f)
+    if test -r "$f/lib/libclient.a" ; then
+        ORA="$f/lib"
+	ORACLE_HOME=$f
+        AC_MSG_RESULT(setting ORA to $ORA)
+	testver=7
+        break
+    fi 
     AC_MSG_RESULT(looking for lib/libclient8.a in $f)
     if test -r "$f/lib/libclient8.a" ; then
         ORA="$f/lib"
@@ -307,7 +327,7 @@ fi
 SEARCH_DIRS="${SEARCH_DIRS}:${ORA}"
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	CYGPATH="cygpath -w"
     ;;
     *)
@@ -335,14 +355,18 @@ case $oracle_version in
     6)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
         ORAVER="-DVERSION6"
+        ORA_DB_VER="-DVERSION7DB"
+
 	;;
     7)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
 	ORAVER="-DVERSION7"
+        ORA_DB_VER="-DVERSION7DB"
 	;;
     8)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
-	ORAVER="-DVERSION7"
+        ORAVER="-DVERSION7"
+        ORA_DB_VER="-DVERSION8DB"
 	;;
 esac
 		
@@ -350,12 +374,15 @@ if test -z "$ORAVER" ; then
   case $testver in
       6)
 	  ORAVER="-DVERSION6"
+          ORA_DB_VER="-DVERSION7DB"
 	  ;;
       7)
 	  ORAVER="-DVERSION7"
+          ORA_DB_VER="-DVERSION7DB"
 	  ;;
       8)
 	  ORAVER="-DVERSION7"
+          ORA_DB_VER="-DVERSION8DB"
 	  ;;
   esac
 fi
@@ -364,7 +391,7 @@ ORA72FEATURES=""
 
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
     ORA72FEATURES="-DNONBLOCK_CURSOR"
     ;;
     *)
@@ -469,9 +496,9 @@ AC_CHECK_LIB(dnet_stub, main, [ORA_SYS_LIBS="$ORA_SYS_LIBS -ldnet_stub"])
 ORA_SH_LIB=""
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
         if test "${SHARED_BUILD}" = "1" ; then
-	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/ociw32.lib`"\"
+	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} '`cygpath -w $ORA/oci.lib`' '`cygpath -w $ORA/ociw32.lib`'" 
 	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${SHARED_LIB_SUFFIX}"
 	    RANLIB=:
 	else
@@ -524,8 +551,8 @@ fi
    
         if test "${SHARED_BUILD}" = "1" ; then
 	    echo "Performing shared build"
-	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB}"
-	    LIB_RUNTIME_DIR=${ORA}/lib
+	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB} ${ORA_SYS_LIBS} ${OTHER_LD_SEARCH_FLAGS}"
+#	    LIB_RUNTIME_DIR=${ORA}/lib
 	    eval "ORA_LD_SEARCH_FLAGS=${TCL_LD_SEARCH_FLAGS}"
 	    LD_PROG=`echo ${TCL_SHLIB_LD} | sed -e "s| .*||"`
 	    CC_PROG=`echo ${CC} | sed -e "s| .*||"`
@@ -534,7 +561,6 @@ fi
 	    else
 		ORA_LD_SEARCH_FLAGS=`echo ${TCL_LD_SEARCH_FLAGS} |sed -e "s|-Wl,||g" -e "s|,| |g"`
 	    fi
-	    echo "ORA_LD_SEARCH_FLAGS=${ORA_LD_SEARCH_FLAGS}"
 	    SHLIB_LDFLAGS=${ORA_LD_SEARCH_FLAGS}
 	    eval "${PACKAGE}_LIB_FILE=lib${PACKAGE}${SHARED_LIB_SUFFIX}"
 	    RANLIB=:
@@ -603,6 +629,7 @@ AC_SUBST(ORATCL_LIBVER)
 AC_SUBST(ORACLE_HOME)
 AC_SUBST(ORA)
 AC_SUBST(ORAVER)
+AC_SUBST(ORA_DB_VER)
 AC_SUBST(ORA72FEATURES)
 AC_SUBST(OCILIB)
 AC_SUBST(OCIMILI)
@@ -653,8 +680,4 @@ SC_PROG_TCLSH
 #--------------------------------------------------------------------
 
 AC_OUTPUT([Makefile \
-	mkIndex.tcl],
-	chmod +x ${srcdir}/install-sh ${srcdir}/mkinstalldirs)
-
-
-#AC_OUTPUT(Makefile pkgIndex.tcl)
+	pkgIndex.tcl])

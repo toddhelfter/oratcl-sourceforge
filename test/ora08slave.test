@@ -1,0 +1,72 @@
+# ora08slave.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+# 
+# exercise various slave interp operations
+#
+
+if {[info exists ora_lda] == 0} {source defs.tcl}
+
+test oraslaveinterp-1.1 {slaveinterp: load package into slave interp} {
+	interp create s
+	load {} Oratcl s
+} {}
+
+if {[interp exists s]} {
+	test oraslaveinterp-1.2 {slaveinterp: open connection} {
+		global ora_constr
+		global ora_slda
+
+		set ora_slda [s eval "oralogon $ora_constr"]
+		set ora_slda
+	} {oratcl2}
+} else {
+	puts {	skipping test :: oraslaveinterp-1.2 'slaveinterp: open connection'}
+}
+
+if {[interp exists s]} {
+	test oraslaveinterp-1.3 {slaveinterp: open cursor} {
+		global ora_constr ora_slda ora_scur
+
+		set ora_scur [s eval "oraopen $ora_slda"]
+		set ora_scur
+	} {oratcl2.3}
+} else {
+	puts {	skipping test :: oraslaveinterp-1.3 'slaveinterp: open cursor'}
+}
+
+
+if {[interp exists s]} {
+	test oraslaveinterp-1.4 {slaveinterp: sql} {
+		global ora_slda ora_scur
+		set rval [s eval " orasql $ora_scur {select v_number from oratcl___tests}"]
+		set rval
+	} {0}
+} else {
+	puts {	skipping test :: oraslaveinterp-1.2 'slaveinterp: open connection'}
+}
+
+if {[interp exists s]} {
+	test oraslaveinterp-1.6 {slaveinterp: slave interp parent operations} {
+		global ora_lda oramsg
+		catch {s eval "oraopen $ora_lda"} rval
+		set rval
+	} "oraopen: lda_handle oratcl0 not valid"
+} else {
+	puts {	skipping test :: oraslaveinterp-1.2 'slaveinterp: slave interp parent operations'}
+}
+
+if {[interp exists s]} {
+	test oraslaveinterp-1.7 {slaveinterp: close handle upon interp delete} {
+		global ora_slda
+		interp delete s
+		catch "oraopen $ora_slda" res
+		set res
+	} "oraopen: lda_handle oratcl2 not valid"
+} else {
+	puts {	skipping test :: oraslaveinterp-1.2 'slaveinterp: close handle upon interp delete'}
+}
+
+::tcltest::cleanupTests
+return
