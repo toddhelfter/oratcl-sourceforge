@@ -1,0 +1,7 @@
+2000-07-19  David Gravereaux  <davygrvy@ajubasolutions.com>
+
+	* win/oratcl2576.dll:
+	* win/oratcl2580.dll:
+	* win/oratcl26.dll:  These binary files were not stored in CVS
+	as binary.  I 'cvs admin -kb'd them so LF sequences were not
+	modified to CRLF when checked out with a windows compile of CVS.
