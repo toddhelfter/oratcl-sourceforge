@@ -1,8 +1,7 @@
 /*
  * oratclInt.h
  *
- * Copyright 1993-1999 Tom Poindexter and U S WEST Advanced Technologies, Inc.
- * Copyright 2000-2001 Todd M. Helfter
+ * Copyright 2004 Todd M. Helfter
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -12,7 +11,9 @@
 #ifndef _ORATCLINT_H
 #define _ORATCLINT_H
 
-#include <oci.h>
+#include <stdarg.h>
+#include "oratypes.h"
+#include "oradefs.h"
 #include <tcl.h>
 
 /* _ANSI_ARGS_ should be defined by tcl.h; ignore if not defined */
@@ -63,9 +64,7 @@ typedef struct OratclDesc OratclDesc;
 struct OratclCols {
 	struct OratclCols *next;	 	/* pointer to next OratclCols in list */
 	ub2		dty;		
-#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
 	OCILobLocator	*lobp;
-#endif
 	OCIDefine   	*defnp;			/* define pointer */
 	OCIBind		*bindp;			/* bind pointer */
 	Tcl_HashEntry	*bindPtr;
@@ -93,9 +92,11 @@ typedef struct OratclLogs {
 	OCISession	*usrhp;		/* user handle		*/
 	int		autocom;	/* autocommit mode	*/
 	int		async;		/* blocking mode	*/
-        int		logid;		/* login handle id	*/
+	int		logid;		/* login handle id	*/
 	int		ora_rc;		/* oracle return code	*/
 	Tcl_DString	ora_err;	/* oracle error text	*/
+	char		*failovercallback; /* TAF failover	*/
+	Tcl_Interp	*interp;	/* for TAF callback	*/
 } OratclLogs;
 
 /* use size_t instead */

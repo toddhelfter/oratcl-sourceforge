@@ -20,7 +20,7 @@ if {[info exists ora_lda] == 0} {
 		catch {orainfo version} res
 		set res
 	}
-	-result 4.2
+	-result 4.3
 }
 
 ::tcltest::test orainfo-1.1 {orainfo: server} {

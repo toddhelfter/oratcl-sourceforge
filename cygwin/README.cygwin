@@ -1,7 +1,0 @@
-
-oratcl will build and run with the cygwin environment.
-standard commands to build cygwin.
-
-> ../configure --prefix=TCL_INSTALLED_DIRECTORY --enable-stubs --with_oracle_directory=$ORACLE_HOME
-> make
-> make install
