@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.2 2000-10-13 14:56:24 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.3 2000-10-13 15:50:38 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -18,6 +18,8 @@ namespace eval oratcl {
 
 	set sql(long_read) {select %s from %s where rowid = '%s'}
 	set sql(long_write) {update %s set %s = :lng where rowid = '%s'}
+	set sql(longraw_read) {select %s from %s where rowid = '%s'}
+	set sql(longraw_write) {update %s set %s = :lng where rowid = '%s'}
 	
 }
 
@@ -146,6 +148,9 @@ proc ::oratcl::long_alloc {handle args} {
 		LONG 	{
 			set longtype long
 		}
+		{LONG RAW} {
+			set longtype longraw
+		}
 		default {
 			set err_txt "oralong $fn: error unsuported long type '$autotype'."
 			return -code error $err_txt
@@ -222,7 +227,8 @@ proc ::oratcl::long_read {handle args} {
 	# ::oratcl::readlong populates the result variable directly.
 	set tcl_rc [catch {::oratcl::longread $stm \
 					      $sql \
-					      read_res} \
+					      read_res \
+					      $longtype} \
 			   tcl_res]
 
 	if {$tcl_rc} {
@@ -265,11 +271,13 @@ proc ::oratcl::long_write {handle args} {
 	set longtype [lindex $longlst($handle) 4]
 
 	upvar 2 $oralong(datavar) datavar
+	set writevar $datavar
 
 	set sql [format $::oratcl::sql(${longtype}_write) $table $column $rowid]
 	set tcl_rc [catch {::oratcl::longwrite $stm \
 					       $sql \
-					       datavar} \
+					       writevar \
+					       $longtype} \
 			   tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo

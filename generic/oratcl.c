@@ -4304,7 +4304,7 @@ common_exit:
  *
  * Oratcl_LongRead --
  *    Implements the ::oratcl::longread command:
- *    usage: oradesc stm_handle sql_stmt data_var
+ *    usage: oradesc stm_handle sql_stmt data_var data_type
  *	                
  *    results:
  *	table information
@@ -4331,6 +4331,9 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	char		*sql;
 	int		sql_len = 0;
 
+	char		*btype;
+	int		btype_len = 0;
+
 	int		rc, frc, prc;
 
 	ub4		type;
@@ -4348,6 +4351,8 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	sb2		piece_indp;
 	ub2		piece_rcode;
 
+	ub2		bind_type = SQLT_LNG;
+
 	Tcl_DString	resStr;
 	Tcl_Obj		*res_obj;
 
@@ -4356,6 +4361,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);
+	}
+
+	if (objc < 5) {
+		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str datavar");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -4375,6 +4386,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
 	sql = Tcl_GetStringFromObj(objv[2], &sql_len);
+	btype = Tcl_GetStringFromObj(objv[4], &btype_len);
+	if (*btype == 'l' 
+	   && strcmp(btype,"longraw") == 0) {
+		bind_type = SQLT_LBI;
+	}
+
 
 	piece_data = ckalloc (StmPtr->longpsize + 1);
 
@@ -4418,7 +4435,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			    (ub4) 1,
 			    (dvoid *) 0,
 			    (sb4) SB4MAXVAL,
-			    SQLT_LNG,
+			    (ub2) bind_type,
 			    (sb2 *) &piece_indp,
 			    (ub2 *) &piece_size,
 			    (ub2 *) &piece_rcode,
@@ -4562,7 +4579,7 @@ common_exit:
  *
  * Oratcl_LongWrite --
  *    Implements the ::oratcl::longwrite command:
- *    usage: oradesc stm_handle sql_stmt data_var
+ *    usage: oradesc stm_handle sql_stmt data_var data_type
  *	                
  *    results:
  *	table information
@@ -4593,6 +4610,9 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	char		*data;
 	int		data_len = 0;
 
+	char		*type;
+	int		type_len = 0;
+
 	char		*pData;
 	char		*pLast;
 	int		pSize;
@@ -4607,9 +4627,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	ub4		piece_size;
 	sb2		piece_indp;
 
-	ub2 col1_size;
-	ub2 col1_rcode = 0;
-	ub2 col1_ind = 0;
+	ub2		bind_type = SQLT_LNG;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -4619,7 +4637,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	}
 
 	if (objc < 5) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str data rowid");
+		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str datavar");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -4647,6 +4665,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 						   TCL_LEAVE_ERR_MSG),
 				    &data_len);
 
+	type = Tcl_GetStringFromObj(objv[4], &type_len);
+	if (*type == 'l' 
+	   && strcmp(type,"longraw") == 0) {
+		bind_type = SQLT_LBI;
+	}
+
 	piece_size = StmPtr->longpsize;
 	piece_data = ckalloc (piece_size + 1);
 	piece_data[piece_size] = '\0';
@@ -4672,7 +4696,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			   (sb4) 4,
 			   (dvoid *) piece_data,
 			   (sb4) SB4MAXVAL,
-			   (ub2) SQLT_LNG,
+			   (ub2) bind_type,
 			   (dvoid *) &piece_indp,
 			   (ub2 *) &buffer_size,
 			   (ub2 *) &buffer_rcode,
