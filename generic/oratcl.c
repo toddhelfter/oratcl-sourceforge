@@ -1688,14 +1688,17 @@ Oratcl_Info (clientData, interp, objc, objv)
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
+	Tcl_HashEntry	*stmHashPtr;
 	OratclLogs	*LogPtr;
+	OratclStms	*StmPtr;
+	char		*logHashKey;
 
 	sword		rc;
 	static text	svr[ORA_MSG_SIZE];
-	Tcl_Obj		*svr_obj;
+	Tcl_Obj		*res_obj;
 
-	char 		*options[] = {"server", "version", NULL};
-	enum		optindex {OPT_SERVER, OPT_VERSION};
+	char 		*options[] = {"server", "version", "loginhandle", NULL};
+	enum		optindex {OPT_SERVER, OPT_VERSION, OPT_LOGINHANDLE};
 	int		index = 0;
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -1766,11 +1769,40 @@ Oratcl_Info (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		svr_obj = Tcl_NewStringObj((char *) svr, -1);
-		Tcl_IncrRefCount(svr_obj);
-		Tcl_SetObjResult(interp, svr_obj);
-		Tcl_DecrRefCount(svr_obj);
+		res_obj = Tcl_NewStringObj((char *) svr, -1);
+		Tcl_IncrRefCount(res_obj);
+		Tcl_SetObjResult(interp, res_obj);
+		Tcl_DecrRefCount(res_obj);
 
+	}
+
+	if (index == OPT_LOGINHANDLE) {
+		if (objc < 3) {
+			Tcl_WrongNumArgs(interp, objc, objv, "stm_handle");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
+					       Tcl_GetStringFromObj(objv[2], NULL));
+
+		if (stmHashPtr == NULL) {
+			Oratcl_ErrorMsg(interp,
+					objv[0],
+					": stm_handle ",
+					objv[2],
+					" not open");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
+		logHashKey = Tcl_GetHashKey(OratclStatePtr->logHash, StmPtr->logHashPtr);
+
+		res_obj = Tcl_NewStringObj((char *) logHashKey, -1);
+		Tcl_IncrRefCount(res_obj);
+		Tcl_SetObjResult(interp, res_obj);
+		Tcl_DecrRefCount(res_obj);
 	}
 
 common_exit:

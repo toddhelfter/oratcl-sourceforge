@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.31 2000-09-20 20:45:19 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.32 2000-09-22 20:50:01 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -25,7 +25,7 @@
 
 lib_BINARIES=$(oratcl_LIB_FILE)
 BINARIES=$(lib_BINARIES)
-LIBRARIES=oraclob.tcl
+LIBRARIES=oralob.tcl
 
 #========================================================================
 # Enumerate the names of the source files included in this package.

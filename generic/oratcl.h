@@ -21,8 +21,8 @@
 #define ORA_BIND_SIZE   2000
 #define MAX_BIND_SIZE	2147483647
 #define ORA_FETCH_ROWS	10
-#define ORA_LOBP_SIZE	2000
-#define MAX_LOBP_SIZE	2000
+#define ORA_LOBP_SIZE	10000
+#define MAX_LOBP_SIZE	15000
 
 struct OratclDesc {
 	ub2		typecode;		/* column type code	*/
