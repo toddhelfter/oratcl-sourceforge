@@ -1,3 +1,7 @@
+2005-01-28  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/oratcl.c: include dl.h on hpux
+
 2005-01-27  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* Makefile.in (pkgIndex.tcl): generate pkgIndex.tcl by hand

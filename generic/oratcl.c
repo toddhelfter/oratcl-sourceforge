@@ -64,6 +64,8 @@ LPVOID reserved;            /* Not used. */
 
 #if defined(__hpux)
 
+/* HPUX requires shl_* routines */
+#include <dl.h>
 #define HMODULE shl_t
 #define DLOPEN(libname, flags)	shl_load(libname, \
 	BIND_DEFERRED|BIND_VERBOSE|DYNAMIC_PATH, 0L)
