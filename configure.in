@@ -71,7 +71,7 @@ AC_EXEEXT
 #       and set ORATCL_LIBVER
 #----------------------------------------------------------------------------
 
-eval `egrep '^#define ORATCL_VERSION' ../generic/oratcl.c | \
+eval `egrep '^#define ORATCL_VERSION' ${srcdir}/generic/oratcl.c | \
       sed -e 's/#define //' -e 's/ *"/="/'`
 
 # set the library version as with . stripped out
@@ -245,21 +245,21 @@ AC_ARG_WITH(oracle-directory, [  --with-oracle-directory=DIR  Oracle home direct
 
 case "`uname -s`" in
     *win32* | *WIN32* | *CYGWIN_NT*)
-AC_CHECKING(for Oracle toplevel ociw32.lib)
- AC_MSG_RESULT(looking for oci73/lib/msvc/ociw32.lib in $oracle_directory)
-    if test -r "$oracle_directory/oci73/lib/msvc/ociw32.lib" ; then
-        ORA="$oracle_directory/lib/msvc"
-	ORACLE_HOME=$oracle_directory
-        AC_MSG_RESULT(setting ORA to $ORA)
-        break
-    fi
-    AC_MSG_RESULT(looking for oci80/lib/msvc/ociw32.dll in $oracle_directory)
-    if test -r "$oracle_directory/oci80/lib/msvc/ociw32.lib" ; then
-        ORA="$oracle_directory/oci80/lib/msvc"
-	ORACLE_HOME=$oracle_directory
-        AC_MSG_RESULT(setting ORA to $ORA)
-        break
-    fi
+	AC_CHECKING(for Oracle toplevel ociw32.lib)
+	AC_MSG_RESULT(looking for oci73/lib/msvc/ociw32.lib in $oracle_directory)
+	if test -r "$oracle_directory/oci73/lib/msvc/ociw32.lib" ; then
+	    ORA="$oracle_directory/lib/msvc"
+	    ORACLE_HOME=$oracle_directory
+	    AC_MSG_RESULT(setting ORA to $ORA)
+	    break
+	fi
+	AC_MSG_RESULT(looking for oci80/lib/msvc/ociw32.dll in $oracle_directory)
+	if test -r "$oracle_directory/oci80/lib/msvc/ociw32.lib" ; then
+	    ORA="$oracle_directory/oci80/lib/msvc"
+	    ORACLE_HOME=$oracle_directory
+	    AC_MSG_RESULT(setting ORA to $ORA)
+	    break
+	fi
     ;;
     *)
 oratest1=${ORACLE_HOME:-.}
@@ -523,12 +523,26 @@ fi
 
    
         if test "${SHARED_BUILD}" = "1" ; then
+	    echo "Performing shared build"
 	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB}"
+	    LIB_RUNTIME_DIR=${ORA}/lib
+	    eval "ORA_LD_SEARCH_FLAGS=${TCL_LD_SEARCH_FLAGS}"
+	    LD_PROG=`echo ${TCL_SHLIB_LD} | sed -e "s| .*||"`
+	    CC_PROG=`echo ${CC} | sed -e "s| .*||"`
+	    if test x"$LD_PROG" = x"$CC_PROG" ; then
+		ORA_LD_SEARCH_FLAGS=${TCL_LD_SEARCH_FLAGS}
+	    else
+		ORA_LD_SEARCH_FLAGS=`echo ${TCL_LD_SEARCH_FLAGS} |sed -e "s|-Wl,||g" -e "s|,| |g"`
+	    fi
+	    echo "ORA_LD_SEARCH_FLAGS=${ORA_LD_SEARCH_FLAGS}"
+	    SHLIB_LDFLAGS=${ORA_LD_SEARCH_FLAGS}
 	    eval "${PACKAGE}_LIB_FILE=lib${PACKAGE}${SHARED_LIB_SUFFIX}"
 	    RANLIB=:
 	else
+	    echo "Performing static build"
 	    eval "${PACKAGE}_LIB_FILE=lib${PACKAGE}${UNSHARED_LIB_SUFFIX}"
 	fi
+	AC_SUBST(SHLIB_LDFLAGS)
 
 
 ;;
@@ -632,21 +646,15 @@ AC_SUBST(SHLIB_LD_LIBS)
 # versions have bugs in the pkg_mkIndex routine.
 #--------------------------------------------------------------------
 
-AC_PATH_PROGS(TCLSH_PROG, tclsh8.2${EXEEXT} tclsh82${EXEEXT} tclsh${EXEEXT}, :, ${exec_prefix}:${PATH})
-
-
-if test "x${TCLSH_PROG}" = "x:" ; then
-    AC_MSG_WARN(No tclsh executable found.  You will have to build the pkgIndex.tcl file manually.)
-fi
-
-AC_SUBST(TCLSH_PROG)
-
+SC_PROG_TCLSH
 
 #--------------------------------------------------------------------
 # Finally, substitute all of the various values into the Makefile.
 #--------------------------------------------------------------------
 
-AC_OUTPUT([Makefile mkIndex.tcl])
+AC_OUTPUT([Makefile \
+	mkIndex.tcl],
+	chmod +x ${srcdir}/install-sh ${srcdir}/mkinstalldirs)
 
 
 #AC_OUTPUT(Makefile pkgIndex.tcl)
