@@ -274,3 +274,17 @@ Version 3.2 March, 2001
 	of number fields on big-endian systems.
 
 -----------------------------------------------------------------------------
+
+Version 3.3 June, 2001
+
+    Todd M. Helfter, Purdue University
+    tmh@purdue.edu
+
+    -   fixed an oversight in oradesc that was not describing the table 
+	when given the name of a synonym.  This will also fix the problem
+	in oralong, that prevented long operations on a synonym.
+    -	Oracle 9i (9.0.1) returns a precision value for VARCHAR2 and CHAR
+	datatypes.  Prior to this, the precision was always 0 for these
+	datatypes.  /test/oradesc.test has been altered to allow for this.
+
+-----------------------------------------------------------------------------

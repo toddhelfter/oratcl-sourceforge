@@ -15,6 +15,8 @@ set desc_usr $ora_userid
 set desc_lda [oralogon $ora_constr]
 set desc_stm [oraopen $desc_lda]
 
+set desc_ver [orainfo server $desc_lda]
+
 # create tbl_1
 catch {orasql $desc_stm { \
 	create table oratcl_desc_tbl_1 ( \
@@ -27,24 +29,36 @@ catch {orasql $desc_stm { \
 		desc_blob	blob default empty_blob() \
 	) }}
 
-# describe tbl_1 result
-set desc_tbl_1 [list [list DESC_CHAR 10 CHAR 0 0 1] \
-		     [list DESC_FLOAT 22 NUMBER 6 3 1] \
-		     [list DESC_NUMBER 22 NUMBER 5 0 1] \
-		     [list DESC_VARCHAR2 10 VARCHAR2 0 0 1] \
-		     [list DESC_LONG 0 LONG 0 0 1] \
-		     [list DESC_CLOB 86 CLOB 0 0 1] \
-		     [list DESC_BLOB 86 BLOB 0 0 1] ]
-
 # create tbl_2
 catch {orasql $desc_stm { \
 	create table oratcl_desc_tbl_2 ( \
 		desc_char	char(10) \
 	) }}
 
-# describe tbl_2 result
-set desc_tbl_2 [list [list DESC_CHAR 10 CHAR 0 0 1] ]
-
+# describe results
+if {[string match -nocase Oracle9i* $desc_ver]} {
+	# describe tbl_1 result
+	set desc_tbl_1 [list [list DESC_CHAR 10 CHAR 0 10 1] \
+			     [list DESC_FLOAT 22 NUMBER 6 3 1] \
+			     [list DESC_NUMBER 22 NUMBER 5 0 1] \
+			     [list DESC_VARCHAR2 10 VARCHAR2 0 10 1] \
+			     [list DESC_LONG 0 LONG 0 0 1] \
+			     [list DESC_CLOB 86 CLOB 0 0 1] \
+			     [list DESC_BLOB 86 BLOB 0 0 1] ]
+	# describe tbl_2 result
+	set desc_tbl_2 [list [list DESC_CHAR 10 CHAR 0 10 1] ]
+} else {
+	# describe tbl_1 result
+	set desc_tbl_1 [list [list DESC_CHAR 10 CHAR 0 0 1] \
+			     [list DESC_FLOAT 22 NUMBER 6 3 1] \
+			     [list DESC_NUMBER 22 NUMBER 5 0 1] \
+			     [list DESC_VARCHAR2 10 VARCHAR2 0 0 1] \
+			     [list DESC_LONG 0 LONG 0 0 1] \
+			     [list DESC_CLOB 86 CLOB 0 0 1] \
+			     [list DESC_BLOB 86 BLOB 0 0 1] ]
+	# describe tbl_2 result
+	set desc_tbl_2 [list [list DESC_CHAR 10 CHAR 0 0 1] ]
+}
 
 # create a private synonym for tbl_1
 catch {orasql $desc_stm { \
