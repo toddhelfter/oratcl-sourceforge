@@ -424,12 +424,6 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "orafetch",
-			      Oratcl_Fetch,
-			      (ClientData) OratclStatePtr,
-			      (Tcl_CmdDeleteProc *) NULL);
-
-	Tcl_CreateObjCommand (interp,
 			      "oracols",
 			      Oratcl_Cols,
 			      (ClientData) OratclStatePtr,
@@ -472,12 +466,6 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "oraasync",
-			      Oratcl_Async,
-			      (ClientData) OratclStatePtr,
-			      (Tcl_CmdDeleteProc *) NULL);
-
-	Tcl_CreateObjCommand (interp,
 			      "oraparse",
 			      Oratcl_Parse,
 			      (ClientData) OratclStatePtr,
@@ -514,8 +502,14 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
-			      "::oratcl::async_fetch",
-			      Oratcl_AsyncFetch,
+			      "orafetch",
+			      Oratcl_Fetch,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
+
+	Tcl_CreateObjCommand (interp,
+			      "::oratcl::fetch",
+			      Oratcl_Fetch,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
 
