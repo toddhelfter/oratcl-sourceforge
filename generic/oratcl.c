@@ -97,7 +97,8 @@ extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     OratclStms		*StmPtr,
 						     int		setResult,
 						     Tcl_Obj		*listvar,
-						     Tcl_Obj		*arrayvar));
+						     Tcl_Obj		*arrayvar,
+						     int		hashType));
 
 /* 
  *----------------------------------------------------------------------
@@ -874,12 +875,13 @@ Oratcl_LogFree (LogPtr)
  */
 
 void
-Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
+Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 	Tcl_Interp	*interp;
 	OratclStms	*StmPtr;
 	int		setResult;
 	Tcl_Obj		*listvar;
 	Tcl_Obj		*arrayvar;
+	int		hashType;
 {
 	int		rn;
 	OratclCols 	*ColPtr;
@@ -964,11 +966,23 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
 		}
 
 		if (arrayvar) {
-			Tcl_ObjSetVar2(interp,
-					arrayvar,
-					Tcl_NewStringObj(col->column.name, -1),
-					StmPtr->oColsv[oColsc - 1],
-					TCL_LEAVE_ERR_MSG);
+			if (hashType) {
+				Tcl_ObjSetVar2(interp,
+						arrayvar,
+						Tcl_NewStringObj(col->column.name, -1),
+						StmPtr->oColsv[oColsc - 1],
+						TCL_LEAVE_ERR_MSG);
+			} else {
+				/* 
+				 * it is ok that oColsc has been incremented already, 
+				 * column 0 should be hash index 1
+				 */
+				Tcl_ObjSetVar2(interp,
+						arrayvar,
+						Tcl_NewIntObj(oColsc),
+						StmPtr->oColsv[oColsc - 1],
+						TCL_LEAVE_ERR_MSG);
+			}
 		}
 
 	}
@@ -2661,7 +2675,7 @@ Oratcl_FetchOne (StmPtr, interp, objc, objv)
 	}
 
 
-	Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
+	Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL, 0);
 
 common_exit:
 
@@ -4780,14 +4794,14 @@ Oratcl_Parse (clientData, interp, objc, objv)
 		}
 
 		if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
-			#ifdef OCI_ATTR_PARSE_ERROR_OFFSET
+#ifdef OCI_ATTR_PARSE_ERROR_OFFSET
 				OCIAttrGet( (dvoid *) StmPtr->stmhp,
 					    (ub4) OCI_HTYPE_STMT,
 					    (ub2 *) &StmPtr->ora_peo,
 					    (ub4) 0,
 					    OCI_ATTR_PARSE_ERROR_OFFSET,
 					    LogPtr->errhp);
-			#endif
+#endif
 			Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -5398,7 +5412,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			StmPtr->fetchidx    = 0;
 
 			/* get results, same as orafetch */
-			Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
+			Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL, 0);
 
 			StmPtr->fetch_end  = 1;
 			StmPtr->fetch_cnt  = 1;
@@ -5552,10 +5566,17 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 	int		parm_cnt;
 	ub4		rowcnt;
 	sword		rc;
+	int		hashType = 1;	/* default use column name for array index */
 
 	int		option;
-	char 		*options[] = {"-datavariable", "-dataarray", "-command", NULL};
-	enum		optindex { OPT_DVAR, OPT_DARR, OPT_EVAL};
+	char 		*options[] = {
+				"-datavariable",
+				"-dataarray",
+				"-command",
+				"-indexbyname",
+				"-indexbynumber",
+				NULL};
+	enum		optindex { OPT_DVAR, OPT_DARR, OPT_EVAL, OPT_IBNA, OPT_IBNU };
 
 	Tcl_Obj		*dvarObjPtr = NULL;
 	Tcl_Obj		*avarObjPtr = NULL;
@@ -5602,26 +5623,39 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
-		objix++;
-                if (objix < objc) {
-			switch (option) {
-				case OPT_DVAR:
+		switch (option) {
+			case OPT_IBNA:
+				hashType = 1;
+				break;
+			case OPT_IBNU:
+				hashType = 0;
+				break;
+			case OPT_DVAR:
+				objix++;
+				if (objix < objc) {
 					dvarObjPtr = objv[objix];
 					Tcl_IncrRefCount(dvarObjPtr);
-					break;
-				case OPT_DARR:
+				}
+				break;
+			case OPT_DARR:
+				objix++;
+				if (objix < objc) {
 					avarObjPtr = objv[objix];
 					Tcl_IncrRefCount(avarObjPtr);
-					break;
-				case OPT_EVAL:
+				}
+				break;
+			case OPT_EVAL:
+				objix++;
+				if (objix < objc) {
 					evalObjPtr = objv[objix];
 					Tcl_IncrRefCount(evalObjPtr);
-					break;
-				default:
-					/*NOTREACHED*/
-					break;
-			}
+				}
+				break;
+			default:
+				/*NOTREACHED*/
+				break;
 		}
+
 	}
 
 	/*
@@ -5706,7 +5740,7 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 		StmPtr->fetchidx = 0;
 	}
 
-	Oratcl_ColAppend(interp, StmPtr, 0, dvarObjPtr, avarObjPtr);
+	Oratcl_ColAppend(interp, StmPtr, 0, dvarObjPtr, avarObjPtr, hashType);
 
 	if (evalObjPtr) {
 		tcl_return = Tcl_EvalObjEx(interp, evalObjPtr, 0);
