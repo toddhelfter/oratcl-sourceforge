@@ -1471,7 +1471,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 			/* Should not be reached */
 			break;
 		}
-	
+
 		new_col->column.valuesz = new_col->column.valuesz + 1;
 		new_col->column.valuep =
 			ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
@@ -5790,7 +5790,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		ColPtr = StmPtr->col_list;
 	}
 
-	StmPtr->ora_rc  = 0;
+	StmPtr->ora_rc = 0;
 	Tcl_DStringInit(&StmPtr->ora_err);
 	StmPtr->fetch_ok = 0;
 
