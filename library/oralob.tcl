@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.6 2001-06-12 18:46:36 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.6.2.1 2002-02-11 00:07:00 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -435,7 +435,7 @@ proc ::oratcl::lob_read {handle args} {
 	set err_txt {}
 
 	set pos 1
-	while {$pos < $len} {
+	while {$pos <= $len} {
 
 		set pl [format $::oratcl::plsql(${lobtype}_read) $column $table]
 
@@ -522,7 +522,7 @@ proc ::oratcl::lob_write {handle args} {
 	set err_txt {}
 
 	set pos 1
-	while {$pos < $tot} {
+	while {$pos <= $tot} {
 		set str [string range $data [expr {$pos - 1}] [expr {$pos - 2 + $siz}] ]
 		set amt [string length $str]
 
