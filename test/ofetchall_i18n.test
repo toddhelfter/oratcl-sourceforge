@@ -12,8 +12,10 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 #
-# RCS: @(#) $Id: ofetchall_i18n.test,v 1.1 1999-08-09 18:24:31 mtariq Exp $
+# RCS: @(#) $Id: ofetchall_i18n.test,v 1.2 1999-09-22 05:47:25 mtariq Exp $
 
+# more exhaustive test than what is in basic_tests.test
+# tests internal function orafetch-all
 package require Oratcl
 
 if {[lsearch [namespace children] ::tcltest] == -1} {
@@ -23,7 +25,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 
 
 test orafetchtest {test oratcl cmd orafetch} {
-    set handle [oralogon scott/tiger]
+    set handle [oralogon scott/tiger@or8i]
     set cursor [oraopen $handle]
     set unistr \uc3\ua9
     orasql $cursor "create table test_ofetchi18n (name varchar2(15))"
