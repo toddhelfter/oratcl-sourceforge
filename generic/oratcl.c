@@ -1079,7 +1079,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 			new_col->column.valuesz = new_col->column.size * 2;
 			break;
 		case SQLT_NUM:					/* 2	*/
-			new_col->column.valuesz = 40;
+			new_col->column.valuesz = 400;
 			break;
 		case SQLT_DAT:					/* 12	*/
 			new_col->column.valuesz = 75;
