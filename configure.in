@@ -3,7 +3,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tcl installation
 dnl	to configure the system for the local environment.
 #
-# RCS: @(#) $Id: configure.in,v 1.30.2.3 2004-11-23 06:37:06 hobbs Exp $
+# RCS: @(#) $Id: configure.in,v 1.30.2.4 2004-11-23 06:42:23 hobbs Exp $
 
 #-----------------------------------------------------------------------
 # Sample configure.in for Tcl Extensions.  The only places you should
@@ -178,6 +178,9 @@ TEA_MAKE_LIB
 
 TEA_PROG_TCLSH
 #TEA_PROG_WISH
+
+# We need to know if this exists
+AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE([HAVE_DLFCN_H])])
 
 # We want the shared library suffix defined.  Must come after CONFIG_CFLAGS
 AC_DEFINE_UNQUOTED(SHLIB_SUFFIX, "${SHLIB_SUFFIX}")
