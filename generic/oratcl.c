@@ -1157,6 +1157,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 
 	last_col->next = NULL;
 	Oratcl_ColFree(new_col);
+	Oratcl_ColFree(StmPtr->col_list);
 	StmPtr->col_list = new_col_head;
 
 	return (parmcnt);
@@ -4489,10 +4490,10 @@ Oratcl_Bind (clientData, interp, objc, objv)
 					goto common_exit;
 				}
 
+				Oratcl_ColFree(RefPtr->col_list);
+				RefPtr->col_list	= NULL;
 				Oratcl_ColFree(RefPtr->bind_list);
-				RefPtr->bind_list       = NULL;
-				Oratcl_ColFree(RefPtr->bind_list);
-				RefPtr->bind_list       = NULL;
+				RefPtr->bind_list	= NULL;
 				RefPtr->fetchidx        = RefPtr->fetchmem;
 				RefPtr->fetch_end       = 0;    /* try to fetch */
 				RefPtr->fetch_cnt       = 0;    /* start fetch cnt at zero */
