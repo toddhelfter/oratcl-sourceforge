@@ -122,7 +122,7 @@ typedef struct OratclStms {
 	Tcl_DString	ora_err;	/* oracle error text		*/
 	ub4		ora_row;	/* oracle row number		*/
 	ub2		ora_peo;	/* oracle parse error offset	*/
-	int		ora_fcd;	/* oracle function code		*/
+	ub2		ora_fcd;	/* oracle function code		*/
 } OratclStms;
 
 static Tcl_Obj		*OMV_null;
