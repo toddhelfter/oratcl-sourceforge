@@ -290,10 +290,30 @@ Version 4.0 August, 2001
     -   Alter configuration to detect and use Oracle 9i in a unix build.
     -   Corrected the eval of library files (oralob.tcl, oralong.tcl) from
 	within the 'C' code.  This fixes crash when calling 
-	Tcl_GetNameOfExecutable() without having first called Tcl_Init(interp).
+	Tcl_GetNameOfExecutable() without having first called 
+	Tcl_Init(interp).
     -	**** oramsg **** array has been removed.  This is not backwards 
 	compatible.  The remaining values that were accessed through the 
 	oramsg array can be obtained with the new _oramsg_ command.
     -	Oratcl is now thread safe.
+    -   Added new commands:
+	oraparse - ::oratcl::parse - Oratcl_Parse()
+	orabind  - ::oratcl::bind  - Oratcl_Bind()
+	oraexec  - ::oratcl::exec  - Oratcl_Exec()
+	orabreak - ::oratcl::break - Oratcl_Break()
+	These commands operate in normal and async mode.
+	These commands operate on either SQL or PL/SQL statements.
+    -	The commands: orasql, orabindexec, and oraplexec have new internals
+	built out of the primitives Oratcl_Parse, Oratcl_Bind and Oratcl_Exec.
+   	Oratcl_Sql is implemented with: 
+		Oratcl_Parse() 
+		Oratcl_Exec()
+	Oratcl_Bindexec is implemented with: 
+		Oratcl_Bind()
+		Oratcl_Exec()
+	Oratcl_Plexec is implemented with: 
+		Oratcl_Parse()
+		Oratcl_Bind()
+		Oratcl_Exec()
 
 -----------------------------------------------------------------------------
