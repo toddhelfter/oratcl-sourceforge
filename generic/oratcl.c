@@ -598,7 +598,7 @@ Oratcl_Init (interp)
 	Tcl_DecrRefCount(tmp_obj);
 
 fprintf(stderr, "%s(): native = %s\n", "Oratcl_Init", native);
-	handle = dlopen(native, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
 
 	if (handle == NULL) {
 		fprintf(stderr, "%s(): %s with error",
