@@ -2494,6 +2494,8 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 						(char *) NULL);
 				tcl_return = TCL_ERROR;
 				goto common_exit;
+			} else {
+				Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 			}
 
 			parm_cnt += 2;
@@ -2588,6 +2590,8 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 		StmPtr->bind_list = NULL;
 		tcl_return = TCL_ERROR;
 		goto common_exit;
+	} else {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 	}
 
 	if (StmPtr->sqltype == OCI_STMT_UPDATE ||
