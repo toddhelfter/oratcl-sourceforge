@@ -1,7 +1,6 @@
 dnl  
-dnl Oratcl-2.5 configure.in   Relies heavily on Tcl/Tk/TclX being installed
-dnl and finding tclConfig.sh, tkConfig.sh, tclxConfig.sh, tkxConfig.sh
-dnl Tom Poindexter
+dnl Oratcl-2.6 configure.in based on the work of Tom Poindexter   
+dnl Support for TEA Compliance has been added
 dnl
 
 AC_INIT(generic/oratcl.c)
