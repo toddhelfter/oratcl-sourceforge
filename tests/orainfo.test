@@ -1,0 +1,75 @@
+# orainfo.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise orainfo
+#
+
+package require tcltest
+::tcltest::configure -verbose ept
+::tcltest::testConstraint testorainfo [llength [info commands orainfo]]
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+::tcltest::test orainfo-1.0 {orainfo: version} {
+	-constraints testorainfo
+	-body {
+		catch {orainfo version} res
+		set res
+	}
+	-result 4.2
+}
+
+::tcltest::test orainfo-1.1 {orainfo: server} {
+	-constraints testorainfo
+	-setup {
+		set info_lda [oralogon $ora_constr]
+	}
+	-body {
+		catch {orainfo server $info_lda} res
+		set word [string range $res 0 5]
+		string equal $word Oracle
+	}
+	-cleanup {
+		oralogoff $info_lda
+	}
+	-result 1
+}
+
+::tcltest::test orainfo-1.2 {orainfo: status} {
+	-constraints testorainfo
+	-setup {
+		set info_lda [oralogon $ora_constr]
+	}
+	-body {
+		set res [orainfo status $info_lda]
+	}
+	-cleanup {
+		oralogoff $info_lda
+	}
+	-result 1
+}
+
+::tcltest::test orainfo-1.3 {orainfo: loginhandle} {
+	-constraints testorainfo
+	-setup {
+		set info_lda [oralogon $ora_constr]
+		set info_stm [oraopen $info_lda]
+	}
+	-body {
+		catch {orainfo loginhandle $info_stm} res
+		string equal $res $info_lda
+	}
+	-cleanup {
+		oraclose $info_stm
+		oralogoff $info_lda
+	}
+	-result 1
+}
+
+::tcltest::cleanupTests
+::tcltest::configure -verbose b
+return

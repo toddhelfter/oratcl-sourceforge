@@ -1,0 +1,65 @@
+# oraopen.test
+#
+# Copyright (c) 2003 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise oraopen and oraclose
+#
+
+package require tcltest
+
+::tcltest::configure -verbose ept
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+::tcltest::test oraopen-1.0 {oraopen: all arguments} {
+	-body {
+		#global ora_lda
+		catch {set cur [oraopen $ora_lda]} res
+		set res
+	}
+	-cleanup {
+		catch {oraclose $cur}
+		unset cur
+	}
+	-result {oratcl0.3}
+}
+
+::tcltest::test oraopen-1.1 {oraopen: no arguments} {
+	-body {
+		catch {oraopen} res
+		set res
+	}
+	-result {wrong # args: should be "oraopen lda_handle"}
+} 
+
+::tcltest::test oraopen-1.2 {oraopen: many cursors} {
+	-setup {
+                set tst_lda [oralogon $ora_constr]
+		set cur_list {}
+	}
+	-body {
+		for {set n 0} {$n < 100} {incr n} {
+			set cr [catch {set cur [oraopen $tst_lda]}]
+			if {$cr == 0} {
+				lappend cur_list $cur
+			} else {
+				break
+			}
+		}
+		set res [llength $cur_list]
+	}
+	-cleanup {
+		foreach cur $cur_list {
+			catch {oraclose $cur}
+		}
+                oralogoff $tst_lda
+	}
+	-result 100
+} 
+
+::tcltest::cleanupTests
+::tcltest::configure -verbose b
+return

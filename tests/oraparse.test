@@ -1,0 +1,85 @@
+# oraparse.test
+#
+# Copyright (c) 2001 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise various combinations of oraparse
+#
+
+package require tcltest
+::tcltest::configure -verbose ept
+::tcltest::testConstraint testoraparse [llength [info commands oraparse]]
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+# OCI_STMT_SELECT  == 1
+# OCI_STMT_UPDATE  == 2
+# OCI_STMT_DELETE  == 3
+# OCI_STMT_INSERT  == 4
+# OCI_STMT_CREATE  == 5
+# OCI_STMT_DROP    == 6
+# OCI_STMT_ALTER   == 7
+# OCI_STMT_BEGIN   == 8
+# OCI_STMT_DECLARE == 9
+
+::tcltest::test oraparse-1.1 {oraparse 9 sql types} {
+	-constraints testoraparse
+	-setup {
+		set tst_lda [oralogon $ora_constr]
+		set tst_stm [oraopen $tst_lda]
+		set tst_res {}
+		set p(1) {select * from oratcl___tests where v_number = 0}
+		set p(2) {update oratcl___tests set v_number = 0 where v_number = 0}
+		set p(3) {delete from oratcl___tests where v_number = 0}
+		set p(4) {insert into oratcl___tests (v_number) values (20)}
+		set p(5) {create table oratcl___tests (v_number number(2))}
+		set p(6) {drop table oratcl___tests}
+		set p(7) {alter session set nls_date_format = 'DD-MON-YYYY'}
+		set p(8) {begin bogus_package; end;}
+		set p(9) {declare x number(3); begin bogus_package; end;}
+	}
+	-body {
+		for {set n 1} {$n <= 9} {incr n} {
+			oraparse $tst_stm $p($n)
+			lappend tst_res [oramsg $tst_stm sqltype]
+		}
+		set tst_res
+	}
+	-cleanup {
+                oraclose $tst_stm
+                oralogoff $tst_lda
+	}
+	-result {1 2 3 4 5 6 7 8 9}
+}
+
+# ORA-00923: FROM keyword not found where expected
+# ORA-00933: SQL command not properly ended
+
+test oraparse-2.1 {oraparse bad sql} {
+	-constraints testoraparse
+	-setup {
+		set tst_lda [oralogon $ora_constr]
+		set tst_stm [oraopen $tst_lda]
+		set tst_res {}
+		set p(1) {select * oratcl___tests where v_number = 0}
+		set p(2) {select * from oratcl___tests v_number = 0}
+	}
+	-body {
+		for {set n 1} {$n <= 2} {incr n} {
+			catch {oraparse $tst_stm $p($n)}
+			lappend tst_res [oramsg $tst_stm rc]
+		}
+		set tst_res
+	}
+	-cleanup {
+                oraclose $tst_stm
+                oralogoff $tst_lda
+	}
+	-result {923 933}
+}
+
+::tcltest::configure -verbose b
+::tcltest::cleanupTests
+return
