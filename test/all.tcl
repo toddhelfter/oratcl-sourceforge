@@ -7,16 +7,17 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 # 
-# RCS: @(#) $Id: all.tcl,v 1.1 1999-10-12 01:59:42 mtariq Exp $
+# RCS: @(#) $Id: all.tcl,v 1.2 1999-10-13 00:37:35 mtariq Exp $
 
 
-source [file  join [pwd] [file dirname [info script]] defs.tcl]
+source [file  join [file dirname [info script]] defs.tcl]
 
 if {[catch {set t [oralogon $oracleuser/$oraclepw@$connstring]} msg]} {
 	puts "Connection to Oracle database can not be established"
 } elseif {[regexp ^(oratcl)+.* $t]} {
    oralogoff $t
-   set tests [glob -nocomplain ../test/*.test]
+#   set tests [glob -nocomplain ../test/*.test]
+    set tests [glob -nocomplain [file join [file dirname [info script]] *.test]]
    foreach i $tests {
       puts stdout $i
       flush stdout
