@@ -5245,7 +5245,7 @@ common_exit:
  *----------------------------------------------------------------------
  * Oratcl_Fetch --
  *    Implements the orafetch command:
- *    usage: orafetch stm_handle ?options? ...
+ *    usage: orafetch statement-handle ?options? ...
  *
  * Results:
  *	return code from OCIStmtFetch
@@ -5294,7 +5294,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		Tcl_WrongNumArgs(interp,
 				 objc,
 				 objv,
-				 "stm_handle -listvar var -arrayvar var");
+				 "statement-handle ?options ...?");
 		return TCL_ERROR;
 	}
 
