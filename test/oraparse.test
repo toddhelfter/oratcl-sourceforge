@@ -1,0 +1,82 @@
+# oraparse.test
+#
+# Copyright (c) 2001 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise various combinations of oraparse
+#
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+test oraparse-1.1 {oraparse OCI_STMT_SELECT code == 1} {
+	set sql {select * from oratcl___tests where v_number = 0}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {1}
+
+test oraparse-1.2 {oraparse OCI_STMT_UPDATE code == 2} {
+	set sql {update oratcl___tests set v_number = 0 where v_number = 0}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {2}
+
+test oraparse-1.3 {oraparse OCI_STMT_DELETE code == 3} {
+	set sql {delete from oratcl___tests where v_number = 0}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {3}
+
+test oraparse-1.4 {oraparse OCI_STMT_INSERT code == 4} {
+	set sql {insert into oratcl___tests (v_number) values (20)}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {4}
+
+test oraparse-1.5 {oraparse OCI_STMT_CREATE code == 5} {
+	set sql {create table oratcl___tests (v_number number(2))}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {5}
+
+test oraparse-1.6 {oraparse OCI_STMT_CREATE code == 6} {
+	set sql {drop table oratcl___tests}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {6}
+
+test oraparse-1.7 {oraparse OCI_STMT_ALTER code == 7} {
+	set sql {alter session set nls_date_format = 'DD-MON-YYYY'}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {7}
+
+test oraparse-1.8 {oraparse OCI_STMT_BEGIN code == 8} {
+	set sql {begin bogus_package; end;}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {8}
+
+test oraparse-1.9 {oraparse OCI_STMT_DECLARE code == 9} {
+	set sql {declare x number(3); begin bogus_package; end;}
+	oraparse $ora_cur $sql
+	oramsg $ora_cur sqltype
+} {9}
+
+test oraparse-2.1 {oraparse bad OCI_STMT_SELECT code == 1} {
+	# ORA-00923: FROM keyword not found where expected
+	set sql {select * oratcl___tests where v_number = 0}
+	catch {oraparse $ora_cur $sql}
+	oramsg $ora_cur rc
+} {923}
+
+test oraparse-2.2 {oraparse bad OCI_STMT_SELECT code == 1} {
+	# ORA-00933: SQL command not properly ended
+	set sql {select * from oratcl___tests v_number = 0}
+	catch {oraparse $ora_cur $sql}
+	oramsg $ora_cur rc
+} {933}
+
+::tcltest::cleanupTests
+return
