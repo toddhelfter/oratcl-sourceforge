@@ -381,4 +381,8 @@ Version 4.0 December, 2001
 	transactions from parsing properly with the supplied examples.
         Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
 
+04-DEC-2002
+
+    -   Fixed a bug in orasql that prevented the commit option from working
+        Thanks to Christian Traber (christian@traber-net.de) for the alert.
 -----------------------------------------------------------------------------
