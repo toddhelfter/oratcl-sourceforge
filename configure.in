@@ -1,5 +1,5 @@
 dnl  
-dnl Oratcl-3.0 configure.in based on the work of Tom Poindexter
+dnl Oratcl-4.0 configure.in based on the work of Tom Poindexter
 dnl Support for TEA Compliance has been added
 dnl
 
@@ -14,8 +14,8 @@ AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
 
 PACKAGE=oratcl
 
-MAJOR_VERSION=3
-MINOR_VERSION=3
+MAJOR_VERSION=4
+MINOR_VERSION=0
 PATCHLEVEL=
 
 VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}

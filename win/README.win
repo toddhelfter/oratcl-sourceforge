@@ -6,14 +6,14 @@ visual studion 6.0, and with Tcl 8.3.2.
 
 There are 4 files necessary for oratcl to operate on windows.
 
-they are : oratcl32.dll oralob.tcl oralong.tcl pkgIndex.tcl
+they are : oratcl40.dll oralob.tcl oralong.tcl pkgIndex.tcl
 
-oratcl32.dll needs to be in your tcl\lib
+oratcl40.dll needs to be in your tcl\lib
 
-	i.e. c:\program files\tcl\lib\oratcl32.dll
+	i.e. c:\program files\tcl\lib\oratcl40.dll
 
-the 3 tcl files need to be in tcl\lib\oratcl3.2
+the 3 tcl files need to be in tcl\lib\oratcl4.0
 
-	i.e. c:\program files\tcl\lib\oratcl3.2\pkgIndex.tcl
-	     c:\program files\tcl\lib\oratcl3.2\oralob.tcl
-	     c:\program files\tcl\lib\oratcl3.2\oralong.tcl
+	i.e. c:\program files\tcl\lib\oratcl4.0\pkgIndex.tcl
+	     c:\program files\tcl\lib\oratcl4.0\oralob.tcl
+	     c:\program files\tcl\lib\oratcl4.0\oralong.tcl
