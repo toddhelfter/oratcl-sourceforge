@@ -277,20 +277,39 @@ oratest4=${oratest4:-.}
 
 FOUND_ORACLE=0
 
-AC_CHECKING(for Oracle 9.0 style toplevel (libclient9.a))
-for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
-    AC_MSG_RESULT(looking for lib/libclient9.a in $f)
-    if test -r "$f/lib/libclient9.a" ; then
-        ORA="$f/lib"
-	ORACLE_HOME=$f
-        AC_MSG_RESULT(setting ORA to $ORA)
-	testver=9
-	ORA_MAJOR_VERSION=9
-	ORA_MINOR_VERSION=0
-	FOUND_ORACLE=1
-        break
-    fi
-done
+if test "${FOUND_ORACLE}" = "0" ; then
+    AC_CHECKING(for Oracle 10.0 style toplevel (libclient10.a))
+    for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+        AC_MSG_RESULT(looking for lib/libclient10.a in $f)
+        if test -r "$f/lib/libclient10.a" ; then
+            ORA="$f/lib"
+            ORACLE_HOME=$f
+            AC_MSG_RESULT(setting ORA to $ORA)
+	    testver=10
+	    ORA_MAJOR_VERSION=10
+	    ORA_MINOR_VERSION=0
+	    FOUND_ORACLE=1
+            break
+        fi
+    done
+fi
+
+if test "${FOUND_ORACLE}" = "0" ; then
+    AC_CHECKING(for Oracle 9.0 style toplevel (libclient9.a))
+    for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+        AC_MSG_RESULT(looking for lib/libclient9.a in $f)
+        if test -r "$f/lib/libclient9.a" ; then
+            ORA="$f/lib"
+	    ORACLE_HOME=$f
+            AC_MSG_RESULT(setting ORA to $ORA)
+	    testver=9
+	    ORA_MAJOR_VERSION=9
+	    ORA_MINOR_VERSION=0
+	    FOUND_ORACLE=1
+            break
+        fi
+    done
+fi
 
 if test "${FOUND_ORACLE}" = "0" ; then
     AC_CHECKING(for Oracle 8.1 style toplevel (libclient8.a))

@@ -1725,21 +1725,41 @@ oratest4=${oratest4:-.}
 
 FOUND_ORACLE=0
 
-echo "checking for Oracle 9.0 style toplevel (libclient9.a)" 1>&6
-echo "configure:1730: checking for Oracle 9.0 style toplevel (libclient9.a)" >&5
-for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
-    echo "$ac_t""looking for lib/libclient9.a in $f" 1>&6
-    if test -r "$f/lib/libclient9.a" ; then
-        ORA="$f/lib"
-	ORACLE_HOME=$f
-        echo "$ac_t""setting ORA to $ORA" 1>&6
-	testver=9
-	ORA_MAJOR_VERSION=9
-	ORA_MINOR_VERSION=0
-	FOUND_ORACLE=1
-        break
-    fi
-done
+if test "${FOUND_ORACLE}" = "0" ; then
+    echo "checking for Oracle 10.0 style toplevel (libclient10.a)" 1>&6
+    echo "configure:1730: checking for Oracle 10.0 style toplevel (libclient10.a)" >&5
+    for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+        echo "$ac_t""looking for lib/libclient10.a in $f" 1>&6
+        if test -r "$f/lib/libclient10.a" ; then
+            ORA="$f/lib"
+	    ORACLE_HOME=$f
+            echo "$ac_t""setting ORA to $ORA" 1>&6
+	    testver=10
+	    ORA_MAJOR_VERSION=10
+	    ORA_MINOR_VERSION=0
+	    FOUND_ORACLE=1
+            break
+        fi
+    done
+fi
+
+if test "${FOUND_ORACLE}" = "0" ; then
+	echo "checking for Oracle 9.0 style toplevel (libclient9.a)" 1>&6
+	echo "configure:1730: checking for Oracle 9.0 style toplevel (libclient9.a)" >&5
+	for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+	    echo "$ac_t""looking for lib/libclient9.a in $f" 1>&6
+	    if test -r "$f/lib/libclient9.a" ; then
+		ORA="$f/lib"
+		ORACLE_HOME=$f
+		echo "$ac_t""setting ORA to $ORA" 1>&6
+		testver=9
+		ORA_MAJOR_VERSION=9
+		ORA_MINOR_VERSION=0
+		FOUND_ORACLE=1
+		break
+	    fi
+	done
+fi
 
 if test "${FOUND_ORACLE}" = "0" ; then
     echo "checking for Oracle 8.1 style toplevel (libclient8.a)" 1>&6
