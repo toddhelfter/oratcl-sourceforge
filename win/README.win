@@ -1,0 +1,6 @@
+
+standard commands to build win.
+
+> ../configure --prefix=TCL_INSTALLED_DIRECTORY --enable-stubs --with_oracle_directory=$ORACLE_HOME
+> make
+> make install
