@@ -8,8 +8,8 @@
 # Copyright 1997 Tom Poindexter.
 #
 
-ORATCL_VERSION = 2.5
-DLL_VERSION = 25
+ORATCL_VERSION = 2.6
+DLL_VERSION = 26
 
 PROJECT = oratcl$(DLL_VERSION)
 
@@ -32,20 +32,21 @@ TOOLS32 = c:\msdev
 
 # point TCL and TCLLIB to your tcl distribution
 
-TCL     = c:\progra~1\tcl76
-TCLLIB  = $(TCL)\lib\tcl76.lib
+TCL     = c:\progra~1\tcl
+TCLLIB  = $(TCL)\lib\tclstub81.lib
 
 #TCL     = c:\progra~1\tcl80
 #TCLLIB  = $(TCL)\lib\tcl80vc.lib
 
 
-ORACLE     = c:\orant\oci73
+ORACLE     = c:\orant\oci80
 ORACLE_LIB = $(ORACLE)\lib\msvc\ociw32.lib 
 
 
 
 # comment the following line to compile with symbols
 NODEBUG=1
+VER=81
 
 #
 # Visual C++ tools
@@ -58,7 +59,7 @@ CP      = copy
 RM      = del
 
 INCLUDES = -I$(TOOLS32)\include -I$(TCL)\include 
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION7 -DNONBLOCK_CURSOR
+DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION7 -DNONBLOCK_CURSOR -DTCL81 -DUSE_TCL_STUBS
 
 !include <ntwin32.mak>
 
