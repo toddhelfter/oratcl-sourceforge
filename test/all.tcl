@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.18 2002-09-17 20:42:05 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.19 2003-05-12 01:35:33 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
     set files [glob ../test/*.tes]
@@ -19,9 +19,8 @@ global ora_lda
 source [file join [file dirname [info script]] defs.tcl]
 source [file join [file dirname [info script]] startup.tcl]
 
-
 set testlist [list \
-		oralogin.test \
+		oralogon.test \
 		oraopen.test \
 		orainfo.test \
 		oraparse.test \

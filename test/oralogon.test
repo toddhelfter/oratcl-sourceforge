@@ -14,14 +14,12 @@ if {[info exists ora_lda] == 0} {
 
 ::tcltest::configure -verbose ept
 
-if 0 {
 ::tcltest::test oralogon-1.0 {oralogon: no arguments} {
 	-body {
 		catch {oralogon} res
 		set res
 	}
 	-result {wrong # args: should be "oralogon connect_string ?-async?"}
-}
 }
 
 ::tcltest::test oralogon-1.1 {oralogon: all arguments} {
@@ -59,4 +57,5 @@ if 0 {
 }
 
 ::tcltest::cleanupTests
+::tcltest::configure -verbose b
 return

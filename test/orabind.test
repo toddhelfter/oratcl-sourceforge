@@ -6,16 +6,32 @@
 # exercise various combinations of orabind
 #
 
+package require tcltest
+::tcltest::configure -verbose ept
+::tcltest::testConstraint testoraparse [llength [info commands oraparse]]
+::tcltest::testConstraint testorabind [llength [info commands orabind]]
+
 if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
 test orabind-1.1 {orabind OCI_STMT_SELECT code == 1} {
-	set sql {select * from oratcl___tests where v_number = :num}
-	oraparse $ora_cur $sql
-	orabind $ora_cur :num 0
-	oramsg $ora_cur rc
-} {0}
+	-constraints {testoraparse testorabind}
+	-setup {
+		set tst_lda [oralogon $ora_constr]
+		set tst_stm [oraopen $tst_lda]
+		set sql {select * from oratcl___tests where v_number = :num}
+		oraparse $tst_stm $sql
+	}
+	-body {
+		set rc [orabind $tst_stm :num 0]
+	}
+	-cleanup {
+		oraclose $tst_stm
+		oralogoff $tst_lda
+	}
+	-result {0}
+}
 
 test orabind-1.2 {orabind OCI_STMT_UPDATE code == 2} {
 	set sql {update oratcl___tests set v_number = :sn where v_number = :wn}
@@ -83,5 +99,6 @@ test orabind-2.3 {orabind bad name binds} {
 	set res
 } {orabind: bind variable 'num' does not begin with ':'}
 
+::tcltest::configure -verbose b
 ::tcltest::cleanupTests
 return
