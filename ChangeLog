@@ -348,5 +348,8 @@ Version 4.0 December, 2001
 		INTERVAL YEAR TO MONTH
 		INTERVAL DAY TO SECOND
 		TIMESTAMP WITH LOCAL TIME ZONE
+    -	Corrected a gaping memory leak in orafetch.  Use of the -dataarray
+	option leaked memory for each column name or number used as the
+	array hash.
 
 -----------------------------------------------------------------------------

@@ -305,7 +305,6 @@ Oratcl_Init (interp)
 	}
 #endif
 
-
 	OratclStatePtr = (OratclState *) ckalloc (sizeof(OratclState));
 	StateListPtr = (OratclStateList *) ckalloc (sizeof(OratclStateList));
 
@@ -876,6 +875,8 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 	int		iTcl;
 
 	Tcl_DString	valStr;
+	Tcl_Obj		*tmp_obj;
+	Tcl_Obj		*lst_obj;
 
 	/* quick sanity check */
 	rn = StmPtr->fetchidx;
@@ -953,12 +954,15 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 
 		if (arrayvar) {
 			if (hashType) {
+				tmp_obj = Tcl_NewStringObj((char *) col->column.name,
+							   (int) col->column.namesz);
+				Tcl_IncrRefCount(tmp_obj);
 				Tcl_ObjSetVar2(interp,
 						arrayvar,
-						Tcl_NewStringObj((char *) col->column.name,
-								 (int) col->column.namesz),
+						tmp_obj,
 						StmPtr->oColsv[oColsc - 1],
 						TCL_LEAVE_ERR_MSG);
+				Tcl_DecrRefCount(tmp_obj);
 			} else {
 				/* 
 				 * it is ok that oColsc has been incremented already, 
@@ -974,13 +978,20 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 
 	}
 
-	if (setResult) {
-		Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, StmPtr->oColsv));
+	if (setResult || listvar != NULL) {
+		lst_obj = Tcl_NewListObj(oColsc, StmPtr->oColsv);
+		Tcl_IncrRefCount(lst_obj);
+
+		if (setResult) {
+			Tcl_SetObjResult(interp, lst_obj);
+		}
+		if (listvar != NULL) {
+			Tcl_ObjSetVar2(interp, listvar, NULL, lst_obj, 0);
+		}
+
+		Tcl_DecrRefCount(lst_obj);
 	}
 
-	if (listvar != NULL) {
-		Tcl_ObjSetVar2(interp, listvar, NULL, Tcl_NewListObj(oColsc, StmPtr->oColsv), 0);
-	}
 
 	StmPtr->fetchidx += 1;
 	StmPtr->append_cnt += 1;
