@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id:
+# RCS: @(#) $Id: oraclob.tcl,v 1.3 2000-09-18 14:21:39 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
