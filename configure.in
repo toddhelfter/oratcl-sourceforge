@@ -1,10 +1,13 @@
 dnl  
-dnl Oratcl-2.5 configure.in   Relies heavily on Tcl/Tk/TclX being installed
-dnl and finding tclConfig.sh, tkConfig.sh, tclxConfig.sh, tkxConfig.sh
-dnl Tom Poindexter
+dnl Oratcl-2.6 configure.in based on the work of Tom Poindexter   
+dnl Support for TEA Compliance has been added
 dnl
 
 AC_INIT(generic/oratcl.c)
+
+AC_CONFIG_AUX_DIR(config)
+CONFIGDIR=${srcdir}/config
+AC_SUBST(CONFIGDIR)
 
 AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
 
@@ -96,7 +99,7 @@ ORATCL_LIBVER=`echo $ORATCL_VERSION | sed -e 's/\.//'`
 #--------------------------------------------------------------------
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	CYGPATH="cygpath -w"
 	RELPATH=".. .. bin"
     ;;
@@ -156,7 +159,7 @@ fi
 #--------------------------------------------------------------------
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	AC_DEFINE(BUILD_oratcl)
 	CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch"
 	AC_SUBST(CLEANFILES)
@@ -247,7 +250,7 @@ eval "UNSHARED_LIB_SUFFIX=${TCL_UNSHARED_LIB_SUFFIX}"
 AC_ARG_WITH(oracle-directory, [  --with-oracle-directory=DIR  Oracle home directory DIR (default=\$ORACLE_HOME)], oracle_directory=$withval)
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	AC_CHECKING(for Oracle toplevel ociw32.lib)
 	AC_MSG_RESULT(looking for oci73/lib/msvc/ociw32.lib in $oracle_directory)
 	if test -r "$oracle_directory/oci73/lib/msvc/ociw32.lib" ; then
@@ -324,7 +327,7 @@ fi
 SEARCH_DIRS="${SEARCH_DIRS}:${ORA}"
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
 	CYGPATH="cygpath -w"
     ;;
     *)
@@ -388,7 +391,7 @@ ORA72FEATURES=""
 
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
     ORA72FEATURES="-DNONBLOCK_CURSOR"
     ;;
     *)
@@ -493,7 +496,7 @@ AC_CHECK_LIB(dnet_stub, main, [ORA_SYS_LIBS="$ORA_SYS_LIBS -ldnet_stub"])
 ORA_SH_LIB=""
 
 case "`uname -s`" in
-    *win32* | *WIN32* | *CYGWIN_NT*)
+    *win32* | *WIN32* | *CYGWIN_NT*|*CYGWIN_98*|*CYGWIN_95*)
         if test "${SHARED_BUILD}" = "1" ; then
 	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} '`cygpath -w $ORA/oci.lib`' '`cygpath -w $ORA/ociw32.lib`'" 
 	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${SHARED_LIB_SUFFIX}"
@@ -677,8 +680,4 @@ SC_PROG_TCLSH
 #--------------------------------------------------------------------
 
 AC_OUTPUT([Makefile \
-	pkgIndex.tcl],
-	chmod +x ${srcdir}/install-sh ${srcdir}/mkinstalldirs)
-
-
-#AC_OUTPUT(Makefile pkgIndex.tcl)
+	pkgIndex.tcl])
