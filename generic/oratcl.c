@@ -1588,8 +1588,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OCIFocbkStruct	failover;
 	int		i;
-	Tcl_HashEntry	*logHashPtr;
-	OratclLogs	*LogPtr;
+	Tcl_HashEntry	*logHashPtr = NULL;
+	OratclLogs	*LogPtr = NULL;
 	int		new;
 
 	int		objix;
@@ -1600,7 +1600,9 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	char		*cpy_pos1 = NULL;
 	char		*cpy_pos2 = NULL;
 	int		con_len;
-	sword		rc;
+	sword		rc = 0;
+
+	int		attached = 0;
 
 	char		*ora_name = NULL;
 	char		*ora_pass = NULL;
@@ -1697,7 +1699,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	if (ora_conn)
 		ora_connlen = strlen(ora_conn);
 
-	rc = OCI_EnvCreate ( (OCIEnv **) &LogPtr->envhp,
+	rc = OCI_EnvCreate ((OCIEnv **) &LogPtr->envhp,
 			    OCI_OBJECT,
 			    (dvoid *)0,
 			    NULL,
@@ -1707,13 +1709,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			    (dvoid *) 0 );
 
 	if (rc != OCI_SUCCESS) {
-		Oratcl_LogFree(LogPtr);
-		Tcl_DeleteHashEntry(logHashPtr);
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				" (Unknown OCI status) OCIEnvCreate. Check ORACLE_HOME setting!",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -1737,39 +1732,88 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			       (size_t) 0,
 			       (dvoid **) 0);
 
-	(void) OCI_ServerAttach( LogPtr->srvhp,
-				LogPtr->errhp,
-				(text *) ora_conn,
-				ora_connlen,
-				0);
 
-	/* set attribute server context in the service context */
-	(void) OCI_AttrSet( (dvoid *) LogPtr->svchp,
+	/*
+	 * Attach to Server
+	 */
+
+	rc = OCI_ServerAttach(LogPtr->srvhp,
+			      LogPtr->errhp,
+			      (text *) ora_conn,
+			      ora_connlen,
+			      0);
+
+	if (rc != OCI_SUCCESS) {
+		attached = 1;
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+
+	/*
+	 * set attribute server context in the service context
+	 */
+
+	rc = OCI_AttrSet( (dvoid *) LogPtr->svchp,
 			   OCI_HTYPE_SVCCTX,
 			   (dvoid *)LogPtr->srvhp,
 			   (ub4) 0,
 			   OCI_ATTR_SERVER,
 			   (OCIError *) LogPtr->errhp);
 
-	(void) OCI_HandleAlloc((dvoid *) LogPtr->envhp,
-			      (dvoid **)&LogPtr->usrhp,
-			      (ub4) OCI_HTYPE_SESSION,
-			      (size_t) 0,
-			      (dvoid **) 0);
+	if (rc != OCI_SUCCESS) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
-	(void) OCI_AttrSet((dvoid *) LogPtr->usrhp,
-		 	  (ub4) OCI_HTYPE_SESSION,
-			  (dvoid *) ora_name,
-			  (ub4) ora_namelen,
-			  (ub4) OCI_ATTR_USERNAME,
-			  LogPtr->errhp);
 
-	(void) OCI_AttrSet((dvoid *) LogPtr->usrhp,
-			  (ub4) OCI_HTYPE_SESSION,
-		  	  (dvoid *) ora_pass,
-			  (ub4) ora_passlen,
-			  (ub4) OCI_ATTR_PASSWORD,
-			  LogPtr->errhp);
+	/* 
+	 * allocate a session handle
+	 */
+
+	rc = OCI_HandleAlloc((dvoid *) LogPtr->envhp,
+			     (dvoid **)&LogPtr->usrhp,
+			     (ub4) OCI_HTYPE_SESSION,
+			     (size_t) 0,
+			     (dvoid **) 0);
+
+	if (rc != OCI_SUCCESS) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+
+	/*
+	 * set the username attribute
+	 */
+
+	rc = OCI_AttrSet((dvoid *) LogPtr->usrhp,
+		 	 (ub4) OCI_HTYPE_SESSION,
+			 (dvoid *) ora_name,
+			 (ub4) ora_namelen,
+			 (ub4) OCI_ATTR_USERNAME,
+			 LogPtr->errhp);
+
+	if (rc != OCI_SUCCESS) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+	/*
+	 * set the password attribute
+	 */
+
+	rc = OCI_AttrSet((dvoid *) LogPtr->usrhp,
+			 (ub4) OCI_HTYPE_SESSION,
+		  	 (dvoid *) ora_pass,
+			 (ub4) ora_passlen,
+			 (ub4) OCI_ATTR_PASSWORD,
+			 LogPtr->errhp);
+
+	if (rc != OCI_SUCCESS) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
 	if ((ora_namelen + ora_passlen) == 0) {
 		oci_cred = OCI_CRED_EXT;
@@ -1781,19 +1825,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			       (ub4) oci_cred,
 			       (ub4) oci_conn);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
-		(void) OCI_ServerDetach(LogPtr->srvhp, LogPtr->errhp, (ub4) OCI_DEFAULT);
-		Oratcl_LogFree(LogPtr);
-		Tcl_DeleteHashEntry(logHashPtr);
-
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": invalid username/password; logon denied",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
-
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -1827,19 +1860,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 						 (ub4) OCI_ATTR_FOCBK,
 						 LogPtr->errhp);
 
-				Oratcl_Checkerr(interp,
-						LogPtr->errhp,
-						rc,
-						0,
-						&LogPtr->ora_rc,
-						&LogPtr->ora_err);
-
 				if (rc != OCI_SUCCESS) {
-					Oratcl_ErrorMsg(interp,
-							objv[0],
-							"TAF register Error.",
-							(Tcl_Obj *) NULL,
-							(char *) NULL);
 					tcl_return = TCL_ERROR;
 					goto common_exit;
 				}
@@ -1848,20 +1869,29 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 	if (LogPtr->async == 1) {
-		rc = OCI_AttrSet ((dvoid *) LogPtr->srvhp,
+		rc = OCI_AttrSet((dvoid *) LogPtr->srvhp,
 				 (ub4) OCI_HTYPE_SERVER,
 				 (dvoid *) 0,
 				 (ub4) 0,
 				 (ub4) OCI_ATTR_NONBLOCKING_MODE,
 				 LogPtr->errhp);
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
 	}
 
-	(void) OCI_AttrSet((dvoid *) LogPtr->svchp,
-			  (ub4) OCI_HTYPE_SVCCTX,
-			  (dvoid *) LogPtr->usrhp,
-			  (ub4) 0,
-			  (ub4) OCI_ATTR_SESSION,
-			  LogPtr->errhp);
+	rc = OCI_AttrSet((dvoid *) LogPtr->svchp,
+			 (ub4) OCI_HTYPE_SVCCTX,
+			 (dvoid *) LogPtr->usrhp,
+			 (ub4) 0,
+			 (ub4) OCI_ATTR_SESSION,
+			 LogPtr->errhp);
+
+	if (rc != OCI_SUCCESS) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
 	buf_obj = Tcl_NewStringObj(buf, -1);
 	Tcl_IncrRefCount(buf_obj);
@@ -1869,6 +1899,33 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	Tcl_DecrRefCount(buf_obj);
 
 common_exit:
+
+	if (tcl_return == TCL_ERROR) {
+
+		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&LogPtr->ora_rc,
+					&LogPtr->ora_err);
+		}
+
+		if (attached) {
+			(void) OCI_ServerDetach(LogPtr->srvhp,
+						LogPtr->errhp,
+						(ub4) OCI_DEFAULT);
+		}
+
+		if (logHashPtr) {
+			Tcl_DeleteHashEntry(logHashPtr);
+		}
+
+		if (LogPtr) {
+			Oratcl_LogFree(LogPtr);
+		}
+
+	}
 
 	ckfree(cpy_str);
 

@@ -3,6 +3,19 @@ Oratcl change history
 
 Version 4.3,  Nov, 2004
 
+Jan 05 2005
+
+	Streamlined and improved error handling and memory cleanup in Oratcl_Logon.
+	Logon function pays more attention to return codes from OCI layer.
+	Logon function returns Oracle error code and message.
+
+	I.E.
+
+	% oralogon log/bad_pass@good_db
+	ORA-01017: invalid username/password; logon denied
+	% oralogon log/good_pass@bad_db
+	ORA-12154: TNS:could not resolve service name
+
 Dec 17 2004
 
 	Add code to obtain additional symbols in the oracle library:
