@@ -8,8 +8,8 @@
 # Copyright 1997 Tom Poindexter.
 #
 
-ORATCL_VERSION = 3.0
-DLL_VERSION = 30
+ORATCL_VERSION = 2.7
+DLL_VERSION = 27
 
 PROJECT = oratcl$(DLL_VERSION)
 
@@ -35,11 +35,16 @@ COMMON32 = e:\progra~1\micros~6\common\MSDev98
 # point TCL and TCLLIB to your tcl distribution
 
 TCL     = c:\progra~1\tcl
-TCLLIB  = $(TCL)\lib\tcl83.lib
+TCLLIB  = $(TCL)\lib\tclstub83.lib
+
+#TCL     = c:\progra~1\tcl80
+#TCLLIB  = $(TCL)\lib\tcl80vc.lib
+
 
 ORACLE     = d:
 ORACLE_OCI = $(ORACLE)\oci\oci
-ORACLE_LIB = $(ORACLE_OCI)\lib\msvc\oci.lib 
+ORACLE_LIB = $(ORACLE_OCI)\lib\msvc\oci.lib
+
 
 
 # comment the following line to compile with symbols
@@ -55,12 +60,8 @@ cc32    = $(TOOLS32)\bin\cl -I$(TOOLS32)\include
 CP      = copy
 RM      = del
 
-INCLUDES =	-I$(TOOLS32)/include	\
-		-I$(TCL)/include	\
-		-I$(ORACLE_OCI)/include	\
-		-I../generic
-
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION8DB -DVERSION=\"3.0\" 
+INCLUDES = -I$(TOOLS32)\include -I$(TCL)\include 
+DEFINES = -nologo $(DEBUGDEFINES) -DUSE_TCL_STUBS -DNO_BCOPY -DVERSION7 -DNONBLOCK_CURSOR
 
 !include <ntwin32.mak>
 
