@@ -367,5 +367,12 @@ Version 4.0 December, 2001
     -   29-MAY-2002 (tmh) change Makefile.in to use TCL_LD_FLAGS.  This lets
         the --enable-64bit-vis options work when using 64 bit solaris, 64 bit
         Oracle and the same option in the tcl build.
+    -   Place the new 9i columns inside a #define, not defined in oracle 8.1.5
+		TIMESTAMP
+		TIMESTAMP WITH TIME ZONE
+		INTERVAL YEAR TO MONTH
+		INTERVAL DAY TO SECOND
+		TIMESTAMP WITH LOCAL TIME ZONE
+        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
 
 -----------------------------------------------------------------------------
