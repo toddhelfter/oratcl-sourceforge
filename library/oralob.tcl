@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.4 2000-09-27 20:45:28 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.5 2000-10-13 14:56:23 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -190,7 +190,7 @@ namespace eval oratcl {
 #
 #  parse lob args.
 #
-proc ::oratcl::parse_args {args} {
+proc ::oratcl::parse_lob_args {args} {
 
 	set argv [lindex $args 0]
 	set argc [llength $argv]
@@ -274,7 +274,7 @@ proc ::oratcl::lob_alloc {handle args} {
 
 	set fn alloc
 
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -395,7 +395,7 @@ proc ::oratcl::lob_read {handle args} {
 	set fn read
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -483,7 +483,7 @@ proc ::oratcl::lob_write {handle args} {
 	set fn write
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -604,7 +604,7 @@ proc ::oratcl::lob_trim {handle args} {
 	set fn trim
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -648,7 +648,7 @@ proc ::oratcl::lob_erase {handle args} {
 	set fn erase
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -712,7 +712,7 @@ proc ::oratcl::lob_substr {handle args} {
 	set fn substr
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -817,7 +817,7 @@ proc ::oratcl::lob_instr {handle args} {
 	set fn instr
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"
@@ -952,7 +952,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 	set fn compare
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_lob_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralob $fn: $info"

@@ -1,7 +1,7 @@
 # oralong:
-# Process lob commands.
+# Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.1 2000-10-12 21:04:55 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.2 2000-10-13 14:56:24 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -22,9 +22,9 @@ namespace eval oratcl {
 }
 
 #
-#  parse lob args.
+#  parse long args.
 #
-proc ::oratcl::parse_args {args} {
+proc ::oratcl::parse_long_args {args} {
 
 	set argv [lindex $args 0]
 	set argc [llength $argv]
@@ -41,27 +41,19 @@ proc ::oratcl::parse_args {args} {
 			-table	 { set ::oratcl::oralong(table) $value }
 			-column	 { set ::oratcl::oralong(column) $value }
 			-datavar { set ::oratcl::oralong(datavar) $value }
-			-length	 { set ::oratcl::oralong(length) $value }
-			-pattern { set ::oratcl::oralong(pattern) $value }
-			-nth	 { set ::oratcl::oralong(nth) $value }
-			-start	 { set ::oratcl::oralong(start) $value }
-			-stop	 { set ::oratcl::oralong(stop) $value }
 		}
 	}		
 }
 
+#
+#  implementation of the 'oralong' command.
+#
 proc oralong {command handle args} {
 
 	global errorInfo
 
-	foreach idx [list rowid table column pattern datavar] {
+	foreach idx [list rowid table column datavar] {
 		set ::oratcl::oralong($idx) {}
-	}
-	foreach idx [list start stop length start1 start2] {
-		set ::oratcl::oralong($idx) 0
-	}
-	foreach idx [list nth] {
-		set ::oratcl::oralong($idx) 1
 	}
 
 	set tcl-res {}
@@ -71,7 +63,6 @@ proc oralong {command handle args} {
 		free 	{set cmd [list ::oratcl::long_free $handle]}
 		read	{set cmd [list ::oratcl::long_read $handle $args]}
 		write	{set cmd [list ::oratcl::long_write $handle $args]}
-		erase	{set cmd [list ::oratcl::long_erase $handle $args]}
 		default {
 			 set err_txt "oralong: unknown command option '$command'"
 			 return -code error $err_txt 
@@ -100,7 +91,7 @@ proc ::oratcl::long_alloc {handle args} {
 
 	set fn alloc
 
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_long_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralong $fn: $info"
@@ -155,9 +146,6 @@ proc ::oratcl::long_alloc {handle args} {
 		LONG 	{
 			set longtype long
 		}
-		BLOB	{
-			set longtype blob
-		}
 		default {
 			set err_txt "oralong $fn: error unsuported long type '$autotype'."
 			return -code error $err_txt
@@ -197,7 +185,7 @@ proc ::oratcl::long_free {handle} {
 
 
 #
-#  read the contents of a long field.
+#  read the contents of a long field and store in the result variable.
 #
 proc ::oratcl::long_read {handle args} {
 
@@ -208,7 +196,7 @@ proc ::oratcl::long_read {handle args} {
 	set fn read
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_long_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralong $fn: $info"
@@ -231,15 +219,11 @@ proc ::oratcl::long_read {handle args} {
 
 	set sql [format $::oratcl::sql(${longtype}_read) $column $table $rowid]
 
-	::oratcl::longread $stm $sql read_res $rowid
-
-if 0 {
-	#set pl [format $::oratcl::plsql(${longtype}_read) $table $column]
-	set tcl_rc [catch {oraplexec $stm \
-				     $pl \
-				     :str {} \
-				     :rid $rowid} \
-			  tcl_res]
+	# ::oratcl::readlong populates the result variable directly.
+	set tcl_rc [catch {::oratcl::longread $stm \
+					      $sql \
+					      read_res} \
+			   tcl_res]
 
 	if {$tcl_rc} {
 		set info $errorInfo
@@ -247,14 +231,11 @@ if 0 {
 		return -code error $err_txt
 	}
 
-	set read_res [lindex $tcl_res 0]
-}
-
 	return -code ok $oralong(oratcl_ok)
 }
 
 #
-#  write data to a long field.
+#  write data from the source variable to a long field.
 #
 proc ::oratcl::long_write {handle args} {
 
@@ -265,7 +246,7 @@ proc ::oratcl::long_write {handle args} {
 	set fn write
 
 	# process arguements
-	set tcl_rc [catch {eval ::oratcl::parse_args $args} tcl_res]
+	set tcl_rc [catch {eval ::oratcl::parse_long_args $args} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
 		set err_txt "oralong $fn: $info"
@@ -286,7 +267,15 @@ proc ::oratcl::long_write {handle args} {
 	upvar 2 $oralong(datavar) datavar
 
 	set sql [format $::oratcl::sql(${longtype}_write) $table $column $rowid]
-	::oratcl::longwrite $stm $sql datavar $rowid
+	set tcl_rc [catch {::oratcl::longwrite $stm \
+					       $sql \
+					       datavar} \
+			   tcl_res]
+	if {$tcl_rc} {
+		set info $errorInfo
+		set err_txt "oralong $fn: $oramsg(errortxt) $info"
+		return -code error $err_txt
+	}
 
 	return -code ok $oralong(oratcl_ok)
 }
