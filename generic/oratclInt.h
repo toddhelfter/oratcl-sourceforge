@@ -121,7 +121,7 @@ typedef struct OratclStms {
 	int		ora_rc;		/* oracle return code		*/
 	Tcl_DString	ora_err;	/* oracle error text		*/
 	ub4		ora_row;	/* oracle row number		*/
-	int		ora_peo;	/* oracle parse error offset	*/
+	ub2		ora_peo;	/* oracle parse error offset	*/
 	int		ora_fcd;	/* oracle function code		*/
 } OratclStms;
 

@@ -871,7 +871,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 	ub4		parmcnt;
 	ub4		parmix;
 
-	ub2		peo;
 	ub2		fcd;
 	int		lob;
 	ub1		nbm;
@@ -905,11 +904,10 @@ Oratcl_ColDescribe (interp, StmPtr)
 #ifdef OCI_ATTR_PARSE_ERROR_OFFSET
 		OCIAttrGet( (dvoid *) StmPtr->stmhp,
 			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &peo,
+			    (ub2 *) &StmPtr->ora_peo,
 			    (ub4) 0,
 			    OCI_ATTR_PARSE_ERROR_OFFSET,
 			    LogPtr->errhp);
-		StmPtr->ora_peo = peo;
 #endif
 		Oratcl_ColFree(new_col_head);
 		return -1;
@@ -5384,7 +5382,6 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 	sword		rc;
 	int		cols;
 
-	ub2		peo;
 	ub2		fcd;
 
 	char		*stmt;
@@ -5493,11 +5490,10 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 			#ifdef OCI_ATTR_PARSE_ERROR_OFFSET
 				OCIAttrGet( (dvoid *) StmPtr->stmhp,
 					    (ub4) OCI_HTYPE_STMT,
-					    (ub2 *) &peo,
+					    (ub2 *) &StmPtr->ora_peo,
 					    (ub4) 0,
 					    OCI_ATTR_PARSE_ERROR_OFFSET,
 					    LogPtr->errhp);
-				StmPtr->ora_peo = peo;
 			#endif
 			Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
@@ -5981,7 +5977,6 @@ Oratcl_MyDescribe (interp, StmPtr)
 	ub4		parmcnt;
 	ub4		parmix;
 
-	ub2		peo;
 	ub2		fcd;
 	int		lob;
 	ub1		nbm;
@@ -6009,11 +6004,10 @@ Oratcl_MyDescribe (interp, StmPtr)
 #ifdef OCI_ATTR_PARSE_ERROR_OFFSET
 		OCIAttrGet( (dvoid *) StmPtr->stmhp,
 			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &peo,
+			    (ub2 *) &StmPtr->ora_peo,
 			    (ub4) 0,
 			    OCI_ATTR_PARSE_ERROR_OFFSET,
 			    LogPtr->errhp);
-		StmPtr->ora_peo = peo;
 #endif
 		return -1;
 	}
