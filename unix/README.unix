@@ -4,3 +4,16 @@ standard commands to build unix.
 > ../configure --prefix=TCL_INSTALLED_DIRECTORY --enable-stubs --with-oracle-directory=$ORACLE_HOME
 > make
 > make install
+
+some linux users have reported that the Makefile needs a little tweak in
+order to compile oratcl with ActiveTcl distributed by ActiveState.
+Thanks to Jeremy Collins for the hint.
+
+In the Makefile replace:
+
+  -rpath ${LIB_RUNTIME_DIR}
+
+With:
+
+  -Wl,-rpath,${LIB_RUNTIME_DIR}
+
