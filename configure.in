@@ -123,7 +123,7 @@ SC_PUBLIC_TCL_HEADERS
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
 #--------------------------------------------------------------------
-
+AC_MSG_RESULT(Looking for TclConfig.sh)
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 SEARCH_DIRS="$TCL_BIN_DIR"
@@ -295,6 +295,14 @@ for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u
         AC_MSG_RESULT(setting ORA to $ORA)
         break
     fi
+    AC_MSG_RESULT(looking for lib/libclient.a in $f)
+    if test -r "$f/lib/libclient.a" ; then
+        ORA="$f/lib"
+	ORACLE_HOME=$f
+        AC_MSG_RESULT(setting ORA to $ORA)
+	testver=7
+        break
+    fi 
     AC_MSG_RESULT(looking for lib/libclient8.a in $f)
     if test -r "$f/lib/libclient8.a" ; then
         ORA="$f/lib"
