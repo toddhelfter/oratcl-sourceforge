@@ -297,5 +297,8 @@ Version 3.3 August, 2001
 	a zero length string into a long column, put the statement handle
 	in an unrecoverable state.
  	Thanks to Ulrich Schoebel (SchoebelU@spardat.at) for the alert.
+    -   Reduce dependency on autodetection of EOL i.e. '\0' by using
+        actual string lengths as arguements instead of relying on -1
+        behavior.
 
 -----------------------------------------------------------------------------
