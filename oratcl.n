@@ -1,0 +1,692 @@
+.TH "Oratcl" TCL "" "Tcl"
+.SH NAME
+Oratcl - Oracle Database Server access commands for Tcl
+.sp
+.SH "INTRODUCTION"
+.P
+Oratcl is a collection of Tcl 
+commands and a Tcl global array that provides access to an
+Oracle Database Server.
+Each Oratcl command generally invokes several 
+Oracle Call Interface (OCI) library functions.
+Programmers using Oratcl should be familar with basic concepts of
+OCI programming.  
+.sp
+.SH "ORATCL COMMANDS"
+.TP
+.B oralogon \fIconnect-str\fR
+.br
+Connect to an Oracle server using \fIconnect-str\fR.
+The connect string should be a valid Oracle connect string, in the form:  
+.sp
+	\fIname\fR
+.br
+	\fIname/password\fR
+.br
+	\fIname@n:dbname\fR
+.br
+	\fIname/password@n:dbname\fR
+.sp
+A logon handle is returned and should be used for all other Oratcl
+commands using this connection that require a logon handle.  
+Multiple connections to the same or
+different servers are allowed, up to a maximum of 25 total connections.
+Oralogon raises a Tcl error if the connection 
+is not made for any reason (login or password incorrect, 
+network unavailable, etc.).  If the connect string does not include a
+database specification, the value of the environment variable ORACLE_SID
+is used as the server.
+.sp
+.TP
+.B oralogoff \fIlogon-handle\fR
+.br
+Logoff from the Oracle server
+connection associated with \fIlogon-handle\fR.  
+\fILogon-handle\fR must be a valid handle previously opened with oralogon.
+Oralogoff returns a null string.
+Oralogoff raises a Tcl error if the logon handle specified is not open.
+.sp
+.TP
+.B oraopen \fIlogon-handle\fR
+.br
+Open an SQL cursor to the server.
+Oraopen returns a cursor to be used 
+on subsequent Oratcl
+commands that require a cursor handle.
+\fILogon-handle\fR must be a valid handle previously opened with oralogon.
+Multiple cursors can be opened through the same or different logon
+handles, up to a maximum of 25 total cursors.
+Oraopen raises a Tcl error if the logon handle specified is not open.
+.sp
+.TP
+.B oraclose \fIcursor-handle\fR
+.br
+Closes the cursor associated with cursor-handle.
+Oraclose raises a Tcl error if the cursor handle specified is not open.
+.sp
+.TP
+.B orasql \fIcursor-handle sql-statement  ?-parseonly?  ?-async? \fR
+.br
+Send the Oracle SQL statement \fIsql-statement\fR to the server.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+Orasql will return the numeric return code "0" on successful execution of
+the  sql statement.
+The \fBoramsg\fR array index
+\fIrc\fR
+is set with the return code; the
+\fIrows\fR index is set to the number of rows affected by the SQL statement
+in the case of \fIinsert, update, \fRor\fI delete\fR.
+.sp
+The \fBoramsg\fR array index
+\fIrowid\fR
+is set with the Oracle ROWID of the last row processed in an \fIinsert, update,
+\fRor \fIdelete\fR statement.
+.sp
+Only a single SQL statement may be specified in \fIsql-statement\fR.  
+\fIOrafetch\fR allows
+retrieval of return rows generated.  
+.sp
+The optional \fI-parseonly\fR argument parses but does not execute the SQL
+statement.  The SQL statement may contain bind variables that begin with a
+colon (':').  The statement may then be executed with the \fIorabindexec\fR
+command,
+allowing bind variables to be substituted with values.  Bind variables should
+only be used for SQL statements \fIselect, insert, update, or delete\fR.
+.sp
+The optional \fI-async\fR argument specifies the that SQL should be executed
+asynchronously.  Orasql will return the numeric code "3123" when using
+-async.  Note that \fI-async\fR is only available for orasql when Oratcl 
+is compiled with 
+Oracle 7.2 or higher libraries, and when connected to an Oracle server of
+version 7.2 or higher.  See \fIorapoll\fR below.
+.sp
+Only \fI-parseonly\fR or \fI-async\fR may be specified.
+.sp
+Orasql performs an implicit \fIoracancel\fR if any results are still
+pending from the last execution of orasql.
+Orasql raises a Tcl error if the cursor handle specified is not open, or if the
+SQL statement is syntactically incorrect.  
+.sp
+Table inserts made with orasql should follow conversion rules in
+the Oracle SQL Reference manual.
+.sp
+.TP 
+.B orabindexec \fIcursor-handle  ?-async?  ?:varname  value ...?\fR
+.br
+Execute a previously parsed SQL statement, optionally binding values 
+to SQL variables.  
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+An SQL statement must have previously been parsed by executing orasql
+with the \fI-parseonly\fR option.  Orabindexec may be repeatedly executed
+after a statement is parsed with bind variables substituted on each execution.
+Orabindexec does not re-parse SQL statements before execution.
+.sp
+The optional \fI-async\fR argument specifies the that SQL should be executed
+asynchronously.  Orasql will return the numeric code 3123 when using
+-async.  If -async is specified, it must preceed any 
+remaining :varname value pairs for the command.
+Note that -async is only available for orasql when Oratcl 
+is compiled with 
+Oracle 7.2 or higher libraries, and when connected to an Oracle server of
+version 7.2 or higher.  See \fIorapoll\fR below.
+.sp
+Optional \fI:varname value\fR pairs allow substitutions on SQL bind variables
+before execution.  As many :varname value pairs should be specified as there
+are defined in the previously parsed SQL statement.  Varnames must be prefixed
+by a colon ":".
+.sp
+Orabindexec will return "0" when the SQL is executed successfully; "3123"
+when executed with the \fI-async\fR argument; "1003" if a previous SQL
+has not been parsed with orasql; "1008" if not all SQL bind variables have
+been specified.  Refer to Oracle error numbers and messages for other
+possible values.
+.sp
+The \fBoramsg\fR array index
+\fIrowid\fR
+is set with the Oracle ROWID of the last row processed in an \fIinsert, update,
+\fRor \fIdelete\fR statement.
+.sp
+.TP
+.B orafetch \fIcursor-handle ?commands?  ?substitution_character? ?tclvarname  colnum ...?\fR
+.br
+Return the next row from the last SQL statement executed with orasql as a
+Tcl list.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+Orafetch raises a Tcl error if the cursor handle specified is not open.
+All returned columns are converted to character strings.  A null string is
+returned if there are no more rows in the current set of results.
+The Tcl list that is returned by orafetch contains the values of the
+selected columns in the order specified by \fIselect\fR.
+.sp
+The optional \fIcommands\fR argument allows orafetch to repeatedly
+fetch rows and
+execute \fIcommands\fR for each row.
+Substitutions are made on \fIcommands\fR before passing it to Tcl_Eval()
+for each row.  
+An optional fourth argument consisting of a single character
+can be specified for a column number
+substitution character.  If none is specified
+the character '@' will be used to denote the substitution character.
+If the substitution character is a null string, no column substitutions will
+be performed on the \fIcommands\fR string.
+Orafetch interprets the substitution character followed by
+a number (\fB@n\fR) in commands as a 
+result column specification.  For example,
+\fB@1, @2, @3\fR refer to the first, second, and third columns
+in the result.  \fB@0\fR refers to the entire result row, as a Tcl list.
+Substitution columns may appear in
+any order, or more than once in the same command.
+Substituted columns are inserted into the commands string as
+proper list elements, i.e., one space will be added before and after the
+substitution and column values with embedded spaces are enclosed by {}
+if needed.
+.sp
+Tcl variables may also be set for \fIcommands\fR on each row that is
+processed.  Tcl variables are specified after the \fIsubstitution_character\fR,
+consisting of matching pairs of Tcl variable names and a column numbers.
+Column number may be "0", in which the Tcl variable is set to the
+entire result row as a Tcl list.  Column numbers must be less than or equal
+to the number of columns in the SQL result set.
+.sp
+A Tcl error is raised if a column substitution number is greater than the
+number of columns in the results.  If the commands execute \fBbreak\fR,
+orafetch execution is interrupted and returns with TCL_OK.  Remaining
+rows may be fetched with a subsequent orafetch command.  
+If the commands execute \fBreturn\fR or \fBcontinue\fR, the remaining
+commands are skipped and orafetch execution continues with the next row.
+Orafetch will raise a Tcl error if the \fIcommands\fR return an error.
+Commands should be enclosed in "" or {}.
+.sp
+Oratcl performs conversions for all data types.  Raw data is returned 
+as a hexadecimal string, without a leading "0x".  Use the SQL functions
+to force a specific conversion.
+.sp
+If an SQL statement has been executed in asynchrounous mode (\fI-async\fR
+argument on \fIorasql\fR or \fIorabindexec\fR), executing orafetch will
+block until SQL execution is complete.  See \fIorapoll\fR below.
+.sp
+The \fBoramsg\fR array index \fIrc\fR
+is set with the return code of the fetch.  0 indicates the row was
+fetched successfully; 1403 indicates the end of data was reached.
+.sp
+The index \fIrows\fR is set to 
+the cumulative number of rows fetched so far.
+The \fBoramsg\fR array index
+\fIrowid\fR
+is set with the Oracle ROWID of the last row fetched when retrieved with
+a \fIselect for update\fR statement.
+.sp
+The \fBoramsg\fR array index \fImaxlong\fR limits the amount of long or
+long raw data returned for each column returned.  The default is 32768 bytes.  
+.sp
+The \fBoramsg\fR array index \fInullvalue\fR can be set to specify
+the value returned when a column is null.  The default is "0" for
+numeric data, and "" for other datatypes.
+.sp
+.TP 
+.B orapoll \fIcursor-handle  ?-all?\fR
+.br
+Return a list of cursor handles that have results waiting to be fetched.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+If the previous SQL execution has not finished,
+orapoll will return a null string.  If execution
+has finished for the cursor handle and/or results are available, the cursor
+handle is returned.
+.sp
+The optional argument \fI-all\fR may be specified to return a list of
+all cursor handles that have results waiting.
+.sp
+Note that orapoll is only available when Oratcl 
+is compiled with 
+Oracle 7.2 or higher libraries, and when connected to an Oracle server of
+version 7.2 or higher.  
+.sp
+Asynchronous processing (\fI-async\fR argument on \fIorasql\fR or 
+\fIorabindexec\fR) is actually done on a logon-connection basis.  Executing
+orasql or orabindexec with \fI-async\fR causes all open cursors through the
+same logon connection handle to be changed to asycnchronous mode.  Likewise,
+if orafetch is executed on a cursor, all open cursors through the same
+logon connection handle will be changed to blocking mode.  It is recommended
+that asynchronous processing be limited to one cursor per logon connection
+to avoid unexpected changes of blocking to/from asynchronous 
+mode for other cursors.
+.sp
+.TP
+.B orabreak \fIcursor-handle \fR
+.br
+Cause a currently executing SQL statement to be interrupted.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+Use the \fIoracancel\fR command to cancel SQL results, see below.
+.sp
+Note that orabreak is only available when Oratcl 
+is compiled with 
+Oracle 7.2 or higher libraries, and when connected to an Oracle server of
+version 7.2 or higher.  
+.sp
+.TP 
+.B oraplexec \fIcursor-handle  pl-block  ?:varname  value ...?\fR
+.br
+Execute an anonymous PL block, optionally binding values to PL/SQL variables.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+Pl-block may either be a complete PL/SQL procedure or a call to a stored 
+procedure coded as an anonymous PL/SQL block.  Optional \fI:varname
+value\fR pairs may follow the pl-block.  Varnames must be prefixed by a
+colon ":", and match the subsitution bind names used in the procedure.  Any
+:varname that is not matched with a value is ignored.  If a :varname is
+used for output, the value should be coded as a null string, "".
+.sp
+Cursor variables may be returned from a PL/SQL block by specifing an
+open cursor as the bind value for a :varname bind variable.  
+The cursor must have previously been opened by oraopen using the 
+same logon handle as the cursor used to execute the oraplexec command.
+The cursor
+is closed and re-opened with the results of a 
+PL/SQL "OPEN :cursor FOR select" statement.
+After oraplexec completes, the cursor returned may then fetch result rows
+by using orafetch; column information is available by using oracols.
+.sp
+Note that cursor variables are only available for oraplexec when Oratcl
+is compiled with
+Oracle 7.2 or higher libraries, and when connected to an Oracle server of
+version 7.2 or higher.
+.sp
+Oraplexec returns the contents of each :varname as a Tcl list
+upon the termination of PL/SQL block.  
+Oraplexec raises a Tcl error if the cursor handle specified is not open,
+or if the PL/SQL block is in error.  
+The \fBoramsg\fR array index \fIrc\fR 
+contains the return code from the stored procedure.
+.sp
+.TP 
+.B oracols \fIcursor-handle\fR
+.br
+Return the names of the columns from the last orasql, orafetch, or
+oraplexec command  
+as a Tcl list.
+Oracols may be used after \fIoraplexec\fR, in which case the bound variable
+names are returned.  
+.sp
+The \fBoramsg\fR array index \fIcollengths\fR
+is set to a Tcl list corresponding to the lengths of the columns;
+index \fIcoltypes\fR
+is set to a Tcl list corresponding to the types of the columns;
+index \fIcolprecs\fR
+is set to a Tcl list corresponding to the precision of the numeric columns,
+other corresponding non-numeric columns are a null string (Version 7 only);
+index \fIcolscales\fR
+is set to a Tcl list corresponding to the scale of the numeric columns,
+other corresponding non-numeric columns are a null string (Version 7 only).
+Oracols raises a Tcl error if the cursor handle specified is not open.
+.sp
+.TP 
+.B oracancel \fIcursor-handle\fR
+.br
+Cancels any pending results from a prior orasql command that use a
+cursor opened through the connection specified by cursor-handle.  
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+Oracancel raises a Tcl error if the cursor handle specified is not open.
+.sp
+.TP 
+.B oracommit \fIlogon-handle\fR
+.br
+Commit any pending transactions from prior orasql commands that use a
+cursor opened through the connection specified by logon-handle.  
+\fILogon-handle\fR must be a valid handle previously opened with oralogon.
+Oracommit raises a Tcl error if the logon handle specified is not open.
+.sp
+.TP 
+.B oraroll \fIlogon-handle\fR
+.br
+Rollback any pending transactions from prior orasql commands that use a
+cursor opened through the connection specified by logon-handle.  
+\fILogon-handle\fR must be a valid handle previously opened with oralogon.
+Oraroll raises a Tcl error if the logon handle specified is not open.
+.sp
+.TP 
+.B oraautocom \fIlogon-handle {on \fR|\fI off}\fR
+.br
+Enables or disables automatic commit of SQL data manipulation 
+statements using a cursor opened through the connection
+specified by logon handle. 
+\fILogon-handle\fR must be a valid handle previously opened with oralogon.
+One of the literal values "on" or "off" must be specified.  The
+automatic commit feature defaults to "off".
+Oraautocom raises a Tcl error if the logon handle specified is not open.
+.sp
+.TP 
+.B orawritelong  \fIcursor-handle rowid table column filename\fR
+.br
+Write the contents of a file to a LONG or LONG RAW column.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+\fIRowid\fR is the Oracle rowid of an existing row.  The rowid must 
+be in the format of an Oracle rowid datatype.
+\fITable\fR is the table name that contains the row and column.
+\fIColumn\fR is the column name that is the LONG or LONG RAW column.
+\fIFilename\fR is the name of the file that contains the
+LONG or LONG RAW data to write into the column.  
+Orawritelong composes and executes an SQL \fIupdate\fR statement based 
+on the table, column, and rowid.  
+.sp
+Orawritelong returns a decimal number upon successful completion of the
+number of bytes written to the LONG column.
+A properly formatted Rowid 
+may be obtained through a prior execution of orasql, \fI"select rowid
+from table where ..."\fR.
+.sp
+Orawritelong raises a Tcl error if the cursor handle specified is not open,
+or if rowid, table, or column are invalid, or if the row does not
+exist.
+.sp
+.TP 
+.B orareadlong  \fIcursor-handle rowid table column filename\fR
+.br
+Read the contents of a LONG or LONG RAW column and write results into a file.
+\fICursor-handle\fR must be a valid handle previously opened with oraopen.
+\fIRowid\fR is the Oracle rowid of an existing row.  The rowid must 
+be in the format of an Oracle rowid datatype.
+\fITable\fR is the table name that contains the row and column.
+\fIColumn\fR is the column name that is the LONG or LONG RAW column.
+\fIFilename\fR is the name of a file in which to write the LONG or LONG
+RAW data.  
+Orareadlong composes and executes an SQL \fIselect\fR statement based 
+on the table, column, and rowid.  
+A properly formatted Rowid 
+may be obtained through a prior execution of orasql, \fI"select rowid
+from table where ..."\fR.
+.sp
+Orareadlong returns a decimal number upon successful completion of the
+number of bytes read from the LONG column.
+.sp
+Orareadlong raises a Tcl error if the cursor handle specified is not open,
+or if rowid, table, or column are invalid, or if the row does not
+exist.
+.sp
+.SH "SERVER MESSAGE AND ERROR INFORMATION"
+.P
+Oratcl creates and maintains a Tcl global array to provide feedback of
+Oracle server messages, named \fBoramsg\fR.  Oramsg is also used to
+communicate with the Oratcl interface routines to
+specify null return values and LONG limits.
+In all cases except for \fInullvalue\fR and \fImaxlong\fR,
+each element is
+reset to null upon invocation of any Oratcl command, and any 
+element affected by the command is set.  The oramsg array is shared 
+among all open Oratcl handles.  Oramsg should be defined with the
+global statement in any Tcl procedure needing access to oramsg.
+.sp
+Oramsg elements:
+.sp
+.TP
+.B version
+.br
+indicates the version of Oratcl.
+.sp
+.TP
+.B nullvalue
+.br
+can be set by the programmer to indicate the string value returned for
+any null result.  Setting sybmsg(nullvalue) to "default"
+will return "0" for numeric null data types (integer, float,
+and money) and a
+null string for all other data types.  Nullvalue is initially set to "default".
+.sp
+.TP
+.B maxlong
+.br
+can be set by the programmer to limit the amount of LONG or LONG RAW data
+returned by orafetch.  The default is 32768 bytes.  
+The maximum is 65536 (Version 6) or 2147483647 (Version 7) bytes.
+Any value less than or equal to zero
+is ignored.  Any change to maxlong becomes effective on the next call to
+orasql.  See notes on maxlong usage with orafetch.
+.sp
+.TP
+.B handle
+.br
+indicates the handle of the last Oratcl command.  Handle is set on every
+Oratcl command (execpt where an invalid handle is used.)
+.sp
+.TP
+.B rc
+.br
+indicates the results of the last SQL command and subsequent orafetch
+processing.  Rc is set by orasql, orafetch, oraplexec,  and is 
+the numeric return code
+from the last OCI library function called by an Oratcl command.  Refer
+to Oracle Error Messages and Codes manual for detailed information.
+Typical values are:
+.RS
+.TP
+.B 0
+.br
+Function completed normally, without error.
+.TP
+.B 900-999
+.br
+invalid SQL statement, invalid sql statements, missing keywords, invalid
+column names, etc.
+.TP
+.B 1000-1099
+.br
+program interface error, e.g., no sql statement parsed, 
+SQL bind variables not bound,
+logon denied,
+insufficient privileges, etc.
+.TP
+.B 1400-1499
+.br
+execution errors or feedback.
+.TP
+.B 1403
+.br
+end of data was reached on an orafetch command.
+.TP
+.B 1406
+.br
+a column fetched by orafetch was truncated.  Can occur when fetching a 
+LONG or LONG RAW, and the \fImaxlong\fR value is smaller than the
+acutal data size.
+.B 3123
+.br
+asynchronous execution is pending completion.
+.RE
+.TP
+.B errortxt
+.br
+the message text associated with rc.  Since the oraplexec command
+may invoke several SQL statements, there is a possiblity that
+several messages may be received from the server.  
+.TP
+.B collengths
+.br
+is a Tcl list of the lengths of the columns returned by oracols.  
+Collengths is only set by oracols.
+.TP
+.B coltypes
+.br
+is a Tcl list of the types of the columns returned by oracols.  
+Coltypes is only set by oracols.  Possible types returned are:
+char, varchar2 (Version 7),  number, long, rowid, date,
+raw, long_raw, mlslabel (Version 7), raw_mlslabel (Version 7), unknown.
+.TP
+.B colprecs
+.br
+is a Tcl list of the precision of the numeric columns returned by oracols.  
+Colprecs is only set by oracols.  For non-numeric columns, the list entry
+is a null string.  The colprecs element only returns meaningful information
+when Oratcl is compiled for Version 7.
+Due to an OCI limitation in Version 6, zeros are 
+returned as precision.
+.TP
+.B colscales
+.br
+is a Tcl list of the scale of the numeric columns returned by oracols.  
+Colprecs is only set by oracols.  For non-numeric columns, the list entry
+is a null string.  The colscales element only returns meaningful information
+when Oratcl is compiled for Version 7.
+Due to an OCI limitation in Version 6, zeros are 
+returned as scale.
+.TP
+.B sqlfunc
+.br
+the numeric OCI code of the last sql function performed.  See the OCI manual
+for descriptions.
+.TP
+.B peo
+.br
+parse error offset, an index into an sql string that failed due to error.
+.TP
+.B ocifunc
+.br
+the number OCI code of the last OCI function called by Oratcl.  See the
+OCI manual for descriptions.
+.TP
+.B rows
+.br
+the number of rows affected by an
+\fIinsert, update, \fRor\fI delete\fR
+in an orasql
+command, or the
+cumulative number of rows fetched by orafetch.
+.TP
+.B rowid
+.br
+the Oracle ROWID of the row affected by a \fIselect
+insert, update, \fRor\fI delete\fR
+in an orasql, orabindexec, or orafetch command.
+The rowid element is formatted as a hexadecimal character string that
+is suitable for use in subsequent SQL.
+.TP
+.B ociinfo
+.br
+a list of features present in the Oracle library when Oratcl was compiled.
+Possible values are: either 
+.sp 
+"version_6" or "version_7" - reflects the Oracle version
+.sp 
+"non_blocking" and "cursor_variables" - Oracle version 7.2+ 
+non-blocking SQL execution and PL/SQL cursor variables.  
+.sp
+.SH NOTES
+.P
+Tcl errors can also be raised by any Oratcl command if a command's internal
+calls to OCI library routines fail.  
+.P
+Oracle is very particular about using date literals in SQL.  The proper date
+format is 'dd-mmm-yy', where dd is a numeric day, mmm is a three character 
+month name, yy is two digit year.  Some versions of Oracle give very strange 
+results or failures if date values are not in this format.
+.P
+The limit of the number of simultaneous connections and cursors
+is artificial, based on
+a fixed table in oratcl.c.  Change the source 
+.I #define ORATCLLDAS 
+or 
+.I #define ORATCLCURS
+if more are needed.  
+.P
+Oratcl does not mix well with Tcl slave interpreters.  If Oratcl functions
+are needed in a slave, set up alias commands in the slave to execute Oratcl
+commands in the master interpreter.  See the 'interp' man page.
+.P
+The maximum amount of LONG or LONG RAW data returned by orafetch is ultimately
+dependent on Oratcl's ability to malloc() \fImaxlong\fR bytes of memory
+for each LONG/LONG RAW column retrieved.  Setting
+oramsg(maxlong) to too high a value may cause core dumps
+or memory shortages.  
+.P
+Orareadlong compiled for Version 7 will utilize the oflng() OCI
+function; otherwise, a single data allocation will be made to hold the
+entire data.  If memory cannot be allocated, the command will fail.
+.P
+Unfortunately, OCI does not provide a way to write a LONG/LONG RAW
+column in chunks.  The entire amount of data required to perform
+orawritelong is allocated in a single request.  Again, if memory cannot
+be allocated, the command will fail.
+.P
+Orafetch normally caches 10 rows at a time from the Oracle server.  When
+a query contains a LONG or LONG RAW column, single rows are retrieved
+from the server in order to prevent memory shortages.
+.sp
+Cursor variables returned by oraplexec must be specified as a currently
+open cursor from the same logon connection:
+.RS
+.sp
+set lda [oralogon scott/tiger]
+.br
+set exec_cur [oraopen $lda]
+.br
+set fetch_cur [oraopen $lda]
+.br
+set plsql { begin
+.br
+	   open :fetchcur for select empno, ename
+.br
+	   from emp where job = :job ;
+.br
+	   end;
+.br
+	}
+.br
+oraplexec  $exec_cur  $plsql  :job  ANALYST  :fetchcur  $fetch_cur
+.br
+orafetch  $fetch_cur  {puts "$empno $ename"}  ""  empno  1  ename  2
+.RE
+.sp
+Using SQL bind variables are more efficient than letting Oracle reparse
+SQL statements.  Use a combination of orasql ... -parseonly / orabindexec:
+.sp
+.RS
+set sql "insert into name_tab(first_name) values(:firstname)" 
+.br
+orasql $cur $sql -parseonly
+.br
+foreach name [list Ted Alice John Sue] {
+.br
+  orabindexec $cur :firstname $name
+.br
+}
+.sp
+.RE
+rather than:
+.sp
+.RS
+foreach name [list Ted Alice John Sue] {
+.br
+  set sql "insert into name_tab(first_name) values('$name')"
+.br
+  orasql $cur $sql
+.br
+}
+.sp
+.RE
+.sp
+.SH ENVIRONMENT VARIABLES
+.TP
+ORACLE_SID - The default Oracle server system ID.
+.sp
+.SH FILES
+.TP
+/etc/oratab
+.TP
+/etc/sqlnet
+.TP
+$HOME/.sqlnet - definitions for Oracle servers.
+.sp
+.SH BUGS
+Orawritelong compiled for Version 7 will may be problematic 
+until a specific OCI function is available from Oracle.
+.P
+Oracle OCI (Oracle Call Interface) libraries for Oracle release 7.1.4 may
+cause problems due to changes that Oracle introduced in that version.  Use
+OCI libraries 7.0.x or 7.1.6+ if you experience 
+symptoms of excessively long connect times (2+ minutes) or "fetch out of
+sequence" errors.
+.sp
+.SH AUTHOR
+Tom Poindexter, Denver Colorado.  Version 2.5 released May 1997.
+Concepts borrowed from my earlier work with Sybtcl, a TCL interface to
+the Sybase RDBMS product.
+.sp
+.P
+tpoindex@nyx.net
