@@ -279,7 +279,6 @@ test oralob-4.2 {oralob: write clob 'null string'} {
 } {1}
 }
 
-puts [oradesc $type_lda oratcl_type_table]
 
 oraparse $type_stm $type_sql(drop_type_table)
 oraexec $type_stm
