@@ -63,7 +63,7 @@ INCLUDES =	-I$(TOOLS32)/include	\
 		-I$(ORACLE_OCI)/include	\
 		-I../generic
 
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DUSE_TCL_STUBS -DVERSION8DB -DVERSION=\"4.1\" -DLIBRARY1=\"oralob.tcl\" -DLIBRARY2=\"oralong.tcl\"
+DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DUSE_TCL_STUBS -DVERSION8DB -DVERSION=\"4.1\" 
 
 !include <ntwin32.mak>
 
@@ -72,7 +72,9 @@ DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DUSE_TCL_STUBS -DVERSION8DB -DVERS
 #
 
 DLLOBJS = \
-	$(WINDIR)\oratcl.obj
+	$(WINDIR)\oratcl.obj \
+	$(WINDIR)\oralob.obj \
+	$(WINDIR)\oralong.obj
 
 # Targets
 
@@ -90,6 +92,14 @@ $(PROJECT).dll: $(DLLOBJS)
 #		$(DEFINES) -Fo$(WINDIR)\ $<
 
 $(WINDIR)\oratcl.obj: $(GENERICDIR)\oratcl.c
+	$(cc32) $(cdebug) $(cflags) $(cvarsdll) $(INCLUDES) \
+		$(DEFINES) -Fo$(WINDIR)\ $?
+
+$(WINDIR)\oralob.obj: $(GENERICDIR)\oralob.c
+	$(cc32) $(cdebug) $(cflags) $(cvarsdll) $(INCLUDES) \
+		$(DEFINES) -Fo$(WINDIR)\ $?
+
+$(WINDIR)\oralong.obj: $(GENERICDIR)\oralong.c
 	$(cc32) $(cdebug) $(cflags) $(cvarsdll) $(INCLUDES) \
 		$(DEFINES) -Fo$(WINDIR)\ $?
 

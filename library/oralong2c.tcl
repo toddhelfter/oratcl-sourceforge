@@ -15,14 +15,11 @@ proc convert_function {procname} {
 	puts stdout "\t/*"
 	puts stdout "\t *  Create the $procname proc."
 	puts stdout "\t */"
-	puts stdout "\tproc = \" \\"
-	puts stdout "\t\tproc $procname {$a} { \\"
-
+        puts stdout "\tproc = \"proc $procname {$a} { \""
 	foreach l [split $b \n] {
 		putline $l
 	}
-	puts stdout "\t\t} \\"
-	puts stdout "\t\";"
+        puts stdout "\t\t\"} \";"
 	puts stdout {}
 	puts stdout "\tTcl_Eval(interp, proc);"
 	puts stdout {}
@@ -41,9 +38,9 @@ proc putline {line} {
 	regsub -all \" $line \\\\" line
 
 	if {[info complete $line]} {
-		puts stdout [format "\t\t%s; \\" $line]
+		puts stdout [format "\t\t\"%s; \"" $line]
 	} else {
-		puts stdout [format "\t\t%s \\" $line]
+		puts stdout [format "\t\t\"%s \"" $line]
 	}
 }
 
