@@ -623,8 +623,6 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 
 		case OCI_SUCCESS:
 			break;
-		case OCI_SUCCESS_WITH_INFO:
-			break;
 		case OCI_NEED_DATA:
 			Tcl_DStringAppend(&errStr, "OCI_NEED_DATA", -1);
 			break;
@@ -632,6 +630,7 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 			Tcl_DStringAppend(&errStr, "OCI_NO_DATA", -1);
 			errcode = NO_DATA_FOUND;
 			break;
+		case OCI_SUCCESS_WITH_INFO:
 		case OCI_ERROR:
 			OCIErrorGet ( (dvoid *) errhp,
 				      (ub4) 1,
@@ -1183,6 +1182,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
+	Tcl_DString	logonMsg;
 	OratclLogs	*LogPtr;
 	int		new;
 
@@ -1376,17 +1376,23 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
 
-	if (rc != OCI_SUCCESS) {
+	if ( (rc != OCI_SUCCESS) && (rc != OCI_SUCCESS_WITH_INFO) ) {
 		(void) OCIServerDetach(LogPtr->srvhp, LogPtr->errhp, (ub4) OCI_DEFAULT);
-		Oratcl_LogFree(LogPtr);
-		Tcl_DeleteHashEntry(logHashPtr);
 
+		Tcl_DStringInit(&logonMsg);
+		Tcl_DStringAppend(&logonMsg, ":", -1);
+		Tcl_DStringAppend(&logonMsg,
+				  Tcl_DStringValue(&LogPtr->ora_err), -1);
+        
 		Oratcl_ErrorMsg(interp,
 				objv[0],
-				": invalid username/password; logon denied",
+                Tcl_DStringValue(&logonMsg),
 				(Tcl_Obj *) NULL,
 				(char *) NULL);
 
+		Oratcl_LogFree(LogPtr);
+		Tcl_DeleteHashEntry(logHashPtr);
+		Tcl_DStringFree(&logonMsg);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
