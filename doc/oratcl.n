@@ -814,9 +814,13 @@ The path to the Oracle home directory for ORACLE_SID.
 .TP
 /etc/oratab or /var/opt/oracle/oratab
 .TP
-/etc/sqlnet
+$ORACLE_HOME/network/admin/tnsnames.ora 
 .TP
-$HOME/.sqlnet - definitions for Oracle servers.
+/etc/tnsnames.ora 
+.TP
+/var/opt/oracle/tnsnames.ora
+.TP
+$HOME/.tnsnames.ora - definitions for Oracle servers.
 .sp
 .SH BUGS
 None known.
