@@ -10,14 +10,15 @@
  *
  */
 
-#if defined(_WIN32) || defined(__WIN32__)
-#include <windows.h>
-#endif
 
 #if defined(WIN32) || defined(_WIN32)
 #ifndef __WIN32__
 #define __WIN32__
 #endif
+#endif
+
+#if defined(__WIN32__)
+#include <windows.h>
 #endif
 
 #include "oratypes.h"
