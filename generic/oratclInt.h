@@ -121,6 +121,7 @@ static Tcl_Obj		*OraMsgArray;
 
 static Tcl_Obj		*OMV_null;
 static Tcl_Obj		*OMV_zero;
+static Tcl_Obj		*OMV_auto;
 
 static Tcl_Obj		*OM_errortxt;
 static Tcl_Obj		*OM_rc;

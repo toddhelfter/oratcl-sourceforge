@@ -288,5 +288,7 @@ Version 3.3 June, 2001
 	datatypes.  /test/oradesc.test has been altered to allow for this.
     -	Attempt a different method of library directory detection.
     -   Alter configuration to detect and use Oracle 9i in a unix build.
+    -   Corrected the eval of library files (oralob.tcl, oralong.tcl) from
+	within the 'C' code.
 
 -----------------------------------------------------------------------------

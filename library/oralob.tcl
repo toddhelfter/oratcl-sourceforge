@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.5 2000-10-13 14:56:23 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.6 2001-06-12 18:46:36 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -13,6 +13,7 @@ namespace eval oratcl {
 	variable loblst
 	variable lobidx 0
 
+	set oralob(script) [info script]
 	set oralob(oratcl_ok) 0
 	set oralob(oratcl_error) 1
 

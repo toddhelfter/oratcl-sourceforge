@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.3 2000-10-13 15:50:38 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.4 2001-06-12 18:46:36 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -13,6 +13,7 @@ namespace eval oratcl {
 	variable longlst
 	variable longidx 0
 
+	set oralong(script) [info script]
 	set oralong(oratcl_ok) 0
 	set oralong(oratcl_error) 1
 

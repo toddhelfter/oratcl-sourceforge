@@ -301,6 +301,7 @@ Oratcl_Exit (clientData)
 	Tcl_DecrRefCount(OraMsgArray);
 	Tcl_DecrRefCount(OMV_null);
 	Tcl_DecrRefCount(OMV_zero);
+	Tcl_DecrRefCount(OMV_auto);
 	Tcl_DecrRefCount(OM_rc);
 	Tcl_DecrRefCount(OM_rows);
 	Tcl_DecrRefCount(OM_peo);
@@ -350,11 +351,16 @@ Oratcl_Init (interp)
 	OratclStateList *StateListPtr;
 
 	Tcl_DString	oratclPath;
-	char		*path[2];
+	char		*path[3];
 	int		libix;
 
 	int		pargc;
 	char		**pargv;
+
+	int		path_cnt;
+	Tcl_Obj		*pathObj;
+        Tcl_Obj		**pathObjv;
+        int		pathObjc;
 
 #ifdef USE_TCL_STUBS
 	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
@@ -394,9 +400,11 @@ Oratcl_Init (interp)
 
 		OMV_null	= Tcl_NewStringObj("",	-1);
 		OMV_zero	= Tcl_NewIntObj(0);
+		OMV_auto	= Tcl_NewStringObj("auto_path", -1);
 
 		Tcl_IncrRefCount(OMV_null);
 		Tcl_IncrRefCount(OMV_zero);
+		Tcl_IncrRefCount(OMV_auto);
 
 		/*
 		 * Initialize oramsg global array, inital null elements
@@ -548,13 +556,20 @@ Oratcl_Init (interp)
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
 
-	path[0] = Tcl_GetVar2(interp, "oratcl", "path", TCL_GLOBAL_ONLY);
-	if (path[0] != NULL) {
+	/* source the tcl portion of the oratcl package. */
+	pathObj = Tcl_ObjGetVar2(interp, OMV_auto, NULL, TCL_GLOBAL_ONLY);
+
+	Tcl_ListObjGetElements(interp, pathObj, &pathObjc, &pathObjv);
+	path[1] = "oratcl"VERSION;
+	for (path_cnt = 0; path_cnt < pathObjc; path_cnt ++) {
+		path[0] = Tcl_GetStringFromObj(pathObjv[path_cnt], NULL);
 		for (libix=0; OraLibraryList[libix] != NULL; libix++) {
-			path[1] = OraLibraryList[libix];
 			Tcl_DStringInit(&oratclPath);
-			Tcl_JoinPath(2, path, &oratclPath);
-			Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
+			path[2] = OraLibraryList[libix];
+			Tcl_JoinPath(3, path, &oratclPath);
+			if (Tcl_Access(Tcl_DStringValue(&oratclPath), 4) == 0) {
+				Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
+			}
 			Tcl_DStringFree(&oratclPath);
 		}
 	}
