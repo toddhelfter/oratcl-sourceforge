@@ -139,3 +139,4 @@ proc insert_data {} {
 }
 
 insert_data
+oracommit $ora_lda

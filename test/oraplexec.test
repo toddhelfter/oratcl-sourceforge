@@ -7,7 +7,14 @@
 #
 
 if {[info exists ora_lda] == 0} {
-	source [file  join [pwd] [file dirname [info script]] defs.tcl] }
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+global ora_constr
+set pl_lda [oralogon $ora_constr]
+set pl_stm [oraopen $pl_lda]
+set pl_exe [oraopen $pl_lda]
+set pl_get [oraopen $pl_lda]
 
 set oratcl___test1 {
 	create or replace function oratcl___test1 (
@@ -42,15 +49,32 @@ set oratcl___test2 {
 	end;
 }
 
-test oraplexec-1.0 {oraplexec: :bind = function(val, val)} {
-  oraplexec $ora_cur $oratcl___test1
-  oraplexec $ora_cur $oratcl___test2
-} {}
+set oratcl_pkg {
+	CREATE OR REPLACE PACKAGE oratcl___test_pkg AS
+		TYPE CurType IS REF CURSOR RETURN oratcl___tests%ROWTYPE;
+		PROCEDURE open_ref_cur (ref_cur IN OUT CurType);
+	END;
+}
+
+set oratcl_pkgbody {
+	CREATE OR REPLACE PACKAGE BODY oratcl___test_pkg AS
+		PROCEDURE open_ref_cur (ref_cur IN OUT CurType) IS
+		BEGIN
+			OPEN ref_cur FOR SELECT * FROM oratcl___tests
+				WHERE v_number is not null;
+		END open_ref_cur;
+	END;
+}
+
+oraplexec $pl_stm $oratcl___test1
+oraplexec $pl_stm $oratcl___test2
+oraplexec $pl_stm $oratcl_pkg
+oraplexec $pl_stm $oratcl_pkgbody
 
 test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {
   set pl(1) {declare my_result date; begin :my_result := oratcl___test1(22, '22'); end;}
-  oraplexec $ora_cur $pl(1) :my_result {}
-  set rv(1) [orafetch $ora_cur]
+  oraplexec $pl_stm $pl(1) :my_result {}
+  set rv(1) [orafetch $pl_stm]
   set res $rv(1)
   unset rv(1)
   set res
@@ -58,8 +82,8 @@ test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {
 
 test oraplexec-1.2 {oraplexec: :bind = function(:bindval, val)} {
   set pl(2) {declare my_result date; begin :my_result := oratcl___test1(:in1, '22'); end;}
-  oraplexec $ora_cur $pl(2) :my_result {} :in1 22
-  set rv(2) [orafetch $ora_cur]
+  oraplexec $pl_stm $pl(2) :my_result {} :in1 22
+  set rv(2) [orafetch $pl_stm]
   set res $rv(2)
   unset rv(2)
   set res
@@ -67,8 +91,8 @@ test oraplexec-1.2 {oraplexec: :bind = function(:bindval, val)} {
 
 test oraplexec-1.3 {oraplexec: :bind = function(:bindval, :bindval)} {
   set pl(3) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
-  oraplexec $ora_cur $pl(3) :my_result {} :in1 22 :in2 {22}
-  set rv(3) [orafetch $ora_cur]
+  oraplexec $pl_stm $pl(3) :my_result {} :in1 22 :in2 {22}
+  set rv(3) [orafetch $pl_stm]
   set res $rv(3)
   unset rv(3)
   set res 
@@ -76,49 +100,62 @@ test oraplexec-1.3 {oraplexec: :bind = function(:bindval, :bindval)} {
 
 test oraplexec-1.4 {oraplexec: bad bind pairs :: result} {
   set pl(4) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
-  catch {oraplexec $ora_cur $pl(4) :my_result {} :in1 22 :in2} res
+  catch {oraplexec $pl_stm $pl(4) :my_result {} :in1 22 :in2} res
   set res
 } "ORA-01008: not all variables bound\n"
 
 test oraplexec-1.5 {oraplexec: bad bind pairs :: error code} {
   set pl(5) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
-  catch {oraplexec $ora_cur $pl(5) :my_result {} :in1 22 :in2} res
+  catch {oraplexec $pl_stm $pl(5) :my_result {} :in1 22 :in2} res
   set oramsg(rc)
 } {1008}
 
 test oraplexec-1.6 {oraplexec: bad pl/sql :: error text} {
   set pl(9) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
-  catch {oraplexec $ora_cur $pl(5) :my_result {} :in1 22 :in2} res
+  catch {oraplexec $pl_stm $pl(5) :my_result {} :in1 22 :in2} res
   set oramsg(errortxt)
 } "ORA-01008: not all variables bound\n"
 
 test oraplexec-1.7 {oraplexec: bad pl/sql :: result} {
   set pl(7) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
-  catch {oraplexec $ora_cur $pl(7) :my_result {} :in1 22 :in2 22} res
+  catch {oraplexec $pl_stm $pl(7) :my_result {} :in1 22 :in2 22} res
   set res
 } "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored\n"
 
 test oraplexec-1.8 {oraplexec: bad pl/sql :: error code} {
   set pl(8) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
-  catch {oraplexec $ora_cur $pl(8) :my_result {} :in1 22 :in2 22}
+  catch {oraplexec $pl_stm $pl(8) :my_result {} :in1 22 :in2 22}
   set oramsg(rc)
 } {6550}
 
 test oraplexec-1.9 {oraplexec: bad pl/sql :: error text} {
   set pl(9) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
-  catch {oraplexec $ora_cur $pl(9) :my_result {} :in1 22 :in2 22}
+  catch {oraplexec $pl_stm $pl(9) :my_result {} :in1 22 :in2 22}
   set oramsg(errortxt)
 } "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored\n"
 
 test oraplexec-1.10 {oraplexec: :bind = function(val)} {
   set pls {declare my_result boolean; begin :my_result := oratcl___test2(5); end;}
-  catch {oraplexec $ora_cur $pls :my_result {} } res
-	#puts [array get oramsg]
+  catch {oraplexec $pl_stm $pls :my_result {} } res
   set res
 } "ORA-06550: line 1, column 48:\nPLS-00382: expression is of wrong type\nORA-06550: line 1, column 34:\nPL/SQL: Statement ignored\n"
 
-orasql $ora_cur "drop function oratcl___test1"
-orasql $ora_cur "drop function oratcl___test2"
+test oraplexec-1.11 {oraplexec: procedure(:bind_ref_cursor)} {
+	set plsql {begin oratcl___test_pkg.open_ref_cur(:ret_cur); end;}
+	oraplexec $pl_exe $plsql :ret_cur $pl_get
+	set cnt 0
+	orafetch $pl_get "incr cnt"
+	set cnt
+} 30
+
+orasql $pl_stm "drop function oratcl___test1"
+orasql $pl_stm "drop function oratcl___test2"
+orasql $pl_stm "drop package oratcl___test_pkg"
+
+oraclose $pl_get
+oraclose $pl_exe
+oraclose $pl_stm
+oralogoff $pl_lda
 
 ::tcltest::cleanupTests
 return
