@@ -246,7 +246,9 @@ Oratcl_Exit (clientData)
 	Tcl_DecrRefCount(OMV_zero);
 
 #if 0
+#ifdef TCL_MEM_DEBUG
 	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
+#endif
 #endif
 }
 
@@ -1856,11 +1858,9 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 		if (serverStatus == OCI_SERVER_NORMAL) {
 			res_obj = Tcl_NewIntObj(OCI_SERVER_NORMAL);
-			fprintf(stderr, "Connection is up.\n");
 		}
 		if (serverStatus == OCI_SERVER_NOT_CONNECTED) {
 			res_obj = Tcl_NewIntObj(OCI_SERVER_NOT_CONNECTED);
-			fprintf(stderr, "Connection is down.\n");
 		}
 		Tcl_IncrRefCount(res_obj);
 		Tcl_SetObjResult(interp, res_obj);
