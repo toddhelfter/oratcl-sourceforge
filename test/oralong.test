@@ -46,8 +46,12 @@ set long_sql(drop_longraw_table) {
 	drop table oratcl_longraw
 }
 
-catch {orasql $long_stm $long_sql(drop_long_table)}
-orasql $long_stm $long_sql(create_long_table)
+oraparse $long_stm $long_sql(drop_long_table)
+catch {oraexec $long_stm}
+
+oraparse $long_stm $long_sql(create_long_table)
+oraexec $long_stm
+
 oraparse $long_stm $long_sql(insert_long_table)
 orabindexec $long_stm :long_key l1
 orabindexec $long_stm :long_key l2
