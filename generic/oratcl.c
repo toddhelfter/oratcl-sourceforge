@@ -93,10 +93,20 @@
  *  problems with Tcl 8.0
  * -add 'rowid' oramsg element, thanks to Dennis I. Urasov
  *-----------------------------------------------------------------------------
- * Version 2.6 August, 1999
+ * Version 2.6 September, 1999
  * Mariam Tariq, Scriptics Corporation
  * mtariq@scriptics.com
- * -added support for Internationalization features of Tcl8.1
+ * -Note: Oracle 7 OCI API is still used. Oracle 8 libraries still support
+ *  the Oracle 7 calls. However, new Oracle 8 features such as functions
+ *  to manipulate LOB's are not accessible by Oratcl. Oratcl needs to be
+ *  rewritten with the new Oracle 8 API's to take advantage of the new
+ *  features.
+ * -add support for Internationalization features of Tcl8.1
+ * -add stub awareness
+ * -OCI 7 call called ologon does not work with some versions of Oracle 8i(e.g.
+ *  version 8.1.5 on NT). So Oracle 8 OCILogon is used for logging in. The
+ *  service context handle is then converted to an lda such that the Oracle
+ *  7 calls can be used again.
  *-----------------------------------------------------------------------------
  */
 
@@ -111,6 +121,7 @@
 #endif
 
 #include "tcl.h"
+#include "Oratypes.h"
 
 /* simple memory debugging, to make sure we alloc and free the same amount */ 
 #ifdef ORATCL_MEM_DEBUG
@@ -527,6 +538,34 @@ extern Tcl_CmdProc  Oratcl_Poll;
 extern Tcl_CmdProc  Oratcl_Break;
 #endif
 
+/*----------------------------------------------------------------------
+*  Oracle 8 OCI API declarations
+*/
+typedef struct OCIEnv           OCIEnv;            /* OCI environment handle */
+typedef struct OCIError         OCIError;                /* OCI error handle */
+typedef struct OCISvcCtx        OCISvcCtx;             /* OCI service handle */
+
+#define OCIEnv                     ocienvh
+#define OCIError                   ocierrh
+#define OCISvcCtx                  ocisvch
+
+typedef struct ocienvh ocienvh;                    /* OCI environment handle */
+typedef struct ocierrh ocierrh;                          /* OCI error handle */
+typedef struct ocisvch ocisvch;                        /* OCI service handle */
+
+#define ocienvh                         OCIEnv             
+#define ocierrh                         OCIError 
+#define ocisvch                         OCISvcCtx
+            
+#define OCI_DEFAULT  0x00 /* the default value for parameters and attributes */
+
+static OCIEnv     *p_env;
+static OCIError   *p_err;
+static OCISvcCtx  *p_svc; 
+
+
+#define OCI_HTYPE_ERROR 2                                    /* error handle */
+#define OCI_HTYPE_SVCCTX 3                                 /* service handle */
 
 
 /* 
@@ -1279,7 +1318,10 @@ Oratcl_Logon (clientData, interp, argc, argv)
     int        i;
     int        rc;
     char       buf[ORA_MSG_SIZE];
-
+    int namelen, pwlen, connlen;
+    char *name;
+    char *pword;
+    char *conn;
 
     /* can't use ora_prologue, oralogon creates a logon handle */
 
@@ -1327,11 +1369,50 @@ Oratcl_Logon (clientData, interp, argc, argv)
     /* orlon sometimes fails on first attempt, but then works on next */
     /* attempt in some cases.  try orlon 2nd time if fail on 1st try  */
 
+#ifdef VERSION7DB
     rc = orlon(OraLdas[hand].lda, OraLdas[hand].hda,argv[1], -1, NULL, -1,0);
     if (rc != 0) {
       rc = orlon(OraLdas[hand].lda, OraLdas[hand].hda,argv[1], -1, NULL, -1,0);
     }
+#endif
 
+#ifndef VERSION7DB
+   /* Use Oracle 8 API call OCILogon. orlon does not seen to work with later
+      versions of Oracle 8i */   
+
+   rc = OCIInitialize((ub4) OCI_DEFAULT, (dvoid *)0,
+            (dvoid * (*)(dvoid *, size_t)) 0,
+            (dvoid * (*)(dvoid *, dvoid *, size_t))0,
+            (void (*)(dvoid *, dvoid *)) 0 );
+
+   rc = OCIEnvInit( (OCIEnv **) &p_env, OCI_DEFAULT, (size_t) 0, (dvoid **) 0);
+
+   rc = OCIHandleAlloc( (dvoid *) p_env, (dvoid **) &p_err, OCI_HTYPE_ERROR,
+         (size_t) 0, (dvoid **) 0);
+
+   rc = OCIHandleAlloc( (dvoid *) p_env, (dvoid **) &p_svc, OCI_HTYPE_SVCCTX,
+         (size_t) 0, (dvoid **) 0);
+ 
+    
+    name = strtok(argv[1], "/@");
+    pword = strtok(NULL, "/@");
+    conn = strtok(NULL, "/@");
+    if (name != NULL) 
+      namelen = strlen(name);
+    else namelen = 0;
+    if (pword != NULL)
+      pwlen = strlen(pword);
+    else pwlen = 0;
+    if (conn != NULL)
+      connlen = strlen(conn);
+    else connlen = 0;
+
+    rc = OCILogon(p_env, p_err, &p_svc, name, namelen, pword, pwlen , conn, connlen);
+
+    OCISvcCtxToLda (p_svc, p_err, OraLdas[hand].lda);
+    
+#endif
+    
     if (rc != 0) {
 	/* logon failed, cleanup */
 	/* can't use get_lda_err(), may not have connected to server*/
