@@ -4351,9 +4351,9 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				StmPtr->bind_list = NULL;
 				Oratcl_ErrorMsg(interp,
 						objv[0],
-						": bind variable ",
+						": bind variable '",
 						objv[parm_cnt],
-						"does not begin with ':'");
+						"' does not begin with ':'");
 				tcl_return = TCL_ERROR;
 				goto common_exit;
 			}
