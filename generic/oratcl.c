@@ -42,7 +42,7 @@
 
 EXTERN Oratcl_Init	_ANSI_ARGS_((Tcl_Interp *interp));
 EXTERN Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp *interp));
- 
+
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
 HINSTANCE hInst;            /* Library instance handle. */
@@ -51,9 +51,9 @@ LPVOID reserved;            /* Not used. */
 {
     return TRUE;
 }
- 
+
 #define strncasecmp strnicmp
- 
+
 #endif
 
 /*
@@ -70,7 +70,7 @@ Tcl_ObjType *tListObjType = NULL;
 
 
 OratclStateList	*OratclSLP = NULL;
- 
+
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
 extern int	  Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp		*interp));
 extern void    	  Oratcl_StmFree	_ANSI_ARGS_((OratclStms		*StmPtr));
@@ -92,7 +92,7 @@ extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
 extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
 
-/* 
+/*
  *----------------------------------------------------------------------
  * Oratcl_ErrorMsg
  *    This procedure generates a Oratcl error message in interpreter.
@@ -109,7 +109,7 @@ extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
  */
 
 void
-Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1) 
+Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 	Tcl_Interp	*interp;
 	Tcl_Obj 	*obj0, *obj1;
 	char		*msg0, *msg1;
@@ -139,7 +139,7 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 /*
  *----------------------------------------------------------------------
  * Oratcl_Clean --
- *   utility function to close all handles. 
+ *   utility function to close all handles.
  *----------------------------------------------------------------------
  */
 
@@ -576,12 +576,12 @@ Oratcl_Init (interp)
 /*
  *----------------------------------------------------------------------
  * Oratcl_SafeInit --
- *	call the standard init point.  
+ *	call the standard init point.
  *----------------------------------------------------------------------
  */
 
 int
-Oratcl_SafeInit (interp) 
+Oratcl_SafeInit (interp)
 	Tcl_Interp *interp;
 {
 	int result;
@@ -745,7 +745,7 @@ Oratcl_ColFree (ColPtr)
 		
 		ckfree ((char *) ColPtr->indp);
 		ckfree ((char *) ColPtr->rlenp);
-		ckfree ((char *) ColPtr->rcodep); 
+		ckfree ((char *) ColPtr->rcodep);
 
 		ckfree((char *) ColPtr);
 		ColPtr = next;
@@ -775,10 +775,10 @@ Oratcl_StmFree (StmPtr)
 		Tcl_DecrRefCount(StmPtr->nullvalue);
 		Tcl_DStringFree(&StmPtr->ora_err);
 
-		if (StmPtr->oColsv != NULL) 
+		if (StmPtr->oColsv != NULL)
 			ckfree((char *) StmPtr->oColsv);
 
-		if (StmPtr->sub_list != NULL) 
+		if (StmPtr->sub_list != NULL)
 			ckfree((char *) StmPtr->sub_list);
 
 		ckfree((char *) StmPtr);
@@ -871,7 +871,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
 
 	for (col = ColPtr; col != NULL; col = col->next) {
-      
+
 		/* for cursor type, just return a null */
 		/* get pointer to next row column data buffer */
 
@@ -887,7 +887,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 				StmPtr->oColsv[oColsc++] = OMV_null;
 			} else {
 				/* default :: if number "0" else "" */
-				if (*null_str == 'd' 
+				if (*null_str == 'd'
 				   && strcmp(null_str,"default") == 0) {
 
 					if (col->column.typecode == SQLT_NUM) {
@@ -933,8 +933,8 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 						TCL_LEAVE_ERR_MSG);
 				Tcl_DecrRefCount(tmp_obj);
 			} else {
-				/* 
-				 * it is ok that oColsc has been incremented already, 
+				/*
+				 * it is ok that oColsc has been incremented already,
 				 * column 0 should be hash index 1
 				 */
 				Tcl_ObjSetVar2(interp,
@@ -1021,7 +1021,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 	for (parmix = 1; parmix <= parmcnt; parmix++) {
 
 		rc = OCIParamGet( (dvoid *) StmPtr->stmhp,
-				  (ub4) OCI_HTYPE_STMT, 
+				  (ub4) OCI_HTYPE_STMT,
 				  (OCIError *) LogPtr->errhp,
 				  (dvoid *) &parmdp,
 				  (ub4) parmix);
@@ -1095,7 +1095,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 #endif
 #if ORA_MAJOR_VERSION == 8 && ORA_MINOR_VERSION > 0
 		case SQLT_CLOB:					/* 112	*/
-			/* 
+			/*
 			 * TMH :: need an OCILobLocator
 			 *        must by to a SQLT_CLOB type
 			 */
@@ -1104,7 +1104,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 			new_col->dty = SQLT_CLOB;
 			break;
 		case SQLT_BLOB:					/* 113	*/
-			/* 
+			/*
 			 * TMH :: need an OCILobLocator
 			 *        must by to a SQLT_BLOB type
 			 */
@@ -1119,7 +1119,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 		}
 	
 		new_col->column.valuesz = new_col->column.valuesz + 1;
-		new_col->column.valuep = 
+		new_col->column.valuep =
 			ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
 		StmPtr->fetchmem = StmPtr->fetchrows;
 
@@ -1171,7 +1171,7 @@ Oratcl_ColDescribe (interp, StmPtr)
  *         name/password
  *         name@d:dbname
  *         name/password@d:dbname
- *	                
+ *
  *    results:
  *	handle - a character string of newly open logon handle
  *      TCL_OK - connect successful
@@ -1419,7 +1419,7 @@ common_exit:
  *    Implements the oralogoff command:
  *    usage: oralogon lda_handle
  *       lda_handle should be a valid, open lda handle from oralogon
- *	                
+ *
  *    results:
  *	null string
  *      TCL_OK - logoff successful
@@ -1512,7 +1512,7 @@ common_exit:
  * Oratcl_Commit --
  *    Implements the oracommit command:
  *    usage: oracommit lda_handle
- *	                
+ *
  *    results:
  *	null string
  *      TCL_OK - transactions commited
@@ -1590,7 +1590,7 @@ common_exit:
  * Oratcl_Roll --
  *    Implements the oraroll command:
  *    usage: oraroll lda_handle
- *	                
+ *
  *    results:
  *	null string
  *      TCL_OK - transactions rolled back
@@ -1668,7 +1668,7 @@ common_exit:
  * Oratcl_Autocom --
  *    Implements the oraautocom command:
  *    usage: oraautocom lda_handle on|off
- *	                
+ *
  *    results:
  *	null string
  *      TCL_OK - auto commit set on or off
@@ -1736,11 +1736,11 @@ common_exit:
  * Oratcl_Info --
  *    Implements the orainfo command:
  *    usage: orainfo lda_handle
- *	                
+ *
  *    results:
  *	server information
- *      TCL_OK - 
- *      TCL_ERROR - 
+ *      TCL_OK -
+ *      TCL_ERROR -
  *----------------------------------------------------------------------
  */
 
@@ -1945,7 +1945,7 @@ common_exit:
  * Oratcl_Open --
  *    Implements the oraopen command:
  *    usage: oralogon lda_handle
- *	                
+ *
  *    results:
  *	stm_handle
  *      TCL_OK - OCIAllocHandle successful
@@ -2019,7 +2019,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
-    
+
 	Tcl_SetHashValue(stmHashPtr, StmPtr);
 
 	StmPtr->stmid = OratclStatePtr->stmid;
@@ -2097,11 +2097,11 @@ common_exit:
  * Oratcl_Message --
  *    Implements the oramsg command:
  *    usage: oramsg stm_handle
- *	                
+ *
  *    results:
  *	oracle message information
- *      TCL_OK - 
- *      TCL_ERROR - 
+ *      TCL_OK -
+ *      TCL_ERROR -
  *----------------------------------------------------------------------
  */
 
@@ -2167,7 +2167,7 @@ Oratcl_Message (clientData, interp, objc, objv)
 		}
 	}
 
-	/* 
+	/*
 	 *  We will accept either a logon handle or statement handle.
 	 */
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -2271,7 +2271,7 @@ common_exit:
  * Oratcl_Close --
  *    Implements the oraclose command:
  *    usage: oraclose stm_handle
- *	                
+ *
  *    results:
  *	null string
  *      TCL_OK - statement handle closed successfully
@@ -2335,7 +2335,7 @@ common_exit:
  * Oratcl_Sql --
  *    Implements the orasql command:
  *    usage: orasql stm_handle sql_string ?-parseonly? ?-commit?
- *	                
+ *
  *    results:
  *	return code from OCIStmtExecute
  *      TCL_OK - handle is opened, sql executed ok
@@ -2400,8 +2400,8 @@ common_exit:
  *----------------------------------------------------------------------
  * Oratcl_Bindexec --
  *    Implements the orabindexec command:
- *    usage: orabindexec cur_handle ?-commit? :varname value 
- *	                
+ *    usage: orabindexec cur_handle ?-commit? :varname value
+ *
  *    results:
  *	bind :varname value pairs, execute sql
  *	sets message array element "rc" with value of exec rcode
@@ -2506,8 +2506,8 @@ common_exit:
  *----------------------------------------------------------------------
  * Oratcl_Cols --
  *    Implements the oracols command:
- *    usage: oracols stm_handle 
- *	                
+ *    usage: oracols stm_handle
+ *
  *    results:
  *	latest column names as tcl list
  *      TCL_OK - handle is opened
@@ -2653,7 +2653,7 @@ common_exit:
  * Oratcl_PLexec --
  *    Implements the oraplexec command:
  *    usage: oraplexec cur_handle pl_block [ :varname value ]  [ .... ]
- *	                
+ *
  *    results:
  *	return parms in tcl list form
  *      TCL_OK - proc executed
@@ -3081,11 +3081,11 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
  * Oratcl_Describe --
  *    Implements the oradesc command:
  *    usage: oradesc lda_handle table_name
- *	                
+ *
  *    results:
  *	table information
- *      TCL_OK - 
- *      TCL_ERROR - 
+ *      TCL_OK -
+ *      TCL_ERROR -
  *----------------------------------------------------------------------
  */
 
@@ -3389,7 +3389,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 		}
 
 		Tcl_DStringStartSublist(&resStr);
-		Tcl_DStringAppendElement(&resStr, 
+		Tcl_DStringAppendElement(&resStr,
 					 (char *) column.name);
 		Tcl_DStringAppendElement(&resStr,
 					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.size),
@@ -3432,11 +3432,11 @@ common_exit:
  * Oratcl_Config --
  *    Implements the oraconfig command:
  *    usage: oraconfig stm_handle field value
- *	                
+ *
  *    results:
  *	table information
- *      TCL_OK - 
- *      TCL_ERROR - 
+ *      TCL_OK -
+ *      TCL_ERROR -
  *----------------------------------------------------------------------
  */
 
@@ -3735,11 +3735,11 @@ common_exit:
  * Oratcl_LongRead --
  *    Implements the ::oratcl::longread command:
  *    usage: oradesc stm_handle sql_stmt data_var data_type
- *	                
+ *
  *    results:
  *	table information
- *      TCL_OK - 
- *      TCL_ERROR - 
+ *      TCL_OK -
+ *      TCL_ERROR -
  *----------------------------------------------------------------------
  */
 
@@ -3818,7 +3818,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 
 	sql = Tcl_GetStringFromObj(objv[2], &sql_len);
 	btype = Tcl_GetStringFromObj(objv[4], &btype_len);
-	if (*btype == 'l' 
+	if (*btype == 'l'
 	   && strcmp(btype,"longraw") == 0) {
 		bind_type = SQLT_LBI;
 	}
@@ -4023,11 +4023,11 @@ common_exit:
  * Oratcl_LongWrite --
  *    Implements the ::oratcl::longwrite command:
  *    usage: oradesc stm_handle sql_stmt data_var data_type
- *	                
+ *
  *    results:
  *	table information
- *      TCL_OK - 
- *      TCL_ERROR - 
+ *      TCL_OK -
+ *      TCL_ERROR -
  *----------------------------------------------------------------------
  */
 
@@ -4116,7 +4116,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	}
 
 	type = Tcl_GetStringFromObj(objv[4], &type_len);
-	if (*type == 'l' 
+	if (*type == 'l'
 	   && strcmp(type,"longraw") == 0) {
 		bind_type = SQLT_LBI;
 	}
@@ -4267,7 +4267,7 @@ common_exit:
  * Oratcl_Parse --
  *    Implements the ::oratcl::oraparse command:
  *    usage: ::oratcl::oraparse stm_handle sql_string
- *	                
+ *
  *    results:
  *	return code from OCIStmtPrepare or OCIStmtExecute
  *      TCL_OK - handle is opened, sql executed ok
@@ -4441,7 +4441,7 @@ common_exit:
  *    Implements the orabind command:
  *    usage: orabind stm_handle :bindname value ...
  *    usage: ::oratcl::orabind stm_handle :bindname value ...
- *	                
+ *
  *    results:
  *	return code from OCIBindByName
  *      TCL_OK - binding successful
@@ -4773,7 +4773,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 		}
 	}
 	Tcl_SetObjResult(interp, OMV_zero);
-  
+
 common_exit:
 
 	for (objix=0; objix<objc; objix++) {
@@ -4789,7 +4789,7 @@ common_exit:
  *    Implements the oraexec command:
  *    usage: oraexec stm_handle
  *    usage: ::oratcl::oraexec stm_handle
- *	                
+ *
  *    results:
  *	return code from OCIStmtExecute
  *      TCL_OK - execution successful
@@ -4968,7 +4968,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 									    OCI_DESCRIBE_ONLY)) == OCI_STILL_EXECUTING) {
 							/* NULL statement */
 						}
- 
+
 						if (rc != OCI_SUCCESS) {
 #ifdef OCI_ATTR_PARSE_ERROR_OFFSET
 							OCIAttrGet( (dvoid *) RefPtr->stmhp,
@@ -4987,14 +4987,14 @@ Oratcl_Exec (clientData, interp, objc, objv)
                                                         tcl_return = TCL_ERROR;
                                                         goto common_exit;
                                                 }
-  
+
 						OCIAttrGet( (dvoid *) RefPtr->stmhp,
 							    (ub4) OCI_HTYPE_STMT,
 							    (ub2 *) &RefPtr->ora_fcd,
 							    (ub4) 0,
 							    OCI_ATTR_SQLFNCODE,
 							    LogPtr->errhp);
- 
+
 						if (Oratcl_ColDescribe(interp, RefPtr) == -1) {
 							Oratcl_ErrorMsg(interp,
 									objv[0],
@@ -5044,7 +5044,7 @@ common_exit:
  *    Implements the orabreak command:
  *    usage: orabreak stm_handle
  *    usage: ::oratcl::orabreak stm_handle
- *	                
+ *
  *    results:
  *	return code from OCIBreak or OCIReset
  *      TCL_OK - handle is reset
@@ -5143,9 +5143,9 @@ common_exit:
  * Oratcl_Fetch --
  *    Implements the orafetch command:
  *    usage: orafetch stm_handle ?options? ...
- *	                
+ *
  * Results:
- *	return code from OCIStmtFetch 
+ *	return code from OCIStmtFetch
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened
  *----------------------------------------------------------------------
