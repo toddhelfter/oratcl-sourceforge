@@ -447,3 +447,9 @@ Version 4.2 May, 2003
     -	Oralogon:: set char * initialization to NULL.  This fixes a core
 	dump when multiple calls are mede to oralogon with no args (an error) 
 	when tcl is compiled with --enable-symbols=mem.
+
+11-Aug-2003
+
+    -	Correct compiler warnings with use of the Tcl_GetIndexFromObj().
+	These were introduced by the CONST prototypes introduced in Tcl 8.4.
+        Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.

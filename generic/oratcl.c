@@ -1790,11 +1790,11 @@ Oratcl_Info (clientData, interp, objc, objv)
 	Tcl_Obj		*res_obj;
 	ub4		serverStatus = 0;
 
-	static const char *options[] = {"server",
-					"status",
-					"version",
-					"loginhandle",
-					NULL};
+	CONST84 char *options[] = {"server",
+				   "status",
+				   "version",
+				   "loginhandle",
+				   NULL};
 
 	enum		optindex {OPT_SERVER,
 				  OPT_STATUS,
@@ -1817,7 +1817,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 	if (Tcl_GetIndexFromObj(interp,
 				objv[1],
-				options,
+				(CONST84 char **)options,
 				"option",
 				0,
 				&index)) {
@@ -2149,14 +2149,14 @@ Oratcl_Message (clientData, interp, objc, objv)
         int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	static const char *options[] = {"all",
-					"rc",
-					"error",
-					"rows",
-					"peo",
-					"ocicode",
-					"sqltype",
-					NULL};
+	CONST84 char *options[] = {"all",
+				   "rc",
+				   "error",
+				   "rows",
+				   "peo",
+				   "ocicode",
+				   "sqltype",
+				   NULL};
 
 	enum		optindex {OPT_ALL,
 				  OPT_RC,
@@ -2182,7 +2182,7 @@ Oratcl_Message (clientData, interp, objc, objv)
 	if (objc == 3) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					options,
+					(CONST84 char **)options,
 					"option",
 					0,
 					&mode)) {
@@ -2605,14 +2605,14 @@ Oratcl_Cols (clientData, interp, objc, objv)
         int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	static const char *options[] = {"all",
-					"name",
-					"size",
-					"type",
-					"precision",
-					"scale",
-					"nullok",
-					NULL};
+	CONST84 char *options[] = {"all",
+				   "name",
+				   "size",
+				   "type",
+				   "precision",
+				   "scale",
+				   "nullok",
+				   NULL};
 
 	enum		optindex {OPT_ALL,
 				  OPT_NAME,
@@ -2638,7 +2638,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 	if (objc == 3) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					options,
+					(CONST84 char **)options,
 					"option",
 					0,
 					&mode)) {
@@ -3542,16 +3542,16 @@ Oratcl_Config (clientData, interp, objc, objv)
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 
-	static const char *options[] = {"longsize",
-				      "bindsize",
-				      "nullvalue",
-				      "fetchrows",
-				      "lobpsize",
-				      "longpsize",
-				      "utfmode",
-				      "numbsize",
-				      "datesize",
-				      NULL};
+	CONST84 char *options[] = {"longsize",
+				   "bindsize",
+				   "nullvalue",
+				   "fetchrows",
+				   "lobpsize",
+				   "longpsize",
+				   "utfmode",
+				   "numbsize",
+				   "datesize",
+				   NULL};
 
 	enum		optindex {OPT_LONG,
 				  OPT_BIND,
@@ -3635,7 +3635,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 		/* return current value of given option */
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					options,
+					(CONST84 char **)options,
 					"optionName",
 					0,
 					&option)) {
@@ -3686,7 +3686,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 	for (i = 3; i < objc; i += 2) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[i-1],
-					options,
+					(CONST84 char **)options,
 					"optionName",
 					0,
 					&option)) {
@@ -5277,14 +5277,17 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	Tcl_Obj		*oResult;
 
 	int		option;
-	static const char *options[] = {
-				"-datavariable",
-				"-dataarray",
-				"-command",
-				"-indexbyname",
-				"-indexbynumber",
-				NULL};
-	enum		optindex { OPT_DVAR, OPT_DARR, OPT_EVAL, OPT_IBNA, OPT_IBNU };
+	CONST84 char *options[] = {"-datavariable",
+				   "-dataarray",
+				   "-command",
+				   "-indexbyname",
+				   "-indexbynumber",
+				   NULL};
+	enum		optindex {OPT_DVAR,
+				  OPT_DARR,
+				  OPT_EVAL,
+				  OPT_IBNA,
+				  OPT_IBNU };
 
 	Tcl_Obj		*dvarObjPtr = NULL;
 	Tcl_Obj		*avarObjPtr = NULL;
@@ -5324,7 +5327,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	for (objix=2; objix<objc; objix++) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[objix],
-					options,
+					(CONST84 char **)options,
 					"option",
 					0,
 					&option)) {
