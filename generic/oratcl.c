@@ -1532,7 +1532,12 @@ Oratcl_ColDescribe (interp, StmPtr)
 				     (ub2 *) new_col->rcodep,
 				     (ub4) OCI_DEFAULT);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ColFree(new_col_head);
@@ -1825,7 +1830,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			       (ub4) oci_cred,
 			       (ub4) oci_conn);
 
-
 	if (rc != OCI_SUCCESS) {
 		tcl_return = TCL_ERROR;
 		goto common_exit;
@@ -2008,13 +2012,27 @@ Oratcl_Logoff (clientData, interp, objc, objv)
 		}
 	}
 
-	rc = OCI_SessionEnd(LogPtr->svchp, LogPtr->errhp, LogPtr->usrhp, OCI_DEFAULT);
+	rc = OCI_SessionEnd(LogPtr->svchp,
+			    LogPtr->errhp,
+			    LogPtr->usrhp,
+			    OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0, &LogPtr->ora_rc,
+			&LogPtr->ora_err);
 
-	rc = OCI_ServerDetach(LogPtr->srvhp, LogPtr->errhp, (ub4) OCI_DEFAULT);
+	rc = OCI_ServerDetach(LogPtr->srvhp,
+			      LogPtr->errhp,
+			      (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 
 	Oratcl_LogFree(LogPtr);
 
@@ -2089,7 +2107,12 @@ Oratcl_Commit (clientData, interp, objc, objv)
 			     (dvoid *) LogPtr->errhp,
 			     (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
 		Oratcl_ErrorMsg(interp,
@@ -2168,7 +2191,12 @@ Oratcl_Roll (clientData, interp, objc, objv)
 			       (dvoid *) LogPtr->errhp,
 			       (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
 		Oratcl_ErrorMsg(interp,
@@ -2571,7 +2599,12 @@ Oratcl_Open (clientData, interp, objc, objv)
 			     (size_t) 0,
 			     (dvoid **) 0);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
 		Oratcl_StmFree(StmPtr);
@@ -3750,7 +3783,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			     (size_t) 0,
 			     (dvoid **) 0);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
 		Oratcl_ErrorMsg(interp,
@@ -3774,7 +3812,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			     OCI_PTYPE_TABLE,
 			     dschp);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 
 	/* check for a private synonym */
 	while (LogPtr->ora_rc == 4043) {
@@ -3786,7 +3829,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				 (ub4) OCI_ATTR_DESC_PUBLIC,
 				 (OCIError *) LogPtr->errhp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -3801,7 +3849,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				     OCI_PTYPE_SYN,
 				     dschp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -3815,7 +3868,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				 (ub4)OCI_ATTR_PARAM,
 				 (OCIError *)LogPtr->errhp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -3832,7 +3890,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				 (ub4) OCI_ATTR_SCHEMA_NAME,
 				 (OCIError *)LogPtr->errhp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -3851,7 +3914,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				 (ub4) OCI_ATTR_NAME,
 				 (OCIError *)LogPtr->errhp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -3869,7 +3937,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				 (ub4) OCI_ATTR_LINK,
 				 (OCIError *)LogPtr->errhp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			tcl_return = TCL_ERROR;
 			goto common_exit;
@@ -3890,7 +3963,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				     OCI_PTYPE_TABLE,
 				     dschp);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 
 	}
 
@@ -3907,7 +3985,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			 (ub4)OCI_ATTR_PARAM,
 			 (OCIError *)LogPtr->errhp);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 	if (rc != OCI_SUCCESS) {
 		Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
 		tcl_return = TCL_ERROR;
@@ -3922,7 +4005,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			 (ub4) OCI_ATTR_NUM_COLS,
 			 (OCIError *)LogPtr->errhp);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 	if (rc != OCI_SUCCESS) {
 		Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
 		tcl_return = TCL_ERROR;
@@ -3937,7 +4025,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			 (ub4) OCI_ATTR_LIST_COLUMNS,
 			 (OCIError *)LogPtr->errhp);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&LogPtr->ora_rc,
+			&LogPtr->ora_err);
 	if (rc != OCI_SUCCESS) {
 		Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
 		tcl_return = TCL_ERROR;
@@ -3954,7 +4047,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 				  (dvoid *)&parmh,
 				  (ub4) pos);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				0,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
 			tcl_return = TCL_ERROR;
@@ -3964,7 +4062,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 		Tcl_DStringSetLength(&column.typename, 0);
 
 		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmh, &column, 1);
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
 			tcl_return = TCL_ERROR;
@@ -4439,7 +4542,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			     (ub4) OCI_DEFAULT);
 
 	Tcl_DStringInit(&StmPtr->ora_err);
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		tcl_return = TCL_ERROR;
@@ -4455,7 +4563,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			     (OCISnapshot *) NULL,
 			     OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		tcl_return = TCL_ERROR;
@@ -4474,7 +4587,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			     (ub2 *) &piece_rcode,
 			     (ub4) OCI_DYNAMIC_FETCH);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		tcl_return = TCL_ERROR;
@@ -4487,7 +4605,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			  (ub2) OCI_FETCH_NEXT,
 			  (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, frc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			frc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (frc != OCI_NEED_DATA && frc != 0) {
 		tcl_return = TCL_ERROR;
@@ -4505,7 +4628,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 					   (ub4 *) &table,	
 					   (ub1 *) &piece);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, prc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				prc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (prc == OCI_ERROR || prc == OCI_INVALID_HANDLE) {
 			tcl_return = TCL_ERROR;
@@ -4521,7 +4649,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 					   (CONST dvoid *) 0,		/* no indicator */
 					   (ub2 *) NULL);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, prc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				prc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (prc == OCI_ERROR || prc == OCI_INVALID_HANDLE) {
 			tcl_return = TCL_ERROR;
@@ -4581,7 +4714,12 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			  OCI_ATTR_ROW_COUNT,
 			  LogPtr->errhp));
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		Oratcl_ErrorMsg(interp,
@@ -4728,7 +4866,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			      (ub4) OCI_NTV_SYNTAX,
 			      (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		tcl_return = TCL_ERROR;
@@ -4750,7 +4893,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			    (ub4 *) NULL,
 			    (ub4) OCI_DATA_AT_EXEC);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		tcl_return = TCL_ERROR;
@@ -4766,7 +4914,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			     (OCISnapshot *) NULL,
 			     OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		tcl_return = TCL_ERROR;
@@ -4797,7 +4950,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 					  (dvoid *) NULL,
 					  (ub2 *) NULL);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 
 		if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 			tcl_return = TCL_ERROR;
@@ -4813,7 +4971,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 				     (OCISnapshot *) NULL,
 				     OCI_DEFAULT);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 			tcl_return = TCL_ERROR;
@@ -4836,7 +4999,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			  OCI_ATTR_ROW_COUNT,
 			  LogPtr->errhp));
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			0,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 		Oratcl_ErrorMsg(interp,
@@ -4953,7 +5121,12 @@ Oratcl_Parse (clientData, interp, objc, objv)
 				     (ub4) OCI_DEFAULT);
 
 		if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
-			Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
@@ -5000,7 +5173,12 @@ Oratcl_Parse (clientData, interp, objc, objv)
 					    OCI_ATTR_PARSE_ERROR_OFFSET,
 					    LogPtr->errhp);
 #endif
-			Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
@@ -5537,7 +5715,12 @@ Oratcl_Exec (clientData, interp, objc, objv)
 				  OCI_ATTR_ROW_COUNT,
 				  LogPtr->errhp));
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				0,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
 			Oratcl_ErrorMsg(interp,
