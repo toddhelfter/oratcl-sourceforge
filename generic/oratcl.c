@@ -875,7 +875,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	rn = StmPtr->fetchidx;
 	if (rn < 0 || rn >= StmPtr->fetchmem) {
 		/* TMH Does this ever happen ??? if so can it be tested for? */
-		return 0;
+		return;
 	}
 
 	if (arrayvar) {
