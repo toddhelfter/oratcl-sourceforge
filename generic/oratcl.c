@@ -566,7 +566,6 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	switch (rc) {
 
 		case OCI_SUCCESS:
-			Tcl_DStringAppend(&errStr, "OCI_SUCCESS", -1);
 			break;
 		case OCI_SUCCESS_WITH_INFO:
 			Tcl_DStringAppend(&errStr, "OCI_SUCCESS_WITH_INFO", -1);
@@ -2298,6 +2297,7 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	}
 
 	if (parseonly) {
+		Tcl_SetObjResult(interp, OMV_zero);
 		tcl_return = TCL_OK;
 		goto common_exit;
 	}
@@ -2311,14 +2311,14 @@ Oratcl_Sql (clientData, interp, objc, objv)
 			    (OCISnapshot *) NULL,
 			    oci_mode);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
+	} else {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 	}
-
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 
 	rc = (OCIAttrGet( (dvoid *) StmPtr->stmhp,
 			  (ub4) OCI_HTYPE_STMT,
@@ -2622,6 +2622,9 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 			    (OCISnapshot *) NULL,
 			    (OCISnapshot *) NULL,
 			    oci_mode);
+
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &StmPtr->ora_rc, &StmPtr->ora_err);
 
