@@ -17,3 +17,11 @@ the 3 tcl files need to be in tcl\lib\oratcl3.1
 	i.e. c:\program files\tcl\lib\oratcl3.1\pkgIndex.tcl
 	     c:\program files\tcl\lib\oratcl3.1\oralob.tcl
 	     c:\program files\tcl\lib\oratcl3.1\oralong.tcl
+
+to use oratcl after installing, use the package require command of Tcl/Tk.
+
+% package require Oratcl
+
+or
+
+% package require -exact Oratcl 3.1

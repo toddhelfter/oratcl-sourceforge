@@ -4,3 +4,11 @@ standard commands to build unix.
 > ../configure --prefix=TCL_INSTALLED_DIRECTORY --enable-stubs --with-oracle-directory=$ORACLE_HOME
 > make
 > make install
+
+to use oratcl after installing, use the package require command of Tcl/Tk.
+
+% package require Oratcl
+
+or
+
+% package require -exact Oratcl 3.1
