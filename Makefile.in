@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.24 2000-08-18 03:25:25 mtariq Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.25 2000-08-18 19:24:42 mtariq Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -276,7 +276,7 @@ install-libraries: libraries
 
 install-doc: doc
 	$(mkinstalldirs) $(mandir)/mann
-	@for i in $(srcdir)/../doc/*.n; \
+	@for i in $(srcdir)/doc/*.n; \
 	    do \
 	    echo "Installing $$i"; \
 	    rm -f $(mandir)/mann/$$i; \
