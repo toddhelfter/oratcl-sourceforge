@@ -388,5 +388,9 @@ Version 4.1 August, 2002
 	'oralong.tcl' will persist in the library directory as a baseline
 	for the new 'oralob.c' and 'oralong.c' files which are created
 	from them.
+    -   Fixed a bug in oraparse that prevented asynchronous
+        transactions from parsing properly with the supplied examples.
+        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
+
 
 -----------------------------------------------------------------------------
