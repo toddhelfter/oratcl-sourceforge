@@ -239,6 +239,6 @@ Version 3.0.2 September, 2000
     -   updated oratcl.c to build clean on a windows system.
     -   relocated configuration files to be common to unix and windows.
     -   corrected bug in Oratcl_Logon preventing remote_os_authent access.
- 	Thanks to Cesar Fernandez (cpf06@tid.es) for the correction.
+ 	Thanks to Cesar Perez Fernandez (cpf06@tid.es) for the correction.
 
 -----------------------------------------------------------------------------
