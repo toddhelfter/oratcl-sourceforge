@@ -426,4 +426,10 @@ Version 4.1 August, 2002
 	This will avoid a core dump if the ORACLE_HOME environment variable
 	is not set on a unix platform.
 
+13-DEC-2002
+
+    -   Corrected an incorrect work in the documentation, the man page
+	indicated a 'sqlcode' option to the oramsg command.  The option
+	is really 'sqltype'
+
 -----------------------------------------------------------------------------

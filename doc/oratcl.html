@@ -175,7 +175,7 @@
      <B>oramsg</B> <I>handle</I> <I>option</I>
 
           <I>all</I>       returns all values as a list  in  the  format
-                    {rc error rows peo ocicode sqlcode}
+                    {rc error rows peo ocicode sqltype}
 
           <I>rc</I>        returns the  result  code  of  the  last  OCI
                     library  function  called by Oratcl with this
@@ -206,7 +206,7 @@
                     called  by  Oratcl.   See  the OCI manual for
                     descriptions.
 
-          <I>sqlcode</I>   returns a code set  by  last  SQL  or  PL/SQL
+          <I>sqltype</I>   returns a code set  by  last  SQL  or  PL/SQL
                     parsed with <B>oraparse</B>.  Valid values are:
 
                     1 == SELECT  corresponds to OCI_STMT_SELECT
@@ -246,8 +246,8 @@
           ment must have previously been parsed by executing <B>ora-</B>
           <B>parse</B>.  <B>Orabind</B> may be executed repeatedly on a  previ-
           ously parsed statement.  Binding should only be done in
-          conjunction with sqlcode (1-4) select, insert,  update,
-          delete  and  with  the  PL/SQL  codes  (8-9)  begin and
+          conjunction with sql types (1-4) select, insert,  update,
+          delete  and  with  the  PL/SQL  types  (8-9)  begin and
           declare type statements.
 
           Optional :<I>varname</I> <I>value</I> pairs  allow  substitutions  on
