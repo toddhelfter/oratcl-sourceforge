@@ -509,6 +509,31 @@ Oratcl_Init (interp)
 	HINSTANCE	hOCI;
 	DWORD		last_error;
 
+#else
+
+	VOID *handle;
+	CONST char	*native;
+
+	Tcl_Obj		*env_obj;
+	Tcl_Obj		*tmp_obj;
+	Tcl_Obj		*pt1_obj;
+	Tcl_Obj		*pt2_obj;
+	Tcl_Obj		*pt3_obj;
+
+	Tcl_Obj		**pathObjv;
+	int		pathObjc;
+	Tcl_Obj		*pathList;
+
+#endif
+
+#ifdef USE_TCL_STUBS
+	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
+		return TCL_ERROR;
+	}
+#endif
+
+#ifdef __WIN32__
+
 	hOCI = LoadLibrary(TEXT("OCI.DLL"));
 	if(hOCI == NULL || hOCI == INVALID_HANDLE_VALUE) {
 		last_error = GetLastError();
@@ -549,21 +574,55 @@ Oratcl_Init (interp)
 	OCI_StmtGetPieceInfo = (OCISTMTGETPIECEINFO)   GetProcAddress(hOCI, "OCIStmtGetPieceInfo");
 	OCI_StmtSetPieceInfo = (OCISTMTSETPIECEINFO)   GetProcAddress(hOCI, "OCIStmtSetPieceInfo");
 
+
 #else
 
-	VOID *handle;
-	CONST char *native;
-	Tcl_Obj	*pathPtr;
+	/* Load the oracle client library*/
 
-	pathPtr	= Tcl_NewStringObj("/opt/oracle/product/9.2.0/lib/libclntsh.so", -1);
-	Tcl_IncrRefCount(pathPtr);
-	native = Tcl_FSGetNativePath(pathPtr);
+	pathObjv = (Tcl_Obj **) ckalloc (3 * sizeof(*pathObjv));
+	pathObjc = 0;
+
+	env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
+	Tcl_IncrRefCount(env_obj);
+
+	pt1_obj = Tcl_ObjGetVar2(interp,
+				env_obj,
+				NULL,
+				TCL_LEAVE_ERR_MSG);
+	if (pt1_obj == NULL) {
+		return TCL_ERROR;
+	}
+	pt2_obj = Tcl_NewStringObj("lib", -1);
+	pt3_obj = Tcl_NewStringObj("libclntsh.so", -1);
+
+	Tcl_IncrRefCount(pt1_obj);
+	Tcl_IncrRefCount(pt2_obj);
+	Tcl_IncrRefCount(pt3_obj);
+
+	pathObjv[pathObjc++] = pt1_obj;
+	pathObjv[pathObjc++] = pt2_obj;
+	pathObjv[pathObjc++] = pt3_obj;
+	
+	pathList = Tcl_NewListObj(pathObjc, pathObjv);
+
+	ckfree((char *)pathObjv);
+	Tcl_DecrRefCount(pt1_obj);
+	Tcl_DecrRefCount(pt2_obj);
+	Tcl_DecrRefCount(pt3_obj);
+	Tcl_DecrRefCount(env_obj);
+
+	tmp_obj = Tcl_FSJoinPath(pathList, -1);
+	Tcl_IncrRefCount(tmp_obj);
+	native = Tcl_FSGetNativePath(tmp_obj);
+	Tcl_DecrRefCount(tmp_obj);
+
+fprintf(stderr, "%s(): native = %s\n", "Oratcl_Init", native);
 	handle = dlopen(native, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
 
 	if (handle == NULL) {
 		fprintf(stderr, "%s(): %s with error",
 			"Oratcl_Init",
-			"Failed loading libclntsh.so symbols");
+			"Failed to load %");
 		return TCL_ERROR;
 	}
 
@@ -598,12 +657,6 @@ Oratcl_Init (interp)
 	OCI_StmtSetPieceInfo = (OCISTMTSETPIECEINFO)   dlsym(handle, "OCIStmtSetPieceInfo");
 
 #endif			/* WIN32 */
-
-#ifdef USE_TCL_STUBS
-	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
-		return TCL_ERROR;
-	}
-#endif
 
 	OratclStatePtr = (OratclState *) ckalloc (sizeof(OratclState));
 	StateListPtr = (OratclStateList *) ckalloc (sizeof(OratclStateList));
@@ -999,9 +1052,7 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->column.valuesz	= 0;
 		ColPtr->defnp = NULL;
 		ColPtr->bindp = NULL;
-#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
 		ColPtr->lobp = NULL;
-#endif
 		ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows);
 		ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows);
 		ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows);
@@ -1366,7 +1417,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 		case SQLT_RDD:					/* 104	*/
 			new_col->column.valuesz = 23;
 			break;
-#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 		case SQLT_TIMESTAMP:				/* 187	*/
 		case SQLT_TIMESTAMP_TZ:				/* 188  */
 		case SQLT_INTERVAL_YM:				/* 189  */
@@ -1374,34 +1424,11 @@ Oratcl_ColDescribe (interp, StmPtr)
 		case SQLT_TIMESTAMP_LTZ:			/* 232  */
 			new_col->column.valuesz = 75;
 			break;
-#endif
-#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 		case SQLT_CLOB:                                 /* 112  */
 		case SQLT_BLOB:                                 /* 113  */
 			new_col->dty = SQLT_LNG;
 			new_col->column.valuesz = StmPtr->longsize;
 			break;
-#endif
-#if ORA_MAJOR_VERSION == 8 && ORA_MINOR_VERSION > 0
-		case SQLT_CLOB:					/* 112	*/
-			/*
-			 * TMH :: need an OCILobLocator
-			 *        must by to a SQLT_CLOB type
-			 */
-			fprintf(stderr, "%s %d, clob type\n", __FILE__, __LINE__);
-			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
-			new_col->dty = SQLT_CLOB;
-			break;
-		case SQLT_BLOB:					/* 113	*/
-			/*
-			 * TMH :: need an OCILobLocator
-			 *        must by to a SQLT_BLOB type
-			 */
-			fprintf(stderr, "%s %d, blob type\n", __FILE__, __LINE__);
-			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
-			new_col->dty = SQLT_BLOB;
-			break;
-#endif
 		default:
 			/* Should not be reached */
 			break;
@@ -1586,8 +1613,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	if (ora_conn)
 		ora_connlen = strlen(ora_conn);
 
-#if ORA_MAJOR_VERSION > 9 
-
 	rc = OCI_EnvCreate ( (OCIEnv **) &LogPtr->envhp,
 			    OCI_OBJECT,
 			    (dvoid *)0,
@@ -1608,34 +1633,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
-
-#else
-
-	rc = OCI_Initialize( (ub4) OCI_OBJECT,
-			    (dvoid *)0,
-			    (dvoid * (*)(dvoid *, size_t)) 0,
-			    (dvoid * (*)(dvoid *, dvoid *, size_t)) 0,
-			    (void (*)(dvoid *, dvoid *)) 0);
-
-	if (rc != OCI_SUCCESS) {
-		Oratcl_LogFree(LogPtr);
-		Tcl_DeleteHashEntry(logHashPtr);
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				" (Unknown OCI status) OCIInitialize. Check ORACLE_HOME setting!",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
-		tcl_return = TCL_ERROR;
-		goto common_exit;
-	}
-
-	(void) OCI_EnvInit( (OCIEnv **)
-			    &LogPtr->envhp,
-			    OCI_DEFAULT,
-			    (size_t) 0,
-			    (dvoid **) 0 );
-
-#endif
 
 	(void) OCI_HandleAlloc( (dvoid *) LogPtr->envhp,
 			       (dvoid **) &LogPtr->errhp,
@@ -3189,8 +3186,6 @@ Oratcl_Lda_List (clientData, interp, objc, objv)
 
 	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
 
-common_exit:
-
 	if (oColsv)
 		ckfree((char *) oColsv);
 
@@ -3307,9 +3302,7 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	int		explicit;
 {
 	text		*namep;
-#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 	ub4		namesz;
-#endif
 	sword		rc;
 	ub1		prec_ub1;	
 	sb2		prec_sb2;	
@@ -3448,7 +3441,6 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	case 106:
 		Tcl_DStringAppend(&column->typename, "RAW MSLABEL", -1);
 		break;
-#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 	case SQLT_TIMESTAMP:
 		Tcl_DStringAppend(&column->typename, "TIMESTAMP", -1);
 		break;
@@ -3477,7 +3469,6 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 		}
 		Tcl_DStringAppend(&column->typename, (char *)namep, namesz);
 		break;
-#endif
 	default:
 		Tcl_DStringAppend(&column->typename, "UNKNOWN", -1);
 	}

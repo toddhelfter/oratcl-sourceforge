@@ -3,6 +3,13 @@ Oratcl change history
 
 Version 4.3,  Nov, 2004
 
+Nov 20 2004
+     	* Dynamic loading of oracle share library now builds a path containing these 
+	elements: env(ORACLE_HOME) lib libclntsh.so for unix.	
+     	* Oratcl_Init() returns an error if env(ORACLE_HOME) is not defined for unix.
+	* Removed all code supporting Oracle 8.0, I can not find a way to detect the 
+	  Oracle version from the client library contents: API/symbols.
+
 Nov 14 2004
      Converted to TEA build system.
 	* test directory moved to tests 
