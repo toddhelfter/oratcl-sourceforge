@@ -244,7 +244,7 @@ Oratcl_Exit (clientData)
 	Tcl_DecrRefCount(OMV_null);
 	Tcl_DecrRefCount(OMV_zero);
 
-#if 0
+#if 1
 	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
 #endif
 }
@@ -659,7 +659,9 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 
 
 	if (flag==1) {
-		Tcl_SetObjResult(interp, Tcl_NewStringObj(Tcl_DStringValue(&errStr), Tcl_DStringLength(&errStr)));
+		Tcl_SetObjResult(interp,
+				 Tcl_NewStringObj(Tcl_DStringValue(&errStr),
+				 		  Tcl_DStringLength(&errStr)));
 	}
 
 	if (rcPtr) {
@@ -667,7 +669,9 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	}
 
 	if (errPtr) {
-		Tcl_DStringAppend(errPtr, Tcl_DStringValue(&errStr), Tcl_DStringLength(&errStr));
+		Tcl_DStringAppend(errPtr,
+				  Tcl_DStringValue(&errStr),
+				  Tcl_DStringLength(&errStr));
 	}
 
 	Tcl_DStringFree(&errStr);
@@ -996,7 +1000,12 @@ Oratcl_ColDescribe (interp, StmPtr)
 			 OCI_ATTR_PARAM_COUNT,
 			 LogPtr->errhp);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+	Oratcl_Checkerr(interp,
+			LogPtr->errhp,
+			rc,
+			1,
+			&StmPtr->ora_rc,
+			&StmPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
 		return -1;
@@ -1017,15 +1026,29 @@ Oratcl_ColDescribe (interp, StmPtr)
 				  (dvoid *) &parmdp,
 				  (ub4) parmix);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ColFree(new_col_head);
 			return -1;
 		}
 
-		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmdp, &new_col->column, 0);
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+		rc = Oratcl_Attributes(interp,
+				       LogPtr->errhp,
+				       parmdp,
+				       &new_col->column,
+				       0);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ColFree(new_col_head);
 			return -1;
@@ -1035,6 +1058,8 @@ Oratcl_ColDescribe (interp, StmPtr)
 		new_col->column.valuesz = new_col->column.size;
 		
 		switch (new_col->column.typecode) {
+		case SQLT_CUR:					/* 1	*/
+			break;
 		case SQLT_LNG:					/* 8	*/
 		case SQLT_LBI:					/* 24	*/
 			new_col->column.valuesz = StmPtr->longsize;
@@ -1089,7 +1114,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 			break;
 #endif
 		default:
-			/*NOTREACHED*/
+			/* Should not be reached */
 			break;
 		}
 	
@@ -1129,6 +1154,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 
 	last_col->next = NULL;
 	Oratcl_ColFree(new_col);
+	Oratcl_ColFree(StmPtr->col_list);
 	StmPtr->col_list = new_col_head;
 
 	return (parmcnt);
@@ -2969,9 +2995,6 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 		return rc;
 	}
 
-#if 0
-	Tcl_DStringInit(&column->typename);
-#endif
 	/* data type name */
 	switch (column->typecode) {
 	case SQLT_CHR:					/* 1	*/
@@ -4555,10 +4578,10 @@ Oratcl_Bind (clientData, interp, objc, objv)
 					goto common_exit;
 				}
 
+				Oratcl_ColFree(RefPtr->col_list);
+				RefPtr->col_list	= NULL;
 				Oratcl_ColFree(RefPtr->bind_list);
-				RefPtr->bind_list       = NULL;
-				Oratcl_ColFree(RefPtr->bind_list);
-				RefPtr->bind_list       = NULL;
+				RefPtr->bind_list	= NULL;
 				RefPtr->fetchidx        = RefPtr->fetchmem;
 				RefPtr->fetch_end       = 0;    /* try to fetch */
 				RefPtr->fetch_cnt       = 0;    /* start fetch cnt at zero */
