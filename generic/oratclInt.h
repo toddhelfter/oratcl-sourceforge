@@ -39,14 +39,14 @@ struct OratclDesc {
 	char		*typename;	/* column type name		*/
 	ub2		size;       	/* column internal size		*/
 	text        	*name;		/* column name			*/
-	unsigned long	namesz; 	/* column name length  		*/
+	ub4		namesz; 	/* column name length  		*/
 	int		prec;		/* precision of numeric		*/
 					/* attr can be ub1 or sb2	*/
 					/* and we need to handle both	*/
 	sb1		scale;		/* scale of numeric		*/
 	ub1		nullok; 	/* ok if null			*/
 	char		*valuep;	/* Column data pointer		*/
-	unsigned long	valuesz;	/* column display size		*/
+	ub4		valuesz;	/* column display size		*/
 };
 typedef struct OratclDesc OratclDesc;
 
