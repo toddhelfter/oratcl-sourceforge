@@ -604,19 +604,28 @@ Oratcl_Init (interp)
 
 #ifdef __WIN32__
 	DWORD		last_error;
-#else
+#else							/* __WIN32__ */
 	CONST char	*native;
 
 	Tcl_Obj		*env_obj;
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		*tmp_obj;
+#endif
 	Tcl_Obj		*pt1_obj;
 	Tcl_Obj		*pt2_obj;
 	Tcl_Obj		*pt3_obj;
 
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		**pathObjv;
 	int		pathObjc;
 	Tcl_Obj		*pathList;
+#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
+	char		**pathObjv;
+	int		pathObjc;
+	Tcl_DString	result;
 #endif
+
+#endif							/* __WIN32__ */
 
 #ifdef USE_TCL_STUBS
 	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
@@ -628,7 +637,12 @@ Oratcl_Init (interp)
 
 	/* Load the oracle client library*/
 
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	pathObjv = (Tcl_Obj **) ckalloc (3 * sizeof(*pathObjv));
+#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
+	Tcl_DStringInit(&result);
+	pathObjv = (char **) ckalloc (3 * sizeof(char *));
+#endif
 	pathObjc = 0;
 
 	env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
@@ -648,6 +662,7 @@ Oratcl_Init (interp)
 	Tcl_IncrRefCount(pt2_obj);
 	Tcl_IncrRefCount(pt3_obj);
 
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	pathObjv[pathObjc++] = pt1_obj;
 	pathObjv[pathObjc++] = pt2_obj;
 	pathObjv[pathObjc++] = pt3_obj;
@@ -663,6 +678,20 @@ Oratcl_Init (interp)
 	tmp_obj = Tcl_FSJoinPath(pathList, -1);
 	Tcl_IncrRefCount(tmp_obj);
 	native = Tcl_FSGetNativePath(tmp_obj);
+#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
+	pathObjv[pathObjc++] = Tcl_GetString(pt1_obj);
+	pathObjv[pathObjc++] = Tcl_GetString(pt2_obj);
+	pathObjv[pathObjc++] = Tcl_GetString(pt3_obj);
+
+	Tcl_JoinPath(pathObjc, pathObjv, &result);
+
+	ckfree((char *)pathObjv);
+	Tcl_DecrRefCount(pt1_obj);
+	Tcl_DecrRefCount(pt2_obj);
+	Tcl_DecrRefCount(pt3_obj);
+	Tcl_DecrRefCount(env_obj);
+	native = Tcl_DStringValue(&result);
+#endif
 
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
@@ -671,11 +700,19 @@ Oratcl_Init (interp)
 			"Oratcl_Init",
 			native,
 			DLERROR);
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		Tcl_DecrRefCount(tmp_obj);
+#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
+		Tcl_DStringFree(&result);
+#endif
 		return TCL_ERROR;
 	}
         
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
         Tcl_DecrRefCount(tmp_obj);
+#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
+	Tcl_DStringFree(&result);
+#endif
 
 #else
 
