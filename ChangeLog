@@ -4,6 +4,10 @@ Oratcl change history
 Version 4.3,  Nov, 2004
 
 Nov 29 2004
+	add .cvsignore file in root directory
+	Renamed oraconst.h to oradefs.h
+	Fix oratypes.h to work in windows and unix.
+	Update COPYRIGHT info in each file
 	Remove the RTLD_NODELETE flag from dlopen()
 
 Nov 22 2004

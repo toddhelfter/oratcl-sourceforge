@@ -1,8 +1,7 @@
 /*
  * oratclInt.h
  *
- * Copyright 1993-1999 Tom Poindexter and U S WEST Advanced Technologies, Inc.
- * Copyright 2000-2001 Todd M. Helfter
+ * Copyright 2004 Todd M. Helfter
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

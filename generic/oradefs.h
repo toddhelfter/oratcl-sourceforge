@@ -1,4 +1,14 @@
-/* oraconst.h */
+/*
+ * oradefs.h
+ *
+ * Oracle interface to Tcl
+ *
+ * Copyright 2004 Todd M. Helfter
+ *
+ * See the file "license.terms" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
 
 #ifndef _ORADEFS_H
 #define _ORADEFS_H
