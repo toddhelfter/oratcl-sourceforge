@@ -3,7 +3,7 @@ dnl Oratcl-3.0 configure.in based on the work of Tom Poindexter
 dnl Support for TEA Compliance has been added
 dnl
 
-AC_INIT(../generic/oratcl.c)
+AC_INIT(generic/oratcl.c)
 
 AC_CONFIG_AUX_DIR(../config)
 CONFIGDIR=${srcdir}/../config
