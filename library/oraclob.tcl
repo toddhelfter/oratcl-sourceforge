@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.6 2000-09-21 04:08:06 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.7 2000-09-21 04:31:14 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -174,8 +174,8 @@ proc oraclob {stm command args} {
 					       $oraclob(rowid) \
 					       $oraclob(table) \
 					       $oraclob(column) \
-					       $oraclob(amount) \
-					       $oraclob(offset) \
+					       $oraclob(start) \
+					       $oraclob(stop) \
 					       $oraclob(datavar)]]
 		}
 
@@ -339,12 +339,15 @@ proc oratcl::clob_erase {stm rowid table column amount offset} {
 #
 #  substr a lob field.
 #
-proc oratcl::clob_substr {stm rowid table column amount offset datavar} {
+proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 
 	global oramsg errorInfo
 
 	upvar 2 $datavar result
 	set result {}
+
+	set amount [expr {$stop - $start + 1}]
+	set offset [expr {$start + 1}]
 
 	if {![string is integer $amount]} {
 		error "oraclob instr: value error\n \
