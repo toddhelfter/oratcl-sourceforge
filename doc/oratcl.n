@@ -582,7 +582,10 @@ not valid.
 .br
 Describes the columns of \fItable\-name\fR.  Returns a list containing lists
 in the format {name size type precision scale nullok} for each column of
-the table.
+the table.  \fBOradesc\fR will also describe the columns of a table referenced
+by a private or public synonym when given the name of a synonym as the \fItable-name\fR
+arguement.  \fBOradesc\fR will describe an object in the connecting schema before
+describing a public synonym when the names are the same.
 .sp
 .TP 
 .B oracommit \fIlogon\-handle\fR

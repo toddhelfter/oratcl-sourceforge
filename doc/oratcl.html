@@ -534,7 +534,13 @@ is  not valid. </blockquote>
 <DD><BR>
 Describes the columns of <I>table-name</I>.  Returns a list containing lists in
 the format {name size type precision scale nullok} for each column of the
-table. <P>
+table. <B>Oradesc</B> will also describe the columns of a table referenced
+by a private or public synonym when given the name of a synonym as the <I>table-name</I>
+arguement.  <B>Oradesc</B> will describe an object in the connecting schema before
+describing a public synonym when the names are the same.
+<P>
+
+
 </DD>
 
 <DT><B>oracommit <I>logon-handle</I></B> </DT>
