@@ -3,4 +3,14 @@ Oratcl change history
 
 Version 4.3,  Nov, 2004
 
+Nov 14 2004
      Converted to TEA build system.
+	* test directory moved to tests 
+	* comfig directory removed
+	* tclconfig directory added
+	* configure & configure.in replaced
+    
+Nov 14 2004
+     Converted to dynamic loading oracle share library.
+	* hard coded to load 'oci.dll' for windows.
+	* hard coded to load /opt/oracle/product/9.2.0/lib/libclntsh.so for unix.

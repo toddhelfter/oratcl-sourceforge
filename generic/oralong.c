@@ -8,7 +8,6 @@ Oralong_Init (interp)
 {
 	CONST84 char	*proc;
 	int		tcl_return = TCL_OK;
-	int		tcl_rc;
 
 	Tcl_SetVar(interp, 
 		   "::oratcl::longidx", 
