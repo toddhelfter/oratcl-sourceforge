@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<!-- $Id: FAQ.html,v 1.2 2000-12-05 20:18:58 bhlewis Exp $ -->
+<!-- $Id: FAQ.html,v 1.3 2001-03-30 19:13:54 bhlewis Exp $ -->
 <html>
   <head>
     <title>Oratcl Frequently Asked Questions</title>
@@ -35,8 +35,13 @@
 	  Q3.3 How do I build Oratcl on Win32 systems using Microsoft
 	  development tools?
 	</a>
+      <li>
+	<a href="#Q3.4">
+	  Q3.3 When I try to compile Oratcl, I get an error like
+	  "unrecognized option `-rpath'."  How can I fix this?
+	</a>
     </ul>
-
+    
     <h3><a href="#SEC4">Section 4: Using Oratcl</a></h3>
     <ul>
       <li><a href="#Q4.1">Q4.1 Is there documentation for Oratcl?</a>
@@ -170,8 +175,8 @@
 	    <tr>
 	      <th align="left">Tcl 8.3+</th>
 	      <td align="center">Oratcl 2.7</td>
-	    <td align="center">Oratcl 3.1</td>
-	      <td align="center">Oratcl 3.1</td>
+	    <td align="center">Oratcl 3.2</td>
+	      <td align="center">Oratcl 3.2</td>
 	    </tr>
 	  </table>
 	  
@@ -282,7 +287,23 @@ make && make install
 	    <i>Microsoft Developer's Studio</i> may be found in the
 	    <tt>oratcl/windows</tt> directory.  Pre-built Win32
 	    libraries may also be found in that directory.
-	</p>
+	  </p>
+	<dt>
+	  <a name="Q3.4" href="#TOC">
+	    Q3.3 When I try to compile Oratcl, I get an error like
+	    "unrecognized option `-rpath'."  How can I fix this?
+	  </a>
+	<dd>
+	  <p>
+	    This error seems to occur on systems where the
+	    <tt>gcc</tt> compiler is installed as "<tt>cc</tt>", like
+	    Linux.  The solution is to set the environment variable
+	    <tt>CC</tt> to "<tt>gcc</tt>" before running
+	    <tt>configure</tt>.  For example, from the <tt>unix</tt>
+	    directory in the Oratcl source tree:
+	  <pre>
+env CC="gcc" ../configure --prefix=/path/to/install
+	  </pre>
       </dl>
     </blockquote>
 
@@ -444,7 +465,7 @@ mydb =
     <address><a href="mailto:bhlewis@users.sourceforge.net">Benjamin Lewis</a></address>
 <!-- Created: Mon Nov  6 09:02:57 EST 2000 -->
 <!-- hhmts start -->
-Last modified: Tue Dec  5 15:16:13 EST 2000
+Last modified: Fri Mar 30 14:10:07 EST 2001
 <!-- hhmts end -->
   </body>
 </html>
