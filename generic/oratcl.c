@@ -1236,14 +1236,7 @@ Oratcl_Init (interp)
 		      (Tcl_CmdDeleteProc *) NULL);
 #endif
 
-#ifdef TCL81
-    /* Set the Oracle environment variable NLS_LANG to UTF8. This tell Oracle
-     * that data will be sent to it in UTF-8 format. This allows Oratcl
-     * to be used with the internationalization features of TCL8.1
-     */
-     
-      Tcl_SetVar2(interp, EnvArray, "NLS_LANG", "American_America.UTF8",TCL_GLOBAL_ONLY);
-#endif      
+    
     /*
      * Initialize oramsg global array, inital null elements
      */
