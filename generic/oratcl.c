@@ -103,10 +103,11 @@
  *  features.
  * -add support for Internationalization features of Tcl8.1
  * -add stub awareness
- * -OCI 7 call called ologon does not work with some versions of Oracle 8i(e.g.
+ * -OCI 7 call called orlon does not work with some versions of Oracle 8i(e.g.
  *  version 8.1.5 on NT). So Oracle 8 OCILogon is used for logging in. The
  *  service context handle is then converted to an lda such that the Oracle
- *  7 calls can be used again.
+ *  7 calls can be used again. Default is to use OCILogon. If using an Oracle
+ *  7 DB then -DVERSION7DB compile flag must be used to use orlon
  *-----------------------------------------------------------------------------
  */
 
@@ -538,6 +539,7 @@ extern Tcl_CmdProc  Oratcl_Poll;
 extern Tcl_CmdProc  Oratcl_Break;
 #endif
 
+#ifndef VERSION7DB
 /*----------------------------------------------------------------------
 *  Oracle 8 OCI API declarations
 */
@@ -566,7 +568,7 @@ static OCISvcCtx  *p_svc;
 
 #define OCI_HTYPE_ERROR 2                                    /* error handle */
 #define OCI_HTYPE_SVCCTX 3                                 /* service handle */
-
+#endif
 
 /* 
  *----------------------------------------------------------------------
