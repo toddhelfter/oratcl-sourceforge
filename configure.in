@@ -480,10 +480,7 @@ ORA_SH_LIB=""
 case "`uname -s`" in
     *win32* | *WIN32* | *CYGWIN_NT*)
         if test "${SHARED_BUILD}" = "1" ; then
-	    SHLIB_LD_LIBS="\"`cygpath -w
-	    ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\"
-	    ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/ociw32.lib`\" 
-            \"`cygpath -w $ORA/ora803.lib`\" " 
+	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/ora803.lib`\" \"`cygpath -w $ORA/ociw32.lib`\"" 
 	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${SHARED_LIB_SUFFIX}"
 	    RANLIB=:
 	else
