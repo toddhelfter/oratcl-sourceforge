@@ -12,6 +12,7 @@ if {[info exists ora_lda] == 0} {
 
 test orasafeinterp-1.1 {safeinterp: load package into safe interp} {
 	interp create -safe s
+	s eval set env(ORACLE_HOME) $env(ORACLE_HOME)
 	load {} Oratcl s
 } {}
 
