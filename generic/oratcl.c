@@ -871,9 +871,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 	ub4		parmcnt;
 	ub4		parmix;
 
-	ub2		fcd;
 	int		lob;
-	ub1		nbm;
 
 	new_col_head = Oratcl_ColAlloc(StmPtr->fetchrows);
 	if (new_col_head == NULL) {
@@ -915,12 +913,10 @@ Oratcl_ColDescribe (interp, StmPtr)
 
 	OCIAttrGet( (dvoid *) StmPtr->stmhp,
 		    (ub4) OCI_HTYPE_STMT,
-		    (ub2 *) &fcd,
+		    (ub2 *) &StmPtr->ora_fcd,
 		    (ub4) 0,
 		    OCI_ATTR_SQLFNCODE,
 		    LogPtr->errhp);
-
-	StmPtr->ora_fcd = fcd;
 
 	/* get the parameter count info */
 	parmcnt = 0;
@@ -5382,8 +5378,6 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 	sword		rc;
 	int		cols;
 
-	ub2		fcd;
-
 	char		*stmt;
 	ub4		stln;
 
@@ -5502,11 +5496,10 @@ Oratcl_AsyncParse (clientData, interp, objc, objv)
 
 		OCIAttrGet( (dvoid *) StmPtr->stmhp,
 			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &fcd,
+			    (ub2 *) &StmPtr->ora_fcd,
 			    (ub4) 0,
 			    OCI_ATTR_SQLFNCODE,
 			    LogPtr->errhp);
-		StmPtr->ora_fcd = fcd;
 
 		cols = Oratcl_MyDescribe(interp, StmPtr);
 		if (cols < 0) {
@@ -5977,51 +5970,9 @@ Oratcl_MyDescribe (interp, StmPtr)
 	ub4		parmcnt;
 	ub4		parmix;
 
-	ub2		fcd;
 	int		lob;
-	ub1		nbm;
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
-#if 0
-	StmPtr->ora_peo = 0;
-
-
-	while ((rc = OCIStmtExecute(LogPtr->svchp,
-				StmPtr->stmhp,
-				LogPtr->errhp,
-				(ub4) 0,
-				(ub4) 0,
-				(OCISnapshot *) NULL,
-				(OCISnapshot *) NULL,
-				OCI_DESCRIBE_ONLY)) == OCI_STILL_EXECUTING) {
-		if (rc == OCI_STILL_EXECUTING) {
-			fprintf (stderr, "Oratcl_ColDescribe() still executing\n");
-		}
-	}
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
-
-	if (rc != OCI_SUCCESS) {
-#ifdef OCI_ATTR_PARSE_ERROR_OFFSET
-		OCIAttrGet( (dvoid *) StmPtr->stmhp,
-			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &StmPtr->ora_peo,
-			    (ub4) 0,
-			    OCI_ATTR_PARSE_ERROR_OFFSET,
-			    LogPtr->errhp);
-#endif
-		return -1;
-	}
-
-	OCIAttrGet( (dvoid *) StmPtr->stmhp,
-		    (ub4) OCI_HTYPE_STMT,
-		    (ub2 *) &fcd,
-		    (ub4) 0,
-		    OCI_ATTR_SQLFNCODE,
-		    LogPtr->errhp);
-
-	StmPtr->ora_fcd = fcd;
-
-#endif
 
 	/* get the parameter count info */
 	parmcnt = 0;
