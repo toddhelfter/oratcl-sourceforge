@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.8 2000-09-21 04:36:30 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.9 2000-09-21 04:39:43 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -348,12 +348,12 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 
 	if {![string is integer $start] || $start < 0} {
 		error "oraclob instr: value error\n \
-			numeric or value error: character to number conversion error"
+			-start value must be a positive integer"
 	}
 
 	if {![string is integer $stop] || $stop < $start} {
 		error "oraclob instr: value error\n \
-			numeric or value error: character to number conversion error"
+			-stop value must be a positive integer"
 	}
 
 	set amount [expr {$stop - $start + 1}]
