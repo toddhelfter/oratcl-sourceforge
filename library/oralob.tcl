@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.9.2.1 2002-02-11 00:08:13 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.9.2.2 2002-02-11 00:45:05 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -233,7 +233,7 @@ proc oralob {command handle args} {
 		set ::oratcl::oralob($idx) 1
 	}
 
-	set tcl-res {}
+	set tcl_res {}
 	switch $command {
 
 		alloc 	{set cmd [list ::oratcl::lob_alloc $handle $args]}
