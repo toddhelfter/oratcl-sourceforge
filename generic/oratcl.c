@@ -4777,7 +4777,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		}
 
 		piece_data[piece_len] = '\0';
-		Tcl_DStringAppend(&resStr, piece_data, strlen(piece_data));
+		Tcl_DStringAppend(&resStr, piece_data, piece_len);
 
 		Oratcl_Checkerr(interp, LogPtr->errhp, frc, 1);
 
