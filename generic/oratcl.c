@@ -634,7 +634,7 @@ Oratcl_SafeInit (interp)
  *----------------------------------------------------------------------
  */
 
-int
+void
 Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	Tcl_Interp	*interp;
 	OCIError	*errhp;
@@ -954,7 +954,7 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 			if (hashType) {
 				Tcl_ObjSetVar2(interp,
 						arrayvar,
-						Tcl_NewStringObj(col->column.name, -1),
+						Tcl_NewStringObj((char *) col->column.name, -1),
 						StmPtr->oColsv[oColsc - 1],
 						TCL_LEAVE_ERR_MSG);
 			} else {
@@ -4607,7 +4607,6 @@ Oratcl_Exec (clientData, interp, objc, objv)
 	OratclCols	*tmp_col;
 
 	char		*p;
-	int		parm_cnt;
 	ub4		oci_mode = OCI_DEFAULT;
 	ub4		rowcnt;
 	sword		rc;
@@ -4663,7 +4662,6 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		}
 		if (strcmp(p,"commit") == 0) {
 			oci_mode = OCI_COMMIT_ON_SUCCESS;
-			parm_cnt++;
 		}
 	}
 
