@@ -34,15 +34,23 @@ set lob_sql(drop_lob_table) {
 	drop table oratcl_lob
 }
 
-orasql $lob_stm $lob_sql(create_lob_table)
-orasql $lob_stm $lob_sql(insert_lob_table) -parseonly
-orabindexec $lob_stm :lob_key l1
-orabindexec $lob_stm :lob_key l2
+oraparse $lob_stm $lob_sql(create_lob_table)
+oraexec $lob_stm
+
+oraparse $lob_stm $lob_sql(insert_lob_table)
+orabind $lob_stm :lob_key l1
+oraexec $lob_stm
+orabind $lob_stm :lob_key l2
+oraexec $lob_stm
+
 oracommit $lob_lda
-orasql $lob_stm $lob_sql(select_lob_table) -parseonly
-orabindexec $lob_stm :lob_key l1
+
+oraparse $lob_stm $lob_sql(select_lob_table)
+orabind $lob_stm :lob_key l1
+oraexec $lob_stm
 orafetch $lob_stm -datavariable rowid1
-orabindexec $lob_stm :lob_key l2
+orabind $lob_stm :lob_key l2
+oraexec $lob_stm
 orafetch $lob_stm -datavariable rowid2
 
 set chr_data [string repeat 0123456789---------- 10000]
