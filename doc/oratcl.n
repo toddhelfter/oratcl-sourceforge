@@ -276,78 +276,6 @@ been specified.  Refer to Oracle error numbers and messages for other
 possible values.
 .sp
 .RE
-\fBorafetch\fR \fIstatement\-handle ?commands? ?substitution_character? \fI?varname colnum ...?\fR
-.RS
-.RS
-Return the next row from the last SQL statement executed with \fBorasql\fR as a
-Tcl list.
-\fIStatement-handle\fR must be a valid handle previously opened with 
-\fBoraopen\fR.
-\fBOrafetch\fR raises a Tcl error if the statement handle specified is not 
-open.
-All returned columns are converted to character strings.  A null string is
-returned if there are no more rows in the current set of results.
-The Tcl list that is returned by \fBorafetch\fR contains the values of the
-selected columns in the order specified by \fIselect\fR.
-.sp
-The optional \fIcommands\fR argument allows \fBorafetch\fR to repeatedly
-fetch rows and
-execute \fIcommands\fR for each row.
-Substitutions are made on \fIcommands\fR before passing it to Tcl_Eval()
-for each row.  
-An optional fourth argument consisting of a single character
-can be specified for a column number
-substitution character.  If none is specified
-the character '@' will be used to denote the substitution character.
-If the substitution character is a null string, no column substitutions will
-be performed on the \fIcommands\fR string.
-\fBOrafetch\fR interprets the substitution character followed by
-a number (\fB@n\fR) in commands as a 
-result column specification.  For example,
-\fB@1, @2, @3\fR refer to the first, second, and third columns
-in the result.  \fB@0\fR refers to the entire result row, as a Tcl list.
-Substitution columns may appear in
-any order, or more than once in the same command.
-Substituted columns are inserted into the commands string as
-proper list elements, i.e., one space will be added before and after the
-substitution and column values with embedded spaces are enclosed by {}
-if needed.
-.sp
-Tcl variables may also be set for \fIcommands\fR on each row that is
-processed.  Tcl variables are specified after the \fIsubstitution_character\fR,
-consisting of matching pairs of Tcl variable names and a column numbers.
-Column number may be "0", in which the Tcl variable is set to the
-entire result row as a Tcl list.  Column numbers must be less than or equal
-to the number of columns in the SQL result set.
-.sp
-A Tcl error is raised if a column substitution number is greater than the
-number of columns in the results.  If the commands execute \fBbreak\fR,
-\fBorafetch\fR execution is interrupted and returns with TCL_OK.  Remaining
-rows may be fetched with a subsequent \fBorafetch\fR command.  
-If the commands execute \fBreturn\fR or \fBcontinue\fR, the remaining
-commands are skipped and orafetch execution continues with the next row.
-Orafetch will raise a Tcl error if the \fIcommands\fR return an error.
-Commands should be enclosed in "" or {}.
-.sp
-Oratcl performs conversions for all data types.  Raw data is returned 
-as a hexadecimal string, without a leading "0x".  Use the SQL functions
-to force a specific conversion.
-.sp
-The \fBoramsg\fR array index \fIrc\fR
-is set with the return code of the fetch.  0 indicates the row was
-fetched successfully; 1403 indicates the end of data was reached.
-.sp
-The index \fIrows\fR is set to 
-the cumulative number of rows fetched so far.
-.sp
-The \fBoramsg\fR array index \fImaxlong\fR limits the amount of long or
-long raw data returned for each column returned.  The default is 32768 bytes.  
-.sp
-The \fBoramsg\fR array index \fInullvalue\fR can be set to specify
-the value returned when a column is null.  The default is "0" for
-numeric data, and "" for other datatypes.
-.sp
-.RE
 .TP 
 .B oraplexec \fIstatement-handle  pl-block  ?:varname  value ...?\fR
 .br
@@ -745,83 +673,9 @@ global statement in any Tcl procedure needing access to oramsg.
 .P
 .B NOTE
 .br
-The \fInullvalue\fR, \fImaxlong\fR and \fIhandle\fR elements of the
-\fBoramsg\fR array have been removed in \fBOratcl\fR version 3.0.  
-Equivalent functionality for \fInullvalue\fR and \fImaxlong\fR is
-available via the \fBoraconfig\fI command.
-.sp
-.P
-Oramsg elements:
-.sp
-.TP
-.B rc
-.br
-indicates the results of the last SQL command and subsequent orafetch
-processing.  Rc is set by orasql, orafetch, oraplexec,  and is 
-the numeric return code
-from the last OCI library function called by an Oratcl command.  Refer
-to Oracle Error Messages and Codes manual for detailed information.
-Typical values are:
-.RS
-.TP
-.B " 0"
-.br
-Function completed normally, without error.
-.TP
-.B " 900-999"
-.br
-invalid SQL statement, invalid sql statements, missing keywords, invalid
-column names, etc.
-.TP
-.B " 1000-1099"
-.br
-program interface error, e.g., no sql statement parsed, 
-SQL bind variables not bound,
-logon denied,
-insufficient privileges, etc.
-.TP
-.B " 1400-1499"
-.br
-execution errors or feedback.
-.TP
-.B " 1403"
-.br
-end of data was reached on an orafetch command.
-.TP
-.B " 1406"
-.br
-a column fetched by orafetch was truncated.  Can occur when fetching a 
-LONG or LONG RAW, and the \fImaxlong\fR value is smaller than the
-acutal data size.
-.RE
-.TP
-.B errortxt
-.br
-the message text associated with rc.  Since the oraplexec command
-may invoke several SQL statements, there is a possiblity that
-several messages may be received from the server.  
-.TP
-.B sqlfunc
-.br
-the numeric OCI code of the last sql function performed.  See the OCI manual
-for descriptions.
-.TP
-.B peo
-.br
-parse error offset, an index into an sql string that failed due to error.
-.TP
-.B ocifunc
-.br
-the number OCI code of the last OCI function called by Oratcl.  See the
-OCI manual for descriptions.
-.TP
-.B rows
-.br
-the number of rows affected by an
-\fIinsert, update, \fRor\fI delete\fR
-in an orasql
-command, or the
-cumulative number of rows fetched by orafetch.
+The \fBoramsg\fR array ha been removed in \fBOratcl\fR version 4.0.  
+Equivalent functionality for this array is available via the
+\fBoramsg\fI command.
 .sp
 .SH NOTES
 .P
@@ -829,15 +683,19 @@ Tcl errors can also be raised by any Oratcl command if a command's internal
 calls to OCI library routines fail.  
 .TP
 .B Dates
-Oracle is very particular about using date literals in SQL.  The proper date
-format is 'dd-mmm-yy', where dd is a numeric day, mmm is a three character 
-month name, yy is two digit year.  Some versions of Oracle give very strange 
-results or failures if date values are not in this format.
+Oracle is very particular about using date literals in SQL.  Date literals
+should match the default date format for your oracle session.  default date
+formats can be modified with an "alter session" SQL statement.
+.sp
+	alter session set nls_date_format = 'DD-MON-YYYY'
 .TP
 .B Connection Limits
 The limit of the number of simultaneous connection handles and statement
 handles is determined by the Oracle server configuration.  The processes
 \fIinit.ora\fR is the most common limitation.
+.TP
+.B Multithreading
+Oratcl may be used with the thread extension.
 .TP
 .B Slave Interpreters
 Oratcl may be used in a Tcl slave interpreter.  However, logon handles and
@@ -920,14 +778,7 @@ $HOME/.tnsnames.ora - definitions for Oracle servers.
 None known.
 .sp
 .SH AUTHOR
-Tom Poindexter, Denver Colorado.  Version 2.5 released May 1997.
-Concepts borrowed from my earlier work with Sybtcl, a TCL interface to
-the Sybase RDBMS product.
-.P
-tpoindex@nyx.net
-.P
-Todd Helfter, Purdue University.  Version 3.3 released August 2001.
-Created with permission from Tom Poindexter.
+Todd Helfter, Purdue University.  Version 4.0 released September 2001.
 .P
 tmh@purdue.edu
 .sp
