@@ -228,7 +228,7 @@ Version 3.0.1 August, 2000
 -----------------------------------------------------------------------------
 
 
-Version 3.0.2 September, 2000
+Version 3.1 September, 2000
 
     Todd M. Helfter, Purdue University
     tmh@purdue.edu
@@ -240,5 +240,10 @@ Version 3.0.2 September, 2000
     -   relocated configuration files to be common to unix and windows.
     -   corrected bug in Oratcl_Logon preventing remote_os_authent access.
  	Thanks to Cesar Perez Fernandez (cpf06@tid.es) for the correction.
+    -	added "loginhandle" option to orainfo to facilitate conversions from
+	statement handle back to loginhandle.
+    -	added the library file oralob.tcl to implement a new oralob command.
+    -	added "lobpsize" to oraconfig to manage the piece size in oralob
+	read/writes.
 
 -----------------------------------------------------------------------------
