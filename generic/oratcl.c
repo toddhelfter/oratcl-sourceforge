@@ -1213,7 +1213,10 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "connect_string ?-async?");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "connect_string ?-async?");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -2371,7 +2374,10 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle  sql_str ?-parseonly? | ?-commit?");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle sql_str ?-parseonly? | ?-commit?");
 		return TCL_ERROR;
 	}
 
@@ -2727,7 +2733,10 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle pl_block [ :varname value ] ...");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle pl_block [ :varname value ] ...");
 		return TCL_ERROR;
 	}
 
@@ -3839,7 +3848,10 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	int		tcl_return = TCL_OK;
 
 	if (objc < 5) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str datavar");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle sql_str datavar");
 		return TCL_ERROR;
 	}
 
@@ -4124,7 +4136,10 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	int		tcl_return = TCL_OK;
 
 	if (objc < 5) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str datavar");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle sql_str datavar");
 		return TCL_ERROR;
 	}
 
@@ -4529,7 +4544,10 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	}
 
 	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle [ :varname value ] ...");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle [ :varname value ] ...");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -4869,7 +4887,10 @@ Oratcl_Exec (clientData, interp, objc, objv)
 	int		tcl_return = TCL_OK;
 
 	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle ?-commit?");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle ?-commit?");
 		return TCL_ERROR;
 	}
 
@@ -5119,7 +5140,10 @@ Oratcl_Break (clientData, interp, objc, objv)
 	int		tcl_return = TCL_OK;
 
 	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle");
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle");
 		return TCL_ERROR;
 	}
 
