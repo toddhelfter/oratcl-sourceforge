@@ -1,3 +1,11 @@
+2005-01-28  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* generic/oratcl.c: include dl.h on hpux
+
+	* Makefile.in (pkgIndex.tcl): generate pkgIndex.tcl by hand
+	instead of with pkg_mkIndex.  This ensures correct creation even
+	when the oracle client libraries are not on the build machine.
+
 Oratcl change history
 
 
