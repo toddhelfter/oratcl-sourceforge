@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<!-- $Id: FAQ.html,v 1.4 2001-03-30 19:18:43 bhlewis Exp $ -->
+<!-- $Id: FAQ.html,v 1.5 2001-07-24 14:23:40 bhlewis Exp $ -->
 <html>
   <head>
     <title>Oratcl Frequently Asked Questions</title>
@@ -48,6 +48,8 @@
       <li><a href="#Q4.2">Q4.2 How do I configure SQL*NET for Oratcl?</a>
       <li><a href="#Q4.3">Q4.3 What might a <tt>tnsnames.ora</tt> 
 	  file look like?</a>
+      <li><a href="#Q4.4">Q4.4 When I select DATE fields, the date is
+	  in the wrong format.  How do I get what I want?</a>
     </ul>
 
     <h3><a href="#SEC5">Section 5: Getting Help</a></h3>
@@ -396,6 +398,44 @@ mydb =
 	    files look quite different than this stripped-down
 	    example.
 	  </p>
+	<dt>
+	  <a name="Q4.4" href="#TOC">
+	    Q4.4 When I select DATE fields, the date is
+	    in the wrong format.  How do I get what I want?
+	  </a>
+	<dd>
+	  <p>
+	    Whenever a DATE field is selected, the database does an
+	    implicit TO_CHAR() conversion to change the data from the
+	    internal date format into something recognizable as a
+	    date.  The actual format used in the TO_CHAR() operation
+	    is defined by the NLS_DATE_FORMAT session parameter, which
+	    may default to something like 'DD-MON-YYYY' rather than
+	    what you want.
+	  </p>
+	  <p>
+	    To get the DATE information in the format you want, you
+	    can either set the NLS_DATE_FORMAT on a per-session basis,
+	    alter the NLS_DATE_FORMAT system-wide by editing the
+	    <tt>init.ora</tt> file, or request an explicit TO_CHAR()
+	    whenever you select a DATE.  Usually, the first method is
+	    the easiest when you want all dates to appear in the same
+	    format to the Tcl program.
+	  </p>
+	  <p>
+	    Below is an example of setting NLS_DATE_FORMAT on a
+	    per-session basis:
+	  </p>
+	  <pre>
+# oralogon, oraopen, etc. happen above
+orasql $cur {alter session set nls_date_format='DD-MON-YYYY'}
+orasql $cur {select sysdate from dual}
+orafetch $cur {puts @0}
+
+orasql $cur {alter session set nls_date_format='DD-MON-YYYY HH:MI:SS'}
+orasql $cur {select sysdate from dual}
+orafetch $cur {puts @0}
+	  </pre>
       </dl>
     </blockquote>
 
@@ -465,7 +505,7 @@ mydb =
     <address><a href="mailto:bhlewis@users.sourceforge.net">Benjamin Lewis</a></address>
 <!-- Created: Mon Nov  6 09:02:57 EST 2000 -->
 <!-- hhmts start -->
-Last modified: Fri Mar 30 14:17:50 EST 2001
+Last modified: Tue Jul 24 09:15:46 EST 2001
 <!-- hhmts end -->
   </body>
 </html>
