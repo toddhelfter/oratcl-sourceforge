@@ -1137,13 +1137,18 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	char 		*con_str, *cpy_str;
+	char 		*con_str, *cpy_str, *cpy_pos1, *cpy_pos2;
 	int		con_len;
 	sword		rc;
-	int		namelen, pwlen, connlen;
-	char		*name;
-	char		*pword;
-	char		*conn;
+
+	char		*ora_name = NULL;
+	char		*ora_pass = NULL;
+	char		*ora_conn = NULL;
+
+	int		ora_namelen = 0;
+	int		ora_passlen = 0;
+	int		ora_connlen = 0;
+
 	ub4		oci_cred = OCI_CRED_RDBMS;
 
 	char		buf[20];
@@ -1183,24 +1188,36 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	memcpy (cpy_str, con_str, con_len);
 	cpy_str[con_len] = '\0';
 
-        name = strtok(cpy_str, "/@");
-        pword = strtok(NULL, "/@");
-        conn = strtok(NULL, "/@");
+	/* break the connect string into components. */
+	cpy_pos1 = strchr(cpy_str, '/');
+	cpy_pos2 = strchr(cpy_str, '@');
 
-        if (name != NULL)
-                namelen = strlen(name);
-        else
-                namelen = 0;
+	if (cpy_pos1 != NULL && cpy_pos2 != NULL) {
+		*cpy_pos1 = '\0';
+		*cpy_pos2 = '\0';
+		ora_name = cpy_str;
+		ora_pass = cpy_pos1 + 1;
+		ora_conn = cpy_pos2 + 1;
+                ora_namelen = strlen(ora_name);
+                ora_passlen = strlen(ora_pass);
+                ora_connlen = strlen(ora_conn);
+	} else if (cpy_pos1 != NULL) {
+		*cpy_pos1 = '\0';
+		ora_name = cpy_str;
+		ora_pass = cpy_pos1 + 1;
+                ora_namelen = strlen(ora_name);
+                ora_passlen = strlen(ora_pass);
+	} else if (cpy_pos2 != NULL) {
+		*cpy_pos2 = '\0';
+		ora_name = cpy_str;
+		ora_conn = cpy_pos2 + 1;
+                ora_namelen = strlen(ora_name);
+                ora_connlen = strlen(ora_conn);
+	} else {
+		ora_name = cpy_str;
+                ora_namelen = strlen(ora_name);
+	}
 
-        if (pword != NULL)
-                pwlen = strlen(pword);
-        else
-                pwlen = 0;
-
-        if (conn != NULL)
-                connlen = strlen(conn);
-        else
-                connlen = 0;
 
 	(void) OCIInitialize( (ub4) OCI_DEFAULT,
 			      (dvoid *)0,
@@ -1235,8 +1252,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	(void) OCIServerAttach( LogPtr->srvhp,
 				LogPtr->errhp,
-				(text *) conn,
-				connlen,
+				(text *) ora_conn,
+				ora_connlen,
 				0);
 
 	/* set attribute server context in the service context */
@@ -1255,19 +1272,19 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	(void) OCIAttrSet((dvoid *) LogPtr->usrhp,
 		 	  (ub4) OCI_HTYPE_SESSION,
-			  (dvoid *) name,
-			  (ub4) namelen,
+			  (dvoid *) ora_name,
+			  (ub4) ora_namelen,
 			  (ub4) OCI_ATTR_USERNAME,
 			  LogPtr->errhp);
 
 	(void) OCIAttrSet((dvoid *) LogPtr->usrhp,
 			  (ub4) OCI_HTYPE_SESSION,
-		  	  (dvoid *) pword,
-			  (ub4) pwlen,
+		  	  (dvoid *) ora_pass,
+			  (ub4) ora_passlen,
 			  (ub4) OCI_ATTR_PASSWORD,
 			  LogPtr->errhp);
 
-	if ((namelen + pwlen) == 0) {
+	if ((ora_namelen + ora_passlen) == 0) {
 		oci_cred = OCI_CRED_EXT;
 	}
 
