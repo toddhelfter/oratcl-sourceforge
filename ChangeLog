@@ -275,7 +275,7 @@ Version 3.2 March, 2001
 
 -----------------------------------------------------------------------------
 
-Version 4.0 August, 2001
+Version 3.3 September, 2001
 
     Todd M. Helfter, Purdue University
     tmh@purdue.edu
@@ -292,6 +292,11 @@ Version 4.0 August, 2001
 	within the 'C' code.  This fixes crash when calling 
 	Tcl_GetNameOfExecutable() without having first called 
 	Tcl_Init(interp).
+
+-----------------------------------------------------------------------------
+
+Version 4.0 September, 2001
+
     -	**** oramsg **** array has been removed.  This is not backwards 
 	compatible.  The remaining values that were accessed through the 
 	oramsg array can be obtained with the new _oramsg_ command.
