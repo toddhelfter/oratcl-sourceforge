@@ -1,19 +1,7 @@
 Oratcl for Windows
 
-This directory contains a prebuilt version of Oratcl for the windows
-operating system.  It was compiled with stubs enabled, with Microsoft
-visual studion 6.0, and with Tcl 8.3.2.
+Precompiled files for a windows installation will be provided on Sourceforge
+as a separate download from the source from now on.
 
-There are 4 files necessary for oratcl to operate on windows.
 
-they are : oratcl32.dll oralob.tcl oralong.tcl pkgIndex.tcl
-
-oratcl32.dll needs to be in your tcl\lib
-
-	i.e. c:\program files\tcl\lib\oratcl32.dll
-
-the 3 tcl files need to be in tcl\lib\oratcl3.2
-
-	i.e. c:\program files\tcl\lib\oratcl3.2\pkgIndex.tcl
-	     c:\program files\tcl\lib\oratcl3.2\oralob.tcl
-	     c:\program files\tcl\lib\oratcl3.2\oralong.tcl
+Todd
