@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.10 2000-09-21 04:41:33 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.11 2000-09-21 15:45:49 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -84,7 +84,7 @@ proc oraclob {stm command args} {
 	foreach idx [list start stop] {
 		set oraclob($idx) 0
 	}
-	foreach idx [list offset nth] {
+	foreach idx [list nth] {
 		set oraclob($idx) 1
 	}
 
@@ -102,7 +102,6 @@ proc oraclob {stm command args} {
 			-column	 { set oraclob(column) $value }
 			-datavar { set oraclob(datavar) $value }
 			-length	 { set oraclob(length) $value }
-			-offset	 { set oraclob(offset) $value }
 			-amount	 { set oraclob(amount) $value }
 			-pattern { set oraclob(pattern) $value }
 			-nth	 { set oraclob(nth) $value }
@@ -167,8 +166,8 @@ proc oraclob {stm command args} {
 					       $oraclob(rowid) \
 					       $oraclob(table) \
 					       $oraclob(column) \
-					       $oraclob(amount) \
-					       $oraclob(offset)]]
+					       $oraclob(start) \
+					       $oraclob(stop)]]
 		}
 
 		substr	{
@@ -189,7 +188,7 @@ proc oraclob {stm command args} {
 					       $oraclob(table) \
 					       $oraclob(column) \
 					       $oraclob(pattern) \
-					       $oraclob(offset) \
+					       $oraclob(start) \
 					       $oraclob(nth)]]
 		}
 
@@ -212,7 +211,7 @@ proc oratcl::clob_read {stm rowid table column datavar} {
 	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
-		error "oraclob instr: value error \n$info"
+		error "oraclob read: value error \n$info"
 	}
 	set len $tcl_res
 
@@ -272,7 +271,7 @@ proc oratcl::clob_write {stm rowid table column datavar} {
 	set tcl_rc [catch {oratcl::clob_trim $stm $rowid $table $column $tot} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
-		error "oraclob instr: value error \n$info"
+		error "oraclob read: value error \n$info"
 	}
 
 }
@@ -321,9 +320,23 @@ proc oratcl::clob_trim {stm rowid table column length} {
 #
 #  erase a lob field.
 #
-proc oratcl::clob_erase {stm rowid table column amount offset} {
+proc oratcl::clob_erase {stm rowid table column start stop} {
 
 	global oramsg errorInfo
+
+	if {![string is integer $start] || $start < 0} {
+		error "oraclob erase: value error\n \
+			-start value must be a non negative integer"
+	}
+
+	if {![string is integer $stop] || $stop < $start} {
+		error "oraclob erase: value error\n \
+			-stop value must be a non negative integer\n \
+			-stop value may not be less than -start value"
+	}
+
+	set amount [expr {$stop - $start + 1}]
+	set offset [expr {$start + 1}]
 
 	set pl [format $oratcl::plsql(erase) $column $table]
 
@@ -350,25 +363,24 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 	set result {}
 
 	if {![string is integer $start] || $start < 0} {
-		error "oraclob instr: value error\n \
-			-start value must be a positive integer"
+		error "oraclob substr: value error\n \
+			-start value must be a non negative integer"
 	}
 
 	if {![string is integer $stop] || $stop < $start} {
-		error "oraclob instr: value error\n \
-			-stop value must be a positive integer"
+		error "oraclob substr: value error\n \
+			-stop value must be a non negative integer\n \
+			-stop value may not be less than -start value"
 	}
 
 	set amount [expr {$stop - $start + 1}]
 	set offset [expr {$start + 1}]
 
-
 	set pl [format $oratcl::plsql(substr) $column $table]
-
 	set tcl_rc [catch {oratcl::clob_length $stm $rowid $table $column} tcl_res]
 	if {$tcl_rc} {
 		set info "$oramsg(errortxt) $errorInfo"
-		error "oraclob instr: value error \n$info"
+		error "oraclob substr: value error \n$info"
 	}
 	set len $tcl_res
 
@@ -397,7 +409,7 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 				  tcl_res] 
 		if {$tcl_rc} {
 			set info "$oramsg(errortxt) $errorInfo"
-			error "oraclob instr: value error \n$info" 
+			error "oraclob substr: value error \n$info" 
 		}
 
 		set rem [expr {$rem - $par}]
@@ -409,9 +421,16 @@ proc oratcl::clob_substr {stm rowid table column start stop datavar} {
 #
 #  instr a lob field.
 #
-proc oratcl::clob_instr {stm rowid table column pattern offset nth} {
+proc oratcl::clob_instr {stm rowid table column pattern start nth} {
 
 	global oramsg errorInfo
+
+	if {![string is integer $start] || $start < 0} {
+		error "oraclob instr: value error\n \
+			-start value must be a non negative integer"
+	}
+
+	set offset [expr {$start + 1}]
 
 	set pl [format $oratcl::plsql(instr) $column $table]
 	set tcl_rc [catch {oraplexec $stm \
