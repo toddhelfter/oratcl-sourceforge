@@ -19,7 +19,7 @@ MINOR_VERSION=0
 PATCHLEVEL=".2"
 
 VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
-NODOT_VERSION=${MAJOR_VERSION}${MINOR_VERSION}${PATCHLEVEL}
+NODOT_VERSION=${MAJOR_VERSION}${MINOR_VERSION}
 
 
 AC_SUBST(PACKAGE)
@@ -67,7 +67,6 @@ AC_CYGWIN
 
 AC_OBJEXT
 AC_EXEEXT
-
 
 ORATCL_VERSION=$VERSION
 
@@ -240,6 +239,13 @@ eval "UNSHARED_LIB_SUFFIX=${TCL_UNSHARED_LIB_SUFFIX}"
 #               --with-oracle-version=x   x=6 or x=7
 #----------------------------------------------------------------------------
 
+# start with these assumptions
+ORA_MAJOR_VERSION=8
+ORA_MINOR_VERSION=1
+# In the case of the minor version, Oratcl itself only distinguishes between
+# 8.0 and 8.1+ so we're not doing additional work - which may need to be
+# done in the future if interest is expressed.
+
 AC_ARG_WITH(oracle-directory, [  --with-oracle-directory=DIR  Oracle home directory DIR (default=\$ORACLE_HOME)], oracle_directory=$withval)
 
 case "`uname -s`" in
@@ -248,12 +254,14 @@ case "`uname -s`" in
         if test -r "$oracle_directory/oci80/lib/msvc/oci.lib" ; then
 	    ORA="$oracle_directory/oci80/lib/msvc"
 	    ORACLE_HOME=$oracle_directory
+	    ORA_MINOR_VERSION=0
 	    AC_MSG_RESULT(setting ORA to $ORA)
 	    break
 	fi
         if test -r "$oracle_directory/oci/lib/msvc/oci.lib" ; then
 	    ORA="$oracle_directory/oci/lib/msvc"
 	    ORACLE_HOME=$oracle_directory
+	    ORA_MAJOR_VERSION=1
 	    AC_MSG_RESULT(setting ORA to $ORA)
 	    break
 	fi
@@ -267,7 +275,8 @@ oratest3=${oratest3:-.}
 oratest4=`(niscat passwd.org_dir | egrep ^oracle | awk -F: '{print $6}') 2>/dev/null`
 oratest4=${oratest4:-.}
 
-AC_CHECKING(for Oracle toplevel (libocic.a or libclient8.a))
+
+AC_CHECKING(for Oracle 8.1+-style toplevel (libclient8.a))
 for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
     AC_MSG_RESULT(looking for lib/libclient8.a in $f)
     if test -r "$f/lib/libclient8.a" ; then
@@ -275,9 +284,26 @@ for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u
 	ORACLE_HOME=$f
         AC_MSG_RESULT(setting ORA to $ORA)
 	testver=8
+	ORA_MINOR_VERSION=1
+	# might be >81 but for now all we care is that it's not 8.0
         break
     fi
 done
+
+AC_CHECKING(for Oracle 8.0-style toplevel (libclient.a))
+for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u/oracle /usr/oracle /usr/local/oracle ; do
+    AC_MSG_RESULT(looking for lib/libclient.a in $f)
+    if test -r "$f/lib/libclient.a" ; then
+        ORA="$f/lib"
+	ORACLE_HOME=$f
+        AC_MSG_RESULT(setting ORA to $ORA)
+	testver=8
+	ORA_MINOR_VERSION=0
+        break
+    fi
+done
+
+
 ;;
 esac
 if test -z "$ORA" ; then
@@ -308,6 +334,7 @@ case $oracle_version in
     8)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
         ORA_DB_VER="-DVERSION8DB"
+	ORA_MAJOR_VERSION=8
 	;;
 esac
 
@@ -446,6 +473,8 @@ AC_SUBST(ORATCL_VERSION)
 AC_SUBST(ORATCL_LIBVER)
 AC_SUBST(ORACLE_HOME)
 AC_SUBST(ORA)
+AC_SUBST(ORA_MAJOR_VERSION)
+AC_SUBST(ORA_MINOR_VERSION)
 AC_SUBST(ORA_DB_VER)
 AC_SUBST(ORA_SH_LIB)
 AC_SUBST(TCL_VERSION)
