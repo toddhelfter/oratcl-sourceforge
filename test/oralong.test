@@ -71,6 +71,8 @@ orabindexec $long_stm :long_key l4
 orafetch $long_stm -datavariable rowid4
 
 set chr_data [string repeat 0123456789---------- 10000]
+set chr_null {}
+set chr_byte 0
 
 set fileId [open [info nameofexecutable] r]
 fconfigure $fileId -translation binary
@@ -83,6 +85,8 @@ test oralong-1.0 {oralong: alloc and free long} {
 	list $free
 } {0}
 
+puts stderr {oralong-1.1}
+flush stderr
 test oralong-1.1 {oralong: write long} {
 	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
 	catch {oralong write $long -datavar chr_data} write
@@ -90,6 +94,8 @@ test oralong-1.1 {oralong: write long} {
 	list $write $free
 } {0 0}
 
+puts stderr {oralong-1.2}
+flush stderr
 test oralong-1.2 {oralong: read long} {
 	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
 	catch {oralong read $long -datavar chr_out} res
@@ -97,6 +103,24 @@ test oralong-1.2 {oralong: read long} {
 	catch {oralong free $long} free
 	list $read $free
 } {1 0}
+
+puts stderr {oralong-1.3}
+flush stderr
+test oralong-1.3 {oralong: write long ZERO} {
+	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
+	catch {oralong write $long -datavar chr_byte} write
+	catch {oralong free $long} free
+	list $write $free
+} {0 0}
+
+puts stderr {oralong-1.4}
+flush stderr
+test oralong-1.4 {oralong: write long NULL} {
+	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
+	catch {oralong write $long -datavar chr_null} write
+	catch {oralong free $long} free
+	list $write $free
+} {0 0}
 
 test oralong-2.0 {oralong: alloc and free long raw} {
 	catch {oralong alloc $long_stm -table oratcl_longraw -column long_fld -rowid $rowid3} long

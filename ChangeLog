@@ -292,6 +292,10 @@ Version 3.3 September, 2001
 	within the 'C' code.  This fixes crash when calling 
 	Tcl_GetNameOfExecutable() without having first called 
 	Tcl_Init(interp).
+    -   Correct a bug affecting the oralong command.  Attempting to write
+        a zero length string into a long column, put the statement handle
+        in an unrecoverable state.
+        Thanks to Ulrich Schoebel (SchoebelU@spardat.at) for the alert.
 
 -----------------------------------------------------------------------------
 

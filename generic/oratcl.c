@@ -3988,7 +3988,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	pLen = outStr.length;
 	pLast = pData + pLen - 1;
 
-	while (pData <= pLast) {
+	while (piece != OCI_LAST_PIECE) {
 
 		if (pLen > StmPtr->longpsize) {
 			pSize = StmPtr->longpsize;
@@ -4031,7 +4031,9 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 
 		pData += pSize;
 		pLen -= pSize;
-		piece = OCI_NEXT_PIECE;
+		if (piece != OCI_LAST_PIECE) {
+			piece = OCI_NEXT_PIECE;
+		}
 
 	}
 
