@@ -40,7 +40,7 @@ test oraparse-1.5 {oraparse OCI_STMT_CREATE code == 5} {
 	oramsg $ora_cur sqltype
 } {5}
 
-test oraparse-1.6 {oraparse OCI_STMT_CREATE code == 6} {
+test oraparse-1.6 {oraparse OCI_STMT_DROP code == 6} {
 	set sql {drop table oratcl___tests}
 	oraparse $ora_cur $sql
 	oramsg $ora_cur sqltype
