@@ -658,16 +658,12 @@ Oratcl_Checkerr (interp, errhp, rc, flag)
 			strcpy(errbuf, "Error - Unknown");
 	}
 
-#if 0
-fprintf(stderr, "errtext = %s\n", errbuf);
-fprintf(stderr, "errcode = %d\n", errcode);
-	if (errcode != 0) {
+	if (flag == -1 && errcode != 0) {
 		fprintf(stderr, "errtext = %s\n", errbuf);
 		fprintf(stderr, "errcode = %d\n", errcode);
 	}
-#endif
 
-	if (flag) {
+	if (flag==1) {
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(errbuf, -1));
 	}
 
@@ -4003,25 +3999,29 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	Tcl_HashEntry	*logHashPtr;
 	OratclLogs	*LogPtr;
 
-	sword		rc;
+	sword		rc, ec;
 
 	OCIDescribe	*dschp = (OCIDescribe *)0;
-	char		*tablename = NULL;
-	int		namelen;
+
+	char		*tmp_str;
+	int		tmp_len;
+
+	text		*syn_st1 = NULL, *syn_st2 = NULL, *syn_st3 = NULL;
+	ub4		syn_ln1, syn_ln2, syn_ln3;
+
+	Tcl_DString	tblStr, resStr;
 
 	OCIParam	*parmp, *collst, *parmh;
 	ub2		numcols;
 	int		pos;
 
-	int		oColsc;
-        Tcl_Obj		**oColsv = NULL;
-        int		oColslen = 6;
-	Tcl_Obj		*oResult;
-
 	OratclDesc	column;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
+
+	Tcl_DStringInit(&tblStr);
+	Tcl_DStringInit(&resStr);
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);
@@ -4068,31 +4068,144 @@ Oratcl_Describe (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	oResult = Tcl_GetObjResult(interp);
-
-	tablename = Tcl_GetStringFromObj(objv[2], &namelen);
+	tmp_str = Tcl_GetStringFromObj(objv[2], &tmp_len);
+	Tcl_DStringAppend(&tblStr, tmp_str, tmp_len);
 
 	rc = OCIDescribeAny(LogPtr->svchp,
 			    LogPtr->errhp,
-			    (dvoid *)tablename,
-			    (ub4) namelen,
+			    (dvoid *) tblStr.string,
+			    (ub4) tblStr.length,
 			    OCI_OTYPE_NAME,
 			    (ub1)0,
 			    OCI_PTYPE_TABLE,
 			    dschp);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0);
+	ec = Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+
+	/* check for a private synonym */
+	if (ec == 4043) {
+
+		rc = OCIAttrSet( (dvoid *) dschp,
+			         (ub4) OCI_HTYPE_DESCRIBE,
+			         (dvoid *) NULL,
+			         (ub4) 0,
+			         (ub4) OCI_ATTR_DESC_PUBLIC,
+			         (OCIError *) LogPtr->errhp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		rc = OCIDescribeAny(LogPtr->svchp,
+				    LogPtr->errhp,
+				    (dvoid *) tblStr.string,
+				    (ub4) tblStr.length,
+				    OCI_OTYPE_NAME,
+				    (ub1)0,
+				    OCI_PTYPE_SYN,
+				    dschp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		/* get the parameter descriptor */
+		rc = OCIAttrGet((dvoid *)dschp,
+				(ub4)OCI_HTYPE_DESCRIBE,
+				(dvoid *) &parmp,
+				(ub4 *)0,
+				(ub4)OCI_ATTR_PARAM,
+				(OCIError *)LogPtr->errhp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		Tcl_DStringInit(&tblStr);
+
+		/* retrieve the synonym schema name attribute */
+		tmp_str = NULL;
+		rc = OCIAttrGet((dvoid*) parmp,
+				(ub4) OCI_DTYPE_PARAM,
+				(dvoid*) &syn_st1,
+				(ub4 *) &syn_ln1,
+				(ub4) OCI_ATTR_SCHEMA_NAME,
+				(OCIError *)LogPtr->errhp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		if (syn_st1) {
+			Tcl_DStringAppend(&tblStr, (char *) syn_st1, syn_ln1);
+			Tcl_DStringAppend(&tblStr, ".", 1);
+		}
+
+		/* retrieve the synonym name attribute */
+		rc = OCIAttrGet((dvoid*) parmp,
+				(ub4) OCI_DTYPE_PARAM,
+				(dvoid*) &syn_st2,
+				(ub4 *) &syn_ln2,
+				(ub4) OCI_ATTR_NAME,
+				(OCIError *)LogPtr->errhp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		if (syn_st2) {
+			Tcl_DStringAppend(&tblStr, (char *) syn_st2, syn_ln2);
+		}
+
+		/* retrieve the synonym dblink attribute */
+		rc = OCIAttrGet((dvoid*) parmp,
+				(ub4) OCI_DTYPE_PARAM,
+				(dvoid*) &syn_st3,
+				(ub4 *) &syn_ln3,
+				(ub4) OCI_ATTR_LINK,
+				(OCIError *)LogPtr->errhp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+		if (rc != OCI_SUCCESS) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		if (syn_st3) {
+			Tcl_DStringAppend(&tblStr, "@", 1);
+			Tcl_DStringAppend(&tblStr, (char *) syn_st3, syn_ln3);
+		}
+
+		/* describe the table pointed to by the synonym */
+		rc = OCIDescribeAny(LogPtr->svchp,
+				    LogPtr->errhp,
+				    (dvoid *)tblStr.string,
+				    (ub4) tblStr.length,
+				    OCI_OTYPE_NAME,
+				    (ub1)0,
+				    OCI_PTYPE_TABLE,
+				    dschp);
+
+		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
+
+	}
 
 	if (rc != OCI_SUCCESS) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": table describe failed",
-				objv[1],
-				(char *) NULL);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
-
 
 	/* get the parameter descriptor */
 	rc = OCIAttrGet((dvoid *)dschp,
@@ -4117,6 +4230,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			(ub4) OCI_ATTR_NUM_COLS,
 			(OCIError *)LogPtr->errhp);
 
+	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0);
+	if (rc != OCI_SUCCESS) {
+		Oratcl_ErrorMsg(interp, objv[0], " error ", objv[1], (char *) NULL);
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
 	/* column list of the table */
 	rc = OCIAttrGet((dvoid*) parmp,
@@ -4132,9 +4251,6 @@ Oratcl_Describe (clientData, interp, objc, objv)
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
-
-	/* Preallocate some list elements */
-	oColsv = (Tcl_Obj **) ckalloc (oColslen * sizeof(*oColsv));
 
 	/* now describe each column */
 	for (pos = 1; pos <= numcols; pos++) {
@@ -4160,23 +4276,25 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		oColsc = 0;
-		oColsv[oColsc++] = Tcl_NewStringObj((char *) column.name, -1);
-		oColsv[oColsc++] = Tcl_NewIntObj(column.size);
-		oColsv[oColsc++] = Tcl_NewStringObj(column.typename, -1);
-		oColsv[oColsc++] = Tcl_NewIntObj(column.prec);
-		oColsv[oColsc++] = Tcl_NewIntObj(column.scale);
-		oColsv[oColsc++] = Tcl_NewIntObj(column.nullok);
-		Tcl_ListObjAppendElement(interp, oResult, Tcl_NewListObj(oColslen, oColsv));
+		Tcl_DStringStartSublist(&resStr);
+		Tcl_DStringAppendElement(&resStr, (char *) column.name);
+		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.size), NULL));
+		Tcl_DStringAppendElement(&resStr, (char *) column.typename);
+		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.prec), NULL));
+		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.scale), NULL));
+		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.nullok), NULL));
+		Tcl_DStringEndSublist(&resStr);
 	}
+
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(resStr.string, resStr.length));
 
 common_exit:
 
-	if (oColsv)
-		ckfree((char *) oColsv);
-
 	(void) OCIHandleFree( (dvoid *) dschp,
 			      (ub4) OCI_HTYPE_DESCRIBE);
+
+	Tcl_DStringFree(&tblStr);
+	Tcl_DStringFree(&resStr);
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
