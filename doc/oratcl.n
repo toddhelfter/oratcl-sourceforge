@@ -26,7 +26,7 @@ package require -exact Oratcl 4.3
 .sp
 .SH "ORATCL COMMANDS"
 .TP
-.B oralogon \fIconnect-str ?-async? \fR
+.B oralogon \fIconnect-str ?-async? ?-failovercallback <procname>?\fR
 .br
 Connect to an Oracle server using \fIconnect-str\fR.
 The connect string should be a valid Oracle connect string, in the form:  
@@ -65,6 +65,11 @@ These commands will immediately return a code of OCI_STILL_EXECUTING which
 is equal to the numeric value of -3123.  Repeat calls to these commands
 with the same arguements until a return value of OCI_SUCCESS, a 0, is
 retuned.   See the section below on ASYNCHRONOUS TRANSACTION HANDLING.
+.sp
+The optional \fI-failovercallback <procname>\fR arguments provide a TAF
+failover functionality to Oratcl.  The given procedure is called on a TAF
+failover.  It is often used to re-execute "alter session" statements after
+the automatic reconnect to another RAC node.
 .TP
 .B oralogoff \fIlogon\-handle\fR
 .br

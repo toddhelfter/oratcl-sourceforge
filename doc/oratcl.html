@@ -27,7 +27,7 @@
 
 </PRE>
 <H2>ORATCL COMMANDS</H2><PRE>
-     <B>oralogon</B> <I>connect</I>-<I>str</I> ?-<I>async</I>?
+     <B>oralogon</B> <I>connect</I>-<I>str</I> ?-<I>async</I>? ?-<I>failovercallback procname</I>?
           Connect to an Oracle  server  using  <I>connect</I>-<I>str</I>.   The
           connect string should be a valid Oracle connect string,
           in the form:
@@ -68,6 +68,12 @@
           calls  to these commands with the same arguements until
           a return value of OCI_SUCCESS, a 0, is  retuned.    See
           the section below on ASYNCHRONOUS TRANSACTION HANDLING.
+
+          The optional -<I>failovercallback procname</I> arguments
+          provide  a  TAF  failover functionality to Oratcl.  The
+          given  procname  is  invoked  on a TAF failover.  It is
+          often  used  to  re-execute  "alter session" statements
+          after the automatic reconnect to another RAC node.
 
      <B>oralogoff</B> <I>logon</I>-<I>handle</I>
           Logoff from the  Oracle  server  connection  associated
