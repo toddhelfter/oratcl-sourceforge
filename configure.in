@@ -548,8 +548,8 @@ fi
    
         if test "${SHARED_BUILD}" = "1" ; then
 	    echo "Performing shared build"
-	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB}"
-	    LIB_RUNTIME_DIR=${ORA}/lib
+	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB} ${ORA_SYS_LIBS} ${OTHER_LD_SEARCH_FLAGS}"
+#	    LIB_RUNTIME_DIR=${ORA}/lib
 	    eval "ORA_LD_SEARCH_FLAGS=${TCL_LD_SEARCH_FLAGS}"
 	    LD_PROG=`echo ${TCL_SHLIB_LD} | sed -e "s| .*||"`
 	    CC_PROG=`echo ${CC} | sed -e "s| .*||"`
