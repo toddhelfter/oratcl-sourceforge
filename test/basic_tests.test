@@ -1,0 +1,57 @@
+# |>Description.<|
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+# All rights reserved.
+#
+# RCS: @(#) $Id: basic_tests.test,v 1.1 1999-08-09 18:17:30 mtariq Exp $
+
+package require Oratcl
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import ::tcltest::*
+}
+
+test oratcl-1.0 {oralogon} { 
+    oralogon system/manager 
+} {oratcl0}
+
+test oratcl-2.0 {oraopen} {
+   oraopen oratcl0
+} {oratcl0.0}
+
+test oratcl-3.0 {orasql create table} {
+    orasql oratcl0.0 "create table tcl_temp (name varchar(20), id int)"
+} {0}
+
+test oratcl-4.0 {orasql insert into} {
+    orasql oratcl0.0 "insert into tcl_temp (name, id) values ('apple', 1)"
+} {0}
+
+test oratcl-5.0 {oracommit} {
+    oracommit oratcl0.0
+} {}
+
+test oratcl-6.0 {orasql select from} {
+    orasql oratcl0.0 "select name from tcl_temp where id = 1"
+} {0}
+
+test oratcl-7.0 {orasql orafetch} {
+    orafetch oratcl0.0
+} {apple}
+
+test oratcl-8.0 {oracols} {
+    oracols oratcl0.0
+} {NAME}
+
+test oratcl-9.9 {drop table} {
+   orasql oratcl0.0 "drop table tcl_temp"
+} {0}
+
+::tcltest::cleanupTests
+
+return
