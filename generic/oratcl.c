@@ -109,25 +109,64 @@
  *  7 calls can be used again. Default is to use OCILogon. If using an Oracle
  *  7 DB then -DVERSION7DB compile flag must be used to use orlon
  *-----------------------------------------------------------------------------
- * Version 2.7 August, 1999
- * -use Tcl_Obj type constructs for all commands
- * -2 new functions available in tcl as 
- *      oraldalist - return a list of all opened ldas
- *      oracurlist $lda - return a list of all opened curs for an lda
- *  -   Oratcl_Fetch (orafetch) returns the correct number of spaces between
- *      columns.  Because of Tcl list operations, this is still a valid list.
- *  -   Oratcl_FetchAll changed extensively.
- *        handle both of the following properly
- *        orafetch $cur {} {} foo 1 bar 2
- *        orafetch $cur {} {} {foo 1 bar 2}
- * -Greater tuning of the evaluation string.  No calls to strcpy, bcopy,
- *  for memset are used to find the replacement columns.  
  */
 
-#include "Oratypes.h"
-#include "oratcl.h"
-#include "externs.h"
+
+#define ORATCL_VERSION "2.6"
+
+/* support for version 6 or version 7; if not 7 assume 6  */
+#ifndef VERSION7
+#ifndef VERSION6
+#define VERSION6
+#endif
+#endif
+
 #include "tcl.h"
+#include "Oratypes.h"
+
+/* simple memory debugging, to make sure we alloc and free the same amount */ 
+#ifdef ORATCL_MEM_DEBUG
+#include <stdio.h>
+#undef ckalloc
+#undef ckfree
+static long my_alloc = 0; /* alloc'ed in this module, free'ed in this module */
+static long my_tcl_alloc= 0;    /* alloc'ed by tcl, free'ed in this module */
+static long my_free  = 0;       /* free'ed in this module */
+FILE *my_file;          /* file to dump stats */
+#ifdef ORATCL_MEM_FULL_DEBUG
+#define WHERE_ALLOC fprintf(my_file,"ckalloc  %d\n",__LINE__),
+#define WHERE_FREE   fprintf(my_file,"ckfree   %d\n",__LINE__),
+#else
+#define WHERE_ALLOC
+#define WHERE_FREE
+#endif
+#define ckalloc(x) (WHERE_ALLOC my_alloc++, Tcl_Alloc(x))
+#define ckfree(x)  (WHERE_FREE   my_free++,  Tcl_Free(x))
+/* the only place we get Tcl alloc'ed is from Tcl_SplitList, use wrapper */
+static int MyTcl_SplitList(interp,list,argc,argv)
+  Tcl_Interp *interp;
+  char *list;
+  int *argc;
+  char ***argv;
+{
+#ifdef ORATCL_MEM_FULL_DEBUG
+  fprintf(my_file,"tclalloc %d\n",__LINE__);
+#endif
+  my_tcl_alloc++;
+  return Tcl_SplitList(interp,list,argc,argv);
+}
+#define Tcl_SplitList MyTcl_SplitList
+#define MY_STATS_INIT my_file=fopen("alloc.stats","w")
+#define MY_STATS_DUMP fprintf(my_file,\
+  "ckalloc   = %8ld\ntcl alloc = %8ld\nall alloc = %8ld\nckfree    = %8ld\n",\
+  my_alloc,my_tcl_alloc,my_alloc+my_tcl_alloc,my_free);fclose(my_file)
+#else
+static long my_alloc = 0;
+#define MY_STATS_INIT my_alloc=0
+#define MY_STATS_DUMP my_alloc=my_alloc
+#endif
+
+
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -138,235 +177,540 @@
 #endif
 
 #include <ctype.h>
-#include <stdlib.h>
 
-#ifdef __WIN32
+#ifdef __WIN32__
+#include <memory.h>
+#include <stdlib.h>
+#include <io.h>
+#endif
+
+
+#ifdef NO_BCOPY
+#define bcopy(from, to, length)    memmove((to), (from), (length))
+#define bzero(buf, length)	   memset((buf),(0),(length))
+#endif
+
+/* define oracle cursor (and logon) structures */
+
+/* 64 bit architectures need larger hda size and different cda struct */
+
+#if (defined(__osf__) && defined(__alpha)) || defined(CRAY) || defined(KSR)
+#define HDA_SIZE 512
+#else
+#define HDA_SIZE 256
+#define CDA_32_DEF 
+#endif
+
+
+
+#ifdef CDA_32_DEF
+
+/* cda def that should support 16 and 32 bit architectures */
+struct cda_def
+{
+   short          v2_rc;        /* v2 return code */
+   unsigned short ft;    	/* function type */
+   unsigned long  rpc;          /* rows processed count */
+   unsigned short peo;          /* parse error offset */
+   unsigned char  fc;           /* function code */
+   unsigned char  fill1;        /* filler  */
+   unsigned short rc;           /* v7 return code */
+   unsigned char  wrn;          /* warning flags */
+   unsigned char  flg;          /* error flags */
+   unsigned int   d0;           /* cursor number */
+   struct {                     /* rowid structure */
+     struct {
+        unsigned long   d1;
+        unsigned short  d2;
+        unsigned char   d3;
+        } rd;
+     unsigned long  d4;         /* rba of datablock */
+     unsigned short d5;         /* sequence number of row in block */
+     } rid;
+   unsigned int   ose;          /* os dependent error code */
+   unsigned char  sysparm[27];  /* private, reserved fill */
+};
+
+#else
+
+/* cda def that should support 64 bit architectures */
+struct cda_def
+{
+   signed   short v2_rc;        /* v2 return code */
+   unsigned short ft;    	/* function type */
+   signed   int   rpc;          /* rows processed count */
+   unsigned short peo;          /* parse error offset */
+   unsigned char  fc;           /* function code */
+   unsigned char  fill1;        /* filler  */
+   unsigned short rc;           /* v7 return code */
+   unsigned char  wrn;          /* warning flags */
+   unsigned char  flg;          /* error flags */
+   signed   int   d0;           /* cursor number */
+   struct {                     /* rowid structure */
+     struct {
+        signed   int    d1;
+        unsigned short  d2;
+        unsigned char   d3;
+        } rd;
+     signed   int   d4;         /* rba of datablock */
+     unsigned short d5;         /* sequence number of row in block */
+     } rid;
+   signed   int   ose;          /* os dependent error code */
+   unsigned char  sysparm[27];  /* private, reserved fill */
+};
+#endif
+
+typedef struct cda_def cda_def;
+/* this fails with some compilers: typedef struct cda_def lda_def; */
+#define lda_def cda_def 
+
+
+/* _ANSI_ARGS_ should be defined by tcl.h; ignore if not defined */
+#ifndef _ANSI_ARGS_
+#define _ANSI_ARGS_() ()
+#endif 
+
+/* prototypes for oci function  */
+
+#ifdef VERSION7
+
+/* version 7 has a few extra functions */
+
+int odescr _ANSI_ARGS_((struct cda_def *, int, unsigned long *, short *, char *,
+         unsigned long *, unsigned long *, short *, short *, short *));
+
+int oflng _ANSI_ARGS_((struct cda_def *, int, char *, long, int, 
+	 unsigned long *, long));
+
+int oparse _ANSI_ARGS_((struct cda_def *, char *, long, int, unsigned long));
+
+#else
+
+/* fake version 7 odescr and oparse */
+
+#define odescr(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10) \
+	  odsc(p1,p2,p3,NULL,NULL,p4,p5,p6,p7)
+
+#define oparse(p1,p2,p3,p4,p5)  osql3(p1,p2,(int) p3)
+
+#endif
+
+
+int obndrv _ANSI_ARGS_((struct cda_def *, char *, int, char *, int, int,
+         int, short *, char *, int, int));
+
+int obndrn _ANSI_ARGS_((struct cda_def *, int, char *, int, int,
+         int, short *, char *, int, int));
+
+int obreak _ANSI_ARGS_((struct lda_def *));
+
+int ocan _ANSI_ARGS_((struct cda_def *));
+
+int oclose _ANSI_ARGS_((struct cda_def *));
+
+int ocof _ANSI_ARGS_((struct lda_def *));
+
+int ocom _ANSI_ARGS_((struct lda_def *));
+
+int ocon _ANSI_ARGS_((struct lda_def *));
+
+int odefin _ANSI_ARGS_((struct cda_def *, int, char *, int, int, int, 
+	 short *, char *, int, int, unsigned short *, unsigned short *));
+
+int odsc _ANSI_ARGS_((struct cda_def *, int, short *, unsigned short *, short *,
+         short *, char *, short *, short *));
+
+int oerhms _ANSI_ARGS_((struct lda_def *, short, char *, int));
+
+int oermsg _ANSI_ARGS_((short, char *));
+
+int oexec _ANSI_ARGS_((struct cda_def *));
+
+int oexn _ANSI_ARGS_((struct cda_def *, int, int));
+
+int ofen _ANSI_ARGS_((struct cda_def *, int));
+
+int ofetch _ANSI_ARGS_((struct cda_def *));
+
+int ologof _ANSI_ARGS_((struct lda_def *));
+
+int olon _ANSI_ARGS_((struct lda_def *, char *, int, char *, int, int));
+
+int oopen _ANSI_ARGS_((struct cda_def *, struct lda_def *, char *, int,
+         int, char *, int));
+
+int oopt _ANSI_ARGS_((struct cda_def *, int, int));
+
+int orlon _ANSI_ARGS_((struct lda_def *, char *, char *, int, char *, int,int));
+
+int orol _ANSI_ARGS_((struct lda_def *));
+
+int osql3 _ANSI_ARGS_((struct cda_def *, char *, int));
+
+
+#ifdef NONBLOCK_CURSOR
+
+int obreak _ANSI_ARGS_((struct lda_def *));
+
+int onbset _ANSI_ARGS_((struct lda_def *));
+
+int onbclr _ANSI_ARGS_((struct lda_def *));
+
+int onbtst _ANSI_ARGS_((struct lda_def *));
+
+#endif
+
+
+/* various limits for arrays of structures, default buffer sizes */
+#define ORATCLLDAS      50	/* default number of ldas available */
+#define ORATCLCURS      100	/* default number of curs available */
+#define ORA_HOST_AREA	HDA_SIZE /* Oracle host data area length */
+#define ORA_BUFF_SIZE	4096	/* conversion buffer size for various needs*/
+#define ORA_MSG_SIZE	1000	/* oracle error message max size*/
+#define ORA_BIND_SIZE   255     /* conversion buffer size for binding */
+#define ORA_CACHE       10      /* number of rows to fetch each time */
+
+/* parse_cols defines */
+#define NO_MORE_COLUMNS 1007	/* oracle error code # during odescr */
+#define EXT_STRING_TYPE 5	/* oracle external data type for string */
+#define INT_CURSOR_TYPE 102     /* oracle internal cursor data type */
+
+/* version 7 db / oci 2.0 oparse() has some options */
+/* DEF_FLAG should be IMMED_PARSE, otherwise oparse will lie about ft */
+#define IMMED_PARSE     0 
+#define DEFER_PARSE     1
+#define DEF_FLAG        IMMED_PARSE	
+
+/* orasql async/ orapoll will block code */
+#define BLOCKED         3123
+
+#define VER6_BEHAVIOR   0
+#define NORM_BEHAVIOR   1
+#define VER7_BEHAVIOR   2
+#define LNG_FLAG        NORM_BEHAVIOR	/* normal treatment of data types */
+
+/* append_cols defines */
+#define OUT_OF_SEQUENCE 1002	/* oracle error # fetch out of sequence */
+#define NO_STMT_PARSED  1003    /* oracle error # no statement parsed */
+#define NO_DATA_FOUND   1403	/* oracle error # no data for this fetch */
+#define NULL_VALUE      1405	/* oracle error # column returned null */
+#define COL_TRUNCATED   1406	/* oracle error # column truncated */
+#define NUMBER_TYPE     2 	/* oracle internal data type for number */
+#define LONG_TYPE       8 	/* oracle internal data type for long   */
+#define LONGRAW_TYPE    24	/* oracle internal data type for long raw */
+
+/* pl exec error */
+#define PL_EXEC_ERR     6503	/* oracle error # pl block error */
+
+/* db long column max size */
+#ifdef VERSION6
+#define MAX_LONG_SIZE   65536 		/* v6 */
+#else
+#define MAX_LONG_SIZE   2147483647 	/* v7 */
+#endif
+
+#define LONG_BUFF_SIZE  32768   /* chunks to get via oflng() */
+
+
+
+
+/* ColBufs holds information and data of SELECT columns */
+
+struct ColBufs {
+    struct ColBufs  *next_buf;	/* pointer to next ColBufs in list */
+    short       dbtype;		/* column type */
+    char        dbname[256];	/* column name */
+#ifdef VERSION7
+    unsigned long 
+#else
+    unsigned short   
+#endif
+                dbname_len,	/* column name length */
+                disp_size,	/* column display size */
+                dbsize;		/* column internal size */
+
+    short       prec;		/* precision of numeric */
+    short       scale;   	/* scale of numeric */
+    short       nullok;         /* if null ok */
+    long        col_len;        /* length of column data */
+    char       *col_data;       /* pointer to acutal column data */
+    int         bind_cursor;	/* if cursor variable bound during oraplexec*/
+    unsigned short rlen[ORA_CACHE];       /* actual column length */
+    unsigned short rcode[ORA_CACHE];      /* actual column code */
+};
+
+typedef struct ColBufs ColBufs;
+
+
+/* OraTclLdas - oracle logon struct et.al. */
+
+typedef struct OraTclLdas {	/* struct for lda entries */
+    int         lda_in_use;	/* if this entry is opened */
+    lda_def    *lda;		/* Oracle Logon Data Area */
+    char       *hda;            /* Oracle Host Data Area */
+    int		async;		/* if lda is in non-block mode */
+} OraTclLdas;
+
+
+/* OraTclCurs - oracle cursor + ColBufs head list ptr */
+
+typedef struct OraTclCurs {	/* struct for cursor entries */
+    int         cur_in_use;	/* if this entry is opened */
+    int         lda_num;	/* entry in lda table for this cursor */
+    cda_def    *cda;		/* Oracle Cursor Area */
+    ColBufs    *col_list;       /* list of select columns */
+    ColBufs    *bind_list;      /* list of bind variables/values */
+    int         cache_size;     /* cache size of this cursor */
+    int         row_num;        /* current row in cache to fetch */
+    int         fetch_end;      /* true when fetches exhausted */
+    long        fetch_cnt;      /* total number of rows fetched so far */
+    int         oexec_done;     /* if oexec finished for async cursor */
+    int         first_fetch;    /* if fetch has been performed by orapoll */
+    int         async;          /* if cursor executed in async mode */
+} OraTclCurs;
+
+/* static tables for lda & cda */
+static OraTclLdas   OraLdas[ORATCLLDAS];  
+static OraTclCurs   OraCurs[ORATCLCURS];  
+
+/* quick fetch flag */
+static int  fetch_ok;
+
+static char *OraHandlePrefix = "oratcl";  /* prefix used to identify handles*/
+/* lda handles are:  prefix , lda index          e.g.  oratcl0    */
+/* cur handles are:  lda handle , '.', cur index e.g.  oratcl0.0  */
+/* a cursor handle could be passed to a proc that needs an lda handle */
+
+static char *OraMsgArray = "oramsg";  /* array to place errors & messages */
+static char *EnvArray = "env"; /* global Tcl array for environment vars */
+
+/* rip off from example.c: defines plus .dll entry point function */
+ 
+#ifdef __WIN32__
 #if defined(__WIN32__)
 #   define WIN32_LEAN_AND_MEAN
 #   include <windows.h>
 #   undef WIN32_LEAN_AND_MEAN
 #endif
-
+ 
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLEXPORT
-
-EXTERN int	Oratcl_Init		_ANSI_ARGS_((Tcl_Interp *interp));
-EXTERN int	Oratcl_SafeInit		_ANSI_ARGS_((Tcl_Interp *interp));
+ 
+EXTERN int	Oratcl_Init _ANSI_ARGS_((Tcl_Interp *interp));
 
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLIMPORT
-#define strncasecmp strnicmp
 
+#define strncasecmp strnicmp
+ 
 #else
  
-/* 
- * Windows binary flag for Oratcl_Wrlong/Oratcl_Rdlong,
- * unix doesn't need anything
- */
+ 
+/* Windows binary flag for sybreadtext/sybwritetext,unix doesn't need anything*/
+ 
 #define _O_BINARY    0
+ 
 /* prototype for malloc */
 extern void * malloc();
  
-#endif	/* __WIN32__ */
+#endif
 
 
-/* 
- *----------------------------------------------------------------------
- * oTcl_ErrorMsg
- *    This procedure generates a Oratcl error message in interpreter.
- *
- * Results: None
- *
- * Side effects:
- *      An error message is generated in interp's result object to
- *      indicate that a command was invoked with the wrong number of
- *      arguments.  The message has the form
- *              wrong # args: should be "foo bar additional stuff"
- *      where "foo" and "bar" are the initial objects in objv (objc
- *      determines how many of these are printed) and "additional stuff"
- *      is the contents of the message argument.
- *
- *----------------------------------------------------------------------
- */
+/* prototypes for all TCL visible functions */
 
-void
-oTcl_ErrorMsg(interp, obj0, msg0, obj1, msg1) 
-	Tcl_Interp	*interp;
-	Tcl_Obj 	*obj0, *obj1;
-	char		*msg0, *msg1;
-{
-	Tcl_Obj		*newPtr;
+extern Tcl_CmdProc  Oratcl_Logon;
+extern Tcl_CmdProc  Oratcl_Logoff;
+extern Tcl_CmdProc  Oratcl_Open;
+extern Tcl_CmdProc  Oratcl_Close;
+extern Tcl_CmdProc  Oratcl_Sql;
+extern Tcl_CmdProc  Oratcl_Bindexec;
+extern Tcl_CmdProc  Oratcl_Fetch;
+extern Tcl_CmdProc  Oratcl_Cols;
+extern Tcl_CmdProc  Oratcl_Cancel;
+extern Tcl_CmdProc  Oratcl_PLexec;
+extern Tcl_CmdProc  Oratcl_Commit;
+extern Tcl_CmdProc  Oratcl_Roll;
+extern Tcl_CmdProc  Oratcl_Autocom;
+extern Tcl_CmdProc  Oratcl_Wrlong;
+extern Tcl_CmdProc  Oratcl_Rdlong;
 
-	newPtr = Tcl_DuplicateObj(OMV_null);
-	if (obj0) {
-		Tcl_IncrRefCount(obj0);
-		Tcl_AppendStringsToObj(newPtr, Tcl_GetString(obj0), (char *) NULL);
-		Tcl_DecrRefCount(obj0);
-	}
-	if (msg0) {
-		Tcl_AppendToObj(newPtr, msg0, -1);
-	}
-	if (obj1) {
-		Tcl_IncrRefCount(obj1);
-		Tcl_AppendStringsToObj(newPtr, Tcl_GetString(obj1), (char *) NULL);
-		Tcl_DecrRefCount(obj1);
-	}
-	if (msg1) {
-		Tcl_AppendToObj(newPtr, msg1, -1);
-	}
-	Tcl_SetObjResult(interp, newPtr);
-}
+#ifdef NONBLOCK_CURSOR
+extern Tcl_CmdProc  Oratcl_Poll;
+extern Tcl_CmdProc  Oratcl_Break;
+#endif
+
+#ifndef VERSION7DB
+/*----------------------------------------------------------------------
+*  Oracle 8 OCI API declarations
+*/
+typedef struct OCIEnv           OCIEnv;            /* OCI environment handle */
+typedef struct OCIError         OCIError;                /* OCI error handle */
+typedef struct OCISvcCtx        OCISvcCtx;             /* OCI service handle */
+
+#define OCIEnv                     ocienvh
+#define OCIError                   ocierrh
+#define OCISvcCtx                  ocisvch
+
+typedef struct ocienvh ocienvh;                    /* OCI environment handle */
+typedef struct ocierrh ocierrh;                          /* OCI error handle */
+typedef struct ocisvch ocisvch;                        /* OCI service handle */
+
+#define ocienvh                         OCIEnv             
+#define ocierrh                         OCIError 
+#define ocisvch                         OCISvcCtx
+            
+#define OCI_DEFAULT  0x00 /* the default value for parameters and attributes */
+
+static OCIEnv     *p_env[ORATCLLDAS];
+static OCIError   *p_err[ORATCLLDAS];
+static OCISvcCtx  *p_svc[ORATCLLDAS];
+
+
+#define OCI_HTYPE_ERROR 2                                    /* error handle */
+#define OCI_HTYPE_SVCCTX 3                                 /* service handle */
+#endif
+
 
 
 /* 
  *----------------------------------------------------------------------
  * get_ora_lda_handle
  *    authenticate an lda handle string 
- *
  *  return: OraLdas index number or -1 on error;
- *----------------------------------------------------------------------
  */
 
 static int
-get_ora_lda_handle (interp, handle) 
-	Tcl_Interp	*interp;
-	Tcl_Obj		*handle;
+get_ora_lda_handle (handle) 
+    char *handle;
 {
-	int prefix_len = strlen(OraHandlePrefix);
-	int lda_h;
-	char *lda_s;
-	int lda_c;
-	int rc = -1;
+    int prefix_len = strlen(OraHandlePrefix);
+    int lda_h;
 
-	lda_s = Tcl_GetStringFromObj(handle, &lda_c);
+    if ( (strlen(handle) > prefix_len) &&
+	 (strncmp(handle,OraHandlePrefix,prefix_len) == 0)  &&
+	 (isdigit(*(handle + prefix_len))) 
+       ) {
 
-	if ( (lda_c > prefix_len) &&
-		(strncmp(lda_s,OraHandlePrefix,prefix_len) == 0)  &&
-		(isdigit((int) *(lda_s + prefix_len))) 
-	) {
+	 lda_h = atoi((handle + prefix_len));
+	 if (lda_h < 0 || lda_h >= ORATCLLDAS) {
+	   return (-1);
+	 }
+	 if (OraLdas[lda_h].lda_in_use) {
+	   return (lda_h);
+	 } else {
+	   return (-1);
+	 }
+    } 
 
-		lda_h = atoi((lda_s + prefix_len));
-		if (lda_h < 0 || lda_h >= ORATCLLDAS) {
-			rc = -1;
-		}
-		if (OraLdas[lda_h].lda_in_use && 
-			OraLdas[lda_h].interp == interp) 
-		{
-			rc = lda_h;
-		} else {
-			rc = -1;
-		}
-	} 
-
-	return rc;
+    return (-1);
 }
+
 
 /* 
  *----------------------------------------------------------------------
  * get_ora_handle
  *    authenticate a cursor handle string 
- *
  *  return: OraCurs index number or -1 on error;
- *----------------------------------------------------------------------
  */
 
 static int
-get_ora_handle (interp, handle) 
-	Tcl_Interp	*interp;
-	Tcl_Obj		*handle;
+get_ora_handle (handle) 
+    char *handle;
 {
-	char	*lda_s;
-	int	lda_c;
-	int	lda_h;
-	int	cur_h;
-	char	*p;
-	int	rc = -1;
+    int prefix_len = strlen(OraHandlePrefix);
+    int lda_h      = get_ora_lda_handle(handle);
+    int cur_h;
+    char *p;
 
-	lda_h = get_ora_lda_handle(interp, handle);
-	if (lda_h >= 0) {
+    if (lda_h == -1) {
+	return (-1);
+    }
 
-		lda_s = Tcl_GetStringFromObj(handle, &lda_c);
-		if ( ((p = strchr(lda_s,'.')) != NULL) 
-				&& (isdigit((int) *(p+1))) ) {
+    if ( ((p = strchr(handle,'.')) != NULL) && (isdigit(*(p+1))) ) {
 
-			cur_h = atoi((p + 1));
-			if (cur_h < 0 || cur_h >= ORATCLCURS) {
-				rc = -1;
-			}
-			if (OraCurs[cur_h].cur_in_use) {
-				rc = cur_h;
-			} else {
-				rc = -1;
-			}
-		} 
-	}
-	return rc;
+	 cur_h = atoi((p + 1));
+	 if (cur_h < 0 || cur_h >= ORATCLCURS) {
+	   return (-1);
+	 }
+	 if (OraCurs[cur_h].cur_in_use) {
+	   return (cur_h);
+	 } else {
+	   return (-1);
+	 }
+    } 
+
+    return (-1);
 }
+
+
 
 /*
  *----------------------------------------------------------------------
  * get_lda_err
  *   get the oracle return code and error message for an lda error
- *
- *----------------------------------------------------------------------
  */
 
 static void
 get_lda_err (interp, hand)
-	Tcl_Interp *interp;
-	int         hand;
+    Tcl_Interp *interp;
+    int         hand;
 {
-	char buf[ORA_MSG_SIZE];
 
-	Tcl_ObjSetVar2(interp,
-		OraMsgArray,
-		OM_rc,
-		Tcl_NewIntObj(OraLdas[hand].lda->rc),
-		TCL_GLOBAL_ONLY);
+    char buf[ORA_MSG_SIZE];
 
-	if (OraLdas[hand].lda->rc == 0) {
-		buf[0] = '\0';
-	} else {
-		oerhms (OraLdas[hand].lda, OraLdas[hand].lda->rc, 
-			buf, sizeof(buf));
-	}
+    sprintf(buf,"%d",OraLdas[hand].lda->rc);
+    Tcl_SetVar2(interp,OraMsgArray,"rc",buf,TCL_GLOBAL_ONLY);
 
-	Tcl_ObjSetVar2(interp,
-		OraMsgArray,
-		OM_errortxt,
-		Tcl_NewStringObj(buf, -1),
-		TCL_GLOBAL_ONLY);
+    if (OraLdas[hand].lda->rc == 0) {
+	buf[0] = '\0';
+    } else {
+        oerhms (OraLdas[hand].lda, OraLdas[hand].lda->rc, 
+                  buf, ORA_MSG_SIZE);
+    }
+    Tcl_SetVar2(interp,OraMsgArray,"errortxt",buf,TCL_GLOBAL_ONLY);
 }
+
 
 
 /*
  *----------------------------------------------------------------------
  * get_ora_err
  *   get the oracle return code and error message
- *----------------------------------------------------------------------
  */
 
 static void
 get_ora_err (interp, hand)
-	Tcl_Interp *interp;
-	int         hand;
+    Tcl_Interp *interp;
+    int         hand;
 {
 
-	char buf[ORA_MSG_SIZE];
+    char buf[ORA_MSG_SIZE];
 
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(OraCurs[hand].cda->rc), TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_sqlfunc, Tcl_NewIntObj(OraCurs[hand].cda->ft), TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_ocifunc, Tcl_NewIntObj(OraCurs[hand].cda->fc), TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, Tcl_NewIntObj(OraCurs[hand].cda->peo), TCL_GLOBAL_ONLY);
 
-	if (OraCurs[hand].cda->rc == 0) {
-		buf[0] = '\0';
-	} else {
-		oerhms (OraLdas[OraCurs[hand].lda_num].lda, OraCurs[hand].cda->rc, 
-			buf, sizeof(buf));
-	}
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_errortxt, Tcl_NewStringObj(buf, -1), TCL_GLOBAL_ONLY);
+    sprintf(buf,"%d",OraCurs[hand].cda->rc);
+    Tcl_SetVar2(interp,OraMsgArray,"rc",buf,TCL_GLOBAL_ONLY);
+
+    sprintf(buf,"%d",OraCurs[hand].cda->ft);
+    Tcl_SetVar2(interp,OraMsgArray,"sqlfunc",buf,TCL_GLOBAL_ONLY);
+
+    sprintf(buf,"%d",OraCurs[hand].cda->fc);
+    Tcl_SetVar2(interp,OraMsgArray,"ocifunc",buf,TCL_GLOBAL_ONLY);
+
+    sprintf(buf,"%d",OraCurs[hand].cda->peo);
+    Tcl_SetVar2(interp,OraMsgArray,"peo",buf,TCL_GLOBAL_ONLY);
+
+    if (OraCurs[hand].cda->rc == 0) {
+	buf[0] = '\0';
+    } else {
+        oerhms (OraLdas[OraCurs[hand].lda_num].lda, OraCurs[hand].cda->rc, 
+	        buf, (int) ORA_MSG_SIZE);
+    }
+
+    Tcl_SetVar2(interp,OraMsgArray,"errortxt",buf,TCL_GLOBAL_ONLY);
+	    
 }
+
+
 
 
 /*
@@ -374,107 +718,114 @@ get_ora_err (interp, hand)
  * clear_msg --
  *
  * clears all error and message elements in the global array variable
- *----------------------------------------------------------------------
+ *
  */
 
 static void
 clear_msg(interp)
-	Tcl_Interp *interp;
+    Tcl_Interp *interp;
 {
-	/* index "rc" - return code from last oratcl call */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "rc" - return code from last oratcl call */
+    Tcl_SetVar2(interp, OraMsgArray, "rc",       "", TCL_GLOBAL_ONLY);
 
-	/* index "sqlfunc" - sql function code of last sql */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_sqlfunc, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "sqlfunc" - sql function code of last sql */
+    Tcl_SetVar2(interp, OraMsgArray, "sqlfunc",  "", TCL_GLOBAL_ONLY);
 
-	/* index "ocifunc" - oci function code of last call */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_ocifunc, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "ocifunc" - oci function code of last call */
+    Tcl_SetVar2(interp, OraMsgArray, "ocifunc",  "", TCL_GLOBAL_ONLY);
 
-	/* index "errortxt" - text from last rc */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_errortxt, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "errortxt" - text from last rc */
+    Tcl_SetVar2(interp, OraMsgArray, "errortxt", "", TCL_GLOBAL_ONLY);
 
-	/* index "peo" - parse error offset from last oratcl call */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "peo" - parse error offset from last oratcl call */
+    Tcl_SetVar2(interp, OraMsgArray, "peo",      "", TCL_GLOBAL_ONLY);
 
-	/* index "rows" - rows processed count from oexec */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "rows" - rows processed count from oexec */
+    Tcl_SetVar2(interp, OraMsgArray, "rows",     "", TCL_GLOBAL_ONLY);
 
-	/* index "rowid" - rowid of last row maniuplated */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rowid, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "rowid" - rowid of last row maniuplated */
+    Tcl_SetVar2(interp, OraMsgArray, "rowid",    "", TCL_GLOBAL_ONLY);
 
-	/*
-	 * index "collengths", "coltypes", "colprecs", and "colscales" are
-	 * only meaningful after an oracols command.
-	 */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_collengths, OMV_null, TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_coltypes, OMV_null, TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_colprecs, OMV_null, TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_colscales, OMV_null, TCL_GLOBAL_ONLY);
+    /* index "collengths" & "coltypes" only meaningful after oracols command */
+    /* same for "colprecs" and "colscales"                                   */
+    Tcl_SetVar2(interp, OraMsgArray, "collengths","", TCL_GLOBAL_ONLY);
+    Tcl_SetVar2(interp, OraMsgArray, "coltypes",  "", TCL_GLOBAL_ONLY);
+    Tcl_SetVar2(interp, OraMsgArray, "colprecs",  "", TCL_GLOBAL_ONLY);
+    Tcl_SetVar2(interp, OraMsgArray, "colscales", "", TCL_GLOBAL_ONLY);
+
+
 }
+
 
 
 /*
  *----------------------------------------------------------------------
  * ora_prologue
- *    does most of standard command prologue, assumes handle is objv[1]
  *
+ * does most of standard command prologue, assumes handle is argv[1]
  * returns: cursor handle index  or -1 on failure
  * 
- *----------------------------------------------------------------------
  */
 
 static int
-ora_prologue (interp, objc, objv, num_args, err_msg)
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
-	int		num_args;
-	char		*err_msg;
+ora_prologue (interp, argc, argv, num_args, err_msg)
+    Tcl_Interp *interp;
+    int         argc;
+    char      **argv;
+    int         num_args;
+    char       *err_msg;
 {
-	int	hand;
+    int         hand;
 
-	/* check number of minimum args*/
-	if (objc < num_args) {
-		Tcl_WrongNumArgs(interp, objc, objv, err_msg);
-		return (-1);
-	}
+    clear_msg(interp);
 
-	clear_msg(interp);
+    /* check number of minimum args*/
 
-	/* parse the handle */
-	hand = get_ora_handle(interp, objv[1]);
+    if (argc < num_args) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  err_msg, (char *) NULL);
+	return (-1);
+    }
 
-	if (hand == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": handle ", objv[1], " not open");
-		return (-1);
-	}
+    /* parse the handle */
+    hand = get_ora_handle(argv[1]);
 
-	/* clear oramsg array for new messages & errors */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, objv[1], TCL_GLOBAL_ONLY);
-	return (hand);
+    if (hand == -1) {
+	Tcl_AppendResult (interp, argv[0], ": handle ", argv[1],
+			 " not open ", (char *) NULL);
+	return (-1);
+    }
+
+    /* clear oramsg array for new messages & errors */
+    Tcl_SetVar2(interp, OraMsgArray, "handle",  argv[1], TCL_GLOBAL_ONLY);
+
+    return (hand);
 }
+
+
 
 /*
  *----------------------------------------------------------------------
  * free_cols
  *   free all ColBufs in a list
- *----------------------------------------------------------------------
+ *
  */
 
-static void
+static int
 free_cols (col_list_ptr)
-	ColBufs  *col_list_ptr;
+    ColBufs  *col_list_ptr;
 {
-	ColBufs  *next;
+    ColBufs  *next;
 
-	while (col_list_ptr != NULL) {
-		next = col_list_ptr->next_buf;
-		if (col_list_ptr->col_data != NULL) {
-			ckfree(col_list_ptr->col_data);
-		}
-		ckfree((char *) col_list_ptr);
-		col_list_ptr = next;
+    while (col_list_ptr != NULL) {
+        next = col_list_ptr->next_buf;
+	if (col_list_ptr->col_data != NULL) {
+	    ckfree(col_list_ptr->col_data);
 	}
+	ckfree((char *)col_list_ptr);
+	col_list_ptr = next;
+    }
+    return 1;
 }
 
 
@@ -485,32 +836,35 @@ free_cols (col_list_ptr)
  *
  */
 
-static void
+static int
 free_curs (lda_owner)
-	int  lda_owner;
+    int  lda_owner;
 {
-	int  i;
+    int  i;
 
-	for (i = 0; i < ORATCLCURS; i++) {
-		if (OraCurs[i].cur_in_use && (OraCurs[i].lda_num==lda_owner)) {
-			OraCurs[i].cur_in_use = 0;
-			OraCurs[i].lda_num    = 0;
-			oclose(OraCurs[i].cda);
-			ckfree((char *) OraCurs[i].cda);
-			OraCurs[i].cda        = NULL;
-			free_cols(OraCurs[i].col_list);
-			OraCurs[i].col_list   = NULL;;
-			free_cols(OraCurs[i].bind_list);
-			OraCurs[i].bind_list   = NULL;;
-		}
+    for (i = 0; i < ORATCLCURS; i++) {
+	if (OraCurs[i].cur_in_use && (OraCurs[i].lda_num == lda_owner)) {
+	    OraCurs[i].cur_in_use = 0;
+	    OraCurs[i].lda_num    = 0;
+	    oclose(OraCurs[i].cda);
+	    ckfree((char *)OraCurs[i].cda);
+	    OraCurs[i].cda        = NULL;
+	    free_cols(OraCurs[i].col_list);
+	    OraCurs[i].col_list   = NULL;;
+	    free_cols(OraCurs[i].bind_list);
+	    OraCurs[i].bind_list   = NULL;;
 	}
+    }
+    return 1;
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
  * alloc_col
  *   return a new ColBufs with nulled pointers and zeroed fields
- *----------------------------------------------------------------------
  */
 
 static ColBufs *
@@ -534,307 +888,255 @@ alloc_col()
 	new_col->rlen[0]       = 0;
 	new_col->rcode[0]      = 0;
     }
+
     return new_col;
+
 }
+
 
 /*
  *----------------------------------------------------------------------
  * parse_columns
  *   parse result columns, allocate memory for fetches
  *   return -1 on error, 1 if ok
- *----------------------------------------------------------------------
  */
 
 static int
 parse_columns (interp, hand)
-	Tcl_Interp *interp;
-	int         hand;
+    Tcl_Interp *interp;
+    int         hand;
 {
-	ColBufs		*new_col_head;
-	ColBufs		*new_col;
-	ColBufs		*last_col;
-	int		pos = 0;
-	long		long_size;
+    ColBufs    *new_col_head;
+    ColBufs    *new_col;
+    ColBufs    *last_col;
+    int         pos = 0;
+    long        long_size;
+    int         i;
 
-	/* start by allocating column structures, and keep in linked list */
-	new_col_head = alloc_col();
-	if (new_col_head == NULL) {
-		return -1;
-	}
-	new_col      = new_col_head;
-	last_col     = new_col_head;
-
-	/* get max long size */
-	Tcl_GetLongFromObj(
-		interp,
-		Tcl_ObjGetVar2(interp, OraMsgArray, OM_maxlong, TCL_GLOBAL_ONLY),
-		&long_size);
-
-	if (long_size < 0 ) {
-		long_size = 0;
-	}
-
-	if (long_size > MAX_LONG_SIZE) {
-		long_size = MAX_LONG_SIZE;
-	}
+    /* start by allocating column structures, and keep in linked list */
     
-	/* start with initial cache size of ORA_CACHE; may be reduced to 1 */
-	OraCurs[hand].cache_size = ORA_CACHE;
+    new_col_head = alloc_col();
+    if (new_col_head == NULL) {
+	return -1;
+    }
+    new_col      = new_col_head;
+    last_col     = new_col_head;
 
-	while (1) {		/* loop breaks when no more result columns */
+    /* get max long size */
+    long_size = atol(Tcl_GetVar2(interp, OraMsgArray, "maxlong",
+                     TCL_GLOBAL_ONLY));
 
-		/* get oracle description of column data */
-		odescr(OraCurs[hand].cda, (pos+1), &(new_col->dbsize),
-			&(new_col->dbtype), new_col->dbname, 
-			&(new_col->dbname_len), &(new_col->disp_size),
-			&(new_col->prec), &(new_col->scale), 
-			&(new_col->nullok)   );
+    if (long_size < 0 ) {
+	long_size = 0;
+    }
+    if (long_size > MAX_LONG_SIZE) {
+	long_size = MAX_LONG_SIZE;
+    }
+    
+    /* start with initial cache size of ORA_CACHE; may be reduced to 1 */
+    OraCurs[hand].cache_size = ORA_CACHE;
+
+    while (1) {		/* loop breaks when no more result columns */
+
+        /* get oracle description of column data */
+	odescr(OraCurs[hand].cda,(pos+1),&(new_col->dbsize),&(new_col->dbtype),
+          new_col->dbname, &(new_col->dbname_len), &(new_col->disp_size),
+          &(new_col->prec), &(new_col->scale), &(new_col->nullok)   );
+
+
        
-		if (OraCurs[hand].cda->rc == NO_MORE_COLUMNS) {
-			last_col->next_buf = NULL;
-			ckfree((char *) new_col);
-			break;
-		}
-
-		if (OraCurs[hand].cda->rc != 0) {
-			get_ora_err(interp, hand);
-			free_cols(new_col_head);
-			return -1;
-		}
-
-		new_col->dbname[new_col->dbname_len] = '\0';
-
-	       /*
-		*	check for long (type 8) or long raw (type 24) 
-		*	if long or long raw found, then set display size to 
-		*	long_size and reduce cache to 1 for this cursor
-		*/
-
-		if (new_col->dbtype == LONG_TYPE 
-				|| new_col->dbtype == LONGRAW_TYPE) {
-			new_col->disp_size = long_size; 
-			OraCurs[hand].cache_size = 1;
-		}
-
-		pos++;
-		last_col           = new_col;
-		new_col            = alloc_col();
-		if (new_col == NULL) {
-			free_cols(new_col_head);
-			return -1;
-		}
-		last_col->next_buf = new_col;
-
+	if (OraCurs[hand].cda->rc == NO_MORE_COLUMNS) {
+	    last_col->next_buf = NULL;
+	    ckfree((char *)new_col);
+	    break;
 	}
+
+	if (OraCurs[hand].cda->rc != 0) {
+	    get_ora_err(interp, hand);
+	    free_cols(new_col_head);
+	    return -1;
+	}
+
+	/* trim trailing blanks from dbname */
+        for (i = (sizeof new_col->dbname) - 1; i >= 0; i--) {
+	    if (new_col->dbname[i] != ' ') {
+		new_col->dbname[i+1] = '\0';
+		break;
+	    }
+	}
+
+	/* check for long (type 8) or long raw (type 24) */
+	/* if long or long raw found, then set display size to long_size */
+	/* and reduce cache to 1 for this cursor */
+
+	if (new_col->dbtype == LONG_TYPE || new_col->dbtype == LONGRAW_TYPE) {
+	    new_col->disp_size = long_size; 
+	    OraCurs[hand].cache_size = 1;
+	}
+
+	pos++;
+	last_col           = new_col;
+	new_col            = alloc_col();
+	if (new_col == NULL) {
+	    free_cols(new_col_head);
+	    return -1;
+	}
+	last_col->next_buf = new_col;
+
+    }
      
-	if (pos > 0) {
-		OraCurs[hand].col_list = new_col_head;
-	} else {
-		/* no results, just return */
-		OraCurs[hand].col_list = NULL;
-		return 1;
-	}
+    if (pos > 0) {
+	OraCurs[hand].col_list = new_col_head;
+    } else {
+	/* no results, just return */
+	OraCurs[hand].col_list = NULL;
+	return 1;
+    }
 
-	/* now define the fetch areas */
+    /* now define the fetch areas */
 
-	for (new_col = new_col_head, pos=1; new_col != NULL; 
+    for (new_col = new_col_head, pos=1; new_col != NULL; 
 				   new_col = new_col->next_buf, pos++) {
-		new_col->disp_size += 1;   /* add room for null terminator */
+	new_col->disp_size += 1;   /* add room for null terminator */
 
-		new_col->col_data = 
-			ckalloc(new_col->disp_size *OraCurs[hand].cache_size);
-		if (new_col->col_data == NULL) {
-			free_cols(new_col_head);
-			OraCurs[hand].col_list = NULL;
-			return -1;
-		}
-
-		odefin(OraCurs[hand].cda, pos, new_col->col_data, 
-		       (int) new_col->disp_size, EXT_STRING_TYPE,
-			0, (short *) 0, NULL, 0, 0, new_col->rlen,
-			new_col->rcode);
-
+	new_col->col_data=ckalloc(new_col->disp_size *OraCurs[hand].cache_size);
+	if (new_col->col_data == NULL) {
+	    free_cols(new_col_head);
+	    OraCurs[hand].col_list = NULL;
+	    return -1;
 	}
-	return (1);
+
+	odefin(OraCurs[hand].cda, pos, new_col->col_data, 
+	       (int) new_col->disp_size, EXT_STRING_TYPE, 0, (short *) 0, 
+	       NULL, 0, 0, new_col->rlen, new_col->rcode);
+
+    }
+
+    return (1);
+
 }
 
 
 /*
  *----------------------------------------------------------------------
+ *
  * append_cols
  *      appends column results to tcl result
- *----------------------------------------------------------------------
  */
 
 static void
 append_cols (interp, hand)
-	Tcl_Interp  *interp;
-	int          hand;
+    Tcl_Interp  *interp;
+    int          hand;
 {
-	int		rn;
-	ColBufs		*col;
-	char		*buf;
-	Tcl_Obj		*data_obj, *buf_obj;
-	int		oColsc = 0;
+    int      i;
+    ColBufs *col;
+    char    *data_ptr;
+    char     buf[ORA_MSG_SIZE];
+    char     buf2[ORA_MSG_SIZE];
 
-	/* quick sanity check */
-	rn = OraCurs[hand].row_num;
-	if (rn < 0 || rn >= OraCurs[hand].cache_size) {
-		return;
-	}
+    i = OraCurs[hand].row_num;
 
-	buf_obj = Tcl_ObjGetVar2( interp, OraMsgArray, OM_nullvalue, TCL_GLOBAL_ONLY);
+    if (i < 0 || i >= OraCurs[hand].cache_size) {	/* quick sanity check */
+	return;
+    }
 
-	buf = Tcl_GetStringFromObj(buf_obj, NULL);
-	for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
+
+    strncpy(buf2,Tcl_GetVar2(interp,OraMsgArray,"nullvalue",TCL_GLOBAL_ONLY),
+	    (sizeof buf2) - 1);
+
+    for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
       
-		/* for cursor type, just return a null */
-		/* get pointer to next row column data buffer */
+	/* for cursor type, just return a null */
 
-	       /*
-		* null column?
-		* except long (8) & long raw (24) may report null
-		* in error, so check rlen for those types, for other 
-		* types, just check rcode 
-		*/
-
-		if (col->dbtype == INT_CURSOR_TYPE) {
-			data_obj = OMV_null;
-		} else {
-			if (((col->dbtype == LONG_TYPE 
-				|| col->dbtype == LONGRAW_TYPE) 
-				&& col->rlen[rn] == 0 ) 
-			|| ((col->dbtype != LONG_TYPE 
-				&& col->dbtype != LONGRAW_TYPE) && 
-				col->rcode[rn] == NULL_VALUE)) {
-
-				if (*buf == 'd' && strcmp(buf,"default") == 0) {
-				       /* default-if number or money type,
-					* then return "0", else ""
-					*/
-					if (col->dbtype == NUMBER_TYPE) {
-						data_obj = OMV_zero;
-					} else {
-						data_obj = OMV_null;
-					}
-				} else {
-					/* return user defined nullvalue */
-					data_obj = buf_obj;
-				}
-			} else {
-				/* make sure data is null terminated, just in case */
-				if (col->disp_size > 0) {
-					data_obj = Tcl_NewStringObj(
-						col->col_data + (rn * col->disp_size),
-						-1);
-				} else {
-					data_obj = OMV_null;
-				}
-			}
-		}
-		if (oColsc >= oColslen) {
-			oColslen += 10;
-			oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
-		}
-		oColsv[oColsc++] = data_obj;
+	if (col->dbtype == INT_CURSOR_TYPE) {
+	   Tcl_AppendElement(interp, "");
+	   continue;
 	}
-	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
 
-	OraCurs[hand].row_num += 1;
-	OraCurs[hand].fetch_cnt += 1;
+        /* get pointer to next row column data buffer */
+	data_ptr = col->col_data + (i * col->disp_size);
 
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, OMV_zero, TCL_GLOBAL_ONLY);
-	fetch_ok = 1;
+        /* null column? except long (8) & long raw (24) may report null     */
+	/*              in error, so check rlen for those types, for other  */
+	/*              types, just check rcode                             */
+
+	if ( ( (col->dbtype == LONG_TYPE || col->dbtype == LONGRAW_TYPE) && 
+						  col->rlen[i] == 0 )        ||
+	     ( (col->dbtype != LONG_TYPE && col->dbtype != LONGRAW_TYPE) && 
+	        col->rcode[i] == NULL_VALUE ) ) {
+
+            if (*buf2 == 'd' && strcmp(buf2,"default") == 0) {
+                /* default-if number or money type, then return "0", else ""  */
+		if (col->dbtype == NUMBER_TYPE) {
+		    data_ptr = "0";
+		} else {
+		    data_ptr = "";
+		}
+	    } else {
+		/* return user defined nullvalue */
+		data_ptr = buf2;
+	    }
+
+	} else {
+
+	    /* make sure data is null terminated, just in case */
+	    if (col->disp_size > 0) {
+		*(data_ptr + (col->disp_size) - 1) = '\0';
+	    } else {
+		data_ptr = "";
+	    }
+	}
+
+        Tcl_AppendElement(interp, data_ptr);
+    }
+
+
+    OraCurs[hand].row_num += 1;
+    OraCurs[hand].fetch_cnt += 1;
+    sprintf(buf,"%ld",OraCurs[hand].fetch_cnt);
+    Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+    Tcl_SetVar2(interp, OraMsgArray, "rc",   "0", TCL_GLOBAL_ONLY);
+
+    fetch_ok = 1;
+
 }
+
+
 
 /*
  *----------------------------------------------------------------------
  * Oratcl_Kill --
  *   perform all cleanup upon any command deletion
- *----------------------------------------------------------------------
+ *
  */
 
 void
 Oratcl_Kill (clientData)
-	ClientData clientData;
-{
-	int i;
-
-	ckfree ((char *) oColsv);
-	ckfree ((char *) ColSubs);
-
-	for (i = 0; i < ORATCLLDAS; i++) {
-		if (OraLdas[i].lda_in_use) {
-			free_curs(i);
-			OraLdas[i].lda_in_use = 0;
-			OraLdas[i].interp = NULL;
-#ifdef NONBLOCK_CURSOR
-			if (OraLdas[i].async == 1) {
-				obreak(OraLdas[i].lda);
-				onbclr(OraLdas[i].lda);
-			}
-#endif
-			ologof(OraLdas[i].lda);
-			ckfree((char *) OraLdas[i].lda);
-			ckfree(OraLdas[i].hda);
-		}
-	}
-
-	Tcl_DecrRefCount(OraMsgArray);
-	Tcl_DecrRefCount(OMV_null);
-	Tcl_DecrRefCount(OMV_zero);
-	Tcl_DecrRefCount(OM_rc);
-	Tcl_DecrRefCount(OM_rows);
-	Tcl_DecrRefCount(OM_peo);
-	Tcl_DecrRefCount(OM_rowid);
-	Tcl_DecrRefCount(OM_sqlfunc);
-	Tcl_DecrRefCount(OM_ocifunc);
-	Tcl_DecrRefCount(OM_ociinfo);
-	Tcl_DecrRefCount(OM_errortxt);
-	Tcl_DecrRefCount(OM_collengths);
-	Tcl_DecrRefCount(OM_coltypes);
-	Tcl_DecrRefCount(OM_colprecs);
-	Tcl_DecrRefCount(OM_colscales);
-	Tcl_DecrRefCount(OM_handle);
-	Tcl_DecrRefCount(OM_maxlong);
-	Tcl_DecrRefCount(OM_nullvalue);
-	Tcl_DecrRefCount(OM_version);
-
-	MY_STATS_DUMP;
-}
-
-/*
- *----------------------------------------------------------------------
- * Oratcl_DeleteInterp --
- *   close any dbprocs left open when an interpreter is deleted
- *   and clear interp level options
- *----------------------------------------------------------------------
- */
-
-void
-Oratcl_DeleteInterp (clientData, interp)
     ClientData clientData;
-    Tcl_Interp *interp;
 {
-	int i;
+    int i;
 
-	for (i = 0; i < ORATCLLDAS; i++) {
-		if (OraLdas[i].lda_in_use && OraLdas[i].interp == interp) {
-			free_curs(i);
-			OraLdas[i].lda_in_use = 0;
-			OraLdas[i].interp = NULL;
+
+    for (i = 0; i < ORATCLLDAS; i++) {
+	if (OraLdas[i].lda_in_use) {
+	    free_curs(i);
+	    OraLdas[i].lda_in_use = 0;
 #ifdef NONBLOCK_CURSOR
-			if (OraLdas[i].async == 1) {
-				obreak(OraLdas[i].lda);
-				onbclr(OraLdas[i].lda);
-			}
+	    if (OraLdas[i].async == 1) {
+	      obreak(OraLdas[i].lda);
+	      onbclr(OraLdas[i].lda);
+	    }
 #endif
-			ologof(OraLdas[i].lda);
-			ckfree((char *) OraLdas[i].lda);
-		}
+	    ologof(OraLdas[i].lda);
+	    ckfree((char *)OraLdas[i].lda);
+	    ckfree(OraLdas[i].hda);
 	}
+    }
+
+    MY_STATS_DUMP;
 }
+
 
 /*
  *----------------------------------------------------------------------
@@ -844,241 +1146,148 @@ Oratcl_DeleteInterp (clientData, interp)
  *
  *   a call to Oratcl_Init should exist in Tcl_CreateInterp or
  *   Tcl_CreateExtendedInterp.
- *----------------------------------------------------------------------
  */
 
 int
 Oratcl_Init (interp)
-	Tcl_Interp *interp;
+    Tcl_Interp *interp;
 {
-	int i;
-	static int OratclInitFlag = 0;    /* check if already initialized */
-	Tcl_Obj	*tmp_obj;
-
-#ifdef USE_TCL_STUBS
-	if (Tcl_InitStubs(interp, "8.0", 0) == NULL) {
-		return TCL_ERROR;
-	}
-#endif
-
-	/* check if already initialized */
-	if (!OratclInitFlag) {
-
-		MY_STATS_INIT;
-
-		/*
-		 * Initialize oratcl structures 
-		 */
-
-		for (i = 0; i < ORATCLLDAS; i++) {
-			OraLdas[i].lda_in_use    = 0;
-			OraLdas[i].lda           = NULL;
-			OraLdas[i].hda           = NULL;
-			OraLdas[i].async         = 0;
-		}
-
-		for (i = 0; i < ORATCLCURS; i++) {
-			OraCurs[i].cur_in_use    = 0;
-			OraCurs[i].lda_num       = 0;
-			OraCurs[i].cda           = NULL;
-			OraCurs[i].col_list      = NULL;
-			OraCurs[i].cache_size    = ORA_CACHE;
-			OraCurs[i].row_num       = 0;
-			OraCurs[i].fetch_end     = 1;
-			OraCurs[i].fetch_cnt     = 0;
-			OraCurs[i].oexec_done    = 0;
-			OraCurs[i].first_fetch   = 0;
-			OraCurs[i].async         = 0;
-		}
-
-		OratclInitFlag = 1;
-
-		Tcl_CreateExitHandler ((Tcl_ExitProc *)Oratcl_Kill, (ClientData) interp);
-
-
-		OMV_null	= Tcl_NewStringObj("",	-1);
-		OMV_zero	= Tcl_NewIntObj(0);
-
-		Tcl_IncrRefCount(OMV_null);
-		Tcl_IncrRefCount(OMV_zero);
-
-		/*
-		 * Initialize oramsg global array, inital null elements
-		 */
-
-		OraMsgArray	= Tcl_NewStringObj("oramsg",	-1);
-		OM_rc		= Tcl_NewStringObj("rc",	-1);
-		OM_rows		= Tcl_NewStringObj("rows",	-1);
-		OM_peo		= Tcl_NewStringObj("peo",	-1);
-		OM_rowid	= Tcl_NewStringObj("rowid",	-1);
-		OM_sqlfunc	= Tcl_NewStringObj("sqlfunc",	-1);
-		OM_ocifunc	= Tcl_NewStringObj("ocifunc",	-1);
-		OM_ociinfo	= Tcl_NewStringObj("ociinfo",	-1);
-		OM_errortxt	= Tcl_NewStringObj("errortxt",	-1);
-		OM_collengths	= Tcl_NewStringObj("collengths", -1);
-		OM_coltypes	= Tcl_NewStringObj("coltypes",	-1);
-		OM_colprecs	= Tcl_NewStringObj("colprecs",	-1);
-		OM_colscales	= Tcl_NewStringObj("colscales",	-1);
-		OM_handle	= Tcl_NewStringObj("handle",	-1);
-		OM_maxlong	= Tcl_NewStringObj("maxlong",	-1);
-		OM_nullvalue	= Tcl_NewStringObj("nullvalue",	-1);
-		OM_version	= Tcl_NewStringObj("version",	-1);
-		tListObjType	= Tcl_GetObjType("list");
-
-		Tcl_IncrRefCount(OraMsgArray);
-		Tcl_IncrRefCount(OM_rc);
-		Tcl_IncrRefCount(OM_rows);
-		Tcl_IncrRefCount(OM_peo);
-		Tcl_IncrRefCount(OM_rowid);
-		Tcl_IncrRefCount(OM_sqlfunc);
-		Tcl_IncrRefCount(OM_ocifunc);
-		Tcl_IncrRefCount(OM_ociinfo);
-		Tcl_IncrRefCount(OM_errortxt);
-		Tcl_IncrRefCount(OM_collengths);
-		Tcl_IncrRefCount(OM_coltypes);
-		Tcl_IncrRefCount(OM_colprecs);
-		Tcl_IncrRefCount(OM_colscales);
-		Tcl_IncrRefCount(OM_handle);
-		Tcl_IncrRefCount(OM_maxlong);
-		Tcl_IncrRefCount(OM_nullvalue);
-		Tcl_IncrRefCount(OM_version);
-
-		/* Preallocate some reusable data structures */
-		if (oColsv == NULL) {
-			oColslen = 10;
-			oColsv = (Tcl_Obj **) ckalloc (oColslen * sizeof(*oColsv));
-		}
-
-		if (ColSubs == NULL) {
-			ColSubsLen = COL_INC;
-			ColSubs = (struct colsubd *) ckalloc (ColSubsLen * sizeof(struct colsubd));
-		}
-
-	}
-
-	/*
-	* Initialize the new Tcl commands
-	*/
-	Tcl_CreateObjCommand (interp, "oralogon", Oratcl_Logon,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oralogoff", Oratcl_Logoff,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oraopen", Oratcl_Open,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oraclose", Oratcl_Close,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "orasql", Oratcl_Sql,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "orabindexec", Oratcl_Bindexec,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "orafetch", Oratcl_Fetch,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oracols", Oratcl_Cols,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oracancel", Oratcl_Cancel,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oraplexec",  Oratcl_PLexec,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "orawritelong", Oratcl_Wrlong,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "orareadlong", Oratcl_Rdlong,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oracommit", Oratcl_Commit,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oraroll", Oratcl_Roll,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oraautocom", Oratcl_Autocom,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oracurlist", Oratcl_Cur_List,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "oraldalist", Oratcl_Lda_List,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-#ifdef NONBLOCK_CURSOR
-	Tcl_CreateObjCommand (interp, "orapoll", Oratcl_Poll,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-	Tcl_CreateObjCommand (interp, "orabreak", Oratcl_Break,
-			(ClientData) 0, (Tcl_CmdDeleteProc *) NULL);
-#endif
-
-	/*
-	* Initialize oramsg global array, inital null elements
-	*/
+    int i;
+    char info[200];
+    static int OratclInitFlag = 0;    /* check if already initialized */
     
-	/* index "version" - oratcl verison number */
-	
-	tmp_obj = Tcl_NewStringObj(VERSION, -1);
-	Tcl_IncrRefCount(tmp_obj);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_version, tmp_obj, TCL_GLOBAL_ONLY);
-	Tcl_DecrRefCount(tmp_obj);
+#ifdef USE_TCL_STUBS
+    if (Tcl_InitStubs(interp, "8.0", 0) == NULL) {
+	return TCL_ERROR;
+    }
+#endif
+    
+    /* check if already initialized */
+    if (!OratclInitFlag) {
+ 
+        MY_STATS_INIT;
 
-	/* index "handle" - the last handle that set any other elements */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, OMV_null, TCL_GLOBAL_ONLY);
+	/*
+	 * Initialize oratcl structures 
+	 */
 
-	/* index "nullvalue" - what to return if column is null */
-	/* user should set this value if something else is wanted */
-	tmp_obj = Tcl_NewStringObj("default", -1);
-	Tcl_IncrRefCount(tmp_obj);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_nullvalue, tmp_obj, TCL_GLOBAL_ONLY);
-	Tcl_DecrRefCount(tmp_obj);
+	for (i = 0; i < ORATCLLDAS; i++) {
+	    OraLdas[i].lda_in_use    = 0;
+	    OraLdas[i].lda           = NULL;
+	    OraLdas[i].hda           = NULL;
+	    OraLdas[i].async         = 0;
+	}
 
-	/* index "maxlong" - the maximum length of a long column to return */
-	/* in a select or oralong , can be set by user                 */
-	tmp_obj = Tcl_NewStringObj("32768", -1);
-	Tcl_IncrRefCount(tmp_obj);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_maxlong, tmp_obj, TCL_GLOBAL_ONLY);
-	Tcl_DecrRefCount(tmp_obj);
+	for (i = 0; i < ORATCLCURS; i++) {
+	    OraCurs[i].cur_in_use    = 0;
+	    OraCurs[i].lda_num       = 0;
+	    OraCurs[i].cda           = NULL;
+	    OraCurs[i].col_list      = NULL;
+	    OraCurs[i].cache_size    = ORA_CACHE;
+	    OraCurs[i].row_num       = 0;
+	    OraCurs[i].fetch_end     = 1;
+	    OraCurs[i].fetch_cnt     = 0;
+	    OraCurs[i].oexec_done    = 0;
+	    OraCurs[i].first_fetch   = 0;
+	    OraCurs[i].async         = 0;
+	}
 
+        OratclInitFlag = 1;
 
-	/* index "ociinfo" - information on how oratcl was compiled    */
-#ifdef VERSION7
-	tmp_obj = Tcl_NewStringObj("version_7", -1);
+	Tcl_CreateExitHandler ((Tcl_ExitProc *)Oratcl_Kill, (ClientData)NULL);
+    }
+
+    /*
+     * Initialize the new Tcl commands
+     */
+
+    Tcl_CreateCommand (interp, "oralogon",   Oratcl_Logon  , (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oralogoff",  Oratcl_Logoff,  (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oraopen",    Oratcl_Open,    (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oraclose",   Oratcl_Close,   (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "orasql",     Oratcl_Sql,     (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "orabindexec",Oratcl_Bindexec,(ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "orafetch",   Oratcl_Fetch,   (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oracols",    Oratcl_Cols,    (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oracancel",  Oratcl_Cancel,  (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oraplexec",  Oratcl_PLexec,  (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oracommit",  Oratcl_Commit,  (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oraroll",    Oratcl_Roll,    (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "oraautocom", Oratcl_Autocom, (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "orawritelong",Oratcl_Wrlong, (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "orareadlong",Oratcl_Rdlong,  (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
 #ifdef NONBLOCK_CURSOR
-	tmp_obj = Tcl_NewStringObj("version_7 non_blocking cursor_variables", -1);
+    Tcl_CreateCommand (interp, "orapoll",    Oratcl_Poll,    (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand (interp, "orabreak",   Oratcl_Break,   (ClientData)NULL,
+		      (Tcl_CmdDeleteProc *) NULL);
+#endif
+
+    
+    /*
+     * Initialize oramsg global array, inital null elements
+     */
+    
+    /* index "version" - oratcl verison number */
+    Tcl_SetVar2(interp, OraMsgArray, "version", ORATCL_VERSION,TCL_GLOBAL_ONLY);
+
+    /* index "handle" - the last handle that set any other elements */
+    Tcl_SetVar2(interp, OraMsgArray, "handle",   "", TCL_GLOBAL_ONLY);
+
+    /* index "nullvalue" - what to return if column is null */
+    /* user should set this value if something else is wanted */
+    Tcl_SetVar2(interp, OraMsgArray, "nullvalue", "default",TCL_GLOBAL_ONLY);
+
+    /* index "maxlong" - the maximum length of a long column to return */
+    /* in a select or oralong , can be set by user                 */
+    Tcl_SetVar2(interp, OraMsgArray, "maxlong", "32768",TCL_GLOBAL_ONLY);
+
+    /* index "ociinfo" - information on how oratcl was compiled    */
+#ifdef VERSION7
+    strcpy(info,"version_7");
+#ifdef NONBLOCK_CURSOR
+    strcat(info," non_blocking cursor_variables");
 #endif
 #else
-	tmp_obj = Tcl_NewStringObj("version_6", -1);
+    strcpy(info,"version_6");
 #endif
-	Tcl_IncrRefCount(tmp_obj);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_ociinfo, tmp_obj, TCL_GLOBAL_ONLY);
-	Tcl_DecrRefCount(tmp_obj);
+    Tcl_SetVar2(interp, OraMsgArray, "ociinfo", info, TCL_GLOBAL_ONLY);
 
-	/* other indices - correspond to error and message handler arguments */
-	clear_msg(interp);
-
-	/* callback to clean up any dbprocs left open on interpreter deletetion */
-	Tcl_CallWhenDeleted(interp, (Tcl_InterpDeleteProc *) Oratcl_DeleteInterp,
-		(ClientData) NULL);
+    /* other indices - correspond to error and message handler arguments */
+    clear_msg(interp);
 
 
-	if (Tcl_PkgProvide(interp, "Oratcl", VERSION) != TCL_OK) {
-		return TCL_ERROR;
-	}
+#if ((TCL_MAJOR_VERSION > 7) || ((TCL_MAJOR_VERSION == 7) && (TCL_MINOR_VERSION >= 5)))
 
-	return TCL_OK;
+    if (Tcl_PkgProvide(interp, "Oratcl", ORATCL_VERSION) != TCL_OK) {
+	return TCL_ERROR;
+    }
+
+#endif
+
+    return TCL_OK;
 }
+
 
 
 /*
  *----------------------------------------------------------------------
- * Oratcl_SafeInit --
- *	call the standard init point.  
- *----------------------------------------------------------------------
- */
-
-int
-Oratcl_SafeInit (interp) 
-	Tcl_Interp *interp;
-{
-	int result;
-
-	result = Oratcl_Init(interp);
-	Tcl_DeleteCommand(interp, "orawritelong");
-	Tcl_DeleteCommand(interp, "orareadlong");
-	return (result);
-}
-
-/*
- *----------------------------------------------------------------------
+ *
  * Oratcl_Logon --
  *    Implements the oralogon command:
  *    usage: oralogon connect_str
@@ -1092,198 +1301,151 @@ Oratcl_SafeInit (interp)
  *	handle - a character string of newly open logon handle
  *      TCL_OK - connect successful
  *      TCL_ERROR - connect not successful - error message returned
- *----------------------------------------------------------------------
  */
 
 int
-Oratcl_Logon (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Logon (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int		hand;
-	int		rc;
-	char		buf[ORA_MSG_SIZE];
-	char 		*con_str;
-	int		con_len;
-	Tcl_Obj		*buf_obj;
 
+    int        hand = -1;
+    int        i;
+    int        rc;
+    char       buf[ORA_MSG_SIZE];
     int namelen, pwlen, connlen;
     char *name;
     char *pword;
     char *conn;
 
-	/* can't use ora_prologue, oralogon creates a logon handle */
-	clear_msg(interp);
+    /* can't use ora_prologue, oralogon creates a logon handle */
 
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "connect_str");
-		return TCL_ERROR;
+    clear_msg(interp);
+
+    if (argc < 2) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " connect_str ", (char *) NULL);
+	return TCL_ERROR;
+    }
+
+    /* find an unused handle */
+
+    for (i = 0; i < ORATCLLDAS; i++) {
+	if (OraLdas[i].lda_in_use == 0) {
+            hand = i;
+	    break;
 	}
+    }
 
-	/* find an unused handle */
-	for (hand = 0; hand < ORATCLLDAS; hand++) {
-		if (OraLdas[hand].lda_in_use == 0) {
-			break;
-		}
-	}
+    if (hand == -1) {
+	Tcl_AppendResult (interp, argv[0], ": no lda handles available",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	if (hand >= ORATCLLDAS) {
-		oTcl_ErrorMsg(interp, objv[0], ": no lda handles available", NULL, NULL);
-		return TCL_ERROR;
-	}
+    OraLdas[i].async = 0;
 
-	OraLdas[hand].async = 0;
+    if ( (OraLdas[hand].lda = (lda_def *) ckalloc(sizeof (lda_def))) == NULL) {
+	Tcl_AppendResult (interp, argv[0], ": oralogon failed in malloc(lda)",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
+    if ( (OraLdas[hand].hda = ckalloc(ORA_HOST_AREA)) == NULL) {
+        ckfree((char *)OraLdas[hand].lda);
+	Tcl_AppendResult (interp, argv[0], ": oralogon failed in malloc(hda)",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	if ( (OraLdas[hand].lda = (lda_def *) ckalloc(sizeof (lda_def))) == NULL) {
-		oTcl_ErrorMsg(interp, objv[0], ": oralogon failed in malloc(lda)", NULL, NULL);
-		return TCL_ERROR;
-	}
+    /* safety - zero out lda and hda */
+    bzero(OraLdas[hand].lda,sizeof (lda_def));
+    bzero(OraLdas[hand].hda,ORA_HOST_AREA);
 
-	if ( (OraLdas[hand].hda = ckalloc(ORA_HOST_AREA)) == NULL) {
-		ckfree((char *) OraLdas[hand].lda);
-		oTcl_ErrorMsg(interp, objv[0], ": oralogon failed in malloc(hda)", NULL, NULL);
-		return TCL_ERROR;
-	}
-
-	/* safety - zero out lda and hda */
-	memset(OraLdas[hand].lda, 0, sizeof (lda_def));
-	memset(OraLdas[hand].hda, 0, ORA_HOST_AREA);
-
-	/* orlon sometimes fails on first attempt, but then works on next */
-	/* attempt in some cases.  try orlon 2nd time if fail on 1st try  */
-
+    /* orlon sometimes fails on first attempt, but then works on next */
+    /* attempt in some cases.  try orlon 2nd time if fail on 1st try  */
 
 #ifdef VERSION7DB
-#if TMH
-fprintf(stderr, "Using Oracle 7 API to orlon\n");
-#endif
-
-	Tcl_IncrRefCount(objv[1]);
-	con_str = Tcl_GetStringFromObj(objv[1], &con_len);
-
-	rc = orlon(OraLdas[hand].lda,
-		   OraLdas[hand].hda,
-		   con_str,
-		   con_len,
-		   NULL,
-		   0,
-		   0);
-	if (rc != 0) {
-		rc = orlon(OraLdas[hand].lda,
-			   OraLdas[hand].hda,
-			   con_str,
-			   con_len,
-			   NULL,
-			   0,
-			   0);
-	}
-	Tcl_DecrRefCount(objv[1]);
+    rc = orlon(OraLdas[hand].lda, OraLdas[hand].hda,argv[1], -1, NULL, -1,0);
+    if (rc != 0) {
+      rc = orlon(OraLdas[hand].lda, OraLdas[hand].hda,argv[1], -1, NULL, -1,0);
+    }
 #endif
 
 #ifndef VERSION7DB
+   /* Use Oracle 8 API call OCILogon. orlon does not seen to work with later
+      versions of Oracle 8i */   
 
-        /*
-         * Use Oracle 8 API call OCILogon.
-         * orlon does not seen to work with later versions of Oracle 8i
-         */
+   rc = OCIInitialize((ub4) OCI_DEFAULT, (dvoid *)0,
+            (dvoid * (*)(dvoid *, size_t)) 0,
+            (dvoid * (*)(dvoid *, dvoid *, size_t))0,
+            (void (*)(dvoid *, dvoid *)) 0 );
 
-#if TMH
-fprintf(stderr, "Using Oracle 8 API to OCILogon\n");
+   rc = OCIEnvInit( (OCIEnv **) &p_env[hand], OCI_DEFAULT, (size_t) 0, (dvoid **) 0);
+
+   rc = OCIHandleAlloc( (dvoid *) p_env[hand], (dvoid **) &p_err[hand], OCI_HTYPE_ERROR,
+         (size_t) 0, (dvoid **) 0);
+
+   rc = OCIHandleAlloc( (dvoid *) p_env[hand], (dvoid **) &p_svc[hand], OCI_HTYPE_SVCCTX,
+         (size_t) 0, (dvoid **) 0);
+ 
+    
+    name = strtok(argv[1], "/@");
+    pword = strtok(NULL, "/@");
+    conn = strtok(NULL, "/@");
+    if (name != NULL) 
+      namelen = strlen(name);
+    else namelen = 0;
+    if (pword != NULL)
+      pwlen = strlen(pword);
+    else pwlen = 0;
+    if (conn != NULL)
+      connlen = strlen(conn);
+    else connlen = 0;
+
+    rc = OCILogon(p_env[hand], p_err[hand], &p_svc[hand], name, namelen, pword, pwlen , conn, connlen);
+
+    OCISvcCtxToLda (p_svc[hand], p_err[hand], OraLdas[hand].lda);
+    
 #endif
+    
+    if (rc != 0) {
+	/* logon failed, cleanup */
+	/* can't use get_lda_err(), may not have connected to server*/
+        sprintf(buf,"%d",OraLdas[hand].lda->rc);
+        Tcl_SetVar2(interp,OraMsgArray,"rc",buf,TCL_GLOBAL_ONLY);
+        Tcl_SetVar2(interp,OraMsgArray,"errortxt",
+           "logon failed: invalid id/password or unable to connect to server",
+	    TCL_GLOBAL_ONLY);
 
-        Tcl_IncrRefCount(objv[1]);
-        con_str = Tcl_GetStringFromObj(objv[1], &con_len);
+        ckfree((char *)OraLdas[hand].lda);
+        ckfree((char *)OraLdas[hand].hda);
+	Tcl_AppendResult (interp, argv[0], ": oralogon failed in orlon",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
 
-        rc = OCIInitialize((ub4) OCI_DEFAULT,
-                           (dvoid *)0,
-                           (dvoid * (*)(dvoid *, size_t)) 0,
-                           (dvoid * (*)(dvoid *, dvoid *, size_t))0,
-                           (void (*)(dvoid *, dvoid *)) 0 );
+    OraLdas[i].lda_in_use = 1;	/* handle ok, set in use flag */
 
-        rc = OCIEnvInit((OCIEnv **) &p_env[hand],
-                        OCI_DEFAULT,
-                        (size_t) 0,
-                        (dvoid **) 0);
+    /* construct logon handle and return */
+    sprintf(buf,"%s%d",OraHandlePrefix,hand);
 
-        rc = OCIHandleAlloc((dvoid *) p_env[hand],
-                            (dvoid **) &p_err[hand],
-                            OCI_HTYPE_ERROR,
-                            (size_t) 0,
-                            (dvoid **) 0);
+    Tcl_SetVar2(interp, OraMsgArray, "handle",      buf, TCL_GLOBAL_ONLY);
+    clear_msg(interp);
 
-        rc = OCIHandleAlloc((dvoid *) p_env[hand],
-                            (dvoid **) &p_svc[hand],
-                            OCI_HTYPE_SVCCTX,
-                            (size_t) 0,
-                            (dvoid **) 0);
+    Tcl_SetResult(interp,buf,TCL_VOLATILE);
 
-        name = strtok(con_str, "/@");
-        pword = strtok(NULL, "/@");
-        conn = strtok(NULL, "/@");
+    return TCL_OK;
 
-        if (name != NULL)
-                namelen = strlen(name);
-        else
-                namelen = 0;
-
-        if (pword != NULL)
-                pwlen = strlen(pword);
-        else
-                pwlen = 0;
-
-        if (conn != NULL)
-                connlen = strlen(conn);
-        else
-                connlen = 0;
-
-        rc = OCILogon(p_env[hand],
-		      p_err[hand],
-		      &p_svc[hand],
-		      name,
-		      namelen,
-		      pword,
-		      pwlen,
-		      conn,
-		      connlen);
-        OCISvcCtxToLda (p_svc[hand],
-		        p_err[hand],
-			OraLdas[hand].lda);
-
-        Tcl_DecrRefCount(objv[1]);
-
-#endif
-
-	if (rc != 0) {
-		/* logon failed, cleanup */
-		/* can't use get_lda_err(), may not have connected to server*/
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(OraLdas[hand].lda->rc), TCL_GLOBAL_ONLY);
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_errortxt,
-			Tcl_NewStringObj("logon failed: invalid id/password or unable to connect to server", -1),
-			TCL_GLOBAL_ONLY);
-		ckfree((char *) OraLdas[hand].lda);
-		ckfree(OraLdas[hand].hda);
-		oTcl_ErrorMsg(interp, objv[0], ": oralogon failed in orlon", NULL, NULL);
-		return TCL_ERROR;
-	}
-
-	OraLdas[hand].lda_in_use = 1;	/* handle ok, set in use flag */
-	OraLdas[hand].interp = interp;	/* handle ok, set interp */
-
-	/* construct logon handle and return */
-	sprintf(buf,"%s%d",OraHandlePrefix,hand);
-	buf_obj = Tcl_NewStringObj(buf, -1);
-	Tcl_IncrRefCount(buf_obj);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, buf_obj, TCL_GLOBAL_ONLY);
-	clear_msg(interp);
-	Tcl_SetObjResult(interp, buf_obj);
-	Tcl_DecrRefCount(buf_obj);
-	return TCL_OK;
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Logoff --
  *    Implements the oralogoff command:
  *    usage: oralogon lda_handle
@@ -1293,58 +1455,83 @@ fprintf(stderr, "Using Oracle 8 API to OCILogon\n");
  *	null string
  *      TCL_OK - logoff successful
  *      TCL_ERROR - logoff not successful - error message returned
- *----------------------------------------------------------------------
  */
 
 int
-Oratcl_Logoff (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Logoff (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
 
-	/* can't use ora_prologue, oralogoff just uses an lda handle */
-	clear_msg(interp);
+    int        hand;
+    int        i;
+    char       buf[ORA_MSG_SIZE];
 
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
-		return TCL_ERROR;
-	}
 
-	if ((hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		return TCL_ERROR;
-	}
+    /* can't use ora_prologue, oralogoff just uses an lda handle */
+
+    clear_msg(interp);
+
+    if (argc < 2) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " lda_handle ", (char *) NULL);
+	return TCL_ERROR;
+    }
+
+    if ((hand = get_ora_lda_handle(argv[1])) == -1) {
+	Tcl_AppendResult (interp, argv[0], ": lda_handle ", argv[1],
+			  " not valid ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
 #ifdef NONBLOCK_CURSOR
-	if (OraLdas[hand].async == 1) {
-		obreak(OraLdas[hand].lda);
-		onbclr(OraLdas[hand].lda);
-	}
+    if (OraLdas[hand].async == 1) {
+      obreak(OraLdas[hand].lda);
+      onbclr(OraLdas[hand].lda);
+    }
 #endif
 
-	/* close and free all open cursors through this connection */
-	free_curs(hand);
+    /* close and free all open cursors through this connection */
+    free_curs(hand);
 
-	/* logoff and free data areas */
-	OraLdas[hand].lda_in_use = 0;
-	OraLdas[hand].interp     = NULL;
-	OraLdas[hand].async      = 0;
-	if (ologof(OraLdas[hand].lda) != 0) {
-		/* logoff failed, get error msg */
-		get_lda_err(interp,hand);
-		ckfree((char *) OraLdas[hand].lda);
-		ckfree(OraLdas[hand].hda);
+    /* logoff and free data areas */
+    OraLdas[hand].lda_in_use = 0;
+    OraLdas[hand].async      = 0;
+    
+#ifdef VERSION7DB
+    if (ologof(OraLdas[hand].lda) != 0) {
+	/* logoff failed, get error msg */
+	get_lda_err(interp,hand);
+        ckfree((char *)OraLdas[hand].lda);
+        ckfree(OraLdas[hand].hda);
 
-		return TCL_ERROR;
-	}
-	ckfree((char *) OraLdas[hand].lda);
-	ckfree(OraLdas[hand].hda);
+	return TCL_ERROR;
+    }
+#else
+   OCILdaToSvcCtx(&p_svc[hand], p_err[hand], OraLdas[hand].lda);
+   if (OCILogoff(p_svc[hand], p_err[hand]) != 0) {
+       OCISvcCtxToLda (p_svc[hand], p_err[hand], OraLdas[hand].lda);
+       get_lda_err(interp,hand);
+       ckfree((char *)OraLdas[hand].lda);
+       ckfree(OraLdas[hand].hda);
 
-	return TCL_OK;
+       return TCL_ERROR;
+    }
+       
+       
+#endif
+    
+    
+    ckfree((char *)OraLdas[hand].lda);
+    ckfree(OraLdas[hand].hda);
+
+    return TCL_OK;
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -1358,101 +1545,101 @@ Oratcl_Logoff (clientData, interp, objc, objv)
  *	cur_handle
  *      TCL_OK - oopen successful
  *      TCL_ERROR - oopen not successful - error message returned
- *----------------------------------------------------------------------
  */
 
 int
-Oratcl_Open (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Open (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int		lda_hand, cur_hand = -1;
-	int		i;
-	char		buf[ORA_MSG_SIZE];
-	Tcl_Obj		*buf_obj;
 
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
-		return TCL_ERROR;
+    int        lda_hand;
+    int        hand = -1;
+    int        i;
+    char       buf[ORA_MSG_SIZE];
+
+
+    /* can't use ora_prologue, oraopen just uses an lda handle */
+
+    clear_msg(interp);
+
+    if (argc < 2) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " lda_handle ", (char *) NULL);
+	return TCL_ERROR;
+    }
+
+    if ((lda_hand = get_ora_lda_handle(argv[1])) == -1) {
+	Tcl_AppendResult (interp, argv[0], ": lda_handle ", argv[1],
+			  " not valid ", (char *) NULL);
+	return TCL_ERROR;
+    }
+
+
+    /* find an unused cursor handle */
+
+    for (i = 0; i < ORATCLCURS; i++) {
+	if (OraCurs[i].cur_in_use == 0) {
+            hand = i;
+	    break;
 	}
+    }
 
-	Tcl_IncrRefCount(objv[0]);
-	Tcl_IncrRefCount(objv[1]);
-
-	/* can't use ora_prologue, oraopen just uses an lda handle */
-	if ((lda_hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		Tcl_DecrRefCount(objv[0]);
-		Tcl_DecrRefCount(objv[1]);
-		return TCL_ERROR;
-	}
-
-	clear_msg(interp);
-
-	/* find an unused cursor handle */
-
-	for (i = 0; i < ORATCLCURS; i++) {
-		if (OraCurs[i].cur_in_use == 0) {
-			cur_hand = i;
-			break;
-		}
-	}
-
-	if (cur_hand == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": no cursor handles available", NULL, NULL);
-		Tcl_DecrRefCount(objv[0]);
-		Tcl_DecrRefCount(objv[1]);
-		return TCL_ERROR;
-	}
+    if (hand == -1) {
+	Tcl_AppendResult (interp, argv[0], ": no cursor handles available",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
 
 
-	if ( (OraCurs[cur_hand].cda = (cda_def *) ckalloc(sizeof (cda_def))) == NULL) {
-		oTcl_ErrorMsg(interp, objv[0], ": oraopen failed in malloc(cda)", NULL, NULL);
-		Tcl_DecrRefCount(objv[0]);
-		Tcl_DecrRefCount(objv[1]);
-		return TCL_ERROR;
-	}
+    if ( (OraCurs[hand].cda = (cda_def *) ckalloc(sizeof (cda_def))) == NULL) {
+	Tcl_AppendResult (interp, argv[0], ": oraopen failed in malloc(cda)",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
     
-	if (oopen(OraCurs[cur_hand].cda,OraLdas[lda_hand].lda,NULL,-1,-1,NULL,-1) !=0) {
-		/* open failed, cleanup */
-		get_ora_err(interp,cur_hand);
-		ckfree((char *) OraCurs[cur_hand].cda);
-		oTcl_ErrorMsg(interp, objv[0], ": oraopen failed in oopen", NULL, NULL);
-		Tcl_DecrRefCount(objv[0]);
-		Tcl_DecrRefCount(objv[1]);
-		return TCL_ERROR;
-	}
+    if (oopen(OraCurs[hand].cda,OraLdas[lda_hand].lda,NULL,-1,-1,NULL,-1) !=0) {
+	/* open failed, cleanup */
+	get_ora_err(interp,hand);
+        ckfree((char *)OraCurs[hand].cda);
+	Tcl_AppendResult (interp, argv[0], ": oraopen failed in oopen",
+			  (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	/* cursor open ok */
-	OraCurs[cur_hand].cur_in_use = 1;
-	OraCurs[cur_hand].lda_num    = lda_hand;
-	OraCurs[cur_hand].col_list   = NULL;
-	OraCurs[cur_hand].bind_list  = NULL;
-	OraCurs[cur_hand].cache_size = ORA_CACHE;
-	OraCurs[cur_hand].row_num    = 0;
-	OraCurs[cur_hand].fetch_end  = 1;
-	OraCurs[cur_hand].fetch_cnt  = 0;
-	OraCurs[cur_hand].oexec_done = 0;
-	OraCurs[cur_hand].first_fetch= 0;
-	OraCurs[cur_hand].async      = 0;
+    /* cursor open ok */
+    OraCurs[hand].cur_in_use = 1;
+    OraCurs[hand].lda_num    = lda_hand;
+    OraCurs[hand].col_list   = NULL;
+    OraCurs[hand].bind_list  = NULL;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = 0;
+    OraCurs[hand].fetch_end  = 1;
+    OraCurs[hand].fetch_cnt  = 0;
+    OraCurs[hand].oexec_done = 0;
+    OraCurs[hand].first_fetch= 0;
+    OraCurs[hand].async      = 0;
 
-	/* construct and return a cursor handle */
-	sprintf(buf,"%s%d.%d",OraHandlePrefix,lda_hand,cur_hand);  
-	buf_obj = Tcl_NewStringObj(buf, -1);
-	Tcl_IncrRefCount(buf_obj);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, buf_obj, TCL_GLOBAL_ONLY);
-	clear_msg(interp);
-	Tcl_SetObjResult(interp, buf_obj);
-	Tcl_DecrRefCount(buf_obj);
-	Tcl_DecrRefCount(objv[0]);
-	Tcl_DecrRefCount(objv[1]);
-	return TCL_OK;
+
+    /* construct and return a cursor handle */
+    sprintf(buf,"%s%d.%d",OraHandlePrefix,lda_hand,hand);  
+
+    Tcl_SetVar2(interp, OraMsgArray, "handle",      buf, TCL_GLOBAL_ONLY);
+    clear_msg(interp);
+
+    Tcl_SetResult(interp,buf,TCL_VOLATILE);
+
+    return TCL_OK;
+
 }
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Close --
  *    Implements the oraclose command:
  *    usage: oraclose cur_handle
@@ -1461,46 +1648,47 @@ Oratcl_Open (clientData, interp, objc, objv)
  *	null string
  *      TCL_OK - cursor closed successfully
  *      TCL_ERROR - wrong # args, or cur_handle not opened
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Close (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Close (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int     hand;
+    int     hand;
 
-	if ((hand = ora_prologue(interp,objc, objv, 2," cur_handle")) == -1) {
-		return TCL_ERROR;
-	}
+    if ((hand = ora_prologue(interp,argc, argv, 2," cur_handle")) == -1) {
+	return TCL_ERROR;
+    }
 
-	OraCurs[hand].cur_in_use = 0;
-	OraCurs[hand].lda_num    = 0;
-	oclose(OraCurs[hand].cda);
-	memset(OraCurs[hand].cda, 0, sizeof(cda_def));
-	ckfree((char *) OraCurs[hand].cda);
-	OraCurs[hand].cda        = NULL;
-	free_cols(OraCurs[hand].col_list);
-	OraCurs[hand].col_list   = NULL;
-	free_cols(OraCurs[hand].bind_list);
-	OraCurs[hand].bind_list  = NULL;
-	OraCurs[hand].bind_list  = 0;
-	OraCurs[hand].cache_size = ORA_CACHE;
-	OraCurs[hand].row_num    = 0;
-	OraCurs[hand].fetch_end  = 1;
-	OraCurs[hand].fetch_cnt  = 0;
-	OraCurs[hand].oexec_done = 0;
-	OraCurs[hand].first_fetch= 0;
-	OraCurs[hand].async      = 0;
+    OraCurs[hand].cur_in_use = 0;
+    OraCurs[hand].lda_num    = 0;
+    oclose(OraCurs[hand].cda);
+    bzero(OraCurs[hand].cda, sizeof(cda_def));
+    ckfree((char *)OraCurs[hand].cda);
+    OraCurs[hand].cda        = NULL;
+    free_cols(OraCurs[hand].col_list);
+    OraCurs[hand].col_list   = NULL;
+    free_cols(OraCurs[hand].bind_list);
+    OraCurs[hand].bind_list  = NULL;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = 0;
+    OraCurs[hand].fetch_end  = 1;
+    OraCurs[hand].fetch_cnt  = 0;
+    OraCurs[hand].oexec_done = 0;
+    OraCurs[hand].first_fetch= 0;
+    OraCurs[hand].async      = 0;
 
-	return TCL_OK;
+    return TCL_OK;
+
 }
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Sql --
  *    Implements the orasql command:
  *    usage: orasql cur_handle sql_string ?-parseonly? | ?-async?
@@ -1509,239 +1697,206 @@ Oratcl_Close (clientData, interp, objc, objv)
  *	return code from oexec
  *      TCL_OK - handle is opened, sql executed ok
  *      TCL_ERROR - wrong # args, or handle not opened,  bad sql stmt
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Sql (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Sql (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
-	int	lda_hand;
-	char	buf[ORA_MSG_SIZE];
-	int	parseonly = 0;
-	int	asyncmode = 0;
-	char	*arg_v, *p;
-	int	arg_c;
-	int	ix;
+    int     hand;
+    int     lda_hand;
+    char    buf[ORA_MSG_SIZE];
+    int     parseonly = 0;
+    int     asyncmode = 0;
 
-	for (ix=0; ix<objc; ix++) {
-		Tcl_IncrRefCount(objv[ix]);
-	}
 
-	if ((hand = ora_prologue(interp, objc, objv, 3,
-		" cur_handle sql_str  ?-parseonly? | ?-async? ")) ==-1) {
-		for (ix=0; ix<objc; ix++) {
-			Tcl_DecrRefCount(objv[ix]);
-		}
-		return TCL_ERROR;
-	}
+    if ((hand = ora_prologue(interp,argc, argv,3,
+	    " cur_handle sql_str  ?-parseonly? | ?-async? ")) ==-1) {
+	return TCL_ERROR;
+    }
 
-	/* check for options and deprecated keywords */
-	if (objc >= 4) {
-		p = Tcl_GetStringFromObj(objv[3], NULL);
-		if (*p == '-') {
-			p++;
-		}
-		if (strcmp(p,"parseonly") == 0) {
-			parseonly = 1;
-		}
-#ifdef NONBLOCK_CURSOR
-		if (strcmp(p,"async") == 0) {
-			asyncmode = 1;
-		}
-#endif
-	}
-
-	/* cancel any pending usage of cursor */
-	ocan(OraCurs[hand].cda);
-
-	/* set up sql for execution */
-	arg_v = Tcl_GetStringFromObj(objv[2], &arg_c);
-	oparse(OraCurs[hand].cda, arg_v, ((long) -1), DEF_FLAG, LNG_FLAG);
-
-	if (OraCurs[hand].cda->rc != 0) {
-		get_ora_err(interp,hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oparse failed (bad sql ?)", NULL, NULL);
-		for (ix=0; ix<objc; ix++) {
-			Tcl_DecrRefCount(objv[ix]);
-		}
-		return TCL_ERROR;
-	}
-
-	/* clear peo */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, OMV_zero, TCL_GLOBAL_ONLY);
-
-	/* clear any previous results */
-	free_cols(OraCurs[hand].col_list);
-	OraCurs[hand].col_list   = NULL;
-	free_cols(OraCurs[hand].bind_list);
-	OraCurs[hand].bind_list  = NULL;
-	OraCurs[hand].cache_size = ORA_CACHE;
-	OraCurs[hand].row_num    = 0;
-	OraCurs[hand].fetch_end  = 1;
-	OraCurs[hand].fetch_cnt  = 0;
-	OraCurs[hand].oexec_done = 0;
-	OraCurs[hand].first_fetch= 0;
-	OraCurs[hand].async      = 0;
-  
-	if (parseonly && (OraCurs[hand].cda->ft == 3 ||
-		OraCurs[hand].cda->ft == 5 || OraCurs[hand].cda->ft == 9)) {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(OraCurs[hand].cda->rc));
-		get_ora_err(interp,hand);
-		for (ix=0; ix<objc; ix++) {
-			Tcl_DecrRefCount(objv[ix]);
-		}
-		return TCL_OK;
-	}
-
-	/* only call parse_columns after DML (insert,select,update,delete) */
-	if (OraCurs[hand].cda->ft == 3 || OraCurs[hand].cda->ft == 4 ||
-	    OraCurs[hand].cda->ft == 5 || OraCurs[hand].cda->ft == 9) {
-
-		if (parse_columns(interp, hand) != -1) {
-  
-			if (parseonly) {
-				Tcl_SetObjResult(interp, Tcl_NewIntObj(OraCurs[hand].cda->rc));
-				get_ora_err(interp,hand);
-				for (ix=0; ix<objc; ix++) {
-					Tcl_DecrRefCount(objv[ix]);
-				}
-				return TCL_OK;
-			}
+    /* check for options and deprecated keywords */
+    if ((argc >= 4 && *argv[3] == 'p' && strcmp(argv[3],"parseonly") == 0) ||
+        (argc >= 4 && *argv[3] == '-' && strcmp(argv[3],"-parseonly")== 0) ) {
+	parseonly = 1;
+    }
 
 #ifdef NONBLOCK_CURSOR
-			if (asyncmode) {
-				lda_hand = OraCurs[hand].lda_num;
-				OraCurs[hand].async     = 1;
-				OraLdas[lda_hand].async = 1;
-				onbset(OraLdas[lda_hand].lda);
-			}
+    if ((argc >= 4 && *argv[3] == 'a' && strcmp(argv[3],"async") == 0) ||
+        (argc >= 4 && *argv[3] == '-' && strcmp(argv[3],"-async")== 0) ) {
+	asyncmode = 1;
+    }
 #endif
 
-			oexec(OraCurs[hand].cda);
-  
-			/* set msg array variable "rows" to rpc (rows processed count) */
-			/* in case of insert, update, delete,                          */
-			Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-  
-			/* set msg array variable "rowid" of any row manipulated */
-			sprintf(buf,"%08.8lX.%04.4X.%04.4X",
-				(long) OraCurs[hand].cda->rid.d4,
-				OraCurs[hand].cda->rid.d5,
-			/* I dont know what is d1 and d2, in my oracle 7.3.2 for SCO always zero*/
-			/*      OraCurs[hand].cda->rid.rd.d1, */
-			/*      OraCurs[hand].cda->rid.rd.d3, */
-				OraCurs[hand].cda->rid.rd.d2);
-			Tcl_ObjSetVar2(interp, OraMsgArray, OM_rowid, Tcl_NewStringObj(buf, -1), TCL_GLOBAL_ONLY);
-  
-			/* cause first orafetch to fetch */
-			OraCurs[hand].row_num   = OraCurs[hand].cache_size;
-			OraCurs[hand].fetch_end = 0;        /* try to fetch */
-			OraCurs[hand].fetch_cnt = 0;        /* start fetch cnt at zero */
-  
-		} else {
-			get_ora_err(interp,hand);
-			oTcl_ErrorMsg(interp, objv[0], ": parse_columns failed", NULL, NULL);
-			for (ix=0; ix<objc; ix++) {
-				Tcl_DecrRefCount(objv[ix]);
-			}
-			return TCL_ERROR;
-		}
+    /* cancel any pending usage of cursor */
+    ocan(OraCurs[hand].cda);
 
-	} else {
-		oexec(OraCurs[hand].cda);
+    /* set up sql for execution */
+    oparse(OraCurs[hand].cda, argv[2], ((long) -1), DEF_FLAG, LNG_FLAG);
 
-		if (OraCurs[hand].cda->rc != 0) {
-			get_ora_err(interp,hand);
-			oTcl_ErrorMsg(interp, objv[0], ": oexec of DDL failed", NULL, NULL);
-			for (ix=0; ix<objc; ix++) {
-				Tcl_DecrRefCount(objv[ix]);
-			}
-			return TCL_ERROR;
-		}
-		/* set msg array variable "rows" to rpc (rows processed count) */
-		/* in case of insert, update, delete,                          */
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-	}
 
+    if (OraCurs[hand].cda->rc != 0) {
 	get_ora_err(interp,hand);
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(OraCurs[hand].cda->rc));
-	for (ix=0; ix<objc; ix++) {
-		Tcl_DecrRefCount(objv[ix]);
-	}
-	return TCL_OK;
+	Tcl_AppendResult (interp, argv[0], ": oparse failed (bad sql ?) ", 
+			  (char *) NULL);
+	return TCL_ERROR;
+    } else {
+	/* clear peo */
+	Tcl_SetVar2(interp, OraMsgArray, "peo",  "0", TCL_GLOBAL_ONLY);
+    }
+
+    /* clear any previous results */
+    free_cols(OraCurs[hand].col_list);
+    OraCurs[hand].col_list   = NULL;
+    free_cols(OraCurs[hand].bind_list);
+    OraCurs[hand].bind_list  = NULL;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = 0;
+    OraCurs[hand].fetch_end  = 1;
+    OraCurs[hand].fetch_cnt  = 0;
+    OraCurs[hand].oexec_done = 0;
+    OraCurs[hand].first_fetch= 0;
+    OraCurs[hand].async      = 0;
+  
+    if (parseonly && (OraCurs[hand].cda->ft == 3 ||
+        OraCurs[hand].cda->ft == 5 || OraCurs[hand].cda->ft == 9)) {
+        sprintf(buf,"%d",OraCurs[hand].cda->rc);
+        get_ora_err(interp,hand);
+        Tcl_SetResult(interp, buf, TCL_VOLATILE);
+        return TCL_OK;
+    }
+
+    /* only call parse_columns after DML (insert,select,update,delete) */
+    if (OraCurs[hand].cda->ft == 3 || OraCurs[hand].cda->ft == 4 ||
+        OraCurs[hand].cda->ft == 5 || OraCurs[hand].cda->ft == 9) {
+
+      if (parse_columns(interp, hand) != -1) {
+  
+          if (parseonly) {
+              sprintf(buf,"%d",OraCurs[hand].cda->rc);
+	      get_ora_err(interp,hand);
+              Tcl_SetResult(interp, buf, TCL_VOLATILE);
+              return TCL_OK;
+          }
+
+#ifdef NONBLOCK_CURSOR
+          if (asyncmode) {
+	    lda_hand = OraCurs[hand].lda_num;
+	    OraCurs[hand].async     = 1;
+	    OraLdas[lda_hand].async = 1;
+	    onbset(OraLdas[lda_hand].lda);
+	  }
+#endif
+
+          oexec(OraCurs[hand].cda);
+  
+          /* set msg array variable "rows" to rpc (rows processed count) */
+          /* in case of insert, update, delete,                          */
+          sprintf(buf,"%d",OraCurs[hand].cda->rpc);
+          Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+  
+          /* set msg array variable "rowid" of any row manipulated */
+          sprintf(buf,"%08.8X.%04.4X.%04.4X",
+                        OraCurs[hand].cda->rid.d4,
+                        OraCurs[hand].cda->rid.d5,
+/* I dont know what is d1 and d2, in my oracle 7.3.2 for SCO always zero*/
+/*                      OraCurs[hand].cda->rid.rd.d1, */
+/*                      OraCurs[hand].cda->rid.rd.d3, */
+                        OraCurs[hand].cda->rid.rd.d2);
+          Tcl_SetVar2(interp, OraMsgArray, "rowid", buf, TCL_GLOBAL_ONLY);
+  
+  	/* cause first orafetch to fetch */
+  	OraCurs[hand].row_num   = OraCurs[hand].cache_size;
+  	OraCurs[hand].fetch_end = 0;        /* try to fetch */
+  	OraCurs[hand].fetch_cnt = 0;        /* start fetch cnt at zero */
+  
+      } else {
+  	get_ora_err(interp,hand);
+  	Tcl_AppendResult (interp, argv[0], ": parse_columns failed ", 
+  			  (char *) NULL);
+  	return TCL_ERROR;
+      }
+
+    } else {
+      oexec(OraCurs[hand].cda);
+
+      if (OraCurs[hand].cda->rc != 0) {
+  	get_ora_err(interp,hand);
+  	Tcl_AppendResult (interp, argv[0], ": oexec of DDL failed ",
+  			  (char *) NULL);
+  	return TCL_ERROR;
+      }
+      /* set msg array variable "rows" to rpc (rows processed count) */
+      /* in case of insert, update, delete,                          */
+      sprintf(buf,"%d",OraCurs[hand].cda->rpc);
+      Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+
+    }
+
+    get_ora_err(interp,hand);
+
+    sprintf(buf,"%d",OraCurs[hand].cda->rc);
+
+    Tcl_SetResult(interp, buf, TCL_VOLATILE);
+
+    return TCL_OK;
 }
+
 
 #ifdef NONBLOCK_CURSOR
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Poll --
  *    Implements the orapoll command:
  *    usage: orapoll cur_handle ?-all?
  *	                
  *    results:
- *	return objv[1] handle if cursor is ready, null if still blocking
+ *	return argv[1] handle if cursor is ready, null if still blocking
  *        optional "-all" returns list of all ready cursors
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Poll (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Poll (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int        hand;
-	int        lda_hand;
-	int        rc;
-	int        old_rc;
-	long       old_rpc;
-	int        i;
-	int        max;
-	int        start;
-	char       buf[ORA_MSG_SIZE];
-
-	int	oColsc;
-	char	*p;
+    int        hand;
+    int        lda_hand;
+    int        rc;
+    int        old_rc;
+    long       old_rpc;
+    int        i;
+    int        max;
+    int        start;
+    char       buf[ORA_MSG_SIZE];
 
 
-	if ((hand = ora_prologue(interp,objc, objv, 2,
-		" cur_handle ?-all?")) == -1) {
-		return TCL_ERROR;
-	}
+    if ((hand = ora_prologue(interp,argc, argv,2, " cur_handle ?-all?")) ==-1) {
+	return TCL_ERROR;
+    }
 
-	/* check for options and deprecated keywords */
+    /* check for options and deprecated keywords */
+    if ((argc >= 3 && *argv[2] == 'a' && strcmp(argv[2],"all") ==0) ||
+        (argc >= 3 && *argv[2] == '-' && strcmp(argv[2],"-all")==0) ) {
+
+        /* test all open ldas */
+	start = 0;
+	max   = ORATCLCURS;
+    } else {
 	start = hand;
 	max   = hand + 1;
-	if (objc >= 3) {
-		p = Tcl_GetStringFromObj(objv[2], (int *) NULL);
-		if (*p == '-') {
-			p++;
-		}
-		if (strcmp(p,"all") == 0) {
-			/* test all open ldas */
-			start = 0;
-			max   = ORATCLCURS;
-		}
-	}
-
-	oColsc = 0;
+    }
 
 
     for (i = start; i < max; i++) {
 	if (OraCurs[i].cur_in_use) {
 	    lda_hand = OraCurs[i].lda_num;
-	    if (oColsc >= oColslen) {
-		oColslen += 10;
-		oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
-	    }
 	    if (OraCurs[i].async && OraLdas[lda_hand].async) {
 		/* first try oexec, then ofen */
 		if (! OraCurs[i].oexec_done ) {
@@ -1769,7 +1924,7 @@ Oratcl_Poll (clientData, interp, objc, objv)
 		    OraCurs[i].first_fetch = 1;
 		    sprintf(buf,"%s%d.%d",OraHandlePrefix,
 					       OraCurs[i].lda_num, i);
-		    oColsv[oColsc++] = Tcl_NewStringObj(buf, -1);
+		    Tcl_AppendElement(interp, buf);
 		} 
 
 	    } else {
@@ -1777,65 +1932,70 @@ Oratcl_Poll (clientData, interp, objc, objv)
 		if (!OraCurs[i].fetch_end) {
 		    sprintf(buf,"%s%d.%d",OraHandlePrefix,
 						OraCurs[i].lda_num, i);
-		    oColsv[oColsc++] = Tcl_NewStringObj(buf, -1);
+		    Tcl_AppendElement(interp, buf);
 		}
 	    }
 	}
     }
 
-    Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
     get_ora_err(interp,hand);
 
     return TCL_OK;
 }
 
+
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Break --
  *    Implements the orabreak command:
- *    usage: orabreak lda_handle 
+ *    usage: orapoll lda_handle 
  *	                
- * Results:
+ *    results:
  *      sends break to lda in async mode
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Break (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Break (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int        hand;
+    int        hand;
+    int        i;
+    char       buf[ORA_MSG_SIZE];
 
-	/* can't use ora_prologue, orabreak just uses an lda handle */
-	clear_msg(interp);
+    /* can't use ora_prologue, orabreak just uses an lda handle */
 
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
-		return TCL_ERROR;
-	}
+    clear_msg(interp);
 
-	if ((hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		return TCL_ERROR;
-	}
+    if (argc < 2) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " lda_handle ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	if (OraLdas[hand].async) {
-		obreak(OraLdas[hand].lda);
-		onbclr(OraLdas[hand].lda);
-		OraLdas[hand].async = 0;
-	}
+    if ((hand = get_ora_lda_handle(argv[1])) == -1) {
+	Tcl_AppendResult (interp, argv[0], ": lda_handle ", argv[1],
+			  " not valid ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	return TCL_OK;
+    if (OraLdas[hand].async) {
+	obreak(OraLdas[hand].lda);
+	onbclr(OraLdas[hand].lda);
+	OraLdas[hand].async = 0;
+    }
+
+    return TCL_OK;
 }
 #endif
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Bindexec --
  *    Implements the orabindexec command:
  *    usage: orabindexec cur_handle ?-async? :varname value 
@@ -1845,574 +2005,683 @@ Oratcl_Break (clientData, interp, objc, objv)
  *	sets message array element "rc" with value of exec rcode
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Bindexec (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Bindexec (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
-	int	lda_hand;
-	char	buf[ORA_MSG_SIZE];
-	int	parm_cnt;
-	ColBufs	*tmp_col_head;
-	ColBufs	*tmp_col;
-	ColBufs	*head_col;
-	int	asyncmode = 0;
-	char	*arg_pcc, *arg_pcp, *p;
-	int	arg_pcc_len, arg_pcp_len;
+    int        hand;
+    int        lda_hand;
+    char       buf[ORA_MSG_SIZE];
+    int        parm_cnt;
+    ColBufs    *tmp_col_head;
+    ColBufs    *tmp_col;
+    ColBufs    *head_col;
+    int        asyncmode = 0;
 
-	if ((hand = ora_prologue(interp,objc, objv, 2,
-		" cur_handle ?-async?  [ :varname value ] ...")) == -1) {
-		return TCL_ERROR;
-	}
 
-	OraCurs[hand].oexec_done = 0;
-	OraCurs[hand].first_fetch= 0;
-	OraCurs[hand].async      = 0;
+    if ((hand = ora_prologue(interp,argc, argv,2,
+		  " cur_handle ?-async?  [ :varname value ] ...")) == -1) {
+	return TCL_ERROR;
+    }
 
-	parm_cnt = 2;
+    OraCurs[hand].oexec_done = 0;
+    OraCurs[hand].first_fetch= 0;
+    OraCurs[hand].async      = 0;
 
-	/* check for option and deprecated keywords */
-	if (objc >= 3) {
-		p = Tcl_GetStringFromObj(objv[2], (int *) NULL);
-		if (*p == '-') {
-			p++;
-		}
-		if (strcmp(p,"async") == 0) {
+    parm_cnt = 2;
+
+    /* check for option and deprecated keywords */
+    if ((argc >= 3 && *argv[2] == 'a' && strcmp(argv[2],"async") == 0) ||
+        (argc >= 3 && *argv[2] == '-' && strcmp(argv[2],"-async")== 0) ) {
 #ifdef NONBLOCK_CURSOR
-			asyncmode = 1;
+	asyncmode = 1;
 #endif
-			parm_cnt++;
-		}
-	}
+	parm_cnt++;
+    }
 
-	/* if first time in, allocate bind_list */
+    /* if first time in, allocate bind_list */
 
-	if (OraCurs[hand].bind_list == NULL) {
+    if (OraCurs[hand].bind_list == NULL ) {
 
-		if (objc > parm_cnt + 1) {
-			tmp_col_head = alloc_col();
-			if (tmp_col_head == NULL) {
-				oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col", NULL, NULL);
-				return TCL_ERROR;
-			}
-			tmp_col      = tmp_col_head;
-			head_col     = tmp_col_head;
-			OraCurs[hand].bind_list = tmp_col_head;
-		} else {
-			tmp_col_head = NULL;
-		}
-
-		while (objc > parm_cnt + 1) {       /* always in pairs of two */
-
-			/* get two arg strings */
-			arg_pcc = Tcl_GetStringFromObj(objv[parm_cnt], &arg_pcc_len);
-			arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
-
-			/* make sure bind variable name has a leading ':' */
-			if (*arg_pcc != ':') {
-				free_cols(OraCurs[hand].col_list);
-				OraCurs[hand].col_list = NULL;
-				free_cols(OraCurs[hand].bind_list);
-				OraCurs[hand].bind_list = NULL;
-				oTcl_ErrorMsg(interp, objv[0], ": bind variable ", objv[parm_cnt], "does not begin with ':'");
-				return TCL_ERROR;
-			}
-
-			memcpy(tmp_col->dbname, arg_pcc, arg_pcc_len);
-			tmp_col->dbname[arg_pcc_len] = '\0';
-
-			tmp_col->disp_size  = ORA_BIND_SIZE;
-			tmp_col->rlen[0] = 0;
-			tmp_col->rcode[0] = 0;
-
-			tmp_col->col_data   = ckalloc(tmp_col->disp_size + 1);
-			memcpy(tmp_col->col_data, arg_pcp, arg_pcp_len);
-			tmp_col->col_data[arg_pcp_len] = '\0';
-
-			obndrv(OraCurs[hand].cda, tmp_col->dbname, -1, tmp_col->col_data, ORA_BIND_SIZE,
-				EXT_STRING_TYPE, -1, NULL, NULL, -1, -1);
-
-			if (OraCurs[hand].cda->rc != 0) {
-				get_ora_err(interp, hand);
-				free_cols(OraCurs[hand].col_list);
-				OraCurs[hand].col_list = NULL;
-				free_cols(OraCurs[hand].bind_list);
-				OraCurs[hand].bind_list = NULL;
-				oTcl_ErrorMsg(interp, objv[0], ": bind failed for ", objv[parm_cnt], NULL);
-				return TCL_ERROR;
-			}
-
-			parm_cnt += 2;
-
-			if (objc > parm_cnt + 1) {       /* more args? alloc new colbufs */
-				head_col           = tmp_col;
-				tmp_col            = alloc_col();
-				if (tmp_col == NULL) {
-					free_cols(OraCurs[hand].col_list);
-					OraCurs[hand].col_list = NULL;
-					free_cols(OraCurs[hand].bind_list);
-					OraCurs[hand].bind_list = NULL;
-					oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col", NULL, NULL);
-					return TCL_ERROR;
-				}
-				head_col->next_buf = tmp_col;
-			}
-		}
-
-	} else {
-		/* else, binds have been done, just copy in new data */
-		while (objc > parm_cnt + 1) {       /* always in pairs of two */
-			tmp_col = OraCurs[hand].bind_list;
-			while (tmp_col != NULL) {
-				if (strncmp(tmp_col->dbname, Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), 255) == 0) {
-				    strncpy(tmp_col->col_data, Tcl_GetStringFromObj(objv[parm_cnt + 1], (int *) NULL),
-					    ORA_BIND_SIZE - 1);    
-					break;
-				}
-				tmp_col = tmp_col->next_buf;
-			}
-			parm_cnt += 2;
-		}
-
-	}
-  
-	#ifdef NONBLOCK_CURSOR
-	    if (asyncmode) {
-		lda_hand = OraCurs[hand].lda_num;
-		OraLdas[lda_hand].async = 1;
-		OraCurs[hand].async     = 1;
-		onbset(OraLdas[lda_hand].lda);
+	if (argc > parm_cnt + 1) {
+	    tmp_col_head = alloc_col();
+	    if (tmp_col_head == NULL) {
+		Tcl_AppendResult(interp, argv[0], " cannot malloc new col ",
+			(char *) NULL);
+		return TCL_ERROR;
 	    }
-	#endif
+	    tmp_col      = tmp_col_head;
+	    head_col     = tmp_col_head;
+	    OraCurs[hand].bind_list = tmp_col_head;
+	} else {
+	    tmp_col_head = NULL;
+	}
 
-	oexec(OraCurs[hand].cda);
+	while (argc > parm_cnt + 1) {       /* always in pairs of two */
 
-	/* set msg array variable "rows" to rpc (rows processed count) */
-	/* in case of insert, update, delete,                          */
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-	/* set msg array variable "rowid" of any row manipulated */
-	sprintf(buf,"%08.8lX.%04.4X.%04.4X",
-                        (long) OraCurs[hand].cda->rid.d4,
+	    /* make sure bind variable name has a leading ':' */
+	    if (*argv[parm_cnt] != ':') {
+		free_cols(OraCurs[hand].col_list);
+		OraCurs[hand].col_list = NULL;
+		free_cols(OraCurs[hand].bind_list);
+		OraCurs[hand].bind_list = NULL;
+		Tcl_AppendResult(interp, argv[0], " bind variable ", 
+			argv[parm_cnt],
+			" does not begin with ':' ", (char *) NULL);
+		return TCL_ERROR;
+	    }
+
+	    strncpy(tmp_col->dbname, argv[parm_cnt], 255);
+	    tmp_col->disp_size  = ORA_BIND_SIZE;
+	    tmp_col->col_data   = ckalloc(tmp_col->disp_size + 1);
+
+	    if (tmp_col->col_data == NULL) {
+		free_cols(OraCurs[hand].col_list);
+		OraCurs[hand].col_list = NULL;
+		free_cols(OraCurs[hand].bind_list);
+		OraCurs[hand].bind_list = NULL;
+		Tcl_AppendResult(interp, argv[0],
+		    " cannot malloc new col data for ", argv[parm_cnt],
+		    (char *) NULL);
+		return TCL_ERROR;
+	    } else {
+		strncpy(tmp_col->col_data,argv[parm_cnt + 1],ORA_BIND_SIZE - 1);
+	    }
+
+	    tmp_col->rlen[0] = 0;
+	    tmp_col->rcode[0] = 0;
+	    obndrv( OraCurs[hand].cda, argv[parm_cnt], -1, tmp_col->col_data,
+		    ORA_BIND_SIZE, EXT_STRING_TYPE, -1, NULL, NULL, -1, -1);
+
+	    if (OraCurs[hand].cda->rc != 0) {
+		get_ora_err(interp, hand);
+		free_cols(OraCurs[hand].col_list);
+		OraCurs[hand].col_list = NULL;
+		free_cols(OraCurs[hand].bind_list);
+		OraCurs[hand].bind_list = NULL;
+		Tcl_AppendResult(interp, argv[0], " bind failed for ",
+		    argv[parm_cnt], (char *) NULL);
+		return TCL_ERROR;
+	    }
+
+	    parm_cnt += 2;
+
+	    if (argc > parm_cnt + 1) {       /* more args? alloc new colbufs */
+		head_col           = tmp_col;
+		tmp_col            = alloc_col();
+		if (tmp_col == NULL) {
+		    free_cols(OraCurs[hand].col_list);
+		    OraCurs[hand].col_list = NULL;
+		    free_cols(OraCurs[hand].bind_list);
+		    OraCurs[hand].bind_list = NULL;
+		    Tcl_AppendResult(interp, argv[0]," cannot malloc new col ",
+			(char *) NULL);
+		    return TCL_ERROR;
+		}
+		head_col->next_buf = tmp_col;
+	    }
+	}
+
+    } else {
+
+	/* else, binds have been done, just copy in new data */
+
+	while (argc > parm_cnt + 1) {       /* always in pairs of two */
+	    tmp_col = OraCurs[hand].bind_list;
+	    while (tmp_col != NULL) {
+		if (strncmp(tmp_col->dbname, argv[parm_cnt], 255) == 0) {
+		    strncpy(tmp_col->col_data,argv[parm_cnt + 1],
+			    ORA_BIND_SIZE - 1);    
+		    break;
+		}
+		tmp_col = tmp_col->next_buf;
+	    }
+	    parm_cnt += 2;
+	}
+
+    }
+  
+#ifdef NONBLOCK_CURSOR
+    if (asyncmode) {
+        lda_hand = OraCurs[hand].lda_num;
+        OraLdas[lda_hand].async = 1;
+        OraCurs[hand].async     = 1;
+        onbset(OraLdas[lda_hand].lda);
+    }
+#endif
+
+    oexec(OraCurs[hand].cda);
+
+    /* set msg array variable "rows" to rpc (rows processed count) */
+    /* in case of insert, update, delete,                          */
+    sprintf(buf,"%d",OraCurs[hand].cda->rpc);
+    Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+  
+    /* set msg array variable "rowid" of any row manipulated */
+    sprintf(buf,"%08.8X.%04.4X.%04.4X",
+                        OraCurs[hand].cda->rid.d4,
                         OraCurs[hand].cda->rid.d5,
-	/* I dont know what is d1 and d2, in my oracle 7.3.2 for SCO always zero*/
-	/*              OraCurs[hand].cda->rid.rd.d1, */
-	/*              OraCurs[hand].cda->rid.rd.d3, */
+/* I dont know what is d1 and d2, in my oracle 7.3.2 for SCO always zero*/
+/*                      OraCurs[hand].cda->rid.rd.d1, */
+/*                      OraCurs[hand].cda->rid.rd.d3, */
                         OraCurs[hand].cda->rid.rd.d2);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rowid, Tcl_NewStringObj(buf, -1), TCL_GLOBAL_ONLY);
+    Tcl_SetVar2(interp, OraMsgArray, "rowid", buf, TCL_GLOBAL_ONLY);
   
-	/* cause first orafetch to fetch */
-	OraCurs[hand].row_num   = OraCurs[hand].cache_size;
-	OraCurs[hand].fetch_end = 0;        /* try to fetch */
-	OraCurs[hand].fetch_cnt = 0;        /* start fetch cnt at zero */
+    /* cause first orafetch to fetch */
+    OraCurs[hand].row_num   = OraCurs[hand].cache_size;
+    OraCurs[hand].fetch_end = 0;        /* try to fetch */
+    OraCurs[hand].fetch_cnt = 0;        /* start fetch cnt at zero */
   
-	get_ora_err(interp,hand);
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(OraCurs[hand].cda->rc));
+    get_ora_err(interp,hand);
 
-	return TCL_OK;
+    sprintf(buf,"%d",OraCurs[hand].cda->rc);
+
+    Tcl_SetResult(interp, buf, TCL_VOLATILE);
+
+    return TCL_OK;
+
+
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Fetch --
  *    Implements the orafetch command:
  *    usage: orafetch cur_handle 
  *	                
- * Results:
+ *    results:
  *	next row from latest results as tcl list, or null list
  *	sets message array element "rc" with value of fetch rcode
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Fetch (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Fetch (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int      hand;
-	int      lda_hand;
-	char     buf[ORA_MSG_SIZE];
-	long     old_rpc;
-	int      old_rc;
-	ColBufs *col;
-	int      i;
-	int      Oratcl_FetchAll();
+    int      hand;
+    int      lda_hand;
+    char     buf[ORA_MSG_SIZE];
+    char    *data_ptr;
+    long     old_rpc;
+    int      old_rc;
+    ColBufs *col;
+    int      i;
+    int      Oratcl_FetchAll();
 
-	fetch_ok = 0;
 
-	if ((hand = ora_prologue(interp, objc, objv, 2, 
-		" cur_handle  ?commands? ?subtitution_char?")) == -1) {
-		return TCL_ERROR;
-	}
+    fetch_ok = 0;
 
-	/* if there's a third argument, let next proc do the work */
-	if (objc >= 3) {
-		return (Oratcl_FetchAll(clientData, interp, objc, objv));
-	}
+    if ((hand = ora_prologue(interp, argc, argv, 2, 
+	 " cur_handle  ?commands? ?subtitution_char?")) == -1) {
+	return TCL_ERROR;
+    }
 
-	/* if this cursor hasn't performed SQL, return a 1403 */
-	if (OraCurs[hand].fetch_end &&
-		OraCurs[hand].fetch_cnt >= (long) OraCurs[hand].cda->rpc &&
-		OraCurs[hand].fetch_cnt >  0) {
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(NO_DATA_FOUND), TCL_GLOBAL_ONLY);
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-		return TCL_OK;
-	}
+    /* if there's a third argument, let next proc do the work */
+    if (argc >= 3) {
+	return (Oratcl_FetchAll(clientData, interp, argc, argv));
+    }
+
+    /* if this cursor hasn't performed SQL, return a 1403 */
+    if (OraCurs[hand].fetch_end &&
+	OraCurs[hand].fetch_cnt >= OraCurs[hand].cda->rpc &&
+	OraCurs[hand].fetch_cnt >  0) {
+
+	sprintf(buf,"%d",NO_DATA_FOUND);
+	Tcl_SetVar2(interp, OraMsgArray, "rc", buf, TCL_GLOBAL_ONLY);
+	sprintf(buf,"%ld",OraCurs[hand].cda->rpc);
+	Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+	return TCL_OK;
+    }
 
 #ifdef NONBLOCK_CURSOR
-	/* if lda is aysnc, put it back in blocking mode */
-	lda_hand = OraCurs[hand].lda_num;
-	if (OraLdas[lda_hand].async == 1 || OraCurs[hand].async == 1) {
-		/* save rc, rpc of first fetch that was done in orapoll */
-		old_rc  = OraCurs[hand].cda->rc;
-		old_rpc = OraCurs[hand].cda->rpc;
-		onbclr(OraLdas[lda_hand].lda);
-		OraLdas[lda_hand].async = 0;
-		OraCurs[hand].async     = 0;
-		if (! OraCurs[hand].oexec_done) {
-			oexec(OraCurs[hand].cda);
-			OraCurs[hand].oexec_done  = 1;
-			OraCurs[hand].first_fetch = 0;
-		} else {
-			/* restore the rpc and rc from first fetch */
-			OraCurs[hand].cda->rc  = old_rc;
-			OraCurs[hand].cda->rpc = old_rpc;
-		}
+    /* if lda is aysnc, put it back in blocking mode */
+    lda_hand = OraCurs[hand].lda_num;
+    if (OraLdas[lda_hand].async == 1 || OraCurs[hand].async == 1) {
+	/* save rc, rpc of first fetch that was done in orapoll */
+	old_rc  = OraCurs[hand].cda->rc;
+	old_rpc = OraCurs[hand].cda->rpc;
+        onbclr(OraLdas[lda_hand].lda);
+	OraLdas[lda_hand].async = 0;
+	OraCurs[hand].async     = 0;
+	if (! OraCurs[hand].oexec_done) {
+	    oexec(OraCurs[hand].cda);
+	    OraCurs[hand].oexec_done  = 1;
+	    OraCurs[hand].first_fetch = 0;
+	} else {
+	    /* restore the rpc and rc from first fetch */
+	    OraCurs[hand].cda->rc  = old_rc;
+	    OraCurs[hand].cda->rpc = old_rpc;
 	}
+    }
 #endif
 
-	/* check if already exahusted */
+    /* check if already exahusted */
 
-	if (OraCurs[hand].fetch_end && 
-		OraCurs[hand].fetch_cnt >= (long) OraCurs[hand].cda->rpc &&
-		OraCurs[hand].fetch_cnt >  0) {
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(NO_DATA_FOUND), TCL_GLOBAL_ONLY);
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-		return TCL_OK;
-	}
+    if (OraCurs[hand].fetch_end && 
+	OraCurs[hand].fetch_cnt >= OraCurs[hand].cda->rpc &&
+	OraCurs[hand].fetch_cnt >  0) {
 
-	/* check to see if next set of results */
-
-	old_rpc = OraCurs[hand].cda->rpc;
-
-	if (OraCurs[hand].row_num >= OraCurs[hand].cache_size  ||
-		OraCurs[hand].fetch_cnt >= (long) OraCurs[hand].cda->rpc) {
-
-		for (col=OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
-			for (i = 0; i < OraCurs[hand].cache_size; i++) {
-				col->rcode[i] = 0;
-				col->rlen[i] = 0;
-			}
-		}
-
-		if (! OraCurs[hand].first_fetch) {
-			ofen(OraCurs[hand].cda, OraCurs[hand].cache_size);
-		}
-		OraCurs[hand].first_fetch = 0;	/* always enter ofen() from now on */
-
-		if (OraCurs[hand].cda->rc == OUT_OF_SEQUENCE) {
-			OraCurs[hand].fetch_cnt = 0;
-			OraCurs[hand].cda->rpc  = 0;
-			OraCurs[hand].fetch_end = 1;
-			OraCurs[hand].row_num   = OraCurs[hand].cache_size;
-			Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(OUT_OF_SEQUENCE), TCL_GLOBAL_ONLY);
-			Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-			return TCL_OK;
-		}
-
-		if (OraCurs[hand].cda->rc == NO_DATA_FOUND) {
-			OraCurs[hand].fetch_end = 1;
-			/* if old_rpc equal current rpc, there are no more rows to */
-			/* return, else ofen is ended, but rows are buffered to return */
-			if (old_rpc == (long) OraCurs[hand].cda->rpc) {
-				Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(OraCurs[hand].cda->rc), TCL_GLOBAL_ONLY);
-				Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-				return TCL_OK;
-			}
-		} else {
-			if ((OraCurs[hand].cda->rc == 0              ) ||
-				(OraCurs[hand].cda->rc == NULL_VALUE     ) ||
-				(OraCurs[hand].cda->rc == NO_STMT_PARSED ) ||
-				(OraCurs[hand].cda->rc == COL_TRUNCATED  ) ) {
-				/* these are acceptable ofen codes, */
-				/* so  drop through to append_cols */
-
-			} else {
-				/* some error has occured during fetch, perhaps 600? */
-				/* return error and cancel any subsequent fetching */
-				OraCurs[hand].fetch_cnt = 0;
-				OraCurs[hand].cda->rpc  = 0;
-				OraCurs[hand].fetch_end = 1;
-				get_ora_err(interp,hand);
-				oTcl_ErrorMsg(interp, objv[0], ": ofen failed", NULL, NULL);
-				return TCL_ERROR;
-			}
-		}
-
-		OraCurs[hand].row_num = 0;
-	}
-
-	/* set msg array variable "rowid" of any row manipulated */
-	sprintf(buf,"%08.8lX.%04.4X.%04.4X",
-                        (long) OraCurs[hand].cda->rid.d4,
-                        OraCurs[hand].cda->rid.d5,
-	/* I dont know what is d1 and d2, in my oracle 7.3.2 for SCO always zero*/
-	/*              OraCurs[hand].cda->rid.rd.d1, */
-	/*              OraCurs[hand].cda->rid.rd.d3, */
-                        OraCurs[hand].cda->rid.rd.d2);
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_rowid, Tcl_NewStringObj(buf, -1), TCL_GLOBAL_ONLY);
-  
-	append_cols(interp, hand);
-
+	sprintf(buf,"%d",NO_DATA_FOUND);
+        Tcl_SetVar2(interp, OraMsgArray, "rc",   buf, TCL_GLOBAL_ONLY);
+        sprintf(buf,"%ld",OraCurs[hand].cda->rpc);
+        Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
 	return TCL_OK;
+    }
+
+    /* check to see if next set of results */
+
+    old_rpc = OraCurs[hand].cda->rpc;
+
+    if (OraCurs[hand].row_num >= OraCurs[hand].cache_size  ||
+	OraCurs[hand].fetch_cnt >= OraCurs[hand].cda->rpc) {
+
+        for (col=OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
+	    for (i = 0; i < OraCurs[hand].cache_size; i++) {
+                col->rcode[i] = 0;
+                col->rlen[i] = 0;
+	    }
+	}
+
+	if (! OraCurs[hand].first_fetch) {
+	    ofen(OraCurs[hand].cda, OraCurs[hand].cache_size);
+	}
+	OraCurs[hand].first_fetch = 0;	/* always enter ofen() from now on */
+
+	if (OraCurs[hand].cda->rc == OUT_OF_SEQUENCE) {
+	    OraCurs[hand].fetch_cnt = 0;
+	    OraCurs[hand].cda->rpc  = 0;
+	    OraCurs[hand].fetch_end = 1;
+	    OraCurs[hand].row_num   = OraCurs[hand].cache_size;
+	    sprintf(buf,"%d",OUT_OF_SEQUENCE);
+	    Tcl_SetVar2(interp, OraMsgArray, "rc", buf, TCL_GLOBAL_ONLY);
+	    sprintf(buf,"%ld",OraCurs[hand].cda->rpc);
+	    Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+	    return TCL_OK;
+	}
+
+	if (OraCurs[hand].cda->rc == NO_DATA_FOUND) {
+	    OraCurs[hand].fetch_end = 1;
+	    /* if old_rpc equal current rpc, there are no more rows to */
+	    /* return, else ofen is ended, but rows are buffered to return */
+	    if (old_rpc == OraCurs[hand].cda->rpc) {
+	        sprintf(buf,"%d",OraCurs[hand].cda->rc);
+                Tcl_SetVar2(interp, OraMsgArray, "rc", buf, TCL_GLOBAL_ONLY);
+                sprintf(buf,"%ld",OraCurs[hand].cda->rpc);
+                Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+	        return TCL_OK;
+	    }
+	} else {
+	    if ((OraCurs[hand].cda->rc == 0              ) ||
+	        (OraCurs[hand].cda->rc == NULL_VALUE     ) ||
+		(OraCurs[hand].cda->rc == NO_STMT_PARSED ) ||
+	        (OraCurs[hand].cda->rc == COL_TRUNCATED  ) ) {
+		/* these are acceptable ofen codes, */
+		/* so  drop through to append_cols */
+
+	    } else {
+	       /* some error has occured during fetch, perhaps 600? */
+	       /* return error and cancel any subsequent fetching */
+	       OraCurs[hand].fetch_cnt = 0;
+	       OraCurs[hand].cda->rpc  = 0;
+	       OraCurs[hand].fetch_end = 1;
+  	       get_ora_err(interp,hand);
+  	       Tcl_AppendResult (interp, argv[0], ": ofen failed ", 
+  			  (char *) NULL);
+  	       return TCL_ERROR;
+	    }
+	}
+
+        OraCurs[hand].row_num = 0;
+    }
+
+    /* set msg array variable "rowid" of any row manipulated */
+    sprintf(buf,"%08.8X.%04.4X.%04.4X",
+                        OraCurs[hand].cda->rid.d4,
+                        OraCurs[hand].cda->rid.d5,
+/* I dont know what is d1 and d2, in my oracle 7.3.2 for SCO always zero*/
+/*                      OraCurs[hand].cda->rid.rd.d1, */
+/*                      OraCurs[hand].cda->rid.rd.d3, */
+                        OraCurs[hand].cda->rid.rd.d2);
+    Tcl_SetVar2(interp, OraMsgArray, "rowid", buf, TCL_GLOBAL_ONLY);
+  
+    append_cols(interp, hand);
+
+    return TCL_OK;
 }
+
+
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_FetchAll --
  *    Implements the orafetch with iterative commands:
  *    usage: orafetch cur_handle tcl_stmts substitution_char ?tclvar colnum ..?
  *	                
- * Results:
+ *    results:
  *	fetch all rows from existing query, execute tcl_stmt on each row
  *	sets message array element "rc" with value of final fetch rcode
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened, tcl_stmt failed,
  *                  or wrong number of columns
- *----------------------------------------------------------------------
  */
 
 int
-Oratcl_FetchAll (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_FetchAll (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int		ix;
-	int      	hand;
-	char    	*s, *p, *token;
-	int		ch, nch;
+    int      hand;
+    char     buf[ORA_MSG_SIZE];
+    char    *eval_ptr;
+    int      colsCnt;
+    char   **colsPtr;
+    int      i;
+    char    *s;
+    char    *s2;
+    char    *p;
+    ColBufs *col;
+    int      max_col = 0;
 
 #define NUMSTRS 300		/* number of individual strings to allow*/
 #define SUBCHAR '@'		/* default substitution character */
 
-	char     subchar = SUBCHAR; /* substitution character */
-	int      num_str = 0;	/* number of strings to concat */
+    char     subchar = SUBCHAR; /* substitution character */
+    int      num_str = 0;	/* number of strings to concat */
+    char    *str[NUMSTRS];      /* strings to pass to concat   */
 
-	char		*cmd_str;
-	int		cmd_len;
+    int      colnum  = 0; 	/* number of colstr's used */
 
-	Tcl_DString	evalStr;	/* tcl dynamic string for building eval */
-	int		parm_cnt;
-	int		inum, jnum;
-	int		tcl_rc;
+    struct {			
+      int      column; 		/* column number index */
+      int      strnum;          /* str array index */
+    } colstr[NUMSTRS];
 
-	Tcl_Obj		*oResult;
-        Tcl_Obj		**infoObjv, **varsObjv;
-        int		infoObjc, varsObjc;
-
-	if ((hand = ora_prologue(interp, objc, objv, 3, 
-		" cur_handle  commands ?sub_char? ? [ tclvar colnum ] ... ?")) == -1) {
-		return TCL_ERROR;
-	}
-
-	/* check if already exhausted or nothing to fetch */
-	if (OraCurs[hand].fetch_end && 
-		OraCurs[hand].fetch_cnt >= (long) OraCurs[hand].cda->rpc &&
-		OraCurs[hand].fetch_cnt >  0) {
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rc, Tcl_NewIntObj(NO_DATA_FOUND), TCL_GLOBAL_ONLY);
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_rows, Tcl_NewLongObj(OraCurs[hand].cda->rpc), TCL_GLOBAL_ONLY);
-		return TCL_OK;
-	}
-
-	if (OraCurs[hand].col_list == NULL) {   
-		return TCL_OK;			/* nothing to fetch */
-	}
-
-	if (objc >= 4) {
-		p = Tcl_GetStringFromObj(objv[3], NULL);
-		if ((ch = *p) == ' ') {
-			subchar = '\0';
-		} else if (ch != '\0') {
-			subchar = ch;
-		}
-	}
-
-	cmd_str = Tcl_GetStringFromObj(objv[2], &cmd_len);
-
-	if (cmd_str == NULL) {
-		return TCL_OK;			/* nothing to fetch */
-	}
-
-	token = p = cmd_str;
-	num_str = 0;
-	while ((ch = *p++) != '\0') {
-		if (ch == subchar) {
-			if ((nch = *p) == subchar) {
-				if (num_str >= ColSubsLen) {
-					ColSubsLen += COL_INC;
-					ColSubs = (struct colsubd *) ckrealloc ((char *) ColSubs, ColSubsLen * sizeof(struct colsubd));
-				}
-				ColSubs[num_str].strlen = p - token;
-				ColSubs[num_str].strpos = token;
-				ColSubs[num_str++].column = -1;
-				token = ++p;
-			} else if (isdigit(nch)) {
-				if (num_str + 1 >= ColSubsLen) {
-					ColSubsLen += COL_INC;
-					ColSubs = (struct colsubd *) ckrealloc ((char *) ColSubs, ColSubsLen * sizeof(struct colsubd));
-				}
-				if ((ColSubs[num_str].strlen = p - 1 - token) > 0) {
-					ColSubs[num_str].strpos = token;
-					ColSubs[num_str++].column = -1;
-				}
-				ColSubs[num_str++].column = strtol(p, &s, 10);
-				token = p = s;
-			}
-		}
-	}
-
-
-	if (num_str >= ColSubsLen) {
-		ColSubsLen += COL_INC;
-		ColSubs = (struct colsubd *) ckrealloc ((char *) ColSubs, ColSubsLen * sizeof(struct colsubd));
-	}
-	if ((ColSubs[num_str].strlen = p - 1 - token) > 0) {
-		ColSubs[num_str].strpos = token;
-		ColSubs[num_str++].column = -1;
-	}
-
-	/* loop until fetch exhausted */
-
-	if (Oratcl_Fetch(clientData, interp, 2, objv) == TCL_ERROR) {
-		oTcl_ErrorMsg(interp, objv[0], ": orafetch failed", NULL, NULL);
-		return TCL_ERROR;
-	}
-
-	while (fetch_ok) {
-
-		oResult = Tcl_GetObjResult(interp);
-		if (Tcl_IsShared(oResult) && oResult->typePtr != tListObjType) {
-			oResult = Tcl_DuplicateObj(oResult);
-		}
-		Tcl_IncrRefCount(oResult);
-		tcl_rc = Tcl_ListObjGetElements(interp, oResult, &infoObjc, &infoObjv);
-
-		if (tcl_rc != TCL_OK) {
-			oTcl_ErrorMsg(interp, objv[0], ": Tcl_ListObjGetElements failed", NULL, NULL);
-			Tcl_DecrRefCount(oResult);
-			return TCL_ERROR;
-		}
-
-		/* build eval string from literals and columns */
-		Tcl_DStringInit(&evalStr);
-		for (inum=0; inum < num_str; inum++) {
-			if (ColSubs[inum].column > -1) {
-				if (ColSubs[inum].column == 0) {    /* col 0 is entire result */
-					Tcl_DStringStartSublist(&evalStr);
-					for (jnum=0; jnum < infoObjc; jnum++) {
-						Tcl_DStringAppendElement(&evalStr, Tcl_GetStringFromObj(infoObjv[jnum], NULL));
-					}
-					Tcl_DStringEndSublist(&evalStr);
-				} else {
-					if (ColSubs[inum].column > infoObjc) {/* another sanity chk*/
-						Tcl_DStringFree(&evalStr); 	/* free eval string */
-						oTcl_ErrorMsg(interp, objv[0], ": column sanity failed on column sub", NULL, NULL);
-						Tcl_DecrRefCount(oResult);
-						return TCL_ERROR;
-					}
-					Tcl_DStringAppendElement(&evalStr, Tcl_GetStringFromObj(infoObjv[ColSubs[inum].column -1], NULL)); 
-				}
-			} else {
-				Tcl_DStringAppend(&evalStr, ColSubs[inum].strpos, ColSubs[inum].strlen);
-			}
-		}
-
-		/* handle tclvar colnum pairs passed as a single  arg */
-		if (objc == 5) {
-			tcl_rc = Tcl_ListObjGetElements(interp, objv[objc - 1], &varsObjc, &varsObjv);
-			if (tcl_rc != TCL_OK) {
-				oTcl_ErrorMsg(interp, objv[0], ": Tcl_ListObjGetElements failed", NULL, NULL);
-				Tcl_DecrRefCount(oResult);
-				return TCL_ERROR;
-			} 
-		} else {
-			varsObjc = objc - 4;
-			varsObjv = (Tcl_Obj **) objv + 4;
-		}
-
-		/* handle tclvar colnum pairs passed as individual args */
-		for (parm_cnt = 0; parm_cnt < varsObjc; parm_cnt += 2) {
-			if (parm_cnt + 1 >= varsObjc) {
-				Tcl_DStringFree(&evalStr); 	/* free eval string */
-				oTcl_ErrorMsg(interp, objv[0], ": column sanity failed on tclvar bind", NULL, NULL);
-				Tcl_DecrRefCount(oResult);
-				return TCL_ERROR;
-			}
-			tcl_rc = Tcl_GetIntFromObj(interp, varsObjv[parm_cnt + 1], &ix);
-			if (tcl_rc != TCL_OK || ix < 0 || ix > infoObjc) {
-				Tcl_DStringFree(&evalStr); 	/* free eval string */
-				oTcl_ErrorMsg(interp, objv[0], ": invalid integer column", NULL, NULL);
-				Tcl_DecrRefCount(oResult);
-				return TCL_ERROR;
-			}
-			if (ix == 0) {
-				Tcl_ObjSetVar2(interp, varsObjv[parm_cnt], NULL, Tcl_NewListObj(infoObjc, infoObjv), 0);
-			} else {
-				Tcl_ObjSetVar2(interp, varsObjv[parm_cnt], NULL, infoObjv[ix - 1], 0);
-			}
-		}
-		Tcl_DecrRefCount(oResult);
-
-		if (Tcl_DStringLength(&evalStr) > 0) {
-			tcl_rc = Tcl_Eval(interp, (char *) Tcl_DStringValue(&evalStr));
-		} else {
-			tcl_rc = TCL_OK;
-		}
-
-		Tcl_DStringFree(&evalStr);
-
-		switch (tcl_rc) {
-			case TCL_ERROR:
-				oTcl_ErrorMsg(interp, objv[0], ": eval failed while in ", objv[0], NULL);
-				return TCL_ERROR;
-				break;
-
-			case TCL_BREAK:		/* return sooner */
-				return TCL_OK;
-				break;
-
-			default:
-				break;
-		}
-
-		/*
-		 * I wonder why we need this (Todd Helfter) TMH
-		 */
-		Tcl_ResetResult(interp);	/* reset interp result for next */
+    char     static_command[ORA_BUFF_SIZE];
+    char    *cmd_str;
  
-		/* next fetch */
-		if (Oratcl_Fetch(clientData, interp, 2, objv) == TCL_ERROR) {
-			oTcl_ErrorMsg(interp, objv[0], ": orafetch failed", NULL, NULL);
-			return TCL_ERROR;
-		}
+#define FREE_CMD_STR  if (cmd_str != &static_command[0]) ckfree(cmd_str)
+
+    Tcl_DString evalStr;	/* tcl dynamic string for building eval */
+    Tcl_DString varStr;	        /* tcl dynamic string for building varname */
+    Tcl_DString resStr;	        /* tcl dynamic string for prev interp result */
+    int      parm_cnt;
+    int      inum;
+    int      icol;
+    int      tcl_rc;
+
+
+    if ((hand = ora_prologue(interp, argc, argv, 3, 
+	 " cur_handle  commands ?sub_char? ? [ tclvar colnum ] ... ?")) == -1) {
+	return TCL_ERROR;
+    }
+
+    /* check if already exahusted or nothing to fetch */
+
+    if (OraCurs[hand].fetch_end && 
+	OraCurs[hand].fetch_cnt >= OraCurs[hand].cda->rpc &&
+	OraCurs[hand].fetch_cnt >  0) {
+
+	sprintf(buf,"%d",NO_DATA_FOUND);
+        Tcl_SetVar2(interp, OraMsgArray, "rc",   buf, TCL_GLOBAL_ONLY);
+        sprintf(buf,"%ld",OraCurs[hand].cda->rpc);
+        Tcl_SetVar2(interp, OraMsgArray, "rows", buf, TCL_GLOBAL_ONLY);
+	return TCL_OK;
+    }
+
+    if (OraCurs[hand].col_list == NULL) {   
+	return TCL_OK;			/* nothing to fetch */
+    }
+
+    if (argc >= 4) {
+        subchar = *argv[3];
+        /* don't let subchar be a space */
+        if (subchar == ' ') {
+	    subchar = '\0';
+        }
+    }
+
+    /* make a copy of the command string, dont use a DString */
+    i = strlen(argv[2]);
+    if (i+1 < ORA_BUFF_SIZE) {
+        cmd_str = &static_command[0];
+    } else {
+        cmd_str = ckalloc(i+1);
+    }
+    strcpy(cmd_str, argv[2]);
+
+
+    /* parse tcl_stmt for all '@' substitutions */
+
+    s  = cmd_str;			/* start of tcl_stmt */
+    s2 = s;
+
+    while ( (p = strchr(s2,subchar)) != NULL && subchar != '\0') {
+
+      if (num_str >= NUMSTRS || colnum >= NUMSTRS) {
+	  Tcl_AppendResult (interp, argv[0], 
+			": too many column substitutions, 300 max", 
+			  (char *) NULL);
+	  FREE_CMD_STR;
+  	  return TCL_ERROR;
+      }
+
+      if (isdigit(*(p+1))) {		/* it's a substituion value ! */
+
+	  if (s != p) {			/* subchar not at the front of string?*/
+	      str[num_str] = s;		/* save the current front of string */
+	      *p = '\0';  		/* terminate the literal string     */
+	      num_str++;		/* into str array and               */
+	  }
+
+          i = atoi(p + 1);		/* the column number */
+
+	  max_col = (i > max_col) ? i : max_col;/* sanity check, max col num */
+
+	  colstr[colnum].column = i;		/* save column number */
+	  colstr[colnum].strnum = num_str;	/* and str positiion  */
+	  str[num_str] = "";			/* sanity check       */
+	  colnum++;
+	  num_str++;
+	  p++;				/* skip past col number */
+	  while (isdigit(*p)) {
+	      p++;
+	  }
+	  s  = p;			/* next point to look for subchar */
+	  s2 = p;			
+
+
+      } else {				/* it's a subchar without number */
+	  s2 = p + 1;			/* ignore and keep searching     */
+	  if (*s2 == subchar) {		/* another subchar? it's quoted  */
+	      bcopy(s2+1,s2,strlen(s2)+1);  /* so collapse memory by one */
+	      s2++;
+	  }
+      }
+
+    }
+
+    if (num_str == 0) {    		/* check if no substitutions */
+	str[num_str] = cmd_str;	
+	num_str = 1;	
+    } else {		
+	if (strlen(s) > 0) {		/* remainder of tcl_stmt string */
+            str[num_str] = s;
+	    num_str++;
+	}
+    }
+
+
+    /* make sure there are enough columns in result */
+    i = 0;
+    for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
+	i++;
+    }
+    if (max_col > i) {
+	Tcl_AppendResult (interp, argv[0], ": @column number execeeds results", 
+			  (char *) NULL);
+	FREE_CMD_STR;
+	return TCL_ERROR;
+    }
+
+
+    /* loop until fetch exhausted */
+
+    if (Oratcl_Fetch(clientData, interp, 2, argv) == TCL_ERROR) {
+	Tcl_AppendResult (interp, ": ", argv[0], ": orafetch failed", 
+			  (char *) NULL);
+	FREE_CMD_STR;
+	return TCL_ERROR;
+    }
+
+    Tcl_DStringInit(&resStr);
+
+    while (fetch_ok) {
+
+        Tcl_DStringGetResult(interp, &resStr);
+
+        /* split the result columns left in interp->result */
+	if (Tcl_SplitList(interp,Tcl_DStringValue(&resStr),
+	                                    &colsCnt,&colsPtr) == TCL_ERROR) {
+	   Tcl_AppendResult (interp, argv[0], ": split columns failed", 
+			      (char *) NULL);
+           Tcl_DStringFree(&resStr);
+	   FREE_CMD_STR;
+	   return TCL_ERROR;
 	}
 
-	return TCL_OK;
+        /* build eval string from literals and columns */
+        Tcl_DStringInit(&evalStr);
+	eval_ptr = "";
+	for (inum=0, icol=0; inum < num_str; inum++) {
+	    if (icol < colnum && inum == colstr[icol].strnum) {
+	        eval_ptr = Tcl_DStringAppend(&evalStr, " ", -1);
+		if (colstr[icol].column == 0) {    /* col 0 is entire result */
+		    eval_ptr = Tcl_DStringAppendElement(&evalStr,
+						Tcl_DStringValue(&resStr));
+                } else {
+		    if (colstr[icol].column > colsCnt) {/* another sanity chk*/
+			Tcl_ResetResult(interp);
+			Tcl_AppendResult (interp, argv[0], 
+			 ": column sanity failed on column sub",(char *) NULL);
+	                Tcl_DStringFree(&evalStr); 	/* free eval string */
+	                ckfree((char *) colsPtr); 	/* free split array */
+                        Tcl_DStringFree(&resStr);
+			FREE_CMD_STR;
+			return TCL_ERROR;
+		    }
+		    eval_ptr = Tcl_DStringAppendElement(&evalStr,
+					  colsPtr[colstr[icol].column - 1]);
+		}
+	        eval_ptr = Tcl_DStringAppend(&evalStr, " ", -1);
+	        icol++;
+	    } else {
+	        eval_ptr = Tcl_DStringAppend(&evalStr, str[inum], -1);
+	    }
+	}
+
+	/* set any remaining "tclvar colnum" pairs as tcl variables */
+	if (argc >= 5) {
+	    Tcl_DStringInit(&varStr);
+	    parm_cnt = 4;
+	    while (argc > parm_cnt + 1) {       /* always in pairs of two */
+		p    =  argv[parm_cnt];          /* variable name */
+		icol =  atoi(argv[parm_cnt+1]);  /* column number */
+		/* Tcl_SetVar can muck with varname, so save it off */
+		Tcl_DStringAppend(&varStr, p, -1);
+		if (icol == 0) {
+		    Tcl_SetVar(interp, Tcl_DStringValue(&varStr), 
+			   Tcl_DStringValue(&resStr), 0);  /* row as list */
+		} else {
+		    if (icol <= colsCnt + 1) {
+		        Tcl_SetVar(interp, Tcl_DStringValue(&varStr), 
+			   colsPtr[icol-1], 0); 
+		    } else {
+			Tcl_ResetResult(interp);
+			Tcl_AppendResult (interp, argv[0], 
+			 ": column sanity failed on tclvar bind",(char *) NULL);
+	                Tcl_DStringFree(&evalStr); 	/* free eval string */
+	                ckfree((char *) colsPtr); 	/* free split array */
+                        Tcl_DStringFree(&resStr);
+			FREE_CMD_STR;
+			return TCL_ERROR;
+		    }
+		}
+		parm_cnt += 2;
+		Tcl_DStringSetLength(&varStr,0);
+	    }
+
+	    Tcl_DStringFree(&varStr); 	/* free var string */
+	}
+
+        tcl_rc = Tcl_Eval(interp, eval_ptr);	/* do it! */
+
+	Tcl_DStringFree(&evalStr); 	/* free eval string */
+
+	ckfree((char *) colsPtr); 	/* free split array */
+
+	switch (tcl_rc) {		/* check on eval return code */
+	  case TCL_ERROR:
+	    Tcl_AppendResult (interp, ": eval failed while in ", argv[0], 
+			      (char *) NULL);
+            Tcl_DStringFree(&resStr);
+	    FREE_CMD_STR;
+	    return TCL_ERROR;
+	    break;
+
+	  case TCL_BREAK:		/* return sooner */
+            Tcl_DStringFree(&resStr);
+	    FREE_CMD_STR;
+	    return TCL_OK;
+	    break;
+
+	  default:
+	    break;
+	}
+
+	Tcl_ResetResult(interp);	/* reset interp result for next */
+	Tcl_DStringSetLength(&resStr,0);
+ 
+        /* next fetch */
+        if (Oratcl_Fetch(clientData, interp, 2, argv) == TCL_ERROR) {
+	    Tcl_AppendResult (interp, ": ", argv[0], ": orafetch failed", 
+			      (char *) NULL);
+            Tcl_DStringFree(&resStr);
+	    FREE_CMD_STR;
+	    return TCL_ERROR;
+        }
+
+    }
+
+    Tcl_DStringFree(&resStr);
+    FREE_CMD_STR;
+
+    return TCL_OK;
+
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Cols --
  *    Implements the oracols command:
  *    usage: oracols cur_handle 
@@ -2422,134 +2691,127 @@ Oratcl_FetchAll (clientData, interp, objc, objv)
  *      also set oramsg(collengths) and oramsg(coltypes) as tcl list
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Cols (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Cols (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int		hand;
-	ColBufs		*col;
-	char		*type_ptr;
-	int		oColsc;
-	Tcl_Obj		*buf_obj;
+    int     hand;
+    int     i = 0;
+    ColBufs *col;
+    char   *type_ptr;
+    char    len_buf[ORA_BUFF_SIZE];
+    char    typ_buf[ORA_BUFF_SIZE];
+    char    prec_buf[ORA_BUFF_SIZE];
+    char    scale_buf[ORA_BUFF_SIZE];
+    char    buf2[ORA_MSG_SIZE];
 
-	if ((hand = ora_prologue(interp,objc, objv, 2," cur_handle")) == -1) {
-		return TCL_ERROR;
-	}
+    if ((hand = ora_prologue(interp, argc, argv, 2, " cur_handle")) == -1) {
+	return TCL_ERROR;
+    }
 
-	oColsc = 0;
 
-	for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
-		if (oColsc >= oColslen) {
-			oColslen += 10;
-			oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
-		}
-		oColsv[oColsc++] = Tcl_NewStringObj(col->dbname, -1);
-	}
-	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
+    len_buf[0]   = '\0';   /* initial null buffers */
+    typ_buf[0]   = '\0';   
+    prec_buf[0]  = '\0';
+    scale_buf[0] = '\0';
+    buf2[0]      = '\0';   
 
-	oColsc = 0;
-	for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
-		oColsv[oColsc++] = Tcl_NewIntObj(col->disp_size - 1);
-	}
-	if (oColsc > 0) {
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_collengths, Tcl_NewListObj(oColsc, oColsv), TCL_GLOBAL_ONLY);
-	}
+    for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
 
-	oColsc = 0;
-	for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
-		/* get the column type and append to "coltypes" */
-		switch (col->dbtype) {
-			case 1:
+        i++;
+
+        sprintf(buf2, "%s", col->dbname);
+	Tcl_AppendElement(interp,buf2);
+
+        /* get the display length and append to "collengths" */
+	/* remember that we added one to disp_size in parse, so subtract it */
+	sprintf(buf2, (i>1) ? " %u" : "%u", (int) col->disp_size - 1);
+	strcat(len_buf,buf2);
+
+	/* get the column type and append to "coltypes" */
+	switch (col->dbtype) {
+	    case 1:
 #ifdef VERSION7
-				type_ptr = "varchar2";
+		type_ptr = "varchar2";
 #else
-				type_ptr = "char";
+		type_ptr = "char";
 #endif
-				break;
+		break;
+	    case 2:
+		type_ptr = "number";
+		break;
+	    case 8:
+		type_ptr = "long";
+		break;
+	    case 11:
+		type_ptr = "rowid";
+		break;
+	    case 12:
+		type_ptr = "date";
+		break;
+	    case 23:
+		type_ptr = "raw";
+		break;
+	    case 24:
+		type_ptr = "long_raw";
+		break;
+	    case 96:
+		type_ptr = "char";
+		break;
+	    case 102:
+		type_ptr = "cursor";
+		break;
+	    case 105:
+		type_ptr = "mlslabel";
+		break;
+	    case 106:
+		type_ptr = "raw_mlslabel";
+		break;
+	    default:
+		type_ptr = "unknown";
+		break;
+	}
+	sprintf(buf2, (i>1) ? " %s" : "%s",type_ptr);
+	strcat(typ_buf,buf2);
 
-			case 2:
-				type_ptr = "number";
-				break;
-			case 8:
-				type_ptr = "long";
-				break;
-			case 11:
-				type_ptr = "rowid";
-				break;
-			case 12:
-				type_ptr = "date";
-				break;
-			case 23:
-				type_ptr = "raw";
-				break;
-			case 24:
-				type_ptr = "long_raw";
-				break;
-			case 96:
-				type_ptr = "char";
-				break;
-			case 102:
-				type_ptr = "cursor";
-				break;
-			case 105:
-				type_ptr = "mlslabel";
-				break;
-			case 106:
-				type_ptr = "raw_mlslabel";
-				break;
-			default:
-				type_ptr = "unknown";
-				break;
-		}
-		oColsv[oColsc++] = Tcl_NewStringObj(type_ptr, -1);
+        /* format precision and scale for numeric data */
+	if (col->dbtype == 2) {
+	  sprintf(buf2, (i>1) ? " %d" : "%d", col->prec);
+	} else {
+	  sprintf(buf2, (i>1) ? " %s" : "%s", "{}");
 	}
-	if (oColsc > 0) {
-		Tcl_ObjSetVar2(interp,
-			OraMsgArray,
-			OM_coltypes,
-			Tcl_NewListObj(oColsc, oColsv),
-			TCL_GLOBAL_ONLY);
-	}
+	strcat(prec_buf,buf2);
 
-	oColsc = 0;
-	for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
+	if (col->dbtype == 2) {
+	  sprintf(buf2, (i>1) ? " %d" : "%d", col->scale);
+	} else {
+	  sprintf(buf2, (i>1) ? " %s" : "%s", "{}");
+	}
+	strcat(scale_buf,buf2);
 
-		/* format precision and scale for numeric data */
-		if (col->dbtype == 2) {
-			buf_obj = Tcl_NewIntObj(col->prec);
-		} else {
-			buf_obj = OMV_null;
-		}
-		oColsv[oColsc++] = buf_obj;
-	}
-	if (oColsc > 0) {
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_colprecs, Tcl_NewListObj(oColsc, oColsv), TCL_GLOBAL_ONLY);
-	}
 
-	oColsc = 0;
-	for (col = OraCurs[hand].col_list; col != NULL; col = col->next_buf) {
-		if (col->dbtype == 2) {
-			buf_obj = Tcl_NewIntObj(col->scale);
-		} else {
-			buf_obj = OMV_null;
-		}
-		oColsv[oColsc++] = buf_obj;
-	}
-	if (oColsc > 0) {
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_colscales, Tcl_NewListObj(oColsc, oColsv), TCL_GLOBAL_ONLY);
-	}
+    }
 
-	return TCL_OK;
+    if (i > 0) {
+        Tcl_SetVar2(interp, OraMsgArray, "collengths", len_buf,TCL_GLOBAL_ONLY);
+        Tcl_SetVar2(interp, OraMsgArray, "coltypes",   typ_buf,TCL_GLOBAL_ONLY);
+        Tcl_SetVar2(interp, OraMsgArray, "colprecs",  prec_buf,TCL_GLOBAL_ONLY);
+        Tcl_SetVar2(interp, OraMsgArray, "colscales",scale_buf,TCL_GLOBAL_ONLY);
+    }
+
+
+    return TCL_OK;
 }
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Cancel --
  *    Implements the oracancel command:
  *    usage: oracancel  cur_handle 
@@ -2558,39 +2820,42 @@ Oratcl_Cols (clientData, interp, objc, objv)
  *	null string
  *      TCL_OK - handle is opened
  *      TCL_ERROR - wrong # args, or handle not opened,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Cancel (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Cancel (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
+    int     hand;
 
-	if ((hand = ora_prologue(interp,objc, objv, 2," cur_handle")) == -1) {
-		return TCL_ERROR;
-	}
 
-	ocan(OraCurs[hand].cda);
-	get_ora_err(interp, hand);
+    if ((hand = ora_prologue(interp, argc, argv, 2, " cur_handle")) == -1) {
+	return TCL_ERROR;
+    }
 
-	free_cols(OraCurs[hand].col_list);
-	OraCurs[hand].col_list   = NULL;
-	free_cols(OraCurs[hand].bind_list);
-	OraCurs[hand].bind_list   = NULL;
-	OraCurs[hand].cache_size = ORA_CACHE;
-	OraCurs[hand].row_num    = 0;
-	OraCurs[hand].fetch_end  = 1;
-	OraCurs[hand].fetch_cnt  = 0;
+    ocan(OraCurs[hand].cda);
 
-	return TCL_OK;
+    get_ora_err(interp, hand);
+
+    free_cols(OraCurs[hand].col_list);
+    OraCurs[hand].col_list   = NULL;
+    free_cols(OraCurs[hand].bind_list);
+    OraCurs[hand].bind_list   = NULL;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = 0;
+    OraCurs[hand].fetch_end  = 1;
+    OraCurs[hand].fetch_cnt  = 0;
+
+
+    return TCL_OK;
 }
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_PLexec --
  *    Implements the oraplexec command:
  *    usage: oraplexec cur_handle pl_block [ :varname value ]  [ .... ]
@@ -2599,255 +2864,260 @@ Oratcl_Cancel (clientData, interp, objc, objv)
  *	return parms in tcl list form
  *      TCL_OK - proc executed
  *      TCL_ERROR - wrong # args, or handle not opened,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_PLexec (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_PLexec (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
-	int	parm_cnt;
-	ColBufs	*new_col_head = NULL;
-	ColBufs	*new_col = NULL;
-	ColBufs	*last_col = NULL;
-	int	cursor_hand = -1;
-	char	*p;
-	char	*pl_str;
-	int	pl_len;
 
-	/* prologue */
-	if ((hand = ora_prologue(interp,objc, objv, 3,
-			" cur_handle pl_block [ :varname value ] ...")) == -1) {
-		return TCL_ERROR;
+    int         hand;
+    int         parm_cnt;
+    ColBufs    *new_col_head = NULL;
+    ColBufs    *new_col = NULL;
+    ColBufs    *last_col = NULL;
+    int         cursor_hand = -1;
+
+    /* prologue */
+    if ((hand = ora_prologue(interp, argc, argv, 3, 
+	 " cur_handle pl_block [ :varname value ] ...")) == -1) {
+	return TCL_ERROR;
+    }
+
+    /* cancel any pending usage of cursor */
+    ocan(OraCurs[hand].cda);
+
+    /* free existing columns, if any */
+    free_cols(OraCurs[hand].col_list);
+    OraCurs[hand].col_list   = NULL;
+    free_cols(OraCurs[hand].bind_list);
+    OraCurs[hand].bind_list   = NULL;
+    OraCurs[hand].fetch_end  = 1;
+    OraCurs[hand].fetch_cnt  = 0;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = ORA_CACHE;
+
+    /* parse pl_block */
+    oparse(OraCurs[hand].cda, argv[2], ((long) -1), DEF_FLAG, LNG_FLAG);
+
+    if (OraCurs[hand].cda->rc != 0) {
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " oparse failed ",
+	                (char *) NULL);
+	return TCL_ERROR;
+    } else {
+        /* clear peo */
+	Tcl_SetVar2(interp, OraMsgArray, "peo",  "0", TCL_GLOBAL_ONLY);
+    }
+
+    /* bind :colon_parms following arg, alloc large enough return space (?)*/
+    parm_cnt = 3;      
+
+    /* only alloc new col if one or more valid arg for :var */
+    if (argc > parm_cnt + 1) {        
+        new_col_head = alloc_col();
+        if (new_col_head == NULL) {
+            Tcl_AppendResult(interp, argv[0], " cannot malloc new col ",
+			     (char *) NULL);
+	    return TCL_ERROR;
+        }
+        new_col      = new_col_head;
+        last_col     = new_col_head;
+    } else {
+	new_col_head = NULL;
+    }
+
+    while (argc > parm_cnt + 1) {       /* always in pairs of two */
+
+	/* make sure bind variable name has a leading ':' */
+	if (*argv[parm_cnt] != ':') {
+	    free_cols(new_col_head);
+	    OraCurs[hand].col_list = NULL;
+	    Tcl_AppendResult(interp, argv[0], " bind variable ", argv[parm_cnt],
+			     " does not begin with ':' ", (char *) NULL);
+	    return TCL_ERROR;
 	}
 
-	/* cancel any pending usage of cursor */
-	ocan(OraCurs[hand].cda);
+	new_col->disp_size  = ORA_BUFF_SIZE;
+	new_col->col_data   = ckalloc(new_col->disp_size + 1);
+	if (new_col->col_data == NULL) {
+	    free_cols(new_col_head);
+	    OraCurs[hand].col_list = NULL;
+            Tcl_AppendResult(interp, argv[0], 
+			     " cannot malloc new col data for ", argv[parm_cnt],
+			     (char *) NULL);
+	    return TCL_ERROR;
+	} else {
+#ifdef NONBLOCK_CURSOR
+	    /* check for cursor binding */
+	    if ((cursor_hand = get_ora_handle(argv[parm_cnt+1])) >= 0) {
+		/* check if cursor same as command handle */
+		if (hand == cursor_hand) {
+		    /* error */
+	    	    free_cols(new_col_head);
+	    	    OraCurs[hand].col_list = NULL;
+            	    Tcl_AppendResult(interp, argv[0], 
+			     " bind cursor for ", argv[parm_cnt],
+			     " same as cursor_handle",
+			     (char *) NULL);
+	    	    return TCL_ERROR;
+		}
+		/* check if cursor from same login lda */
+		if (get_ora_lda_handle(argv[parm_cnt+1]) != 
+		                             get_ora_lda_handle(argv[1]) ) {
+		    /* error */
+	    	    free_cols(new_col_head);
+	    	    OraCurs[hand].col_list = NULL;
+            	    Tcl_AppendResult(interp, argv[0], 
+			     " bind cursor for ", argv[parm_cnt],
+			     " not from same login handle as cursor_handle",
+			     (char *) NULL);
+	    	    return TCL_ERROR;
+		}
+		/* check if cursor handle was previously opened */
+		if (!OraCurs[cursor_hand].cur_in_use) {
+		    /* error */
+	    	    free_cols(new_col_head);
+	    	    OraCurs[hand].col_list = NULL;
+            	    Tcl_AppendResult(interp, argv[0], 
+			     " bind cursor for ", argv[parm_cnt],
+			     " not previously opened",
+			     (char *) NULL);
+	    	    return TCL_ERROR;
+		}
+		/* close open cursor, but don't free memory for cda */
+    		oclose(OraCurs[cursor_hand].cda);
+		bzero(OraCurs[cursor_hand].cda, sizeof(cda_def));
+    		free_cols(OraCurs[cursor_hand].col_list);
+    		OraCurs[cursor_hand].col_list   = NULL;
+    		free_cols(OraCurs[hand].bind_list);
+    		OraCurs[hand].bind_list         = NULL;
+    		OraCurs[cursor_hand].cache_size = ORA_CACHE;
+    		OraCurs[cursor_hand].row_num    = 0;
+    		OraCurs[cursor_hand].fetch_end  = 1;
+    		OraCurs[cursor_hand].fetch_cnt  = 0;
+		OraCurs[cursor_hand].oexec_done = 0;
+		OraCurs[cursor_hand].first_fetch= 0;
+		OraCurs[cursor_hand].async      = 0;
+		/* save cursor handle string name */
+	        strncpy(new_col->col_data, argv[parm_cnt + 1], ORA_BUFF_SIZE-1);
+		/* save cursor handle */
+		new_col->bind_cursor            = cursor_hand;
+	    } else {
+		/* not a cursor, save bind value */
+	        strncpy(new_col->col_data, argv[parm_cnt + 1], ORA_BUFF_SIZE-1);
+		new_col->bind_cursor = -1;
+	    }
+#else
+	    strncpy(new_col->col_data, argv[parm_cnt + 1], ORA_BUFF_SIZE - 1);
+	    new_col->bind_cursor = -1;
+#endif
+	}
 
-	/* free existing columns, if any */
-	free_cols(OraCurs[hand].col_list);
-	OraCurs[hand].col_list   = NULL;
-	free_cols(OraCurs[hand].bind_list);
-	OraCurs[hand].bind_list   = NULL;
-	OraCurs[hand].fetch_end  = 1;
-	OraCurs[hand].fetch_cnt  = 0;
-	OraCurs[hand].cache_size = ORA_CACHE;
-	OraCurs[hand].row_num    = ORA_CACHE;
+	new_col->rlen[0] = 0;
+	new_col->rcode[0] = 0;
 
-	pl_str = Tcl_GetStringFromObj(objv[2], &pl_len);
-	/* parse pl_block */
-	oparse(OraCurs[hand].cda, pl_str, ((long) pl_len), DEF_FLAG, LNG_FLAG);
+        /* if oracols is called after the exec, give it some info */
+
+	if (cursor_hand == -1) {
+	    /* regular string data type */
+	    new_col->dbtype = 1;   /* internal type char/varchar*/
+	    strncpy(new_col->dbname,argv[parm_cnt],(sizeof new_col->dbname)-1);
+
+            obndrv( OraCurs[hand].cda, argv[parm_cnt], -1, new_col->col_data,
+		ORA_BUFF_SIZE, EXT_STRING_TYPE, -1, NULL, NULL, -1, -1);
+        } else {
+	    /* cursor data type */
+	    new_col->dbtype = INT_CURSOR_TYPE; 
+	    strncpy(new_col->dbname,argv[parm_cnt], (sizeof new_col->dbname)-1);
+
+            obndrv( OraCurs[hand].cda, argv[parm_cnt], -1, 
+		(char *) OraCurs[cursor_hand].cda,  
+		(sizeof (cda_def)), INT_CURSOR_TYPE, -1, NULL, NULL, -1, -1);
+	}
 
 	if (OraCurs[hand].cda->rc != 0) {
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oraparse failed", NULL, NULL);
+	    get_ora_err(interp, hand);
+	    free_cols(new_col_head);
+	    OraCurs[hand].col_list = NULL;
+            Tcl_AppendResult(interp, argv[0], " bind failed for ",
+			     argv[parm_cnt], (char *) NULL);
+	    return TCL_ERROR;
+	}
+
+	parm_cnt += 2;
+
+        if (argc > parm_cnt + 1) {        /* more args? alloc new colbufs */
+	    last_col           = new_col;
+	    new_col            = alloc_col();
+	    if (new_col == NULL) {
+		free_cols(new_col_head);
+	        OraCurs[hand].col_list = NULL;
+		Tcl_AppendResult(interp, argv[0], " cannot malloc new col ",
+				 (char *) NULL);
 		return TCL_ERROR;
-	} else {
-		/* clear peo */
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, OMV_zero, TCL_GLOBAL_ONLY);
+	    }
+	    last_col->next_buf = new_col;
 	}
 
-	/* bind :colon_parms following arg, alloc large enough return space (?)*/
-	parm_cnt = 3;      
-
-	/* only alloc new col if one or more valid arg for :var */
-	if (objc > parm_cnt + 1) {        
-		new_col_head = alloc_col();
-		if (new_col_head == NULL) {
-			oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col", NULL, NULL);
-			return TCL_ERROR;
-		}
-		new_col      = new_col_head;
-		last_col     = new_col_head;
-	} else {
-		new_col_head = NULL;
-	}
-
-	while (objc > parm_cnt + 1) {       /* always in pairs of two */
-
-		/* make sure bind variable name has a leading ':' */
-		p = Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL);
-		if (*p != ':') {
-			free_cols(new_col_head);
-			OraCurs[hand].col_list = NULL;
-			oTcl_ErrorMsg(interp, objv[0], ": bind variable ", objv[parm_cnt], " does not begin with ':'");
-			return TCL_ERROR;
-		}
-
-		new_col->disp_size  = ORA_BUFF_SIZE;
-		new_col->col_data   = ckalloc(new_col->disp_size + 1);
-		if (new_col->col_data == NULL) {
-			free_cols(new_col_head);
-			OraCurs[hand].col_list = NULL;
-			oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col data for ", objv[parm_cnt], NULL);
-			return TCL_ERROR;
-		} else {
-#ifdef NONBLOCK_CURSOR
-			/* check for cursor binding */
-			if ((cursor_hand = get_ora_handle(interp, objv[parm_cnt+1])) >= 0) {
-				/* check if cursor same as command handle */
-				if (hand == cursor_hand) {
-					/* error */
-					free_cols(new_col_head);
-					OraCurs[hand].col_list = NULL;
-					oTcl_ErrorMsg(interp, objv[0], ": bind cursor for ", objv[parm_cnt], " same as cursor_handle");
-					return TCL_ERROR;
-				}
-				/* check if cursor from same login lda */
-				if (get_ora_handle(interp, objv[parm_cnt+1])  !=
-				    get_ora_handle(interp, objv[1])) {
-					/* error */
-					free_cols(new_col_head);
-					OraCurs[hand].col_list = NULL;
-					oTcl_ErrorMsg(interp, objv[0], ": bind cursor for ", objv[parm_cnt], " not from same login handle as cursor_handle");
-					return TCL_ERROR;
-				}
-				/* check if cursor handle was previously opened */
-				if (!OraCurs[cursor_hand].cur_in_use) {
-					/* error */
-					free_cols(new_col_head);
-					OraCurs[hand].col_list = NULL;
-					oTcl_ErrorMsg(interp, objv[0], ": bind cursor for ", objv[parm_cnt], " not previously opened");
-					return TCL_ERROR;
-				}
-				/* close open cursor, but don't free memory for cda */
-				oclose(OraCurs[cursor_hand].cda);
-				memset(OraCurs[cursor_hand].cda, 0, sizeof(cda_def));
-				free_cols(OraCurs[cursor_hand].col_list);
-				OraCurs[cursor_hand].col_list   = NULL;
-				free_cols(OraCurs[hand].bind_list);
-				OraCurs[hand].bind_list         = NULL;
-				OraCurs[cursor_hand].cache_size = ORA_CACHE;
-				OraCurs[cursor_hand].row_num    = 0;
-				OraCurs[cursor_hand].fetch_end  = 1;
-				OraCurs[cursor_hand].fetch_cnt  = 0;
-				OraCurs[cursor_hand].oexec_done = 0;
-				OraCurs[cursor_hand].first_fetch= 0;
-				OraCurs[cursor_hand].async      = 0;
-				/* save cursor handle string name */
-				strncpy(new_col->col_data, 
-					Tcl_GetStringFromObj(objv[parm_cnt+1], (int *) NULL),
-					ORA_BUFF_SIZE-1);
-				/* save cursor handle */
-				new_col->bind_cursor            = cursor_hand;
-			} else {
-				/* not a cursor, save bind value */
-				strncpy(new_col->col_data, 
-					Tcl_GetStringFromObj(objv[parm_cnt+1], (int *) NULL),
-					ORA_BUFF_SIZE-1);
-				new_col->bind_cursor = -1;
-			}
-#else
-			strncpy(new_col->col_data, Tcl_GetStringFromObj(objv[parm_cnt + 1], NULL), ORA_BUFF_SIZE - 1);
-			new_col->bind_cursor = -1;
-#endif
-		}
-
-		new_col->rlen[0] = 0;
-		new_col->rcode[0] = 0;
-
-		/* if oracols is called after the exec, give it some info */
-
-		if (cursor_hand == -1) {
-			/* regular string data type */
-			new_col->dbtype = 1;   /* internal type char/varchar*/
-			strncpy(new_col->dbname,
-				Tcl_GetStringFromObj(objv[parm_cnt], NULL),
-				(sizeof new_col->dbname)-1);
-
-			obndrv( OraCurs[hand].cda,
-				Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL),
-				-1, new_col->col_data,
-				ORA_BUFF_SIZE, EXT_STRING_TYPE, -1, NULL, NULL, -1, -1);
-			
-		} else {
-			/* cursor data type */
-			new_col->dbtype = INT_CURSOR_TYPE; 
-			strncpy(new_col->dbname,
-				Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL),
-				(sizeof new_col->dbname)-1);
-
-			obndrv( OraCurs[hand].cda,
-				Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), -1, 
-				(char *) OraCurs[cursor_hand].cda,  
-				(sizeof (cda_def)), INT_CURSOR_TYPE, -1, NULL, NULL, -1, -1);
-		}
-
-		if (OraCurs[hand].cda->rc != 0) {
-			get_ora_err(interp, hand);
-			free_cols(new_col_head);
-			OraCurs[hand].col_list = NULL;
-			oTcl_ErrorMsg(interp, objv[0], ": bind failed for ", objv[parm_cnt], NULL);
-			return TCL_ERROR;
-		}
-
-		parm_cnt += 2;
-
-		if (objc > parm_cnt + 1) {        /* more args? alloc new colbufs */
-			last_col           = new_col;
-			new_col            = alloc_col();
-			if (new_col == NULL) {
-				free_cols(new_col_head);
-				OraCurs[hand].col_list = NULL;
-				oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col ", NULL, NULL);
-				return TCL_ERROR;
-			}
-			last_col->next_buf = new_col;
-		}
-	}
+    }
      
-	OraCurs[hand].col_list  = new_col_head;
-	OraCurs[hand].fetch_end = 0;        /* let append_cols work */
-	OraCurs[hand].fetch_cnt = 0;        
-	OraCurs[hand].row_num   = 0;
+    OraCurs[hand].col_list  = new_col_head;
+    OraCurs[hand].fetch_end = 0;        /* let append_cols work */
+    OraCurs[hand].fetch_cnt = 0;        
+    OraCurs[hand].row_num   = 0;
 
-	/* exec cursor */
-	oexec(OraCurs[hand].cda);
+    /* exec cursor */
+    oexec(OraCurs[hand].cda);
 
-	get_ora_err(interp, hand);
+    get_ora_err(interp, hand);
 
-	/* for all cursor_hands, parse results */
+    /* for all cursor_hands, parse results */
 
-	new_col = new_col_head;
-	while (new_col != NULL) {
-		if (new_col->dbtype == INT_CURSOR_TYPE) {
-			cursor_hand = new_col->bind_cursor;
-			if (cursor_hand >= 0) {
-				if (parse_columns(interp, cursor_hand) == -1) {
-					get_ora_err(interp, cursor_hand);
-					oTcl_ErrorMsg(interp, objv[0], ": parse_columns failed for ", NULL, new_col->dbname);
-					return TCL_ERROR;
-				}
-				OraCurs[cursor_hand].cda->rpc = 0; /* cursors lie about rpc */
-				OraCurs[cursor_hand].row_num = OraCurs[cursor_hand].cache_size;
-				OraCurs[cursor_hand].fetch_end = 0;
-				OraCurs[cursor_hand].fetch_cnt = 0; 
-			}
+    new_col = new_col_head;
+    while (new_col != NULL) {
+        if (new_col->dbtype == INT_CURSOR_TYPE) {
+	    cursor_hand = new_col->bind_cursor;
+	    if (cursor_hand >= 0) {
+		if (parse_columns(interp, cursor_hand) == -1) {
+		    get_ora_err(interp, cursor_hand);
+		    Tcl_AppendResult(interp, argv[0],
+		      " parse_columns failed for cursor var ", new_col->dbname,
+		       (char *) NULL);
+		    return TCL_ERROR;
 		}
-		new_col = new_col->next_buf;
+		OraCurs[cursor_hand].cda->rpc = 0; /* cursors lie about rpc */
+  	        OraCurs[cursor_hand].row_num = OraCurs[cursor_hand].cache_size;
+  	        OraCurs[cursor_hand].fetch_end = 0;
+  	        OraCurs[cursor_hand].fetch_cnt = 0; 
+	    }
 	}
+	new_col = new_col->next_buf;
+    }
 
-	/* get results, same as orafetch */
+    /* get results, same as orafetch */
 
-	append_cols(interp, hand);
+    append_cols(interp, hand);
    
-	/* set cursor data */
-	OraCurs[hand].fetch_end  = 0;
-	OraCurs[hand].fetch_cnt  = 0;
-	OraCurs[hand].cache_size = ORA_CACHE;
-	OraCurs[hand].row_num    = 0;
+    /* set cursor data */
+    OraCurs[hand].fetch_end  = 0;
+    OraCurs[hand].fetch_cnt  = 0;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = 0;
 
-	/* don't free col_list yet; allow oracols to fetch info */
+    /* don't free col_list yet; allow oracols to fetch info */
 
-	return TCL_OK;
+
+    return TCL_OK;
 }
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Commit --
  *    Implements the oracommit command:
  *    usage: oracommit lda_handle
@@ -2856,41 +3126,47 @@ Oratcl_PLexec (clientData, interp, objc, objv)
  *	null string
  *      TCL_OK - transactions commited
  *      TCL_ERROR - wrong # args, or handle not opened,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Commit (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Commit (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
+    int     hand;
+    char    buf[ORA_MSG_SIZE];
 
-	/* can't use ora_prologue, oraroll just uses an lda handle */
-	clear_msg(interp);
+    /* can't use ora_prologue, oracommit just uses an lda handle */
 
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
-		return TCL_ERROR;
-	}
+    clear_msg(interp);
 
-	if ((hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		return TCL_ERROR;
-	}
+    if (argc < 2) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " lda_handle ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, objv[1], TCL_GLOBAL_ONLY);
+    if ((hand = get_ora_lda_handle(argv[1])) == -1) {
+	Tcl_AppendResult (interp, argv[0], ": lda_handle ", argv[1],
+			  " not valid ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	ocom(OraLdas[hand].lda); 
-	get_lda_err(interp, hand);
+    Tcl_SetVar2(interp, OraMsgArray, "handle",  argv[1], TCL_GLOBAL_ONLY);
 
-	return TCL_OK;
+    ocom(OraLdas[hand].lda); 
+
+    get_lda_err(interp, hand);
+
+    return TCL_OK;
 }
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Roll --
  *    Implements the oraroll command:
  *    usage: oraroll lda_handle
@@ -2899,40 +3175,47 @@ Oratcl_Commit (clientData, interp, objc, objv)
  *	null string
  *      TCL_OK - transactions rolled back
  *      TCL_ERROR - wrong # args, or handle not opened,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Roll (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Roll (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
+    int     hand;
+    char    buf[ORA_MSG_SIZE];
 
-	/* can't use ora_prologue, oraroll just uses an lda handle */
-	clear_msg(interp);
+    /* can't use ora_prologue, oraroll just uses an lda handle */
 
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
-		return TCL_ERROR;
-	}
+    clear_msg(interp);
 
-	if ((hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		return TCL_ERROR;
-	}
+    if (argc < 2) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " lda_handle ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, objv[1], TCL_GLOBAL_ONLY);
-	orol(OraLdas[hand].lda); 
-	get_lda_err(interp, hand);
+    if ((hand = get_ora_lda_handle(argv[1])) == -1) {
+	Tcl_AppendResult (interp, argv[0], ": lda_handle ", argv[1],
+			  " not valid ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	return TCL_OK;
+    Tcl_SetVar2(interp, OraMsgArray, "handle",  argv[1], TCL_GLOBAL_ONLY);
+
+    orol(OraLdas[hand].lda); 
+
+    get_lda_err(interp, hand);
+
+
+    return TCL_OK;
 }
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Autocom --
  *    Implements the oraautocom command:
  *    usage: oraroll lda_handle on|off
@@ -2941,55 +3224,53 @@ Oratcl_Roll (clientData, interp, objc, objv)
  *	null string
  *      TCL_OK - auto commit set on or off
  *      TCL_ERROR - wrong # args, or handle not opened,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Autocom (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-        Tcl_Obj		*CONST objv[];
+Oratcl_Autocom (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int	hand;
+    int     hand;
+    char    buf[ORA_MSG_SIZE];
 
-	/* can't use ora_prologue, oraautocom just uses an lda handle */
-	clear_msg(interp);
+    /* can't use ora_prologue, oraautocom just uses an lda handle */
 
-	if (objc < 3) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle on|off");
-		return TCL_ERROR;
-	}
+    clear_msg(interp);
 
-	Tcl_IncrRefCount(objv[1]);
-	Tcl_IncrRefCount(objv[2]);
+    if (argc < 3) {
+	Tcl_AppendResult (interp, "wrong # args: ", argv[0],
+			  " lda_handle on|off ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	if ((hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		Tcl_DecrRefCount(objv[1]);
-		return TCL_ERROR;
-	}
+    if ((hand = get_ora_lda_handle(argv[1])) == -1) {
+	Tcl_AppendResult (interp, argv[0], ": lda_handle ", argv[1],
+			  " not valid ", (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	Tcl_ObjSetVar2(interp, OraMsgArray, OM_handle, objv[1], TCL_GLOBAL_ONLY);
 
-	/* case insensitive compare */
-	if (strncasecmp(
-		Tcl_GetStringFromObj(objv[2], (int *) NULL),"on",2) == 0
-	) {
-		ocon(OraLdas[hand].lda); 
-	} else {
-		ocof(OraLdas[hand].lda); 
-	}
+    Tcl_SetVar2(interp, OraMsgArray, "handle",  argv[1], TCL_GLOBAL_ONLY);
 
-	Tcl_DecrRefCount(objv[1]);
-	Tcl_DecrRefCount(objv[2]);
+    if (strncasecmp(argv[2],"on",2) == 0) {   /* case insensitive compare */
+        ocon(OraLdas[hand].lda); 
+    } else {
+        ocof(OraLdas[hand].lda); 
+    }
 
-	get_lda_err(interp, hand);
-	return TCL_OK;
+    get_lda_err(interp, hand);
+
+    return TCL_OK;
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Wrlong --
  *    Implements the orawritelong command:
  *    usage: orawritelong cur_handle rowid table column file
@@ -3005,177 +3286,188 @@ Oratcl_Autocom (clientData, interp, objc, objv)
  *	null string
  *      TCL_OK - handle is closed
  *      TCL_ERROR - wrong # args, or handle not opened, file not found,
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Wrlong (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+
+Oratcl_Wrlong (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int     hand;
-	int     fd;
-	long    filesize;
-	char    buf[ORA_MSG_SIZE];
-	char    *data_ptr;
-	struct  stat stat_buf;
-	ColBufs *new_col;
+    int     hand;
+    int     fd;
+    long    filesize;
+    char    buf[ORA_MSG_SIZE];
+    char   *data_ptr;
+    struct  stat stat_buf;
+    ColBufs *new_col;
 
-	if ((hand = ora_prologue(interp,objc, objv, 6,
-		" cur_handle rowid table column filename")) == -1) {
-		return TCL_ERROR;
-	}
+    if ((hand = ora_prologue(interp, argc, argv, 6, 
+	    " cur_handle rowid table column filename ")) == -1) {
+	return TCL_ERROR;
+    }
 
-	fd = open(Tcl_GetStringFromObj(objv[5], (int *) NULL), O_RDONLY | _O_BINARY, 0);
-	if (fd < 0) {
-		oTcl_ErrorMsg(interp, objv[0], ": file ", objv[5], " cannot be opened for reading");
-		return TCL_ERROR;
-	}
 
-	fstat(fd, &stat_buf);
-	filesize = stat_buf.st_size;
+    fd = open(argv[5], O_RDONLY | _O_BINARY, 0);
+    if (fd < 0) {
+        Tcl_AppendResult (interp, argv[0], ": file ", argv[5],
+		     " cannot be opened for reading ", (char *) NULL);
+        return TCL_ERROR;
+    }
 
-	/* alloc memory for file, and read whole file */
-	/* this sucks, oracle should have a "write long chunk" oci call */
-	/* oops, 7.3 does now have 'piecewise' write routines, time to */
-	/* put this in next version */
-	if ((data_ptr = ckalloc(filesize)) == NULL) {
-		close(fd);
-		oTcl_ErrorMsg(interp, objv[0], ": cannot malloc memory for file", NULL, NULL);
-		return TCL_ERROR;
-	}
+    fstat(fd, &stat_buf);
+    filesize = stat_buf.st_size;
 
-	if (filesize != read(fd,data_ptr,filesize)) {
-		close(fd);
-		ckfree(data_ptr);
-		oTcl_ErrorMsg(interp, objv[0], ": cannot read file into memory", NULL, NULL);
-		return TCL_ERROR;
-	}
+    /* alloc memory for file, and read whole file */
+    /* this sucks, oracle should have a "write long chunk" oci call */
+    /* oops, 7.3 does now have 'piecewise' write routines, time to */
+    /* put this in next version */
+    if ((data_ptr = ckalloc(filesize)) == NULL) {
 	close(fd);
+        Tcl_AppendResult (interp, " cannot malloc memory for file ", 
+				 (char *) NULL);
+        return TCL_ERROR;
+    }
 
-	/* cancel any pending usage of cursor */
-	ocan(OraCurs[hand].cda);
+    if (filesize != read(fd,data_ptr,filesize)) {
+	close(fd);
+	ckfree(data_ptr);
+        Tcl_AppendResult (interp, " cannot read file into memory ", 
+				 (char *) NULL);
+        return TCL_ERROR;
+    }
+    close(fd);
 
-	/* free existing columns, if any */
-	free_cols(OraCurs[hand].col_list);
-	OraCurs[hand].col_list   = NULL;
-	free_cols(OraCurs[hand].bind_list);
-	OraCurs[hand].bind_list  = NULL;
-	OraCurs[hand].fetch_end  = 1;
-	OraCurs[hand].fetch_cnt  = 0;
-	OraCurs[hand].cache_size = ORA_CACHE;
-	OraCurs[hand].row_num    = ORA_CACHE;
+    /* cancel any pending usage of cursor */
+    ocan(OraCurs[hand].cda);
 
-	/* compose select stmt */
+    /* free existing columns, if any */
+    free_cols(OraCurs[hand].col_list);
+    OraCurs[hand].col_list   = NULL;
+    free_cols(OraCurs[hand].bind_list);
+    OraCurs[hand].bind_list  = NULL;
+    OraCurs[hand].fetch_end  = 1;
+    OraCurs[hand].fetch_cnt  = 0;
+    OraCurs[hand].cache_size = ORA_CACHE;
+    OraCurs[hand].row_num    = ORA_CACHE;
 
-	sprintf(buf,"select %s from %s where rowid = '%s'",
-		Tcl_GetStringFromObj(objv[4], (int *) NULL),
-		Tcl_GetStringFromObj(objv[3], (int *) NULL),
-		Tcl_GetStringFromObj(objv[2], (int *) NULL)
-	);
+    /* compose select stmt */
 
-	/* parse sql stmt */
-	oparse(OraCurs[hand].cda, buf, ((long) -1), DEF_FLAG, LNG_FLAG);
+    sprintf(buf,"select %s from %s where rowid = '%s'",argv[4],argv[3],argv[2]);
 
-	if (OraCurs[hand].cda->rc != 0) {
-		ckfree(data_ptr);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oparse failed for long select", NULL, NULL);
-		return TCL_ERROR;
-	} else {
-		/* clear peo */
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, OMV_zero, TCL_GLOBAL_ONLY);
-	}
+    /* parse sql stmt */
+    oparse(OraCurs[hand].cda, buf, ((long) -1), DEF_FLAG, LNG_FLAG);
 
-
-	/* get description of column so we know which datatype we're dealing with */
-
-	new_col = alloc_col();
-	if (new_col == NULL) {
-		ckfree(data_ptr);
-		oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col", NULL, NULL);
-		return TCL_ERROR;
-	}
-
-	new_col->disp_size  = 0;
-	new_col->rlen[0] = 0;
-	new_col->rcode[0] = 0;
-
-	odescr(OraCurs[hand].cda, 1, &(new_col->dbsize),&(new_col->dbtype),
-		  &(new_col->dbname[0]), &(new_col->dbname_len), &(new_col->disp_size),
-		  &(new_col->prec), &(new_col->scale), &(new_col->nullok)   );
+    if (OraCurs[hand].cda->rc != 0) {
+	ckfree(data_ptr);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " oparse failed for long select",
+	                (char *) NULL);
+	return TCL_ERROR;
+    } else {
+        /* clear peo */
+   	Tcl_SetVar2(interp, OraMsgArray, "peo",  "0", TCL_GLOBAL_ONLY);
+    }
 
 
-	if (OraCurs[hand].cda->rc != 0) {
-		ckfree(data_ptr);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": odescr error", NULL, NULL);
-		return TCL_ERROR;
-	}
+    /* get description of column so we know which datatype we're dealing with */
+
+    new_col = alloc_col();
+    if (new_col == NULL) {
+	ckfree(data_ptr);
+        Tcl_AppendResult(interp, argv[0], " cannot malloc new col ",
+                         (char *) NULL);
+        return TCL_ERROR;
+    }
+
+    new_col->disp_size  = 0;
+
+    new_col->rlen[0] = 0;
+
+    new_col->rcode[0] = 0;
 
 
-	/* compose update stmt */
+    odescr(OraCurs[hand].cda, 1, &(new_col->dbsize),&(new_col->dbtype),
+          &(new_col->dbname[0]), &(new_col->dbname_len), &(new_col->disp_size),
+          &(new_col->prec), &(new_col->scale), &(new_col->nullok)   );
 
-	sprintf(buf,"update %s set %s = :1 where rowid = '%s' ",
-		Tcl_GetStringFromObj(objv[3], (int *) NULL),
-		Tcl_GetStringFromObj(objv[4], (int *) NULL),
-		Tcl_GetStringFromObj(objv[2], (int *) NULL)
-	);
 
-	/* parse sql stmt */
-	oparse(OraCurs[hand].cda, buf, ((long) -1), DEF_FLAG, LNG_FLAG);
-
-	if (OraCurs[hand].cda->rc != 0) {
-		ckfree(data_ptr);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oparse failed for long update", NULL, NULL);
-		return TCL_ERROR;
-	} else {
-		/* clear peo */
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, OMV_zero, TCL_GLOBAL_ONLY);
-	}
-
-	/* bind filearea to column */
-
-	obndrn( OraCurs[hand].cda, 1, data_ptr,
-		filesize, new_col->dbtype, -1, NULL, NULL, -1, -1);
-       
-	/* exec stmt */
-
-	oexec(OraCurs[hand].cda);
-	if (OraCurs[hand].cda->rc != 0) {  /* oops, problem */
-		ckfree(data_ptr);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oexec error", NULL, NULL);
-		return TCL_ERROR;
-	}
-	if (OraCurs[hand].cda->rpc != 1) {  /* not found, row process != 1 */
-		ckfree(data_ptr);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": row not found", NULL, NULL);
-		return TCL_ERROR;
-	}
-
-	/* free mem */
+    if (OraCurs[hand].cda->rc != 0) {
 	ckfree(data_ptr);
 	free_cols(new_col);
-
 	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " odescr error ",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	/* return total bytes sent */
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(filesize));
 
-	return TCL_OK;
+    /* compose update stmt */
+
+    sprintf(buf,"update %s set %s = :1 where rowid = '%s' ",
+		 argv[3],argv[4],argv[2]);
+
+    /* parse sql stmt */
+    oparse(OraCurs[hand].cda, buf, ((long) -1), DEF_FLAG, LNG_FLAG);
+
+    if (OraCurs[hand].cda->rc != 0) {
+	ckfree(data_ptr);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " oparse failed for long update",
+	                (char *) NULL);
+	return TCL_ERROR;
+    } else {
+        /* clear peo */
+        Tcl_SetVar2(interp, OraMsgArray, "peo",  "0", TCL_GLOBAL_ONLY);
+    }
+
+    /* bind filearea to column */
+
+    obndrn( OraCurs[hand].cda, 1, data_ptr,
+		filesize, new_col->dbtype, -1, NULL, NULL, -1, -1);
+       
+    /* exec stmt */
+
+    oexec(OraCurs[hand].cda);
+    if (OraCurs[hand].cda->rc != 0) {  /* oops, problem */
+	ckfree(data_ptr);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " oexec error ",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
+    if (OraCurs[hand].cda->rpc != 1) {  /* not found, row process != 1 */
+	ckfree(data_ptr);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " row not found ",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
+
+    /* free mem */
+    ckfree(data_ptr);
+    free_cols(new_col);
+
+    get_ora_err(interp, hand);
+
+    /* return total bytes sent */
+    sprintf(buf,"%d",filesize);
+    Tcl_SetResult (interp,buf,TCL_VOLATILE);
+
+    return TCL_OK;
+
 }
+
+
+
 
 /*
  *----------------------------------------------------------------------
+ *
  * Oratcl_Rdlong --
  *    Implements the orareadlong command:
  *    usage: orareadlong cur_handle rowid table column file 
@@ -3185,286 +3477,209 @@ Oratcl_Wrlong (clientData, interp, objc, objv)
  *      TCL_OK - handle is closed
  *      TCL_ERROR - wrong # args, or handle not opened, can't open file,
  *                  or other error in text/image handling
- *----------------------------------------------------------------------
  */
 
-int
-Oratcl_Rdlong (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+
+Oratcl_Rdlong (clientData, interp, argc, argv)
+    ClientData   clientData;
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
 {
-	int     hand;
-	int     fd;
-	char    buf[ORA_MSG_SIZE];
-	char    buf2[ORA_MSG_SIZE];
-	char   *data_ptr;
-	long    long_size = MAX_LONG_SIZE;
-	unsigned long bytes_fetched = 0;
-	long     offset = 0;
-	ColBufs *new_col;
-	int     rc;
+    int     hand;
+    int     fd;
+    int     s;
+    int     total_bytes = 0;
+    char    buf[ORA_MSG_SIZE];
+    char    buf2[ORA_MSG_SIZE];
+    char   *data_ptr;
+    long    long_size = MAX_LONG_SIZE;
+    unsigned long bytes_fetched = 0;
+    long     offset = 0;
+    ColBufs *new_col;
+    unsigned short   fsize;
+    short   fcode;
+    int     rc;
 
-#ifndef VERSION7
-	short   fcode;
-	unsigned short   fsize;
-#endif
 
-	if ((hand = ora_prologue(interp,objc, objv, 6,
-		" cur_handle rowid table column filename")) == -1) {
-		return TCL_ERROR;
-	}
+    if ((hand = ora_prologue(interp, argc, argv, 6, 
+	    " cur_handle rowid table column filename")) == -1) {
+	return TCL_ERROR;
+    }
 
-	fd = open(Tcl_GetStringFromObj(objv[5], (int *) NULL), O_WRONLY | O_TRUNC | O_CREAT | _O_BINARY, 0644);
-	if (fd < 0) {
-		oTcl_ErrorMsg(interp, objv[0], ": file ", objv[5], " cannot be opened for writing");
-		return TCL_ERROR;
-	}
 
-	/* compose select stmt */
-	sprintf(buf,"select %s from %s where rowid = '%s'",
-		Tcl_GetStringFromObj(objv[4], (int *) NULL),
-		Tcl_GetStringFromObj(objv[3], (int *) NULL),
-		Tcl_GetStringFromObj(objv[2], (int *) NULL)
-	);
+    fd = open(argv[5], O_WRONLY | O_TRUNC | O_CREAT | _O_BINARY, 0644);
+    if (fd == -1) {
+        Tcl_AppendResult (interp, argv[0], ": file ", argv[5],
+		     " could not be opened for writing ", (char *) NULL);
+        return TCL_ERROR;
+    }
 
-	/* parse sql stmt */
-	oparse(OraCurs[hand].cda, buf, ((long) -1), DEF_FLAG, LNG_FLAG);
+    /* compose select stmt */
 
-	if (OraCurs[hand].cda->rc != 0) {
-		close(fd);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oparse failed for select long", NULL, NULL);
-		return TCL_ERROR;
-	} else {
-		/* clear peo */
-		Tcl_ObjSetVar2(interp, OraMsgArray, OM_peo, OMV_zero, TCL_GLOBAL_ONLY);
-	}
+    sprintf(buf,"select %s from %s where rowid = '%s'",argv[4],argv[3],argv[2]);
 
-	/* get description of column so we know which datatype we're dealing with */
+    /* parse sql stmt */
+    oparse(OraCurs[hand].cda, buf, ((long) -1), DEF_FLAG, LNG_FLAG);
 
-	new_col = alloc_col();
-	if (new_col == NULL) {
-		close(fd);
-		oTcl_ErrorMsg(interp, objv[0], ": cannot malloc new col", NULL, NULL);
-		return TCL_ERROR;
-	}
+    if (OraCurs[hand].cda->rc != 0) {
+	close(fd);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " oparse failed for select long",
+	                (char *) NULL);
+	return TCL_ERROR;
+    } else {
+        /* clear peo */
+        Tcl_SetVar2(interp, OraMsgArray, "peo",  "0", TCL_GLOBAL_ONLY);
+    }
 
-	new_col->rlen[0] = 0;
-	new_col->rcode[0] = 0;
+    /* get description of column so we know which datatype we're dealing with */
 
-	odescr(OraCurs[hand].cda, 1, &(new_col->dbsize),&(new_col->dbtype),
-		&(new_col->dbname[0]), &(new_col->dbname_len), &(new_col->disp_size),
-		&(new_col->prec), &(new_col->scale), &(new_col->nullok)   );
+    new_col = alloc_col();
+    if (new_col == NULL) {
+	close(fd);
+        Tcl_AppendResult(interp, argv[0], " cannot malloc new col ",
+                         (char *) NULL);
+        return TCL_ERROR;
+    }
 
-	if (OraCurs[hand].cda->rc != 0) {
-		close(fd);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": odescr error", NULL, NULL);
-		return TCL_ERROR;
-	}
+    new_col->rlen[0] = 0;
 
-	/* define a one byte fetch buffer now, dbsize is erroneous until */
-	/* first fetch is done, then do the whole process again */
-	odefin(OraCurs[hand].cda, 1, buf2, 
+    new_col->rcode[0] = 0;
+
+    odescr(OraCurs[hand].cda, 1, &(new_col->dbsize),&(new_col->dbtype),
+          &(new_col->dbname[0]), &(new_col->dbname_len), &(new_col->disp_size),
+          &(new_col->prec), &(new_col->scale), &(new_col->nullok)   );
+
+    if (OraCurs[hand].cda->rc != 0) {
+	close(fd);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " odescr error ",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
+
+    /* define a one byte fetch buffer now, dbsize is erroneous until */
+    /* first fetch is done, then do the whole process again */
+    odefin(OraCurs[hand].cda, 1, buf2, 
 	       (int) 1, new_col->dbtype, 0, (short *) 0, 
 	       NULL, 0, 0, new_col->rlen, new_col->rcode);
 
-	/* exec and fetch to find out actual length of column */
-	oexec(OraCurs[hand].cda);
+    /* exec and fetch to find out actual length of column */
+    oexec(OraCurs[hand].cda);
 
-	ofetch(OraCurs[hand].cda);
+    ofetch(OraCurs[hand].cda);
 
-	if (OraCurs[hand].cda->rc == NO_DATA_FOUND) {  /* not found */
-		close(fd);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": row not found for long", NULL, NULL);
-		return TCL_ERROR;
-	}
+    if (OraCurs[hand].cda->rc == NO_DATA_FOUND) {  /* not found */
+	close(fd);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " row not found for long",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	if (OraCurs[hand].cda->rc != COL_TRUNCATED &&
+    if (OraCurs[hand].cda->rc != COL_TRUNCATED &&
                   OraCurs[hand].cda->rc != 0) {          /* problem */
-		close(fd);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": oexec/ofetch failed", NULL, NULL);
-		return TCL_ERROR;
-	}
+	close(fd);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " oexec/ofetch failed",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
 
 #ifdef VERSION7
     
-	/* at this point, the version 7 oflng() can be used since we */
-	/* have retrieved the long column */
+    /* at this point, the version 7 oflng() can be used since we */
+    /* have retrieved the long column */
 
-	if ((data_ptr = ckalloc(LONG_BUFF_SIZE)) == NULL) {
-		close(fd);
-		free_cols(new_col);
-		oTcl_ErrorMsg(interp, objv[0], ": cannot malloc memory for column fetch", NULL, NULL);
-		return TCL_ERROR;
-	}
+    if ((data_ptr = ckalloc(LONG_BUFF_SIZE)) == NULL) {
+	close(fd);
+	free_cols(new_col);
+        Tcl_AppendResult (interp, " cannot malloc memory for column fetch", 
+				 (char *) NULL);
+        return TCL_ERROR;
+    }
 
-	rc = oflng(OraCurs[hand].cda, 1, data_ptr, LONG_BUFF_SIZE, 
+    rc = oflng(OraCurs[hand].cda, 1, data_ptr, LONG_BUFF_SIZE, 
 	       new_col->dbtype, &bytes_fetched, offset);	
     
-	while (bytes_fetched > 0 && rc == 0) {
+    while (bytes_fetched > 0 && rc == 0) {
 
-		write(fd, data_ptr, bytes_fetched);
-		offset += bytes_fetched;
-		rc = oflng(OraCurs[hand].cda, 1, data_ptr, LONG_BUFF_SIZE, 
-			new_col->dbtype, &bytes_fetched, offset);	
-	}
+      write(fd, data_ptr, bytes_fetched);
 
-	/* save total number of bytes fetched */
-	long_size = offset;
+      offset += bytes_fetched;
 
-	/* end of v7 specific code */
+      rc = oflng(OraCurs[hand].cda, 1, data_ptr, LONG_BUFF_SIZE, 
+	         new_col->dbtype, &bytes_fetched, offset);	
+    }
+
+    /* save total number of bytes fetched */
+    long_size = offset;
+
+    /* end of v7 specific code */
     
 #else 
 
-	/* continue with v6 code */
+    /* continue with v6 code */
 
-	/* describe again to find actual size of long column returned */
 
-	odsc(OraCurs[hand].cda, 1, &(new_col->dbsize),
-		&fsize, &fcode, &(new_col->dbtype),
-		&(new_col->dbname[0]), &(new_col->dbname_len), &(new_col->disp_size));
+    /* describe again to find actual size of long column returned */
 
-	/* malloc an area to hold the column */
-	long_size = fsize;
+    odsc(OraCurs[hand].cda, 1, &(new_col->dbsize),
+	 &fsize, &fcode, &(new_col->dbtype),
+         &(new_col->dbname[0]), &(new_col->dbname_len), &(new_col->disp_size));
 
-	if ((data_ptr = ckalloc(long_size)) == NULL) {
-		close(fd);
-		free_cols(new_col);
-		oTcl_ErrorMsg(interp, objv[0], ": cannot malloc memory for column fetch", NULL, NULL);
-		return TCL_ERROR;
-	}
+    /* malloc an area to hold the column */
+    long_size = fsize;
 
-	/* now defin, exec, fetch again */
+    if ((data_ptr = ckalloc(long_size)) == NULL) {
+	close(fd);
+	free_cols(new_col);
+        Tcl_AppendResult (interp, " cannot malloc memory for column fetch", 
+				 (char *) NULL);
+        return TCL_ERROR;
+    }
 
-	odefin(OraCurs[hand].cda, 1, data_ptr, 
+    /* now defin, exec, fetch again */
+
+    odefin(OraCurs[hand].cda, 1, data_ptr, 
 	       (int) long_size, new_col->dbtype, 0, (short *) 0,
 	       NULL, 0, 0, new_col->rlen, new_col->rcode);
 
-	oexec(OraCurs[hand].cda);
+    oexec(OraCurs[hand].cda);
 
-	ofetch(OraCurs[hand].cda);
+    ofetch(OraCurs[hand].cda);
 	
-	if (long_size != write(fd,data_ptr,long_size)) {
-		ckfree(data_ptr);
-		close(fd);
-		free_cols(new_col);
-		get_ora_err(interp, hand);
-		oTcl_ErrorMsg(interp, objv[0], ": could not write data", NULL, NULL);
-		return TCL_ERROR;
-	}
+    if (long_size != write(fd,data_ptr,long_size)) {
+	ckfree(data_ptr);
+	close(fd);
+	free_cols(new_col);
+	get_ora_err(interp, hand);
+        Tcl_AppendResult(interp, argv[0], " could not write data ",
+	                (char *) NULL);
+	return TCL_ERROR;
+    }
 
-	/* end of version 6 code */
+    /* end of version 6 code */
 
 #endif
 
-	/* common cleanup & return code */
-	close(fd);
-	ckfree(data_ptr);
-	free_cols(new_col);
+    /* common cleanup & return code */
 
-	/* return total bytes sent */
-	Tcl_SetObjResult(interp, Tcl_NewLongObj(long_size));
+    close(fd);
+    ckfree(data_ptr);
+    free_cols(new_col);
 
-	return TCL_OK;
+    /* return total bytes sent */
+    sprintf(buf,"%ld",long_size);
+    Tcl_SetResult (interp,buf,TCL_VOLATILE);
+
+    return TCL_OK;
+
 }
 
-/*
- *----------------------------------------------------------------------
- * Oratcl_Cur_List --
- *    Implements the oracurlist command:
- *    usage: oracurlist lda_handle
- *
- *    results:
- *	null string
- *      TCL_OK - list if built
- *      TCL_ERROR - wrong # args
- *----------------------------------------------------------------------
- */
-
-int
-Oratcl_Cur_List (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
-{
-	int	cur, hand;
-	int	oColsc;
-	char	buf[ORA_MSG_SIZE];
-
-	/* can't use ora_prologue, oracurlist just uses an lda handle */
-	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
-		return TCL_ERROR;
-	}
-
-	if ((hand = get_ora_lda_handle(interp, objv[1])) == -1) {
-		oTcl_ErrorMsg(interp, objv[0], ": lda_handle ", objv[1], " not valid");
-		return TCL_ERROR;
-	}
-
-	oColsc = 0;
-	for (cur = 0; cur < ORATCLCURS; cur++) {
-		if (OraCurs[cur].cur_in_use && (OraCurs[cur].lda_num == hand)) {
-			if (oColsc >= oColslen) {
-				oColslen += 10;
-				oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
-			}
-			sprintf(buf, "%s.%d", Tcl_GetStringFromObj(objv[1], NULL), cur);
-			oColsv[oColsc++] = Tcl_NewStringObj(buf, -1);
-		}
-	}
-	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
-
-	return TCL_OK;
-}
-
-/*
- *----------------------------------------------------------------------
- * Oratcl_Lda_List --
- *    Implements the oraldalist command:
- *    usage: oraldalist
- *
- *    results:
- *	null string
- *      TCL_OK - list if built
- *      TCL_ERROR - wrong # args
- *----------------------------------------------------------------------
- */
-
-int
-Oratcl_Lda_List (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
-{
-	int	hand;
-	int	oColsc;
-	char	buf[ORA_MSG_SIZE];
-
-	oColsc = 0;
-	for (hand = 0; hand < ORATCLLDAS; hand++) {
-		if (OraLdas[hand].lda_in_use) {
-			if (oColsc >= oColslen) {
-				oColslen += 10;
-				oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
-			}
-			sprintf(buf, "%s%d", OraHandlePrefix, hand);
-			oColsv[oColsc++] = Tcl_NewStringObj(buf, -1);
-		}
-	}
-	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
-
-	return TCL_OK;
-}
 
 /* finis */
