@@ -299,7 +299,10 @@ Version 3.3 September, 2001
 
 -----------------------------------------------------------------------------
 
-Version 4.0 September, 2001
+Version 4.0 December, 2001
+
+    *   Thanks to Dionisios Pothos and Grid Intelligent Systems Ltd, UK
+	for their financial sponsorship of this upgrade.
 
     -	**** oramsg **** array has been removed.  This is not backwards 
 	compatible.  The remaining values that were accessed through the 
