@@ -35,16 +35,18 @@
 #define MAX_LONGP_SIZE	2147483647
 
 struct OratclDesc {
-	ub2		typecode;		/* column type code	*/
-	char		*typename;		/* column type name	*/
-	ub2		size;       		/* column internal size */
-	text        	*name;			/* column name		*/
-	unsigned long	namesz; 		/* column name length */
-	ub1		prec;			/* precision of numeric */
-	sb1		scale;			/* scale of numeric */
-	ub1		nullok; 		/* ok if null */
-	char		*valuep;		/* Column data pointer */
-	unsigned long	valuesz;		/* column display size */
+	ub2		typecode;	/* column type code		*/
+	char		*typename;	/* column type name		*/
+	ub2		size;       	/* column internal size		*/
+	text        	*name;		/* column name			*/
+	unsigned long	namesz; 	/* column name length  		*/
+	int		prec;		/* precision of numeric		*/
+					/* attr can be ub1 or sb2	*/
+					/* and we need to handle both	*/
+	sb1		scale;		/* scale of numeric		*/
+	ub1		nullok; 	/* ok if null			*/
+	char		*valuep;	/* Column data pointer		*/
+	unsigned long	valuesz;	/* column display size		*/
 };
 typedef struct OratclDesc OratclDesc;
 
