@@ -1841,7 +1841,14 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			       (ub4) oci_cred,
 			       (ub4) oci_conn);
 
-	if (rc != OCI_SUCCESS) {
+	if (rc == OCI_SUCCESS_WITH_INFO) {
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				0,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
+	} else if (rc != OCI_SUCCESS) {
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
