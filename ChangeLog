@@ -316,4 +316,11 @@ Version 3.3 August, 2001
         usage: oralogon sysoper
         Thanks to Aleksey Kurbatov (akurbatov@borlas.ru) for the patch.
 
+12-DEC-2002
+
+    -   Changed 'oralogon' to pay attention to the return code from
+        OCIInitialize.  If the return code is not OCI_SUCCESS raise an error.
+        This will avoid a core dump if the ORACLE_HOME environment variable
+        is not set on a unix platform.
+
 -----------------------------------------------------------------------------
