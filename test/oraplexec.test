@@ -16,6 +16,10 @@ set pl_stm [oraopen $pl_lda]
 set pl_exe [oraopen $pl_lda]
 set pl_get [oraopen $pl_lda]
 
+set sql {alter session set nls_date_format = 'DD-MON-YYYY'}
+oraparse $pl_stm $sql
+oraexec $pl_stm
+
 set oratcl___test1 {
 	create or replace function oratcl___test1 (
 		arg_x number,
