@@ -263,6 +263,12 @@ case "`uname -s`" in
 	    AC_MSG_RESULT(setting ORA to $ORA)
 	    break
 	fi
+        if test -r "$oracle_directory/oci80/lib/msvc/ora803.lib" ; then
+	    ORA="$oracle_directory/oci80/lib/msvc"
+	    ORACLE_HOME=$oracle_directory
+	    AC_MSG_RESULT(setting ORA to $ORA)
+	    break
+	fi
     ;;
     *)
 oratest1=${ORACLE_HOME:-.}
@@ -474,7 +480,10 @@ ORA_SH_LIB=""
 case "`uname -s`" in
     *win32* | *WIN32* | *CYGWIN_NT*)
         if test "${SHARED_BUILD}" = "1" ; then
-	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/ociw32.lib`"\"
+	    SHLIB_LD_LIBS="\"`cygpath -w
+	    ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\"
+	    ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/ociw32.lib`\" 
+            \"`cygpath -w $ORA/ora803.lib`\" " 
 	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${SHARED_LIB_SUFFIX}"
 	    RANLIB=:
 	else
