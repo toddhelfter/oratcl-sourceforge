@@ -1651,7 +1651,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	LogPtr->usrhp = (OCISession *) 0;
 	LogPtr->autocom = 0;
 	LogPtr->async = 0;
-	LogPtr->ora_rc = 0;
+	LogPtr->ora_rc = OCI_SUCCESS;
 	LogPtr->failovercallback = NULL;
 	Tcl_DStringInit(&LogPtr->ora_err);
 	LogPtr->logid = OratclStatePtr->logid;
@@ -2020,7 +2020,8 @@ Oratcl_Logoff (clientData, interp, objc, objv)
 	Oratcl_Checkerr(interp,
 			LogPtr->errhp,
 			rc,
-			0, &LogPtr->ora_rc,
+			0,
+			&LogPtr->ora_rc,
 			&LogPtr->ora_err);
 
 	rc = OCI_ServerDetach(LogPtr->srvhp,
@@ -2110,16 +2111,11 @@ Oratcl_Commit (clientData, interp, objc, objv)
 	Oratcl_Checkerr(interp,
 			LogPtr->errhp,
 			rc,
-			0,
+			1,
 			&LogPtr->ora_rc,
 			&LogPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": commit failed",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -2194,16 +2190,11 @@ Oratcl_Roll (clientData, interp, objc, objv)
 	Oratcl_Checkerr(interp,
 			LogPtr->errhp,
 			rc,
-			0,
+			1,
 			&LogPtr->ora_rc,
 			&LogPtr->ora_err);
 
 	if (rc != OCI_SUCCESS) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": rollback failed",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
