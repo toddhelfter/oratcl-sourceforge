@@ -364,5 +364,8 @@ Version 4.0 December, 2001
 			 for date columns.  Default is 75.
     -	Enable binding of clobs when compiled with Oracle 9i.
     -	05-MAY-2002 (tmh) fixed compiler warnings about 'const' mismatches.
+    -	29-MAY-2002 (tmh) change Makefile.in to use TCL_LD_FLAGS.  This lets
+	the --enable-64bit-vis options work when using 64 bit solaris, 64 bit
+	Oracle and the same option in the tcl build.
 
 -----------------------------------------------------------------------------
