@@ -1,7 +1,7 @@
 # oraclob:
 # Process clob commands.
 #
-# RCS: @(#) $Id: oraclob.tcl,v 1.5 2000-09-19 20:51:37 tmh Exp $
+# RCS: @(#) $Id: oraclob.tcl,v 1.6 2000-09-21 04:08:06 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -78,7 +78,7 @@ namespace eval oratcl {
 
 proc oraclob {stm command args} {
 
-	foreach idx [list rowid table column length start amount pattern datavar] {
+	foreach idx [list rowid table column length start stop amount pattern datavar] {
 		set oraclob($idx) {}
 	}
 	foreach idx [list offset nth] {
@@ -103,6 +103,8 @@ proc oraclob {stm command args} {
 			-amount	 { set oraclob(amount) $value }
 			-pattern { set oraclob(pattern) $value }
 			-nth	 { set oraclob(nth) $value }
+			-start	 { set oraclob(start) $value }
+			-stop	 { set oraclob(stop) $value }
 		}
 	}		
 
@@ -122,63 +124,70 @@ proc oraclob {stm command args} {
 	switch $command {
 
 		read	{
-			set result [eval [list oratcl::clob_read $stm \
-								 $oraclob(rowid) \
-								 $oraclob(table) \
-								 $oraclob(column) \
-								 $oraclob(datavar)]]
+			set result [eval [list oratcl::clob_read \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column) \
+					       $oraclob(datavar)]]
 		}
 
 		write	{
-			set result [eval [list oratcl::clob_write $stm \
-							 	  $oraclob(rowid) \
-							 	  $oraclob(table) \
-							 	  $oraclob(column) \
-							 	  $oraclob(datavar)]]
+			set result [eval [list oratcl::clob_write \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column) \
+					       $oraclob(datavar)]]
 		}
 
 		length	{
-			set result [eval [list oratcl::clob_length $stm \
-								   $oraclob(rowid) \
-								   $oraclob(table) \
-								   $oraclob(column)]]
+			set result [eval [list oratcl::clob_length \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column)]]
 		}
 
 		trim	{
-			set result [eval [list oratcl::clob_trim $stm \
-							 	 $oraclob(rowid) \
-							 	 $oraclob(table) \
-							 	 $oraclob(column) \
-							 	 $oraclob(length)]]
+			set result [eval [list oratcl::clob_trim \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column) \
+					       $oraclob(length)]]
 		}
 
 		erase	{
-			set result [eval [list oratcl::clob_erase $stm \
-							 	  $oraclob(rowid) \
-							 	  $oraclob(table) \
-							 	  $oraclob(column) \
-								  $oraclob(amount) \
-								  $oraclob(offset)]]
+			set result [eval [list oratcl::clob_erase \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column) \
+					       $oraclob(amount) \
+					       $oraclob(offset)]]
 		}
 
 		substr	{
-			set result [eval [list oratcl::clob_substr $stm \
-							 	   $oraclob(rowid) \
-							 	   $oraclob(table) \
-							 	   $oraclob(column) \
-							 	   $oraclob(amount) \
-								   $oraclob(offset) \
-								   $oraclob(datavar)]]
+			set result [eval [list oratcl::clob_substr \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column) \
+					       $oraclob(amount) \
+					       $oraclob(offset) \
+					       $oraclob(datavar)]]
 		}
 
 		instr	{
-			set result [eval [list oratcl::clob_instr $stm \
-							 	  $oraclob(rowid) \
-							 	  $oraclob(table) \
-							 	  $oraclob(column) \
-								  $oraclob(pattern) \
-								  $oraclob(offset) \
-							 	  $oraclob(nth)]]
+			set result [eval [list oratcl::clob_instr \
+					       $stm \
+					       $oraclob(rowid) \
+					       $oraclob(table) \
+					       $oraclob(column) \
+					       $oraclob(pattern) \
+					       $oraclob(offset) \
+					       $oraclob(nth)]]
 		}
 
 	}
