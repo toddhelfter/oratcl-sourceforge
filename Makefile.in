@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.23 2000-08-16 22:40:27 mtariq Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.24 2000-08-18 03:25:25 mtariq Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -89,7 +89,8 @@ ORA_DB_VER    = @ORA_DB_VER@
 ORAINCLUDE    = -I$(ORACLE_HOME)/rdbms/demo \
 		-I$(ORACLE_HOME)/rdbms/public \
 		-I$(ORACLE_HOME)/plsql/public \
-		-I$(ORACLE_HOME)/network/public
+		-I$(ORACLE_HOME)/network/public \
+		-I$(ORACLE_HOME)/include
 
 # some versions of oracle require explicit linking with libc,  without -lc,
 # the link appears fine, but executing 'oralogon' causes a core dump.  default
