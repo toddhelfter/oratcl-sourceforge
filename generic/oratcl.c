@@ -1705,7 +1705,11 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		ora_connlen = strlen(ora_conn);
 
 	rc = OCI_EnvCreate ((OCIEnv **) &LogPtr->envhp,
+#ifdef TCL_THREADS
+			    OCI_OBJECT | OCI_THREADED,
+#else
 			    OCI_OBJECT,
+#endif
 			    (dvoid *)0,
 			    NULL,
 			    NULL,
