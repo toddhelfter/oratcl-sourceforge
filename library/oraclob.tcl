@@ -1,3 +1,10 @@
+# oraclob:
+# Process clob commands.
+#
+# RCS: @(#) $Id:
+#
+# Copyright (c) 2000 Todd M. Helfter
+#
 
 namespace eval oratcl {
 
