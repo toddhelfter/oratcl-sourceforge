@@ -85,12 +85,6 @@ test oralong-1.0 {oralong: alloc and free long} {
 
 test oralong-1.1 {oralong: write long} {
 	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
-
-	oralong write $long -datavar chr_data
-	oracommit $long_lda
-	regsub -all 01 $chr_data \\n chr_data
-	oralong read $long -datavar chr_data
-
 	catch {oralong write $long -datavar chr_data} write
 	catch {oralong free $long} free
 	list $write $free
