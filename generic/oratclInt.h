@@ -83,6 +83,7 @@ typedef struct OratclLogs {
 	OCIServer	*srvhp;		/* server handle	*/
 	OCISession	*usrhp;		/* user handle		*/
 	int		autocom;	/* autocommit mode	*/
+	int		async;		/* blocking mode	*/
         int		logid;		/* login handle id	*/
 	int		ora_rc;		/* oracle return code	*/
 	Tcl_DString	ora_err;	/* oracle error text	*/

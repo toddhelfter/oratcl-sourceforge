@@ -44,4 +44,11 @@ extern Tcl_ObjCmdProc  Oratcl_Message;
 
 extern Tcl_ExitProc Oratcl_Kill;
 
+extern Tcl_ObjCmdProc  Oratcl_Async;
+extern Tcl_ObjCmdProc  Oratcl_AsyncParse;
+extern Tcl_ObjCmdProc  Oratcl_AsyncBind;
+extern Tcl_ObjCmdProc  Oratcl_AsyncExec;
+extern Tcl_ObjCmdProc  Oratcl_AsyncFetch;
+extern Tcl_ObjCmdProc  Oratcl_AsyncBreak;
+
 #endif /* _ORATCL_H */
