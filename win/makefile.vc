@@ -43,7 +43,7 @@ TCLLIB  = $(TCL)\lib\tclstub83.lib
 
 ORACLE     = d:
 ORACLE_OCI = $(ORACLE)\oci\oci
-ORACLE_LIB = $(ORACLE_OCI)\lib\msvc\oci.lib
+ORACLE_LIB = $(ORACLE_OCI)\lib\msvc\ociw32.lib
 
 
 

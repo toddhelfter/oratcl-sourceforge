@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded Oratcl 2.7 [list load [file join $dir .. liboratcl2.7.so]]
+package ifneeded Oratcl 2.7 load [file join $dir .. oratcl27.dll]
