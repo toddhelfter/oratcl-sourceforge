@@ -96,7 +96,6 @@ extern int	  Oratcl_ColDescribe	_ANSI_ARGS_((Tcl_Interp 	*interp,
 extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     OratclStms		*StmPtr,
 						     int		setResult,
-						     int		useBindList,
 						     Tcl_Obj		*listvar,
 						     Tcl_Obj		*arrayvar));
 extern void       Oratcl_PrintStm 	_ANSI_ARGS_((Tcl_Interp		*interp,
@@ -654,7 +653,6 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 		case OCI_SUCCESS:
 			break;
 		case OCI_SUCCESS_WITH_INFO:
-			Tcl_DStringAppend(&errStr, "OCI_SUCCESS_WITH_INFO", -1);
 			break;
 		case OCI_NEED_DATA:
 			Tcl_DStringAppend(&errStr, "OCI_NEED_DATA", -1);
@@ -1084,11 +1082,10 @@ if (lob) {
  */
 
 void
-Oratcl_ColAppend (interp, StmPtr, setResult, useBindList, listvar, arrayvar)
+Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
 	Tcl_Interp	*interp;
 	OratclStms	*StmPtr;
 	int		setResult;
-        int		useBindList;
 	Tcl_Obj		*listvar;
 	Tcl_Obj		*arrayvar;
 {
@@ -1107,7 +1104,8 @@ Oratcl_ColAppend (interp, StmPtr, setResult, useBindList, listvar, arrayvar)
 		return;
 	}
 
-	if (useBindList == 1) {
+	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
+	    StmPtr->sqltype == OCI_STMT_DECLARE) {
 		ColPtr = StmPtr->bind_list;
 	} else {
 		ColPtr = StmPtr->col_list;
@@ -1115,9 +1113,6 @@ Oratcl_ColAppend (interp, StmPtr, setResult, useBindList, listvar, arrayvar)
 
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
 
-#if 0
-	for (col = StmPtr->col_list; col != NULL; col = col->next) {
-#endif
 	for (col = ColPtr; col != NULL; col = col->next) {
       
 		/* for cursor type, just return a null */
@@ -3030,7 +3025,7 @@ Oratcl_FetchOne (StmPtr, interp, objc, objv)
 	}
 
 
-	Oratcl_ColAppend(interp, StmPtr, 1, 0, NULL, NULL);
+	Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
 
 common_exit:
 
@@ -3829,7 +3824,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	StmPtr->fetchidx    = 0;
 
 	/* get results, same as orafetch */
-	Oratcl_ColAppend(interp, StmPtr, 1, 0, NULL, NULL);
+	Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
    
 	StmPtr->fetch_end  = 1;
 	StmPtr->fetch_cnt  = 1;
@@ -5751,7 +5746,6 @@ Oratcl_AsyncBind (clientData, interp, objc, objv)
 			while (tmp_col != NULL) {
 				if (strncmp((char *) tmp_col->column.name, Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), 255) == 0) {
 					arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
-fprintf(stderr, "Oratcl_AsyncBind() arc_pcp = %s\n", arg_pcp);
 
 					if (StmPtr->utfmode) {
 						Tcl_DStringInit(&argStr);
@@ -5934,12 +5928,7 @@ Oratcl_PrintStm(interp, StmPtr, "Exec(2)");
 	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
 	    StmPtr->sqltype == OCI_STMT_DECLARE) {
 
-fprintf(stderr, "orafetch() in a PL/SQL statement\n");
-
 		if (StmPtr->bind_list) {
-
-fprintf(stderr, "orafetch() really in a PL/SQL statement\n");
-			StmPtr->col_list = StmPtr->bind_list;
 
 			StmPtr->fetch_end  = 0;        /* let Oratcl_ColAppend work */
 			StmPtr->fetch_cnt  = 0;
@@ -5947,7 +5936,7 @@ fprintf(stderr, "orafetch() really in a PL/SQL statement\n");
 			StmPtr->fetchidx    = 0;
 
 			/* get results, same as orafetch */
-			Oratcl_ColAppend(interp, StmPtr, 1, 0, NULL, NULL);
+			Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL);
 
 			StmPtr->fetch_end  = 1;
 			StmPtr->fetch_cnt  = 1;
@@ -6240,6 +6229,7 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 
 	char		*p;
 	int		i;
+	OratclCols 	*ColPtr;
 	OratclCols	*col;
 	int		parm_cnt;
 	ub4		oci_mode = OCI_DEFAULT;
@@ -6274,6 +6264,16 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
+	/*
+	 * If PL/SQL, use bind_list else use col_list.
+	 */
+	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
+	    StmPtr->sqltype == OCI_STMT_DECLARE) {
+		ColPtr = StmPtr->bind_list;
+	} else {
+		ColPtr = StmPtr->col_list;
+	}
+
 	StmPtr->ora_rc  = 0;
 	Tcl_DStringInit(&StmPtr->ora_err);
 	StmPtr->fetch_ok = 0;
@@ -6284,7 +6284,6 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 	    && StmPtr->append_cnt >= StmPtr->fetch_cnt
 	    && StmPtr->fetch_cnt >  0) {
 
-		/* need some way to remember the return codes */
 		Tcl_SetObjResult(interp, Tcl_NewIntObj(NO_DATA_FOUND));
 		StmPtr->ora_rc = NO_DATA_FOUND;
 		tcl_return = TCL_OK;
@@ -6293,7 +6292,7 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 
 	if (StmPtr->fetchidx >= StmPtr->fetchmem) {
 
-		for (col=StmPtr->col_list; col != NULL; col=col->next) {
+		for (col=ColPtr; col != NULL; col=col->next) {
 			for (i=0; i < StmPtr->fetchmem; i++) {
 				col->rcodep[i] = 0;
 				col->rlenp[i] = 0;
@@ -6342,7 +6341,7 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 		StmPtr->fetchidx = 0;
 	}
 
-	Oratcl_ColAppend(interp, StmPtr, 0, 0, objv[3], NULL);
+	Oratcl_ColAppend(interp, StmPtr, 0, objv[3], NULL);
 
 common_exit:
 
