@@ -41,9 +41,9 @@ orabindexec $lob_stm :lob_key l2
 oracommit $lob_lda
 orasql $lob_stm $lob_sql(select_lob_table) -parseonly
 orabindexec $lob_stm :lob_key l1
-orafetch $lob_stm "set rowid1 @1"
+orafetch $lob_stm -datavariable rowid1
 orabindexec $lob_stm :lob_key l2
-orafetch $lob_stm "set rowid2 @1"
+orafetch $lob_stm -datavariable rowid2
 
 set chr_data [string repeat 0123456789---------- 10000]
 
