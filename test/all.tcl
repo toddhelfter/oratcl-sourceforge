@@ -1,118 +1,33 @@
 # all.tcl --
 #
-# This file contains a top-level script to run all of the Tcl
-# tests.  Execute it by invoking "source all.test" when running tcltest
-# in this directory.
+# This file is sourced by the 'make test' target to execute the
+# Oratcl test suite
 #
-# Copyright (c) 1998-2000 by Ajuba Solutions
+# Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
-# 
-# RCS: @(#) $Id: all.tcl,v 1.3 2000-06-22 22:42:00 wart Exp $
+#
+# RCS: @(#) $Id: all.tcl,v 1.4 2000-08-01 13:37:46 tmh Exp $
 
-package require tcltest
-namespace import -force ::tcltest::*
-
-source [file  join [file dirname [info script]] defs.tcl]
-
-# Look for the -exedir flag and find a suitable tclsh executable.
-
-if {(![info exists argv]) || ([llength $argv] < 1)} {
-    set flagArray {}
+if {$tcl_platform(os) == "Win32s"} {
+    set files [glob ../test/*.tes]
 } else {
-    set flagArray $argv
+    set files [glob ../test/*.test]
 }
 
-array set flag $flagArray
-if {[info exists flag(-exedir)]} {
-    set shell [lindex \
-	    [glob -nocomplain \
-	    [file join $flag(-exedir) tclsh*.bin] \
-	    [file join $flag(-exedir) tclsh*]] 0]
-} else {
-    set shell $::tcltest::tcltest
-}
+global ora_lda
 
-set ::tcltest::testSingleFile false
-set ::tcltest::testsDirectory [file dir [info script]]
-set logfile [file join $::tcltest::temporaryDirectory Log.txt]
+source [file join [file dirname [info script]] defs.tcl]
+source [file join [file dirname [info script]] startup.tcl]
 
-puts stdout "Using interp: $shell"
-puts stdout "Running tests in working dir: $::tcltest::testsDirectory"
-if {[llength $::tcltest::skip] > 0} {
-    puts stdout "Skipping tests that match:  $::tcltest::skip"
-}
-if {[llength $::tcltest::match] > 0} {
-    puts stdout "Only running tests that match:  $::tcltest::match"
-}
+set tests [glob -nocomplain \
+	     [file join [file dirname [info script]] ora*.test]]
 
-if {[llength $::tcltest::skipFiles] > 0} {
-    puts stdout "Skipping test files that match:  $::tcltest::skipFiles"
-}
-if {[llength $::tcltest::matchFiles] > 0} {
-    puts stdout "Only sourcing test files that match:  $::tcltest::matchFiles"
-}
-
-set timeCmd {clock format [clock seconds]}
-puts stdout "Tests began at [eval $timeCmd]"
-
-# source each of the specified tests
-foreach file [lsort [::tcltest::getMatchingFiles]] {
-    set tail [file tail $file]
-    puts stdout $tail
-
-    # Change to the tests directory so the value of the following
-    # variable is set correctly when we spawn the child test processes
-
-    cd $::tcltest::testsDirectory
-    set cmd [concat [list | $shell $file] [split $argv] \
-	    [list -outfile $logfile]]
-    if {[catch {
-	set pipeFd [open $cmd "r"] 
-	while {[gets $pipeFd line] >= 0} {
-	    puts $::tcltest::outputChannel $line
+foreach test [lsort $tests] {
+	puts stdout $test
+	flush stdout
+	if {[catch {source $test} msg]} {
+		puts $msg
 	}
-	close $pipeFd
-    } msg]} {
-	# Print results to ::tcltest::outputChannel.
-	puts $::tcltest::outputChannel $msg
-    }
+}     
 
-    # Now concatenate the temporary log file to
-    # ::tcltest::outputChannel 
-    if {[catch {
-	set fd [open $logfile "r"]
-	while {![eof $fd]} {
-	    gets $fd line
-	    if {![eof $fd]} {
-		if {[regexp {^([^:]+):\tTotal\t([0-9]+)\tPassed\t([0-9]+)\tSkipped\t([0-9]+)\tFailed\t([0-9]+)} $line null testFile Total Passed Skipped Failed]} {
-		    foreach index [list "Total" "Passed" "Skipped" \
-			    "Failed"] {
-			incr ::tcltest::numTests($index) [set $index]
-		    }
-		    incr ::tcltest::numTestFiles
-		    if {$Failed > 0} {
-			lappend ::tcltest::failFiles $testFile
-		    }
-		}
-		puts $::tcltest::outputChannel $line
-	    }
-	}
-	close $fd
-    } msg]} {
-	puts $::tcltest::outputChannel $msg
-    }
-}
-
-set numFailures [llength $::tcltest::failFiles]
-
-# cleanup
-puts stdout "\nTests ended at [eval $timeCmd]"
-::tcltest::cleanupTests 1
-
-if {$numFailures > 0} {
-    return -code error -errorcode $numFailures \
-	    -errorinfo "Found $numFailures test file failures"
-} else {
-    return
-}
-exit
+source [file join [file dirname [info script]] cleanup.tcl]
