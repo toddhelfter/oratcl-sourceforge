@@ -1405,7 +1405,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
         }
 
 	if (LogPtr->async == 0) {
-fprintf(stderr, "Oratcl_Logon (set async mode)\n");
 		rc = OCIAttrSet ((dvoid *) LogPtr->srvhp,
 				 (ub4) OCI_HTYPE_SERVER,
 				 (dvoid *) 0,
@@ -2865,14 +2864,12 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
 	    StmPtr->sqltype == OCI_STMT_DECLARE) {
 		if (StmPtr->bind_list == NULL && StmPtr->col_list == NULL) {   
-	fprintf(stderr, "Oratcl_Fetch() bind_list is null\n");
 			tcl_return = TCL_OK;
 			goto common_exit;
 		}
 	} else {
 		/* nothing to fetch */
 		if (StmPtr->col_list == NULL) {   
-	fprintf(stderr, "Oratcl_Fetch() col_list is null\n");
 			tcl_return = TCL_OK;
 			goto common_exit;
 		}
@@ -2984,7 +2981,6 @@ Oratcl_FetchOne (StmPtr, interp, objc, objv)
 				  StmPtr->fetchmem,
 				  OCI_FETCH_NEXT,
 				  OCI_DEFAULT)) == OCI_STILL_EXECUTING) {
-			fprintf (stderr, "Oratcl_Fetch() still executing\n");
 		}
 
 		OCIAttrGet( (dvoid *) StmPtr->stmhp,
@@ -3545,9 +3541,14 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 			     (ub4) OCI_NTV_SYNTAX,
 			     (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -3562,6 +3563,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 
 	/* bind :colon_parms following arg, alloc large enough return space (?)*/
 	parm_cnt = 3;      
+
 
 	/* only alloc new col if one or more valid arg for :var */
 	if (objc > parm_cnt + 1) {        
@@ -3590,7 +3592,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 		/* make sure bind variable name has a leading ':' */
 		if (*arg_pcc != ':') {
 			Oratcl_ColFree(new_col_head);
-			StmPtr->col_list = NULL;
+			StmPtr->bind_list = NULL;
 			Oratcl_ErrorMsg(interp,
 					objv[0],
 					": bind variable ",
@@ -3608,7 +3610,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 
 			if (stmHashPtr == chashPtr) {
 				Oratcl_ColFree(new_col_head);
-				StmPtr->col_list = NULL;
+				StmPtr->bind_list = NULL;
 				Oratcl_ErrorMsg(interp,
 						objv[0],
 						": bind cursor for ",
@@ -3620,7 +3622,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 
 			if (StmPtr->logid != LogPtr->logid) {
 				Oratcl_ColFree(new_col_head);
-				StmPtr->col_list = NULL;
+				StmPtr->bind_list = NULL;
 				Oratcl_ErrorMsg(interp,
 						objv[0],
 						": bind cursor for ",
@@ -3630,8 +3632,8 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 
-			Oratcl_ColFree(CurPtr->col_list);
-			CurPtr->col_list	= NULL;
+			Oratcl_ColFree(CurPtr->bind_list);
+			CurPtr->bind_list	= NULL;
 			Oratcl_ColFree(CurPtr->bind_list);
 			CurPtr->bind_list	= NULL;
 			CurPtr->fetchidx	= CurPtr->fetchmem;
@@ -3646,7 +3648,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 
 		if (arg_pcp_len > StmPtr->bindsize) {
 			Oratcl_ColFree(new_col_head);
-			StmPtr->col_list = NULL;
+			StmPtr->bind_list = NULL;
 			Oratcl_ErrorMsg(interp,
 					objv[0],
 					": bind value ",
@@ -3661,7 +3663,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 		new_col->column.valuep = ckalloc(new_col->column.valuesz + 1);
 		if (new_col->column.valuep == NULL) {
 			Oratcl_ColFree(new_col_head);
-			StmPtr->col_list = NULL;
+			StmPtr->bind_list = NULL;
 			Oratcl_ErrorMsg(interp,
 					objv[0],
 					": allocation failure",
@@ -3688,7 +3690,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 		new_col->column.name = (text *) ckalloc(arg_pcc_len + 1);
 		if (new_col->column.name == NULL) {
 			Oratcl_ColFree(new_col_head);
-			StmPtr->col_list = NULL;
+			StmPtr->bind_list = NULL;
 			Oratcl_ErrorMsg(interp,
 					objv[0],
 					": allocation failure",
@@ -3746,7 +3748,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ColFree(new_col_head);
-			StmPtr->col_list = NULL;
+			StmPtr->bind_list = NULL;
 			Oratcl_ErrorMsg(interp,
 					objv[0],
 					": bind failed for ",
@@ -3763,7 +3765,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 			new_col            = Oratcl_ColAlloc(StmPtr->fetchmem);
 			if (new_col == NULL) {
 				Oratcl_ColFree(new_col_head);
-				StmPtr->col_list = NULL;
+				StmPtr->bind_list = NULL;
 				Oratcl_ErrorMsg(interp,
 					objv[0],
 					": cannot malloc new col ",
@@ -3776,7 +3778,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 		}
 	}
 
-	StmPtr->col_list   = new_col_head;
+	StmPtr->bind_list   = new_col_head;
 
 	rc = OCIStmtExecute(LogPtr->svchp,
 			    StmPtr->stmhp,
