@@ -107,6 +107,10 @@ larger numbers for queries that return many rows may dramatically decrease
 the time spent fetching the rows.  Changes to \fIfetchrows\fR only affects
 subsequent \fBorasql\fR commands.  \fIFetchrows\fR defaults to 10 rows 
 and the maximum is dependent upon available memory.
+.IP \fIlobpsize\fR
+Sets or returns the amount of of data (in characters) used in piecewise
+reads and writes to LOB types in the \fBoralob\fR command.  \fILobpsize\fR
+defaults to 10,000 characters and the maximum is 15,000 characters.
 .RE
 .sp
 .TP
@@ -176,11 +180,9 @@ has not been parsed with orasql; "1008" if not all SQL bind variables have
 been specified.  Refer to Oracle error numbers and messages for other
 possible values.
 .sp
-'' Extra long command options requires special handling for nroff/tty output
-.in -.5i
+.RE
 \fBorafetch\fR \fIstatement\-handle ?commands? ?substitution_character? \fI?varname colnum ...?\fR
-.in +.5i
-.br
+.RS
 Return the next row from the last SQL statement executed with \fBorasql\fR as a
 Tcl list.
 \fIStatement-handle\fR must be a valid handle previously opened with 
@@ -249,6 +251,7 @@ The \fBoramsg\fR array index \fInullvalue\fR can be set to specify
 the value returned when a column is null.  The default is "0" for
 numeric data, and "" for other datatypes.
 .sp
+.RE
 .TP 
 .B oraplexec \fIstatement-handle  pl-block  ?:varname  value ...?\fR
 .br
@@ -281,118 +284,129 @@ contains the return code from the stored procedure.
 The \fBoramsg\fR array index \fIerrortxt\fR 
 contains the Oracle error message from the stored procedure if one is 
 generated.
+.sp
 .TP 
-.B oraclob \fIsub\-command handle ?options ...?\fR
+.B oralob \fIsub\-command handle ?options ...?\fR
 .br
-Perform operations on Oracle Character Long Objects.
+Perform operations on Oracle Long Objects.
 .sp
 \fIHandle\fR must be either a valid statement handle previously opened
-with \fBoraopen\fR or a LOB identifier (lobId) created with the
-\fBalloc\fR sub-command.  The following \fIsub\-commands\fR are
-available:
-.RS .5i
+with \fBoraopen\fR or a LOB handle created with the
+\fBalloc\fR sub-command.  Both Binary Long Object (BLOB) and Character
+Long Object (CLOB) columns are supported by the \fBoralob\fR command.
 .sp
-\fBalloc\fR \fIstatement\-handle -table $table -column $column -rowid $rowid\fR
-.in +.5i
-.br
-Create and return a LOB identifier that refers to the CLOB specified by
+The following \fIsub\-commands\fR are
+available:
+.RE
+.RS 1i
+.sp
+\fBalloc \fIstatement\-handle -table $table -column $column -rowid $rowid\fR
+.RS
+Create and return a LOB handle that refers to the LOB specified by
 (\fI$table\fR, \fI$column\fR, \fI$rowid\fR).  \fIstatement\-handle\fR
 must be a statement handle previously created with \fBoraopen\fR and
-will be used implicitly by the other \fBoraclob\fR sub-commands that
-operate on this CLOB.
-.in -.5i
+will be used implicitly by the other \fBoralob\fR sub-commands that
+operate on this LOB.
+.RE
 .sp
 .TP
-.B free \fIlobId\fR
+.B free \fILOB\-handle\fR
 .br
-Destroy the LOB identifier and free any resources associated with it.
+Destroy the LOB handle and free any resources associated with it.
 .sp
 .TP
-.B read \fIlobId \-datavar varname\fR
+.B read \fILOB\-handle \-datavar varname\fR
 .br
-Read the CLOB specified by \fIlobId\fR into the variable identified by
+Read the LOB specified by \fILOB\-handle\fR into the variable identified by
 \fIvarname\fR.
 .sp
 .TP
-.B write \fIlobId \-datavar varname\fR
+\fBsubstr \fILOB\-handle \-start $start \-stop $stop \-datavar varname\fR
 .br
-Write the data in the variable identified by \fIvarname\fR into the
-CLOB specified by lobId.
-.sp
-.TP
-.B length \fIlobId\fR
-.br
-Returns the length (in characters) of the CLOB specified by \fIlobId\fR.
-.sp
-.TP
-.B erase \fIlobId \-start $start\fR \fI\-stop $stop\fR
-.br
-Overwrites the data in the CLOB specified by \fIlobId\fR from
-\fI$start\fR to \fI$stop\fR with NULL characters.
-\fI$start\fR and \fI$stop\fR both default to 0.
-.sp
-.TP
-.B trim \fIlobId \-length $length\fR
-.br
-Trims the CLOB specified by \fIlobId\fR to \fI$length\fR characters.
-.sp
-.TP
-\fBsubstr \fIlobId \-start $start \-stop $stop \-datavar varname\fR
-.br
-Reads characters of the CLOB specified by \fIlobId\fR, beginning at
+Reads characters of the LOB specified by \fILOB\-handle\fR, beginning at
 \fI$startpos\fR and ending at \fI$stoppos\fR, into \fIvarname\fR.
 \fI$startpos\fR and \fI$stoppos\fR both default to 0.
 .sp
 .TP
-\fBinstr \fIlobId \-pattern $pattern \-start $start \-nth $nth\fR
+.B write \fILOB\-handle \-datavar varname\fR
 .br
-Returns the position in the CLOB specified by \fIlobId\fR at which the
+Write the data in the variable identified by \fIvarname\fR into the
+LOB specified by \fILOB\-handle\fR.
+.sp
+.TP
+.B append \fILOB\-handle1 LOB\-handle2\fR
+.br
+Appends the contents of the LOB specified by \fILOB\-handle2\fR to the
+LOB specified by \fILOB\-handle1\fR.  Both LOBs must be of the same
+type (Binary or Character).
+.sp
+.TP
+.B erase \fILOB\-handle \-start $start\fR \fI\-stop $stop\fR
+.br
+Overwrites the data in the LOB specified by \fILOB\-handle\fR from
+\fI$start\fR to \fI$stop\fR with NULL characters.
+\fI$start\fR and \fI$stop\fR both default to 0.
+.sp
+.TP
+.B trim \fILOB\-handle \-length $length\fR
+.br
+Trims the LOB specified by \fILOB\-handle\fR to \fI$length\fR characters or
+bytes.
+.sp
+.TP
+.B length \fILOB\-handle\fR
+.br
+Returns the length (in characters or bytes) of the LOB specified by
+\fILOB\-handle\fR.
+.sp
+.TP
+\fBinstr \fILOB\-handle \-pattern $pattern \-start $start \-nth $nth\fR
+.br
+Returns the position in the LOB specified by \fILOB\-handle\fR at which the
 \fI$nth\fR occurrence of the pattern \fI$pattern\fR appears.  The
 search is started at \fI$start\fR.  \fI$start\fR defaults to 0
 and \fI$nth\fR defaults to 1.
-.in -.5i
 .sp
 .RE
 .RS
-The \fBoraclob\fR commands are a collection of TCL and anonymous
+\fBcompare \fILOB\-handle1 LOB\-handle2 \-start1 $start1 \-start2 $start2 \-length $length\fR
+.br
+.RS
+Compares the two LOBs specified by \fILOB\-handle1\fR and
+\fILOB\-handle2\fR.  The comparison is begun at the position indicated
+by \fI$start1\fR (in LOB 1) and \fI$start2\fR (LOB 2) and continues
+for \fI$length\fR positions.  A return value of 0 indicates that the
+two LOBs are identical through the positions specified.  A non-zero
+return value indicates that the two LOBs differ.
+.RE
+.sp
+.RE
+.RS
+The \fBoralob\fR commands are a collection of TCL and anonymous
 PL/SQL wrappers for the Oracle \fBdbms_lob\fR PL/SQL package and
 therefore require the \fIrowid\fR (as well as the table name and
-column name) of the CLOB in order to operate.  The \fIrowid\fR
+column name) of the LOB in order to operate.  The \fIrowid\fR
 of a row may be determined easily, as shown in the example below.
 .sp
-.B CLOB Example
+.B LOB Example
 .sp
 .RS 
 .nf
 # Assume that $sth is a valid statement-handle 
-.br
 # opened earlier
-.br
 orasql $sth "select rowid from my_table \\
-.br
        where my_key = 'keyvalue'"
-.br
 orafetch $sth "set rowid @1"
-.br
 set data "abcdeabcdeabcde"
-.br
-set lobid [oraclob alloc $sth -table "my_table" \\
-.br
+set lobid [oralob alloc $sth -table "my_table" \\
   	     -column "clob_col" -rowid $rowid]
-oraclob write $lobid -datavar data
-.br
-set l [oraclob length $lobid]
-.br
+oralob write $lobid -datavar data
+set l [oralob length $lobid]
 # $l == 15
-.br
 set data ""
-.br
-oraclob read $lobid -datavar data
-.br
+oralob read $lobid -datavar data
 # $data contains "abcdeabcdeabcde"
-.br
-set i [oraclob instr $lobid -pattern "eab" -start 3 -nth 2]
-.br
+set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
 # $i == 9 -- TCL-like indexing, not Oracle indexing
 .br
 .fi
@@ -481,10 +495,13 @@ Tcl error if the \fIlogon-handle\fR specified is not open.
 .TP
 .B orainfo \fIoption ?args?\fR
 .br
-Retrieves information about oratcl.  \fIOption\fR may be either "version"
-or "server".  "orainfo version" returns the current oratcl version.
-"orainfo server" requires a valid logon handle previously opened with
-\fBoralogon\fR as an argument and returns the oracle server information.
+Retrieves information about oratcl.  \fIOption\fR may be either
+"version", "server", or "loginhandle".  "orainfo version" returns the
+current oratcl version.  "orainfo server" requires a valid logon
+handle previously opened with \fBoralogon\fR as an argument and
+returns the oracle server information.  "orainfo logonhandle" requires
+a statement handle previously opened with \fBoraopen\fR and returns the 
+login handle that the login handle was opened under.
 .sp
 .RS .5i
 .B EXAMPLES
@@ -493,6 +510,9 @@ or "server".  "orainfo version" returns the current oratcl version.
 .sp
 	set lda [oralogon username/password@db]
 	puts [orainfo server $lda]
+.sp
+	set sth [oraopen $lda]
+	set mylda [orainfo loginhandle $sth]
 .fi
 .RE	
 
@@ -527,31 +547,31 @@ to Oracle Error Messages and Codes manual for detailed information.
 Typical values are:
 .RS
 .TP
-.B 0
+.B " 0"
 .br
 Function completed normally, without error.
 .TP
-.B 900-999
+.B " 900-999"
 .br
 invalid SQL statement, invalid sql statements, missing keywords, invalid
 column names, etc.
 .TP
-.B 1000-1099
+.B " 1000-1099"
 .br
 program interface error, e.g., no sql statement parsed, 
 SQL bind variables not bound,
 logon denied,
 insufficient privileges, etc.
 .TP
-.B 1400-1499
+.B " 1400-1499"
 .br
 execution errors or feedback.
 .TP
-.B 1403
+.B " 1403"
 .br
 end of data was reached on an orafetch command.
 .TP
-.B 1406
+.B " 1406"
 .br
 a column fetched by orafetch was truncated.  Can occur when fetching a 
 LONG or LONG RAW, and the \fImaxlong\fR value is smaller than the
@@ -613,13 +633,6 @@ The maximum amount of LONG or LONG RAW data returned by \fBorafetch\fR
 is ultimately dependent on Oratcl's ability to malloc() \fImaxlong\fR
 bytes of memory for each LONG/LONG RAW column retrieved.  Configuring
 maxlong to too high a value may cause core dumps or memory shortages.
-'' .TP
-'' .B Row Caching
-'' Orafetch normally caches 10 rows (or the number set by 
-'' \fBoraconfig fetchrows\fR) at a time from the Oracle server.  
-'' When a query contains a Binary or Character Long Object (BLOB or CLOB)
-'' column, single rows are retrieved from the server in order to prevent
-'' memory shortages.
 .TP
 .B Ref Cursor
 Ref-cursor variables returned by oraplexec must be specified as a currently
@@ -628,23 +641,14 @@ open statement handle from the same logon connection:
 .nf
 .sp
 set lda [oralogon scott/tiger]
-.br
 set exec_cur [oraopen $lda]
-.br
 set fetch_cur [oraopen $lda]
-.br
 set plsql { begin
-.br
 	   open :fetchcur for select empno, ename
-.br
 	   from emp where job = :job ;
-.br
 	   end;
-.br
 	}
-.br
 oraplexec  $exec_cur  $plsql  :job  ANALYST  :fetchcur  $fetch_cur
-.br
 orafetch  $fetch_cur  {puts "$empno $ename"}  ""  empno  1  ename  2
 .fi
 .RE
@@ -656,13 +660,9 @@ SQL statements.  Use a combination of orasql ... -parseonly / orabindexec:
 .RS
 .nf
 set sql "insert into name_tab(first_name) values(:firstname)" 
-.br
 orasql $cur $sql -parseonly
-.br
 foreach name [list Ted Alice John Sue] {
-.br
   orabindexec $cur :firstname $name
-.br
 }
 .sp
 .fi
@@ -672,11 +672,8 @@ rather than:
 .RS
 .nf
 foreach name [list Ted Alice John Sue] {
-.br
   set sql "insert into name_tab(first_name) values('$name')"
-.br
   orasql $cur $sql
-.br
 }
 .sp
 .fi
@@ -708,7 +705,7 @@ the Sybase RDBMS product.
 .P
 tpoindex@nyx.net
 .P
-Todd Helfter, Purdue University.  Version 3.0 released May 2000.
+Todd Helfter, Purdue University.  Version 3.1 released September 2000.
 Created with permission from Tom Poindexter.
 .P
 tmh@purdue.edu

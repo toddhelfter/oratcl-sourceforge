@@ -103,6 +103,12 @@ to  larger numbers for queries that return many rows may dramatically decrease
 the time spent fetching the rows.  Changes to <I>fetchrows</I> only affects subsequent
 <B>orasql</B> commands.  <I>Fetchrows</I> defaults to 10 rows  and the maximum is dependent
 upon available memory. </DD>
+
+<DT><I>lobpsize</I></DT>
+<DD>Sets or returns the amount of of data (in
+characters) used in piecewise reads and writes to LOB types in the <B>oralob</B>
+command.  <I>Lobpsize</I> defaults to 10,000 characters and the maximum is 15,000
+characters. </DD>
 </DL>
 </blockquote>
 <P>
@@ -162,65 +168,67 @@ Orabindexec will return "0" when the SQL is executed successfully;
  "1003" if a previous SQL has not been parsed with orasql; "1008" if not
 all SQL bind variables have been specified.  Refer to Oracle error numbers
 and messages for other possible values. <P>
-
-<DT><B>orafetch <I>statement-handle  ?commands?  ?substitution_character? ?varname 
-column ...?</I></B> </DT>
-<DD><BR>
-Return the next row from the last SQL statement executed with <B>orasql</B> as
-a Tcl list. <I>Statement-handle</I> must be a valid handle previously opened with
- <B>oraopen</B>. <B>Orafetch</B> raises a Tcl error if the statement handle specified
-is not  open. All returned columns are converted to character strings.  A
-null string is returned if there are no more rows in the current set of
-results. The Tcl list that is returned by <B>orafetch</B> contains the values of
-the selected columns in the order specified by <I>select</I>. <P>
-The optional <I>commands</I>
-argument allows <B>orafetch</B> to repeatedly fetch rows and execute <I>commands</I>
-for each row. Substitutions are made on <I>commands</I> before passing it to Tcl_Eval()
-for each row.   An optional fourth argument consisting of a single character
-can be specified for a column number substitution character.  If none is
-specified the character '@' will be used to denote the substitution character.
-If the substitution character is a null string, no column substitutions
-will be performed on the <I>commands</I> string. <B>Orafetch</B> interprets the substitution
-character followed by a number (<B>@n</B>) in commands as a  result column specification.
- For example, <B>@1, @2, @3</B> refer to the first, second, and third columns
-in the result.  <B>@0</B> refers to the entire result row, as a Tcl list. Substitution
-columns may appear in any order, or more than once in the same command.
-Substituted columns are inserted into the commands string as proper list
-elements, i.e., one space will be added before and after the substitution
-and column values with embedded spaces are enclosed by {} if needed. <P>
-Tcl
-variables may also be set for <I>commands</I> on each row that is processed.  Tcl
-variables are specified after the <I>substitution_character</I>, consisting of
-matching pairs of Tcl variable names and a column numbers. Column number
-may be "0", in which the Tcl variable is set to the entire result row as
-a Tcl list.  Column numbers must be less than or equal to the number of
-columns in the SQL result set. <P>
-A Tcl error is raised if a column substitution
-number is greater than the number of columns in the results.  If the commands
-execute <B>break</B>, <B>orafetch</B> execution is interrupted and returns with TCL_OK.
- Remaining rows may be fetched with a subsequent <B>orafetch</B> command.   If
-the commands execute <B>return</B> or <B>continue</B>, the remaining commands are skipped
-and orafetch execution continues with the next row. Orafetch will raise
-a Tcl error if the <I>commands</I> return an error. Commands should be enclosed
-in "" or {}. <P>
-Oratcl performs conversions for all data types.  Raw data is
-returned  as a hexadecimal string, without a leading "0x".  Use the SQL
-functions to force a specific conversion. <P>
-The <B>oramsg</B> array index <I>rc</I> is set
-with the return code of the fetch.  0 indicates the row was fetched successfully;
-1403 indicates the end of data was reached. <P>
-The index <I>rows</I> is set to  the
-cumulative number of rows fetched so far. <P>
-The <B>oramsg</B> array index <I>maxlong</I>
-limits the amount of long or long raw data returned for each column returned.
- The default is 32768 bytes.   <P>
-The <B>oramsg</B> array index <I>nullvalue</I> can be set
-to specify the value returned when a column is null.  The default is "0"
-for numeric data, and "" for other datatypes. <P>
 </DD>
+</DL>
+</blockquote>
+<B>orafetch</B> <I>statement-handle ?commands?
+?substitution_character? <I>?varname colnum ...?</I></I> <blockquote>Return the next row from the
+last SQL statement executed with <B>orasql</B> as a Tcl list. <I>Statement-handle</I> must
+be a valid handle previously opened with  <B>oraopen</B>. <B>Orafetch</B> raises a Tcl
+error if the statement handle specified is not  open. All returned columns
+are converted to character strings.  A null string is returned if there
+are no more rows in the current set of results. The Tcl list that is returned
+by <B>orafetch</B> contains the values of the selected columns in the order specified
+by <I>select</I>. <P>
+The optional <I>commands</I> argument allows <B>orafetch</B> to repeatedly
+fetch rows and execute <I>commands</I> for each row. Substitutions are made on
+<I>commands</I> before passing it to Tcl_Eval() for each row.   An optional fourth
+argument consisting of a single character can be specified for a column
+number substitution character.  If none is specified the character '@' will
+be used to denote the substitution character. If the substitution character
+is a null string, no column substitutions will be performed on the <I>commands</I>
+string. <B>Orafetch</B> interprets the substitution character followed by a number
+(<B>@n</B>) in commands as a  result column specification.  For example, <B>@1, @2,
+@3</B> refer to the first, second, and third columns in the result.  <B>@0</B> refers
+to the entire result row, as a Tcl list. Substitution columns may appear
+in any order, or more than once in the same command. Substituted columns
+are inserted into the commands string as proper list elements, i.e., one
+space will be added before and after the substitution and column values
+with embedded spaces are enclosed by {} if needed. <P>
+Tcl variables may also
+be set for <I>commands</I> on each row that is processed.  Tcl variables are specified
+after the <I>substitution_character</I>, consisting of matching pairs of Tcl variable
+names and a column numbers. Column number may be "0", in which the Tcl variable
+is set to the entire result row as a Tcl list.  Column numbers must be less
+than or equal to the number of columns in the SQL result set. <P>
+A Tcl error
+is raised if a column substitution number is greater than the number of
+columns in the results.  If the commands execute <B>break</B>, <B>orafetch</B> execution
+is interrupted and returns with TCL_OK.  Remaining rows may be fetched with
+a subsequent <B>orafetch</B> command.   If the commands execute <B>return</B> or <B>continue</B>,
+the remaining commands are skipped and orafetch execution continues with
+the next row. Orafetch will raise a Tcl error if the <I>commands</I> return an
+error. Commands should be enclosed in "" or {}. <P>
+Oratcl performs conversions
+for all data types.  Raw data is returned  as a hexadecimal string, without
+a leading "0x".  Use the SQL functions to force a specific conversion. <P>
+The
+<B>oramsg</B> array index <I>rc</I> is set with the return code of the fetch.  0 indicates
+the row was fetched successfully; 1403 indicates the end of data was reached.
+<P>
+The index <I>rows</I> is set to  the cumulative number of rows fetched so far.
+<P>
+The <B>oramsg</B> array index <I>maxlong</I> limits the amount of long or long raw data
+returned for each column returned.  The default is 32768 bytes.   <P>
+The <B>oramsg</B>
+array index <I>nullvalue</I> can be set to specify the value returned when a column
+is null.  The default is "0" for numeric data, and "" for other datatypes.
+<P>
+</blockquote>
 
-<DT><B>oraplexec <I>statement-handle
- pl-block  ?:varname  value ...?</I></B> </DT>
+<DL>
+
+<DT><B>oraplexec <I>statement-handle  pl-block  ?:varname  value ...?</I></B> </DT>
 <DD><BR>
 Execute an anonymous PL block, optionally binding values to PL/SQL variables.
 <P>
@@ -246,8 +254,127 @@ procedure. The <B>oramsg</B> array index <I>errortxt</I>  contains the Oracle er
 from the stored procedure if one is  generated. <P>
 </DD>
 
-<DT><B>oracols <I>statement-handle
-?option?</I></B> </DT>
+<DT><B>oralob <I>sub-command handle
+?options ...?</I></B> </DT>
+<DD><BR>
+Perform operations on Oracle Long Objects. <P>
+<I>Handle</I> must be either a valid
+statement handle previously opened with <B>oraopen</B> or a LOB handle created
+with the <B>alloc</B> sub-command.  Both Binary Long Object (BLOB) and Character
+Long Object (CLOB) columns are supported by the <B>oralob</B> command. <P>
+The following
+<I>sub-commands</I> are available: </DD>
+</DL>
+</blockquote>
+<blockquote><P>
+<B>alloc <I>statement-handle -table $table -column $column
+-rowid $rowid</I></B> <blockquote>Create and return a LOB handle that refers to the LOB specified
+by (<I>$table</I>, <I>$column</I>, <I>$rowid</I>).  <I>statement-handle</I> must be a statement handle
+previously created with <B>oraopen</B> and will be used implicitly by the other
+<B>oralob</B> sub-commands that operate on this LOB. </blockquote>
+<P>
+
+<DL>
+
+<DT><B>free <I>LOB-handle</I></B> </DT>
+<DD><BR>
+Destroy the LOB handle and free any resources associated with it. <P>
+</DD>
+
+<DT><B>read <I>LOB-handle
+-datavar varname</I></B> </DT>
+<DD><BR>
+Read the LOB specified by <I>LOB-handle</I> into the variable identified by <I>varname</I>.
+<P>
+</DD>
+
+<DT><B>substr <I>LOB-handle -start $start -stop $stop -datavar varname</I></B> </DT>
+<DD><BR>
+Reads characters of the LOB specified by <I>LOB-handle</I>, beginning at <I>$startpos</I>
+and ending at <I>$stoppos</I>, into <I>varname</I>. <I>$startpos</I> and <I>$stoppos</I> both default
+to 0. <P>
+</DD>
+
+<DT><B>write <I>LOB-handle -datavar varname</I></B> </DT>
+<DD><BR>
+Write the data in the variable identified by <I>varname</I> into the LOB specified
+by <I>LOB-handle</I>. <P>
+</DD>
+
+<DT><B>append <I>LOB-handle1 LOB-handle2</I></B> </DT>
+<DD><BR>
+Appends the contents of the LOB specified by <I>LOB-handle2</I> to the LOB specified
+by <I>LOB-handle1</I>.  Both LOBs must be of the same type (Binary or Character).
+<P>
+</DD>
+
+<DT><B>erase <I>LOB-handle -start $start</I> <I>-stop $stop</I></B> </DT>
+<DD><BR>
+Overwrites the data in the LOB specified by <I>LOB-handle</I> from <I>$start</I> to <I>$stop</I>
+with NULL characters. <I>$start</I> and <I>$stop</I> both default to 0. <P>
+</DD>
+
+<DT><B>trim <I>LOB-handle
+-length $length</I></B> </DT>
+<DD><BR>
+Trims the LOB specified by <I>LOB-handle</I> to <I>$length</I> characters or bytes. <P>
+</DD>
+
+<DT><B>length
+<I>LOB-handle</I></B> </DT>
+<DD><BR>
+Returns the length (in characters or bytes) of the LOB specified by <I>LOB-handle</I>.
+<P>
+</DD>
+
+<DT><B>instr <I>LOB-handle -pattern $pattern -start $start -nth $nth</I></B> </DT>
+<DD><BR>
+Returns the position in the LOB specified by <I>LOB-handle</I> at which the <I>$nth</I>
+occurrence of the pattern <I>$pattern</I> appears.  The search is started at <I>$start</I>.
+ <I>$start</I> defaults to 0 and <I>$nth</I> defaults to 1. <P>
+</DD>
+</DL>
+</blockquote>
+<blockquote><B>compare <I>LOB-handle1 LOB-handle2
+-start1 $start1 -start2 $start2 -length $length</I></B> <BR>
+<blockquote>Compares the two LOBs specified by <I>LOB-handle1</I> and <I>LOB-handle2</I>.  The comparison
+is begun at the position indicated by <I>$start1</I> (in LOB 1) and <I>$start2</I> (LOB
+2) and continues for <I>$length</I> positions.  A return value of 0 indicates that
+the two LOBs are identical through the positions specified.  A non-zero return
+value indicates that the two LOBs differ. </blockquote>
+<P>
+</blockquote>
+<blockquote>The <B>oralob</B> commands are a collection
+of TCL and anonymous PL/SQL wrappers for the Oracle <B>dbms_lob</B> PL/SQL package
+and therefore require the <I>rowid</I> (as well as the table name and column name)
+of the LOB in order to operate.  The <I>rowid</I> of a row may be determined easily,
+as shown in the example below. <P>
+<B>LOB Example</B> <P>
+<blockquote><BR>
+<PRE># Assume that $sth is a valid statement-handle 
+# opened earlier
+orasql $sth "select rowid from my_table \
+       where my_key = 'keyvalue'"
+orafetch $sth "set rowid @1"
+set data "abcdeabcdeabcde"
+set lobid [oralob alloc $sth -table "my_table" \
+  <tt> </tt>&nbsp;<tt> </tt>&nbsp;     -column "clob_col" -rowid $rowid]
+oralob write $lobid -datavar data
+set l [oralob length $lobid]
+# $l == 15
+set data ""
+oralob read $lobid -datavar data
+# $data contains "abcdeabcdeabcde"
+set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
+# $i == 9 -- TCL-like indexing, not Oracle indexing
+
+</PRE></blockquote>
+</blockquote>
+<P>
+
+<DL>
+
+<DT><B>oracols <I>statement-handle ?option?</I></B> </DT>
 <DD><BR>
 Return the names of the columns from the last <B>orasql, orafetch,</B> or <B>oraplexec</B>
 command as a Tcl list. The <B>oracols</B> may be used after <B>oraplexec</B>, in which
@@ -330,15 +457,21 @@ off) for validation purposes. The automatic commit feature defaults to "off".
 
 <DT><B>orainfo <I>option ?args?</I></B> </DT>
 <DD><BR>
-Retrieves information about oratcl.  <I>Option</I> may be either "version" or "server".
- "orainfo version" returns the current oratcl version. "orainfo server"
-requires a valid logon handle previously opened with <B>oralogon</B> as an argument
-and returns the oracle server information. <P>
-<blockquote><B>EXAMPLES</B> <BR>
+Retrieves information about oratcl.  <I>Option</I> may be either "version", "server",
+or "loginhandle".  "orainfo version" returns the current oratcl version.
+ "orainfo server" requires a valid logon handle previously opened with
+<B>oralogon</B> as an argument and returns the oracle server information.  "orainfo
+logonhandle" requires a statement handle previously opened with <B>oraopen</B>
+and returns the  login handle that the login handle was opened under. <P>
+<blockquote><B>EXAMPLES</B>
+<BR>
 <PRE><tt> </tt>&nbsp;<tt> </tt>&nbsp;puts [orainfo version]
 
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;set lda [oralogon username/password@db]
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;puts [orainfo server $lda]
+
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;set sth [oraopen $lda]
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;set mylda [orainfo loginhandle $sth]
 </PRE></DD>
 </DL>
 </blockquote>
@@ -369,27 +502,36 @@ indicates the results of the last SQL command and subsequent orafetch processing
  Rc is set by orasql, orafetch, oraplexec,  and is  the numeric return
 code from the last OCI library function called by an Oratcl command.  Refer
 to Oracle Error Messages and Codes manual for detailed information. Typical
-values are: <blockquote></LI><B></B><LI><BR>
+values are: <blockquote></DD>
+
+<DT><B> 0</B> </DT>
+<DD><BR>
 Function completed normally, without error. </DD>
 
-<DT><B>900-999</B> </DT>
+<DT><B> 900-999</B> </DT>
 <DD><BR>
 invalid SQL statement, invalid sql statements, missing keywords, invalid
 column names, etc. </DD>
 
-<DT><B>1000-1099</B> </DT>
+<DT><B> 1000-1099</B> </DT>
 <DD><BR>
 program interface error, e.g., no sql statement parsed,  SQL bind variables
 not bound, logon denied, insufficient privileges, etc. </DD>
 
-<DT><B>1400-1499</B> </DT>
+<DT><B> 1400-1499</B> </DT>
 <DD><BR>
-execution errors or feedback. </LI><B></B><LI><BR>
-end of data was reached on an orafetch command. </LI><B></B><LI><BR>
+execution errors or feedback. </DD>
+
+<DT><B> 1403</B> </DT>
+<DD><BR>
+end of data was reached on an orafetch command. </DD>
+
+<DT><B> 1406</B> </DT>
+<DD><BR>
 a column fetched by orafetch was truncated.  Can occur when fetching a 
 LONG or LONG RAW, and the <I>maxlong</I> value is smaller than the acutal data
-size. </LI>
-</OL>
+size. </DD>
+</DL>
 </blockquote>
 
 <DL>
@@ -453,7 +595,7 @@ of slave interpreter interaction. </DD>
 LONG or LONG RAW data returned by <B>orafetch</B> is ultimately dependent on Oratcl's
 ability to malloc() <I>maxlong</I> bytes of memory for each LONG/LONG RAW column
 retrieved.  Configuring maxlong to too high a value may cause core dumps
-or memory shortages.        </DD>
+or memory shortages. </DD>
 
 <DT><B>Ref Cursor</B> </DT>
 <DD>Ref-cursor variables returned by oraplexec
@@ -461,23 +603,14 @@ must be specified as a currently open statement handle from the same logon
 connection: <blockquote><BR>
 <PRE>
 set lda [oralogon scott/tiger]
-
 set exec_cur [oraopen $lda]
-
 set fetch_cur [oraopen $lda]
-
 set plsql { begin
-
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;   open :fetchcur for select empno, ename
-
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;   from emp where job = :job ;
-
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;   end;
-
 <tt> </tt>&nbsp;<tt> </tt>&nbsp;}
-
 oraplexec  $exec_cur  $plsql  :job  ANALYST  :fetchcur  $fetch_cur
-
 orafetch  $fetch_cur  {puts "$empno $ename"}  ""  empno  1  ename  2
 </PRE></DD>
 </DL>
@@ -491,13 +624,9 @@ Oracle reparse SQL statements.  Use a combination of orasql ... -parseonly /
 orabindexec: <P>
 <blockquote><BR>
 <PRE>set sql "insert into name_tab(first_name) values(:firstname)" 
-
 orasql $cur $sql -parseonly
-
 foreach name [list Ted Alice John Sue] {
-
   orabindexec $cur :firstname $name
-
 }
 
 </PRE></DD>
@@ -506,11 +635,8 @@ foreach name [list Ted Alice John Sue] {
 rather than: <P>
 <blockquote><BR>
 <PRE>foreach name [list Ted Alice John Sue] {
-
   set sql "insert into name_tab(first_name) values('$name')"
-
   orasql $cur $sql
-
 }
 
 </PRE></blockquote>
@@ -555,7 +681,7 @@ released May 1997. Concepts borrowed from my earlier work with Sybtcl, a
 TCL interface to the Sybase RDBMS product. <P>
 tpoindex@nyx.net <P>
 Todd Helfter,
-Purdue University.  Version 3.0 released May 2000. Created with permission
+Purdue University.  Version 3.1 released September 2000. Created with permission
 from Tom Poindexter. <P>
 tmh@purdue.edu <P>
 <P>
