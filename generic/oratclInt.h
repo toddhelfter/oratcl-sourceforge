@@ -12,6 +12,7 @@
 #ifndef _ORATCLINT_H
 #define _ORATCLINT_H
 
+#include <oci.h>
 #include <tcl.h>
 
 /* _ANSI_ARGS_ should be defined by tcl.h; ignore if not defined */

@@ -15,7 +15,6 @@
 #include <windows.h>
 #endif
 
-#include "oratclExt.h"
 #include "oratclInt.h"
 #include "oratcl.h"
 #include <tcl.h>

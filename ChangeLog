@@ -479,7 +479,3 @@ Version 4.2 May, 2003
 	to (void *) 0 in calls to OCIBindByName() and OCIStmtSetPieceInfo().
 	This fixes an oracle error encountered in "oralong read".
 
-26-JUL-2004
-
-    -	Added oratclExt.h file to contain oracle defined constants and types.
-	Eliminated all dependence on oracle supplied include files.
