@@ -95,6 +95,8 @@ typedef struct OratclLogs {
 	int		logid;		/* login handle id	*/
 	int		ora_rc;		/* oracle return code	*/
 	Tcl_DString	ora_err;	/* oracle error text	*/
+	char		*failovercallback; /* TAF failover	*/
+	Tcl_Interp	*interp;	/* for TAF callback	*/
 } OratclLogs;
 
 /* use size_t instead */

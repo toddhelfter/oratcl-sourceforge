@@ -4,6 +4,15 @@ Oratcl change history
 Version 4.3,  Nov, 2004
 
 Nov 29 2004
+
+	**  Incorporate patches provided by Christian Traber (christian@traber-net.de)
+	These patches add a new TAF failover functionality to Oratcl..
+	"Its a new option (-failovercallback <procanme>) for the oralogon 
+	command. The given procedure is called from OCI on TAF failover.
+	I use it to reexecute "alter session" statements after the automatic 
+	reconnect in case of failover to another RAC node."
+
+Nov 29 2004
 	add .cvsignore file in root directory
 	Renamed oraconst.h to oradefs.h
 	Fix oratypes.h to work in windows and unix.

@@ -334,6 +334,38 @@ extern int	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp	*interp,
 extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 
+/* 
+ *----------------------------------------------------------------------
+ * TAF Callback
+ *
+ *----------------------------------------------------------------------
+ */
+sb4 callback_fn(svchp, envhp, fo_ctx, fo_type, fo_event)
+	dvoid		*svchp;
+	dvoid		*envhp;
+	dvoid		*fo_ctx;
+	ub4		fo_type;
+	ub4		fo_event;
+{
+	int		res;
+
+	OratclLogs *LogPtr = (OratclLogs*)fo_ctx;
+	char buffer[100];
+
+	sprintf(buffer,
+		"%s %d %d",
+		LogPtr->failovercallback,
+		fo_type,
+		fo_event);
+	res = Tcl_Eval(LogPtr->interp, buffer);
+	if (res != TCL_OK) {
+		Tcl_BackgroundError(LogPtr->interp);
+	}
+
+	return 0;
+}
+
+
 /*
  *----------------------------------------------------------------------
  * Oratcl_ErrorMsg
@@ -1160,6 +1192,10 @@ Oratcl_LogFree (LogPtr)
 		if (LogPtr->envhp)
 			(void) OCI_HandleFree((dvoid *) LogPtr->envhp,
 					      (ub4) OCI_HTYPE_ENV);
+		if (LogPtr->failovercallback != NULL) {
+			ckfree(LogPtr->failovercallback);
+			LogPtr->failovercallback = NULL;
+		}
 
 		ckfree((char *) LogPtr);
 	}
@@ -1507,6 +1543,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
+	OCIFocbkStruct	failover;
+	int		i;
 	Tcl_HashEntry	*logHashPtr;
 	OratclLogs	*LogPtr;
 	int		new;
@@ -1564,6 +1602,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	LogPtr->autocom = 0;
 	LogPtr->async = 0;
 	LogPtr->ora_rc = 0;
+	LogPtr->failovercallback = NULL;
 	Tcl_DStringInit(&LogPtr->ora_err);
 	LogPtr->logid = OratclStatePtr->logid;
 
@@ -1717,13 +1756,51 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 	/* check for options and deprecated keywords */
-	if (objc >= 3) {
+	for (i = 2; i < objc; i++) {
 		p = Tcl_GetStringFromObj(objv[2], NULL);
 		if (*p == '-') {
 			p++;
 		}
 		if (strcmp(p,"async") == 0) {
 			LogPtr->async = 1;
+		}
+		if (strcmp(p,"failovercallback") == 0) {
+			if (objc > i) {
+				i++;
+				p = Tcl_GetStringFromObj(objv[i], NULL);
+
+				/* append oralogon handle string */
+				LogPtr->failovercallback = ckalloc(strlen(p) + strlen(buf) +2);
+				sprintf(LogPtr->failovercallback, "%s %s", p, buf);
+				LogPtr->interp = interp;
+				failover.fo_ctx = (dvoid *)LogPtr;
+				failover.callback_function = &callback_fn;
+
+				/* OCI callback registration */
+				rc = OCI_AttrSet(LogPtr->srvhp,
+						 (ub4) OCI_HTYPE_SERVER,
+						 (dvoid *) &failover,
+						 (ub4) 0,
+						 (ub4) OCI_ATTR_FOCBK,
+						 LogPtr->errhp);
+
+				Oratcl_Checkerr(interp,
+						LogPtr->errhp,
+						rc,
+						0,
+						&LogPtr->ora_rc,
+						&LogPtr->ora_err);
+
+				if (rc != OCI_SUCCESS) {
+					Oratcl_ErrorMsg(interp,
+							objv[0],
+							"TAF register Error.",
+							(Tcl_Obj *) NULL,
+							(char *) NULL);
+					tcl_return = TCL_ERROR;
+					goto common_exit;
+				}
+			}
 		}
 	}
 
