@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.6 2001-06-12 18:46:36 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.7 2001-09-03 21:32:32 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -267,7 +267,7 @@ proc oralob {command handle args} {
 #
 proc ::oratcl::lob_alloc {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 
 	variable lobidx 
 	variable loblst
@@ -300,7 +300,7 @@ proc ::oratcl::lob_alloc {handle args} {
 	set tcl_rc [catch {orainfo loginhandle $handle} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -309,7 +309,7 @@ proc ::oratcl::lob_alloc {handle args} {
 	set tcl_rc [catch {oradesc $loghandle $oralob(table)} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -348,7 +348,7 @@ proc ::oratcl::lob_alloc {handle args} {
 			  tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -389,7 +389,7 @@ proc ::oratcl::lob_free {handle} {
 #
 proc ::oratcl::lob_read {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -420,7 +420,7 @@ proc ::oratcl::lob_read {handle args} {
 	set tcl_rc [catch {::oratcl::lob_length $handle} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 	set len $tcl_res
@@ -449,7 +449,7 @@ proc ::oratcl::lob_read {handle args} {
 		if {$tcl_rc} {
 			set tcl_err 1
 			set info $errorInfo
-			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			break
 		}
 		set out [lindex $tcl_res 3]
@@ -477,7 +477,7 @@ proc ::oratcl::lob_read {handle args} {
 #
 proc ::oratcl::lob_write {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -514,7 +514,7 @@ proc ::oratcl::lob_write {handle args} {
 	set tcl_rc [catch {::oratcl::lob_trim $handle} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -541,7 +541,7 @@ proc ::oratcl::lob_write {handle args} {
 		if {$tcl_rc} {
 			set tcl_err 1
 			set info $errorInfo
-			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			break
 		}
 
@@ -562,7 +562,7 @@ proc ::oratcl::lob_write {handle args} {
 #
 proc ::oratcl::lob_length {handle} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 
 	set fn length
@@ -586,7 +586,7 @@ proc ::oratcl::lob_length {handle} {
 			  tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -598,7 +598,7 @@ proc ::oratcl::lob_length {handle} {
 #
 proc ::oratcl::lob_trim {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -630,7 +630,7 @@ proc ::oratcl::lob_trim {handle args} {
 			             :lob_len $oralob(length)}]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -642,7 +642,7 @@ proc ::oratcl::lob_trim {handle args} {
 #
 proc ::oratcl::lob_erase {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -694,7 +694,7 @@ proc ::oratcl::lob_erase {handle args} {
 				     :lob_off $off}]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -706,7 +706,7 @@ proc ::oratcl::lob_erase {handle args} {
 #
 proc ::oratcl::lob_substr {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -751,7 +751,7 @@ proc ::oratcl::lob_substr {handle args} {
 	set tcl_rc [catch {::oratcl::lob_length $handle} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -787,7 +787,7 @@ proc ::oratcl::lob_substr {handle args} {
 				  tcl_res] 
 		if {$tcl_rc} {
 			set info $errorInfo
-			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			return -code error $err_txt
 		}
 
@@ -811,7 +811,7 @@ proc ::oratcl::lob_substr {handle args} {
 #
 proc ::oratcl::lob_instr {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -875,7 +875,7 @@ proc ::oratcl::lob_instr {handle args} {
 			  tcl_res] 
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -887,7 +887,7 @@ proc ::oratcl::lob_instr {handle args} {
 #
 proc ::oratcl::lob_append {handle1 handle2} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -934,7 +934,7 @@ proc ::oratcl::lob_append {handle1 handle2} {
 			  tcl_res] 
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -946,7 +946,7 @@ proc ::oratcl::lob_append {handle1 handle2} {
 #
 proc ::oratcl::lob_compare {handle1 handle2 args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable loblst
 	variable oralob
 
@@ -1015,7 +1015,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		set tcl_rc [catch {::oratcl::lob_length $handle1} tcl_res]
 		if {$tcl_rc} {
 			set info $errorInfo
-			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			return -code error $err_txt
 		}
 		set han1_len $tcl_res
@@ -1024,7 +1024,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 		set tcl_rc [catch {::oratcl::lob_length $handle2} tcl_res]
 		if {$tcl_rc} {
 			set info $errorInfo
-			set err_txt "oralob $fn: $oramsg(errortxt) $info"
+			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			return -code error $err_txt
 		}
 		set han2_len $tcl_res
@@ -1051,7 +1051,7 @@ proc ::oratcl::lob_compare {handle1 handle2 args} {
 			  tcl_res] 
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralob $fn: $oramsg(errortxt) $info"
+		set err_txt "oralob $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 

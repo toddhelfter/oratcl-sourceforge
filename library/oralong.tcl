@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.4 2001-06-12 18:46:36 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.5 2001-09-03 21:32:32 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -86,7 +86,7 @@ proc oralong {command handle args} {
 #
 proc ::oratcl::long_alloc {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 
 	variable longidx 
 	variable longlst
@@ -119,7 +119,7 @@ proc ::oratcl::long_alloc {handle args} {
 	set tcl_rc [catch {orainfo loginhandle $handle} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralong $fn: $oramsg(errortxt) $info"
+		set err_txt "oralong $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -128,7 +128,7 @@ proc ::oratcl::long_alloc {handle args} {
 	set tcl_rc [catch {oradesc $loghandle $oralong(table)} tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralong $fn: $oramsg(errortxt) $info"
+		set err_txt "oralong $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -195,7 +195,7 @@ proc ::oratcl::long_free {handle} {
 #
 proc ::oratcl::long_read {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable longlst
 	variable oralong
 
@@ -234,7 +234,7 @@ proc ::oratcl::long_read {handle args} {
 
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralong $fn: $oramsg(errortxt) $info"
+		set err_txt "oralong $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
@@ -246,7 +246,7 @@ proc ::oratcl::long_read {handle args} {
 #
 proc ::oratcl::long_write {handle args} {
 
-	global oramsg errorInfo
+	global errorInfo
 	variable longlst
 	variable oralong
 
@@ -282,7 +282,7 @@ proc ::oratcl::long_write {handle args} {
 			   tcl_res]
 	if {$tcl_rc} {
 		set info $errorInfo
-		set err_txt "oralong $fn: $oramsg(errortxt) $info"
+		set err_txt "oralong $fn: [oramsg $handle error] $info"
 		return -code error $err_txt
 	}
 
