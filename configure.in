@@ -5,8 +5,8 @@ dnl
 
 AC_INIT(generic/oratcl.c)
 
-AC_CONFIG_AUX_DIR(../config)
-CONFIGDIR=${srcdir}/../config
+AC_CONFIG_AUX_DIR(config)
+CONFIGDIR=${srcdir}/config
 AC_SUBST(CONFIGDIR)
 
 AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
