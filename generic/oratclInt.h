@@ -118,8 +118,7 @@ typedef struct OratclStms {
 	ub2		sqltype;	/* the sql type attribute	*/
 	Tcl_HashEntry	*logHashPtr;
         int		logid;		/* login handle id		*/
-	int		oColslen;
-	Tcl_Obj		**oColsv;
+	Tcl_DString	datavar;	/* list for -datavariable 	*/
         int		stmid;		/* statement handle id		*/
 	int		utfmode;	/* utf conversion flag		*/
 	int		numbsize;	/* space to alloc for numbers	*/

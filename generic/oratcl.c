@@ -244,7 +244,7 @@ Oratcl_Exit (clientData)
 	Tcl_DecrRefCount(OMV_null);
 	Tcl_DecrRefCount(OMV_zero);
 
-#if 1
+#if 0
 	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
 #endif
 }
@@ -263,7 +263,6 @@ Oratcl_Delete (clientData, interp)
     Tcl_Interp *interp;
 {
 	Oratcl_Clean(clientData);
-
 }
 
 
@@ -774,9 +773,7 @@ Oratcl_StmFree (StmPtr)
 
 		Tcl_DecrRefCount(StmPtr->nullvalue);
 		Tcl_DStringFree(&StmPtr->ora_err);
-
-		if (StmPtr->oColsv != NULL)
-			ckfree((char *) StmPtr->oColsv);
+		Tcl_DStringFree(&StmPtr->datavar);
 
 		if (StmPtr->sub_list != NULL)
 			ckfree((char *) StmPtr->sub_list);
@@ -840,10 +837,12 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
 	char		*null_str;
-	int		oColsc = 0;
+	int		idx;
 	int		iTcl;
 
-	Tcl_DString	valStr;
+	Tcl_DString	uniStr;
+	char 		*tmp;
+	Tcl_Obj		*val_obj;
 	Tcl_Obj		*tmp_obj;
 	Tcl_Obj		*lst_obj;
 
@@ -869,86 +868,79 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
+	Tcl_DStringInit(&StmPtr->datavar);
 
-	for (col = ColPtr; col != NULL; col = col->next) {
+	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
+      
+		Tcl_DStringInit(&uniStr);
 
 		/* for cursor type, just return a null */
 		/* get pointer to next row column data buffer */
 
-		if (oColsc >= StmPtr->oColslen) {
-			StmPtr->oColslen += 10;
-			StmPtr->oColsv = (Tcl_Obj **) ckrealloc ((char *) StmPtr->oColsv,
-								 StmPtr->oColslen * sizeof(*StmPtr->oColsv));
-		}
-
-
 		if ((sb2) col->indp[rn] == -1) {
 			if (col->column.typecode == SQLT_CUR) {
-				StmPtr->oColsv[oColsc++] = OMV_null;
+				tmp = Tcl_GetStringFromObj(OMV_null, NULL);
 			} else {
 				/* default :: if number "0" else "" */
 				if (*null_str == 'd'
 				   && strcmp(null_str,"default") == 0) {
 
 					if (col->column.typecode == SQLT_NUM) {
-						StmPtr->oColsv[oColsc++] = OMV_zero;
+						tmp = Tcl_GetStringFromObj(OMV_zero, NULL);
 					} else {
-						StmPtr->oColsv[oColsc++] = OMV_null;
+						tmp = Tcl_GetStringFromObj(OMV_null, NULL);
 					}
 				} else {
 					/* return user defined nullvalue */
-					StmPtr->oColsv[oColsc++] = Tcl_DuplicateObj(StmPtr->nullvalue);
+					tmp = null_str;
 				}
 			}
 		} else {
 			if (col->column.valuesz > 0) {
+				tmp = col->column.valuep + (rn * col->column.valuesz);
                                 if (StmPtr->utfmode) {
-                                        Tcl_DStringInit(&valStr);
                                         Tcl_ExternalToUtfDString(NULL,
-								 col->column.valuep + (rn * col->column.valuesz),
+								 tmp,
 								 -1,
-								 &valStr);
-                                        StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&valStr),
-										    Tcl_DStringLength(&valStr));
-                                        Tcl_DStringFree(&valStr);
-                                } else {
-					StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(
-						col->column.valuep + (rn * col->column.valuesz),
-						-1);
+								 &uniStr);
+                                        tmp = Tcl_DStringValue(&uniStr);
 				}
 			} else {
-				StmPtr->oColsv[oColsc++] = OMV_null;
+				tmp = Tcl_GetStringFromObj(OMV_null, NULL);
 			}
 		}
 
 		if (arrayvar) {
+
+			val_obj = Tcl_NewStringObj((char *) tmp, -1);
+			Tcl_IncrRefCount(val_obj);
+
 			if (hashType) {
 				tmp_obj = Tcl_NewStringObj((char *) col->column.name,
 							   (int) col->column.namesz);
-				Tcl_IncrRefCount(tmp_obj);
-				Tcl_ObjSetVar2(interp,
-						arrayvar,
-						tmp_obj,
-						StmPtr->oColsv[oColsc - 1],
-						TCL_LEAVE_ERR_MSG);
-				Tcl_DecrRefCount(tmp_obj);
 			} else {
-				/*
-				 * it is ok that oColsc has been incremented already,
-				 * column 0 should be hash index 1
-				 */
-				Tcl_ObjSetVar2(interp,
-						arrayvar,
-						Tcl_NewIntObj(oColsc),
-						StmPtr->oColsv[oColsc - 1],
-						TCL_LEAVE_ERR_MSG);
+				tmp_obj = Tcl_NewIntObj(idx);
 			}
+
+			Tcl_IncrRefCount(tmp_obj);
+			Tcl_ObjSetVar2(interp,
+					arrayvar,
+					tmp_obj,
+					val_obj,
+					TCL_LEAVE_ERR_MSG);
+			Tcl_DecrRefCount(tmp_obj);
+
+			Tcl_DecrRefCount(val_obj);
 		}
 
+		Tcl_DStringAppendElement(&StmPtr->datavar, tmp);
+
+		Tcl_DStringFree(&uniStr);
 	}
 
 	if (listvar != NULL) {
-		lst_obj = Tcl_NewListObj(oColsc, StmPtr->oColsv);
+		lst_obj = Tcl_NewStringObj(Tcl_DStringValue(&StmPtr->datavar),
+					   Tcl_DStringLength(&StmPtr->datavar));
 		Tcl_IncrRefCount(lst_obj);
 		Tcl_ObjSetVar2(interp, listvar, NULL, lst_obj, 0);
 		Tcl_DecrRefCount(lst_obj);
@@ -2070,8 +2062,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->sqltype		= 0;
 	StmPtr->logHashPtr	= logHashPtr;
 	StmPtr->logid		= LogPtr->logid;
-	StmPtr->oColslen	= 0;
-	StmPtr->oColsv		= NULL;
+	Tcl_DStringInit(&StmPtr->datavar);
 	StmPtr->sub_list	= NULL;
 	StmPtr->sub_len		= 0;
 	StmPtr->utfmode		= 0;
