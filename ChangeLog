@@ -323,4 +323,11 @@ Version 3.3 August, 2001
         This will avoid a core dump if the ORACLE_HOME environment variable
         is not set on a unix platform.
 
+08-MAY-2003
+
+    -   Corrected massive memory leak of column names in 'oradesc'.
+	This decreases the memory loss in the 'oralong' and 'oralob' commands.
+	(Back ported from 4.2 development version)
+	Thanks to Manfred Frey (Manfred.Frey@ZF-Lenksysteme.com) for the alert.
+
 -----------------------------------------------------------------------------
