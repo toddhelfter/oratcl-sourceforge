@@ -42,6 +42,8 @@ orabind $lob_stm :lob_key l1
 oraexec $lob_stm
 orabind $lob_stm :lob_key l2
 oraexec $lob_stm
+orabind $lob_stm :lob_key l3
+oraexec $lob_stm
 
 oracommit $lob_lda
 
@@ -52,6 +54,9 @@ orafetch $lob_stm -datavariable rowid1
 orabind $lob_stm :lob_key l2
 oraexec $lob_stm
 orafetch $lob_stm -datavariable rowid2
+orabind $lob_stm :lob_key l3
+oraexec $lob_stm
+orafetch $lob_stm -datavariable rowid3
 
 set chr_data [string repeat 0123456789---------- 10000]
 
@@ -59,6 +64,32 @@ set fileId [open [info nameofexecutable] r]
 fconfigure $fileId -translation binary
 set bin_data [read $fileId]
 close $fileId
+
+test oralob-0.0 {oralob: all procs loaded} {
+	set procCtr 0
+	set procFnd 0
+	foreach procname { \
+		::oratcl::lob_alloc \
+		::oratcl::lob_append \
+		::oratcl::lob_compare \
+		::oratcl::lob_erase \
+		::oratcl::lob_free \
+		::oratcl::lob_instr \
+		::oratcl::lob_length \
+		::oratcl::lob_read \
+		::oratcl::lob_substr \
+		::oratcl::lob_trim \
+		::oratcl::lob_write \
+		::oratcl::lob_writeappend \
+	} {
+		incr procCtr
+		if {[string equal [info commands $procname] $procname]} {
+			incr procFnd
+		}
+	}
+	set res [expr {$procCtr == $procFnd}]
+	list $res
+} {1}
 
 test oralob-1.0 {oralob: alloc and free clob} {
 	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
@@ -259,6 +290,18 @@ test oralob-4.2 {oralob: write clob 'null string'} {
 	catch {oralob write $lob -datavar one_chr} write
 	catch {oralob read $lob -datavar one_out} res
 	set res [string equal $one_chr $one_out]
+	catch {oralob free $lob} free
+	set res
+} {1}
+
+test oralob-5.0 {oralob: writeappend clob 'double writeappend'} {
+	set in_str zz_xx
+	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid3} lob
+	catch {oralob writeappend $lob -datavar in_str} write
+	catch {oralob writeappend $lob -datavar in_str} write
+	oracommit $lob_lda
+	catch {oralob read $lob -datavar out_str} res
+	set res [string equal ${in_str}${in_str} $out_str]
 	catch {oralob free $lob} free
 	set res
 } {1}

@@ -460,5 +460,15 @@ Version 4.2 May, 2003
         Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
 
 20-Aug-2003
+
     -   Added a test to the oraexec.test file for the new error detections.
         Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
+
+01-SEP-2003
+
+    -	Added "oralob writeappend" wrapper around  DBMS_LOB.WRITEAPPEND.
+	Thanks to Peter Schindler (pschindler@synchronicity.com) for
+	contributing this enhancement.  Peter provides this comment:
+	"We had a lot of serialization errors with just WRITE, the way oracle
+	handles the storage of CLOBs. With this new function, we were able to
+	reduce the likelihood of a serialization error."

@@ -438,6 +438,12 @@ Write the data in the variable identified by \fIvarname\fR into the
 LOB specified by \fILOB\-handle\fR.
 .sp
 .TP
+.B writeappend \fILOB\-handle \-datavar varname\fR
+.br
+Append the data in the variable identified by \fIvarname\fR to the
+end of the LOB specified by \fILOB\-handle\fR.
+.sp
+.TP
 .B append \fILOB\-handle1 LOB\-handle2\fR
 .br
 Appends the contents of the LOB specified by \fILOB\-handle2\fR to the
