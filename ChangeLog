@@ -236,5 +236,7 @@ Version 3.0.2 September, 2000
     -	applied patches from Don Libes (libes@cme.nist.gov) that allow Oracle
 	8.0.x to be used with this library.  The basic problem is that Oracle
 	8.0.x OCI library does not seem to know about LOB types.
+    -   updated oratcl.c to build clean on a windows system.
+    -   relocated configuration files to be common to unix and windows.
 
 -----------------------------------------------------------------------------
