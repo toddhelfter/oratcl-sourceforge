@@ -24,6 +24,10 @@
 #define ORA_MSG_SIZE    1000    /* oracle error message max size*/
 #define NO_DATA_FOUND   1403    /* oracle error # no data for this fetch */
 
+#define ORA_NUMB_SIZE	40
+#define MAX_NUMB_SIZE	4000
+#define ORA_DATE_SIZE	75
+#define MAX_DATE_SIZE	7500
 #define ORA_LONG_SIZE	40960
 #define MAX_LONG_SIZE	2147483647
 #define ORA_BIND_SIZE   2000
@@ -118,6 +122,8 @@ typedef struct OratclStms {
 	Tcl_Obj		**oColsv;
         int		stmid;		/* statement handle id		*/
 	int		utfmode;	/* utf conversion flag		*/
+	int		numbsize;	/* space to alloc for numbers	*/
+	int		datesize;	/* space to alloc for dates	*/
 	int		ora_rc;		/* oracle return code		*/
 	Tcl_DString	ora_err;	/* oracle error text		*/
 	ub4		ora_row;	/* oracle row number		*/

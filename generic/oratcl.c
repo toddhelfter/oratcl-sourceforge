@@ -1066,7 +1066,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 			return -1;
 		}
 
-		lob = 0;
 		new_col->dty = SQLT_STR;
 		new_col->column.valuesz = new_col->column.size;
 		
@@ -1079,10 +1078,10 @@ Oratcl_ColDescribe (interp, StmPtr)
 			new_col->column.valuesz = new_col->column.size * 2;
 			break;
 		case SQLT_NUM:					/* 2	*/
-			new_col->column.valuesz = 400;
+			new_col->column.valuesz = StmPtr->numbsize;
 			break;
 		case SQLT_DAT:					/* 12	*/
-			new_col->column.valuesz = 75;
+			new_col->column.valuesz = StmPtr->datesize;
 			break;
 		case SQLT_RID:					/* 11	*/
 		case SQLT_RDD:					/* 104	*/
@@ -1095,7 +1094,14 @@ Oratcl_ColDescribe (interp, StmPtr)
 		case SQLT_TIMESTAMP_LTZ:			/* 232  */
 			new_col->column.valuesz = 75;
 			break;
-#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
+#if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
+                case SQLT_CLOB:                                 /* 112  */
+                case SQLT_BLOB:                                 /* 113  */
+                        new_col->dty = SQLT_LNG;
+                        new_col->column.valuesz = StmPtr->longsize;
+                        break;
+#endif
+#if ORA_MAJOR_VERSION == 8 && ORA_MINOR_VERSION > 0
 		case SQLT_CLOB:					/* 112	*/
 			/* 
 			 * TMH :: need an OCILobLocator
@@ -1115,35 +1121,12 @@ Oratcl_ColDescribe (interp, StmPtr)
 			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
 			new_col->dty = SQLT_BLOB;
 			break;
+#endif
 		default:
 			/*NOTREACHED*/
 			break;
-#endif
 		}
 	
-if (lob) {
-#if ORA_MAJOR_VERSION > 8 || (ORA_MAJOR_VERSION >= 8 && ORA_MINOR_VERSION > 0)
-		/* in free cols, will have to free this */
-		OCIDescriptorAlloc((dvoid *) LogPtr->envhp,
-				(dvoid **) &new_col->lobp,
-				(ub4)OCI_DTYPE_LOB,
-				(size_t) 0,
-				(dvoid **) 0);
-
-		rc = OCIDefineByPos(StmPtr->stmhp,
-				    &new_col->defnp,
-				    LogPtr->errhp,
-				    (ub4) parmix,
-				    (dvoid *) new_col->lobp,
-				    (sb4) new_col->column.valuesz,
-				    new_col->dty,
-				    (sb2 *) new_col->indp,
-				    (ub2 *) new_col->rlenp,
-				    (ub2 *) new_col->rcodep,
-				    (ub4) OCI_DEFAULT);
-#endif
-} else {
-
 		new_col->column.valuesz = new_col->column.valuesz + 1;
 		new_col->column.valuep = 
 			ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
@@ -1155,13 +1138,11 @@ if (lob) {
 				    (ub4) parmix,
 				    (dvoid *) new_col->column.valuep,
 				    (sb4) new_col->column.valuesz,
-				    SQLT_STR,
+				    new_col->dty,
 				    (sb2 *) new_col->indp,
 				    (ub2 *) new_col->rlenp,
 				    (ub2 *) new_col->rcodep,
 				    (ub4) OCI_DEFAULT);
-
-}
 
 		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 
@@ -2025,6 +2006,8 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->lobpsize	= ORA_LOBP_SIZE;
 	StmPtr->longpsize	= ORA_LONGP_SIZE;
 	StmPtr->bindsize	= ORA_BIND_SIZE;
+	StmPtr->numbsize	= ORA_NUMB_SIZE;
+	StmPtr->datesize	= ORA_DATE_SIZE;
 	StmPtr->nullvalue	= Tcl_NewStringObj("default", -1);
 	Tcl_IncrRefCount(StmPtr->nullvalue);
 	StmPtr->fetchidx		= 0;
@@ -3362,10 +3345,20 @@ Oratcl_Config (clientData, interp, objc, objv)
 				      "lobpsize",
 				      "longpsize",
 				      "utfmode",
+				      "numbsize",
+				      "datesize",
 				      NULL};
 
-	enum		optindex {OPT_LONG, OPT_BIND, OPT_NULL, OPT_CACHE, OPT_LOBP, OPT_LONGP, OPT_UTFMODE};
-	int		optlength = 14;
+	enum		optindex {OPT_LONG,
+				  OPT_BIND,
+				  OPT_NULL,
+				  OPT_CACHE,
+				  OPT_LOBP,
+				  OPT_LONGP,
+				  OPT_UTFMODE,
+				  OPT_NUMB,
+				  OPT_DATE};
+	int		optlength = 18;
 
 	int		option;
 	int		value;
@@ -3383,7 +3376,10 @@ Oratcl_Config (clientData, interp, objc, objv)
 	}
 
 	if ((objc < 2) || (((objc % 2) == 1) && (objc != 3))) {
-		Tcl_WrongNumArgs(interp, 1, objv, "stm_handle optionName value ?optionName value? ...");
+		Tcl_WrongNumArgs(interp,
+				 1,
+				 objv,
+				 "stm_handle optionName value ?optionName value? ...");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -3421,6 +3417,10 @@ Oratcl_Config (clientData, interp, objc, objv)
 		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->longpsize);
 		infoObjv[infoObjc++] = Tcl_NewStringObj(options[6], -1);
 		infoObjv[infoObjc++] = Tcl_NewBooleanObj(StmPtr->utfmode);
+		infoObjv[infoObjc++] = Tcl_NewStringObj(options[7], -1);
+		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->numbsize);
+		infoObjv[infoObjc++] = Tcl_NewStringObj(options[8], -1);
+		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->datesize);
 		Tcl_SetObjResult(interp, Tcl_NewListObj(infoObjc, infoObjv));
 		ckfree((char *) infoObjv);
 		tcl_return = TCL_OK;
@@ -3440,25 +3440,40 @@ Oratcl_Config (clientData, interp, objc, objv)
 		}
 
 		if (option == OPT_LONG) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->longsize));
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->longsize));
 		}
 		if (option == OPT_BIND) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->bindsize));
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->bindsize));
 		}
 		if (option == OPT_NULL) {
-			Tcl_SetObjResult(interp, Tcl_DuplicateObj(StmPtr->nullvalue));
+			Tcl_SetObjResult(interp,
+					 Tcl_DuplicateObj(StmPtr->nullvalue));
 		}
 		if (option == OPT_CACHE) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->fetchrows));
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->fetchrows));
 		}
 		if (option == OPT_LOBP) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->lobpsize));
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->lobpsize));
 		}
 		if (option == OPT_LONGP) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->longpsize));
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->longpsize));
 		}
 		if (option == OPT_UTFMODE) {
-			Tcl_SetObjResult(interp, Tcl_NewBooleanObj(StmPtr->utfmode));
+			Tcl_SetObjResult(interp,
+					 Tcl_NewBooleanObj(StmPtr->utfmode));
+		}
+		if (option == OPT_NUMB) {
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->numbsize));
+		}
+		if (option == OPT_NUMB) {
+			Tcl_SetObjResult(interp,
+					 Tcl_NewIntObj(StmPtr->datesize));
 		}
 		tcl_return = TCL_OK;
 		goto common_exit;
@@ -3561,6 +3576,34 @@ Oratcl_Config (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 			StmPtr->utfmode = value;
+		}
+		if (option == OPT_NUMB) {
+			tcl_rc = Tcl_GetIntFromObj(interp, objv[i], &value);
+			/* test for valid integer */
+			if (tcl_rc != TCL_OK || value < 1 || value > MAX_NUMB_SIZE) {
+				Oratcl_ErrorMsg(interp,
+						objv[0],
+						": invalid value",
+						(Tcl_Obj *) NULL,
+						(char *) NULL);
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
+			StmPtr->numbsize = value;
+		}
+		if (option == OPT_DATE) {
+			tcl_rc = Tcl_GetIntFromObj(interp, objv[i], &value);
+			/* test for valid integer */
+			if (tcl_rc != TCL_OK || value < 1 || value > MAX_DATE_SIZE) {
+				Oratcl_ErrorMsg(interp,
+						objv[0],
+						": invalid value",
+						(Tcl_Obj *) NULL,
+						(char *) NULL);
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
+			StmPtr->datesize = value;
 		}
 	}
 
