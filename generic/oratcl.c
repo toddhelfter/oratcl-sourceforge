@@ -3258,14 +3258,9 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 				 (ub4) OCI_NTV_SYNTAX,
 				 (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0);
+	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": OCIStmtPrepare of PL/SQL failed",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -3496,14 +3491,9 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 			    (OCISnapshot *) NULL,
 			    oci_mode);
 
-	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0);
+	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
 
 	if (rc != OCI_SUCCESS) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": PL/SQL execution failed.",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
