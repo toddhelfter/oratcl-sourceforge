@@ -5816,12 +5816,6 @@ else
 fi
 
 
-# We want the shared library suffix defined
-cat >>confdefs.h <<_ACEOF
-#define SHLIB_SUFFIX "${SHLIB_SUFFIX}"
-_ACEOF
-
-
 #--------------------------------------------------------------------
 # __CHANGE__
 # Choose which headers you need.  Extension authors should try very
@@ -9258,6 +9252,12 @@ echo "$as_me: error: No tclsh found in PATH:  $search_path" >&2;}
 
 
 #TEA_PROG_WISH
+
+# We want the shared library suffix defined.  Must come after CONFIG_CFLAGS
+cat >>confdefs.h <<_ACEOF
+#define SHLIB_SUFFIX "${SHLIB_SUFFIX}"
+_ACEOF
+
 
 #--------------------------------------------------------------------
 # Finally, substitute all of the various values into the Makefile.
