@@ -3182,6 +3182,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	ub4		syn_ln1, syn_ln2, syn_ln3;
 
 	Tcl_DString	tblStr, resStr;
+	Tcl_Obj		*tmp_obj;
 
 	OCIParam	*parmp, *collst, *parmh;
 	ub2		numcols;
@@ -3462,21 +3463,37 @@ Oratcl_Describe (clientData, interp, objc, objv)
 		Tcl_DStringStartSublist(&resStr);
 		Tcl_DStringAppendElement(&resStr,
 					 (char *) column.name);
+
+		tmp_obj = Tcl_NewIntObj(column.size);
+		Tcl_IncrRefCount(tmp_obj);
 		Tcl_DStringAppendElement(&resStr,
-					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.size),
-							       NULL));
+					  Tcl_GetStringFromObj(tmp_obj, NULL));
+		Tcl_DecrRefCount(tmp_obj);
+
 		Tcl_DStringAppendElement(&resStr,
 					  Tcl_DStringValue(&column.typename));
+
+		tmp_obj = Tcl_NewIntObj(column.prec);
+		Tcl_IncrRefCount(tmp_obj);
 		Tcl_DStringAppendElement(&resStr,
-					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.prec),
-							       NULL));
+					  Tcl_GetStringFromObj(tmp_obj, NULL));
+		Tcl_DecrRefCount(tmp_obj);
+
+		tmp_obj = Tcl_NewIntObj(column.scale);
+		Tcl_IncrRefCount(tmp_obj);
 		Tcl_DStringAppendElement(&resStr,
-					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.scale),
-							       NULL));
+					  Tcl_GetStringFromObj(tmp_obj, NULL));
+		Tcl_DecrRefCount(tmp_obj);
+
+		tmp_obj = Tcl_NewIntObj(column.nullok);
+		Tcl_IncrRefCount(tmp_obj);
 		Tcl_DStringAppendElement(&resStr,
-					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.nullok),
-							       NULL));
+					  Tcl_GetStringFromObj(tmp_obj, NULL));
+		Tcl_DecrRefCount(tmp_obj);
+
 		Tcl_DStringEndSublist(&resStr);
+
+		ckfree((char *)column.name);
 	}
 
 	Tcl_SetObjResult(interp, Tcl_NewStringObj(resStr.string, resStr.length));
