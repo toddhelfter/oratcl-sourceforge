@@ -98,13 +98,16 @@ ORATCL_LIBVER=`echo $ORATCL_VERSION | sed -e 's/\.//'`
 case "`uname -s`" in
     *win32* | *WIN32* | *CYGWIN_NT*)
 	CYGPATH="cygpath -w"
+	RELPATH=".. .. bin"
     ;;
     *)
 	CYGPATH=echo
+	RELPATH=..
     ;;
 esac
 
 AC_SUBST(CYGPATH)
+AC_SUBST(RELPATH)
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -653,7 +656,7 @@ SC_PROG_TCLSH
 #--------------------------------------------------------------------
 
 AC_OUTPUT([Makefile \
-	mkIndex.tcl],
+	pkgIndex.tcl],
 	chmod +x ${srcdir}/install-sh ${srcdir}/mkinstalldirs)
 
 
