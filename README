@@ -9,7 +9,7 @@ login to an Oracle Server, pass SQL code, read results, etc.  Oratcl was
 inspired by similar tools written for Perl (sybperl, oraperl) but was written 
 from scratch instead of borrowing on the work of either Perl extension.
 
-Oratcl was based on my (Tom Poindexter's) earlier effort with Sybtcl.  
+Oratcl was based on (Tom Poindexter's) earlier effort with Sybtcl.  
 
 Oratcl features:
   -supports multiple connections to the same or different Oracle Servers
@@ -32,7 +32,7 @@ Oratcl 3.* features:
 Oratcl is explained in greater detail in "Tcl/Tk Tools", edited by Mark 
 Harrison, and published by O'Reilly and Associates.  "Tcl/Tk Tools" is 
 a new book that covers many of the popular Tcl extensions, written by
-the authors of each extension (I wrote the chapters on Sybtcl and Oratcl.)
+the authors of each extension (Tom wrote the chapters on Sybtcl and Oratcl.)
 1st Edition published September 1997, ISBN: 1-56592-218-2
 See your local bookstore, or try: 
 	http://www.softpro.com
@@ -47,7 +47,7 @@ Comments, suggestions, et.al., should be mailed to me at the above email
 address, or posted to comp.lang.tcl if general enough nature.  
 Hell, you can even mail to me if you like Oratcl!
 
-Mail bug reports to:	tpoindex@nyx.net
+Mail bug reports to:	tmh@purdue.edu
 
 If you post a question or bug report to comp.lang.tcl, I may not see it,
 so please copy me also.
@@ -103,4 +103,3 @@ anyway.
 See the file ChangeLog for changes in versions of Oratcl.
 
 -finis-
-
