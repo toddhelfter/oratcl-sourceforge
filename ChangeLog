@@ -354,5 +354,8 @@ Version 4.0 December, 2001
     -   Correct a bug in the oraconfig command.  Attempting to query the
         fetchrows value incorrectly reports the bindsize.
         Thanks to Christian Traber (christian@traber-net.de) for the alert.
+    -   Correct a bug in the oralob command that prevented reading or writing
+	a one character string.
+	Thanks to Christian Traber (christian@traber-net.de) for the alert.
 
 -----------------------------------------------------------------------------
