@@ -1,7 +1,7 @@
 /* oraconst.h */
 
-#ifndef _ORACONST_H
-#define _ORACONST_H
+#ifndef _ORADEFS_H
+#define _ORADEFS_H
 
 
 /* OCI Error Codes */
@@ -636,4 +636,4 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define OCI_PTYPE_DATABASE      18                               /* database */
 /*---------------------------------------------------------------------------*/
 
-#endif  /* _ORACONST_H */
+#endif  /* _ORADEFS_H */
