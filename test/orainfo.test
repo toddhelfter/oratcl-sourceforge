@@ -17,7 +17,7 @@ set info_stm [oraopen $info_lda]
 test orainfo-1.0 {orainfo: version} {
 	catch {orainfo version} ver
 	set ver
-} {3.3}
+} {4.0}
 
 test orainfo-1.1 {orainfo: server} {
 	catch {orainfo server $info_lda} ver
