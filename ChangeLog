@@ -453,3 +453,8 @@ Version 4.2 May, 2003
     -	Correct compiler warnings with use of the Tcl_GetIndexFromObj().
 	These were introduced by the CONST prototypes introduced in Tcl 8.4.
         Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
+    -   Revised the error checking code to read the error messages for all
+	the error conditions that the OCI programming guide tells about
+	giving info. For example, OCI_SUCCESS_WITH_INFO is not an error,
+	but still gives info.
+        Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.

@@ -155,7 +155,7 @@ Oratcl_Clean (clientData)
 	Tcl_HashEntry	*stmHashPtr;
 	Tcl_HashSearch  srch;
 
-        OratclStateList *StateListPtr;
+	OratclStateList *StateListPtr;
 	int		found = 0;
 
 	for (StateListPtr = OratclSLP; StateListPtr != NULL; StateListPtr = StateListPtr->next) {
@@ -617,53 +617,36 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	errbuf[0] = '\0';
 	Tcl_DStringInit(&errStr);
 
-	if (errPtr) {
-		Tcl_DStringInit(errPtr);
-	}
-
 	switch (rc) {
-
-		case OCI_SUCCESS:
-			break;
 		case OCI_SUCCESS_WITH_INFO:
-			break;
 		case OCI_NEED_DATA:
-			Tcl_DStringAppend(&errStr, "OCI_NEED_DATA", -1);
-			break;
 		case OCI_NO_DATA:
-			Tcl_DStringAppend(&errStr, "OCI_NO_DATA", -1);
-			errcode = NO_DATA_FOUND;
-			break;
 		case OCI_ERROR:
+		case OCI_STILL_EXECUTING:
 			OCIErrorGet ( (dvoid *) errhp,
-				      (ub4) 1,
+		 		      (ub4) 1,
 				      (text *) NULL,
 				      &errcode,
 				      (text *) errbuf,
 				      (ub4) sizeof(errbuf),
-				      (ub4) OCI_HTYPE_ERROR);
+				      (ub4) OCI_HTYPE_ERROR); 
 			/* remove trailing carriage return from Oracle string */
 			errbuf[strlen(errbuf) - 1] = '\0';
 			Tcl_DStringAppend(&errStr, errbuf, -1);
 			break;
+		case OCI_SUCCESS:
 		case OCI_INVALID_HANDLE:
-			errcode = rc;
-			break;
-		case OCI_STILL_EXECUTING:
-			errcode = rc;
-			break;
 		case OCI_CONTINUE:
-			Tcl_DStringAppend(&errStr, "OCI_CONTINUE", -1);
+			errcode = rc;
 			break;
 		default:
 			Tcl_DStringAppend(&errStr, "Error - Unknown", -1);
 	}
 
-
 	if (flag==1) {
 		Tcl_SetObjResult(interp,
-				 Tcl_NewStringObj(Tcl_DStringValue(&errStr),
-				 		  Tcl_DStringLength(&errStr)));
+		Tcl_NewStringObj(Tcl_DStringValue(&errStr),
+				 Tcl_DStringLength(&errStr)));
 	}
 
 	if (rcPtr) {
@@ -901,12 +884,12 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 		} else {
 			if (col->column.valuesz > 0) {
 				tmp = col->column.valuep + (rn * col->column.valuesz);
-                                if (StmPtr->utfmode) {
-                                        Tcl_ExternalToUtfDString(NULL,
+				if (StmPtr->utfmode) {
+					Tcl_ExternalToUtfDString(NULL,
 								 tmp,
 								 -1,
 								 &uniStr);
-                                        tmp = Tcl_DStringValue(&uniStr);
+					tmp = Tcl_DStringValue(&uniStr);
 				}
 			} else {
 				tmp = "";
@@ -1082,11 +1065,11 @@ Oratcl_ColDescribe (interp, StmPtr)
 			break;
 #endif
 #if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
-                case SQLT_CLOB:                                 /* 112  */
-                case SQLT_BLOB:                                 /* 113  */
-                        new_col->dty = SQLT_LNG;
-                        new_col->column.valuesz = StmPtr->longsize;
-                        break;
+		case SQLT_CLOB:                                 /* 112  */
+		case SQLT_BLOB:                                 /* 113  */
+			new_col->dty = SQLT_LNG;
+			new_col->column.valuesz = StmPtr->longsize;
+			break;
 #endif
 #if ORA_MAJOR_VERSION == 8 && ORA_MINOR_VERSION > 0
 		case SQLT_CLOB:					/* 112	*/
@@ -1137,8 +1120,8 @@ Oratcl_ColDescribe (interp, StmPtr)
 			return -1;
 		}
 
-		last_col           = new_col;
-		new_col            = Oratcl_ColAlloc(StmPtr->fetchrows);
+		last_col = new_col;
+		new_col = Oratcl_ColAlloc(StmPtr->fetchrows);
 		if (new_col == NULL) {
 			Oratcl_ColFree(new_col_head);
 			return -1;
@@ -1180,8 +1163,8 @@ int
 Oratcl_Logon (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -1246,7 +1229,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	Tcl_SetHashValue(logHashPtr,  LogPtr);
 
-        con_str = Tcl_GetStringFromObj(objv[1], &con_len);
+	con_str = Tcl_GetStringFromObj(objv[1], &con_len);
 	cpy_str = ckalloc (con_len + 1);
 	memcpy (cpy_str, con_str, con_len);
 	cpy_str[con_len] = '\0';
@@ -1290,7 +1273,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		ora_passlen = strlen(ora_pass);
 
 	if (ora_conn)
-                ora_connlen = strlen(ora_conn);
+		ora_connlen = strlen(ora_conn);
 
 	rc = OCIInitialize( (ub4) OCI_OBJECT,
 			    (dvoid *)0,
@@ -1319,7 +1302,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	(void) OCIHandleAlloc( (dvoid *) LogPtr->envhp,
 			       (dvoid **) &LogPtr->errhp,
 			       OCI_HTYPE_ERROR,
-                   	       (size_t) 0,
+			       (size_t) 0,
 			       (dvoid **) 0);
 
 	/* server contexts */
@@ -1345,7 +1328,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	(void) OCIAttrSet( (dvoid *) LogPtr->svchp,
 			   OCI_HTYPE_SVCCTX,
 			   (dvoid *)LogPtr->srvhp,
-                           (ub4) 0,
+			   (ub4) 0,
 			   OCI_ATTR_SERVER,
 			   (OCIError *) LogPtr->errhp);
 
@@ -1396,16 +1379,16 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-        /* check for options and deprecated keywords */
-        if (objc >= 3) {
-                p = Tcl_GetStringFromObj(objv[2], NULL);
-                if (*p == '-') {
-                        p++;
-                }
-                if (strcmp(p,"async") == 0) {
-                        LogPtr->async = 1;
-                }
-        }
+	/* check for options and deprecated keywords */
+	if (objc >= 3) {
+		p = Tcl_GetStringFromObj(objv[2], NULL);
+		if (*p == '-') {
+			p++;
+		}
+		if (strcmp(p,"async") == 0) {
+			LogPtr->async = 1;
+		}
+	}
 
 	if (LogPtr->async == 1) {
 		rc = OCIAttrSet ((dvoid *) LogPtr->srvhp,
@@ -1458,8 +1441,8 @@ int
 Oratcl_Logoff (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -1496,6 +1479,7 @@ Oratcl_Logoff (clientData, interp, objc, objv)
 	}
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+	Tcl_DStringInit(&LogPtr->ora_err);
 
 	/* close the open statement handles for this connection */
 	stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &search);
@@ -1551,8 +1535,8 @@ int
 Oratcl_Commit (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -1585,6 +1569,7 @@ Oratcl_Commit (clientData, interp, objc, objv)
 	}
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+	Tcl_DStringInit(&LogPtr->ora_err);
 
 	rc = OCITransCommit( (dvoid *) LogPtr->svchp,
 			     (dvoid *) LogPtr->errhp,
@@ -1629,8 +1614,8 @@ int
 Oratcl_Roll (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -1663,6 +1648,7 @@ Oratcl_Roll (clientData, interp, objc, objv)
 	}
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+	Tcl_DStringInit(&LogPtr->ora_err);
 
 	rc = OCITransRollback( (dvoid *) LogPtr->svchp,
 			       (dvoid *) LogPtr->errhp,
@@ -1708,7 +1694,7 @@ Oratcl_Autocom (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
 	int		objc;
-        Tcl_Obj		*CONST objv[];
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -1775,8 +1761,8 @@ int
 Oratcl_Info (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -1859,11 +1845,21 @@ Oratcl_Info (clientData, interp, objc, objv)
 				 OCI_ATTR_SERVER_STATUS,
 				 LogPtr->errhp);
 
-		if (serverStatus == OCI_SERVER_NORMAL) {
+		switch (serverStatus) {
+		case OCI_SERVER_NORMAL:
 			res_obj = Tcl_NewIntObj(OCI_SERVER_NORMAL);
-		}
-		if (serverStatus == OCI_SERVER_NOT_CONNECTED) {
+			break;
+		case OCI_SERVER_NOT_CONNECTED:
 			res_obj = Tcl_NewIntObj(OCI_SERVER_NOT_CONNECTED);
+			break;
+		default:
+			Oratcl_ErrorMsg(interp,
+					objv[0],
+					": server status request failed",
+					(Tcl_Obj *) NULL,
+					(char *) NULL);
+			tcl_return = TCL_ERROR;
+			goto common_exit;
 		}
 		Tcl_IncrRefCount(res_obj);
 		Tcl_SetObjResult(interp, res_obj);
@@ -1892,6 +1888,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 		}
 
 		LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+		Tcl_DStringInit(&LogPtr->ora_err);
 
 		rc = OCIServerVersion(LogPtr->svchp,
 				      LogPtr->errhp,
@@ -1982,8 +1979,8 @@ int
 Oratcl_Open (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
@@ -2133,8 +2130,8 @@ int
 Oratcl_Message (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -2145,8 +2142,8 @@ Oratcl_Message (clientData, interp, objc, objv)
 	int		mode = 1;
 
 	int		oColsc;
-        Tcl_Obj		**oCols = NULL;
-        int		oColslen = 6;
+	Tcl_Obj		**oCols = NULL;
+	int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
 	CONST84 char *options[] = {"all",
@@ -2307,8 +2304,8 @@ int
 Oratcl_Close (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -2371,8 +2368,8 @@ int
 Oratcl_Sql (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	int		parseonly = 0;
 	char		*p;
@@ -2381,8 +2378,8 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 	int		postcommit = 0;
-	int             commitObjc = 0;
-	Tcl_Obj         **commitObjv = NULL;
+	int		commitObjc = 0;
+	Tcl_Obj		**commitObjv = NULL;
 	char		*logHashKey;
 	Tcl_Obj		*res_obj;
 
@@ -2485,14 +2482,14 @@ int
 Oratcl_Bindexec (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 
-	int             bindObjc = 0;
-	Tcl_Obj         **bindObjv = NULL;
-	int             execObjc = 0;
-	Tcl_Obj         **execObjv = NULL;
+	int		bindObjc = 0;
+	Tcl_Obj		**bindObjv = NULL;
+	int		execObjc = 0;
+	Tcl_Obj		**execObjv = NULL;
 
 	int		i;
 	char		*p;
@@ -2590,8 +2587,8 @@ int
 Oratcl_Cols (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -2601,8 +2598,8 @@ Oratcl_Cols (clientData, interp, objc, objv)
 
 	OratclCols	*col;
 	int		oColsc;
-        Tcl_Obj		**oCols = NULL;
-        int		oColslen = 6;
+	Tcl_Obj		**oCols = NULL;
+	int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
 	CONST84 char *options[] = {"all",
@@ -2736,12 +2733,12 @@ int
 Oratcl_PLexec (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 
-	int             bindObjc = 0;
-	Tcl_Obj         **bindObjv = NULL;
+	int		bindObjc = 0;
+	Tcl_Obj		**bindObjv = NULL;
 
 	int		i;
 	
@@ -2814,8 +2811,8 @@ int
 Oratcl_Lda_List (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -2884,8 +2881,8 @@ int
 Oratcl_Stm_List (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OratclLogs	*LogPtr;
@@ -3167,8 +3164,8 @@ int
 Oratcl_Describe (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -3235,11 +3232,12 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	}
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+	Tcl_DStringInit(&LogPtr->ora_err);
 
 	rc = OCIHandleAlloc((dvoid *) LogPtr->envhp,
 			    (dvoid **) &dschp,
-                            (ub4) OCI_HTYPE_DESCRIBE,
-                            (size_t) 0,
+			    (ub4) OCI_HTYPE_DESCRIBE,
+			    (size_t) 0,
 			    (dvoid **) 0);
 
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
@@ -3272,11 +3270,11 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	while (LogPtr->ora_rc == 4043) {
 
 		rc = OCIAttrSet( (dvoid *) dschp,
-			         (ub4) OCI_HTYPE_DESCRIBE,
-			         (dvoid *) NULL,
-			         (ub4) 0,
-			         (ub4) OCI_ATTR_DESC_PUBLIC,
-			         (OCIError *) LogPtr->errhp);
+				 (ub4) OCI_HTYPE_DESCRIBE,
+				 (dvoid *) NULL,
+				 (ub4) 0,
+				 (ub4) OCI_ATTR_DESC_PUBLIC,
+				 (OCIError *) LogPtr->errhp);
 
 		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
@@ -3535,8 +3533,8 @@ int
 Oratcl_Config (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -3569,8 +3567,8 @@ Oratcl_Config (clientData, interp, objc, objv)
 	int		i;
 	int		tcl_rc;
 
-        Tcl_Obj		**infoObjv;
-        int		infoObjc;
+	Tcl_Obj		**infoObjv;
+	int		infoObjc;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -3838,15 +3836,15 @@ int
 Oratcl_LongRead (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
-        OCIDefine       *defnp;		/* define pointer */
+	OCIDefine       *defnp;		/* define pointer */
 
 	char		*sql;
 	int		sql_len = 0;
@@ -3931,6 +3929,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 				 (ub4) OCI_NTV_SYNTAX,
 				 (ub4) OCI_DEFAULT);
 
+	Tcl_DStringInit(&StmPtr->ora_err);
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
 
 	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
@@ -4129,15 +4128,15 @@ int
 Oratcl_LongWrite (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
-	OCIBind         *bindp;		/* bind pointer */
+	OCIBind		*bindp;		/* bind pointer */
 
 	int		rc;
 
@@ -4197,6 +4196,8 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
+	Tcl_DStringInit(&StmPtr->ora_err);
+	Tcl_DStringInit(&LogPtr->ora_err);
 
 	sql = Tcl_GetStringFromObj(objv[2], &sql_len);
 
@@ -4204,7 +4205,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 						       objv[3],
 						       NULL,
 						       TCL_LEAVE_ERR_MSG),
-				        &pre_data_len);
+					&pre_data_len);
 
 	if (StmPtr->utfmode) {
 		Tcl_UtfToExternalDString(NULL, pre_data, pre_data_len, &outStr);
@@ -4376,8 +4377,8 @@ int
 Oratcl_Parse (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -4549,8 +4550,8 @@ int
 Oratcl_Bind (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -4682,14 +4683,14 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				RefPtr->col_list	= NULL;
 				Oratcl_ColFree(RefPtr->bind_list);
 				RefPtr->bind_list	= NULL;
-				RefPtr->fetchidx        = RefPtr->fetchmem;
+				RefPtr->fetchidx	= RefPtr->fetchmem;
 				RefPtr->fetch_end       = 0;    /* try to fetch */
 				RefPtr->fetch_cnt       = 0;    /* start fetch cnt at zero */
 				RefPtr->append_cnt      = 0;    /* start append cnt at zero */
 
-				tmp_col->bindPtr        = refHashPtr;
+				tmp_col->bindPtr	= refHashPtr;
 			} else {
-				tmp_col->bindPtr        = NULL;
+				tmp_col->bindPtr	= NULL;
 			}
 
 			if (arg_pcp_len > StmPtr->bindsize) {
@@ -4820,8 +4821,8 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			parm_cnt += 2;
 
 			if (objc > parm_cnt + 1) {       /* more args? alloc new colbufs */
-				head_col           = tmp_col;
-				tmp_col            = Oratcl_ColAlloc(StmPtr->fetchmem);
+				head_col = tmp_col;
+				tmp_col = Oratcl_ColAlloc(StmPtr->fetchmem);
 				if (tmp_col == NULL) {
 					Oratcl_ColFree(StmPtr->col_list);
 					StmPtr->col_list = NULL;
@@ -4901,8 +4902,8 @@ int
 Oratcl_Exec (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -4952,9 +4953,9 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 	/* cause first orafetch to fetch */
 	StmPtr->fetchidx   = StmPtr->fetchmem;
-	StmPtr->fetch_end = 0;        /* try to fetch */
-	StmPtr->fetch_cnt = 0;        /* start fetch cnt at zero */
-	StmPtr->append_cnt = 0;       /* start append cnt at zero */
+	StmPtr->fetch_end = 0;		/* try to fetch */
+	StmPtr->fetch_cnt = 0;		/* start fetch cnt at zero */
+	StmPtr->append_cnt = 0;		/* start append cnt at zero */
 
 	if (StmPtr->sqltype == OCI_STMT_SELECT) {
 		StmPtr->iters = 0;
@@ -5006,7 +5007,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			&StmPtr->ora_rc,
 			&StmPtr->ora_err);
 
-	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+	if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
 		Oratcl_ErrorMsg(interp,
 				objv[0],
 				": SQL execution failed.",
@@ -5060,6 +5061,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 				if (tmp_col->column.typecode == SQLT_CUR) {
 					if (tmp_col->bindPtr != NULL) {
 						RefPtr = (OratclStms *) Tcl_GetHashValue(tmp_col->bindPtr);
+						Tcl_DStringInit(&RefPtr->ora_err);
 
 						while ((rc = OCIStmtExecute(LogPtr->svchp,
 									    RefPtr->stmhp,
@@ -5081,15 +5083,15 @@ Oratcl_Exec (clientData, interp, objc, objv)
 								    OCI_ATTR_PARSE_ERROR_OFFSET,
 								    LogPtr->errhp);
 #endif
-                                                        Oratcl_Checkerr(interp,
-                                                                        LogPtr->errhp,
-                                                                        rc,
-                                                                        1,
-                                                                        &RefPtr->ora_rc,
-                                                                        &RefPtr->ora_err);
-                                                        tcl_return = TCL_ERROR;
-                                                        goto common_exit;
-                                                }
+							Oratcl_Checkerr(interp,
+									LogPtr->errhp,
+									rc,
+									1,
+									&RefPtr->ora_rc,
+									&RefPtr->ora_err);
+							tcl_return = TCL_ERROR;
+							goto common_exit;
+						}
 
 						OCIAttrGet( (dvoid *) RefPtr->stmhp,
 							    (ub4) OCI_HTYPE_STMT,
@@ -5117,7 +5119,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 				tmp_col = tmp_col->next;
 			}
 
-			StmPtr->fetch_end  = 0;        /* let Oratcl_ColAppend work */
+			StmPtr->fetch_end  = 0;		/* let Oratcl_ColAppend work */
 			StmPtr->fetch_cnt  = 0;
 			StmPtr->append_cnt = 0;
 			StmPtr->fetchidx    = 0;
@@ -5159,8 +5161,8 @@ int
 Oratcl_Break (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -5261,8 +5263,8 @@ int
 Oratcl_Fetch (clientData, interp, objc, objv)
 	ClientData	clientData;
 	Tcl_Interp	*interp;
-        int		objc;
-        Tcl_Obj		*CONST objv[];
+	int		objc;
+	Tcl_Obj		*CONST objv[];
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -5287,7 +5289,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 				  OPT_DARR,
 				  OPT_EVAL,
 				  OPT_IBNA,
-				  OPT_IBNU };
+				  OPT_IBNU};
 
 	Tcl_Obj		*dvarObjPtr = NULL;
 	Tcl_Obj		*avarObjPtr = NULL;
