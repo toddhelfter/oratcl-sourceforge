@@ -3506,7 +3506,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 			Tcl_SetObjResult(interp,
 					 Tcl_NewIntObj(StmPtr->numbsize));
 		}
-		if (option == OPT_NUMB) {
+		if (option == OPT_DATE) {
 			Tcl_SetObjResult(interp,
 					 Tcl_NewIntObj(StmPtr->datesize));
 		}
