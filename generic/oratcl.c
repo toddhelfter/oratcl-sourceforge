@@ -1281,11 +1281,23 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 
-	(void) OCIInitialize( (ub4) OCI_OBJECT,
-			      (dvoid *)0,
-			      (dvoid * (*)(dvoid *, size_t)) 0,
-			      (dvoid * (*)(dvoid *, dvoid *, size_t)) 0,
-			      (void (*)(dvoid *, dvoid *)) 0);
+	rc = OCIInitialize( (ub4) OCI_OBJECT,
+			    (dvoid *)0,
+			    (dvoid * (*)(dvoid *, size_t)) 0,
+			    (dvoid * (*)(dvoid *, dvoid *, size_t)) 0,
+			    (void (*)(dvoid *, dvoid *)) 0);
+
+	if (rc != OCI_SUCCESS) {
+		Oratcl_LogFree(LogPtr);
+		Tcl_DeleteHashEntry(logHashPtr);
+		Oratcl_ErrorMsg(interp,
+				objv[0],
+				" (Unknown OCI status) OCIInitialize. Check ORACLE_HOME setting!",
+				(Tcl_Obj *) NULL,
+				(char *) NULL);
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
 	(void) OCIEnvInit( (OCIEnv **)
 			    &LogPtr->envhp,
@@ -1408,6 +1420,9 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	Tcl_DecrRefCount(buf_obj);
 
 common_exit:
+
+	ckfree(cpy_str);
+
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
 	}

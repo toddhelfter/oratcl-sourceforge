@@ -385,4 +385,12 @@ Version 4.0 December, 2001
 
     -   Fixed a bug in orasql that prevented the commit option from working
         Thanks to Christian Traber (christian@traber-net.de) for the alert.
+
+12-DEC-2002
+
+    -   Changed 'oralogon' to pay attention to the return code from
+        OCIInitialize.  If the return code is not OCI_SUCCESS raise an error.
+        This will avoid a core dump if the ORACLE_HOME environment variable
+        is not set on a unix platform.
+
 -----------------------------------------------------------------------------
