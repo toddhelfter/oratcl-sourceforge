@@ -1,0 +1,35 @@
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# This file tests the Oratcl orabindexec command.
+# NOTE: This test relies on the demo "emp" table (shipped with Oracle)
+# to be created in the database.
+#
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+# All rights reserved.
+#
+# RCS: @(#) $Id: orabindex.test,v 1.1 1999-08-09 18:25:09 mtariq Exp $
+package require Oratcl
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import ::tcltest::*
+}
+
+test orabindex-1.0 {tests oratcl orabindex cmd} {
+     set id "scott"
+     set pword "tiger"
+     set handle [oralogon $id/$pword]
+     set cursor [oraopen $handle]
+     orasql $cursor "select empno from emp where ename = :name" -parseonly
+     orabindexec $cursor :name SMITH
+     set result [orafetch $cursor]
+     oralogoff $handle
+     set result $result
+} {7369}
+
+::tcltest::cleanupTests
+
+return
