@@ -287,7 +287,7 @@ Oratcl_Init (interp)
 	OratclStateList *StateListPtr;
 
 	Tcl_DString	oratclPath;
-	char		*path[4];
+	const char	*path[4];
 	int		libix;
 
 	int		pargc;
@@ -1770,8 +1770,15 @@ Oratcl_Info (clientData, interp, objc, objv)
 	static text	svr[ORA_MSG_SIZE];
 	Tcl_Obj		*res_obj;
 
-	char 		*options[] = {"server", "version", "loginhandle", NULL};
-	enum		optindex {OPT_SERVER, OPT_VERSION, OPT_LOGINHANDLE};
+	static const char *options[] = {"server",
+					"version",
+					"loginhandle",
+					NULL};
+
+	enum		optindex {OPT_SERVER,
+				  OPT_VERSION,
+				  OPT_LOGINHANDLE};
+
 	int		index = 0;
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -2073,8 +2080,22 @@ Oratcl_Message (clientData, interp, objc, objv)
         int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	char 		*options[] = {"all", "rc", "error", "rows", "peo", "ocicode", "sqltype", NULL};
-	enum		optindex {OPT_ALL, OPT_RC, OPT_ERR, OPT_ROW, OPT_PEO, OPT_FCD, OPT_SQL};
+	static const char *options[] = {"all",
+					"rc",
+					"error",
+					"rows",
+					"peo",
+					"ocicode",
+					"sqltype",
+					NULL};
+
+	enum		optindex {OPT_ALL,
+				  OPT_RC,
+				  OPT_ERR,
+				  OPT_ROW,
+				  OPT_PEO,
+				  OPT_FCD,
+				  OPT_SQL};
 
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -2472,8 +2493,22 @@ Oratcl_Cols (clientData, interp, objc, objv)
         int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	char 		*options[] = {"all", "name", "size", "type", "precision", "scale", "nullok", NULL};
-	enum		optindex {OPT_ALL, OPT_NAME, OPT_SIZE, OPT_TYPE, OPT_PREC, OPT_SCALE, OPT_NULLOK};
+	static const char *options[] = {"all",
+					"name",
+					"size",
+					"type",
+					"precision",
+					"scale",
+					"nullok",
+					NULL};
+
+	enum		optindex {OPT_ALL,
+				  OPT_NAME,
+				  OPT_SIZE,
+				  OPT_TYPE,
+				  OPT_PREC,
+				  OPT_SCALE,
+				  OPT_NULLOK};
 
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -3338,7 +3373,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 
-	char 		*options[] = {"longsize",
+	static const char *options[] = {"longsize",
 				      "bindsize",
 				      "nullvalue",
 				      "fetchrows",
@@ -5063,7 +5098,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	Tcl_Obj		*oResult;
 
 	int		option;
-	char 		*options[] = {
+	static const char *options[] = {
 				"-datavariable",
 				"-dataarray",
 				"-command",
