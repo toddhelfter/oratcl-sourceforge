@@ -4,7 +4,7 @@
 .el .ne 3
 .IP "\\$1" \\$2
 ..
-.TH "Oratcl" TCL "6/July/2000" "Tcl"
+.TH "Oratcl" TCL "6/September/2001" "Tcl"
 .SH NAME
 Oratcl - Oracle Database Server access commands for Tcl
 .sp
@@ -20,7 +20,7 @@ OCI programming.
 .sp
 .SH "ORATCL COMMANDS"
 .TP
-.B oralogon \fIconnect-str\fR
+.B oralogon \fIconnect-str ?-async? \fR
 .br
 Connect to an Oracle server using \fIconnect-str\fR.
 The connect string should be a valid Oracle connect string, in the form:  
@@ -45,6 +45,14 @@ network unavailable, etc.).  If the connect string does not include a
 database specification, a connection will be established with the 
 server specified in the environment variable ORACLE_SID.
 .sp
+The optional \fI-async\fR argument specifies the all commands that
+allow asynchronous (nonblocking) operation will do so.  The commands
+affected are \fBoraparse\fR, \fBoraexec\fR, \fBorafetch\fR and those
+that make use of these such as \fBorasql\fR, \fBorabindexec\fR and \fBoraplexec\fR.
+These commands will immediately return a code of OCI_STILL_EXECUTING which
+is equal to the numeric value of -3123.  Repeat calls to these commands
+with the same arguements until a return value of OCI_SUCCESS, a 0, is
+retuned.   See the section below on asynchronous transaction handling.
 .TP
 .B oralogoff \fIlogon\-handle\fR
 .br
@@ -169,9 +177,42 @@ error numbers and messages for other possible values.
 not ben opened with \fBoraopen\fR.
 .sp
 .TP
-.B oraexec \fIstatement\-handle\fR
+.B oraexec \fIstatement\-handle ?-commit?\fR
 .br
-\fBOraexec\fR raises a Tcl error if the \fIstatement\-handle\fR specified is not 
+Execute a previously parsed and optionally bound SQL statement. 
+\fIStatement-handle\fR must be a valid handle previously opened with 
+\fBoraopen\fR.
+An SQL statement must have previously been parsed by executing \fBoraparse\fR.
+\fBOrabind\fR and \fBoraexec\fR commands may be repeatedly issued after a
+statement is parsed.
+.sp
+The optional \fI-commit\fR argument specifies the that SQL will be
+committed upon successful execution.
+.sp
+.TP
+.B orafetch \fIstatement\-handle\fR ?options ...?
+Retrieve data from the database as specified by prior oraparse, orabind, oraxec calls.  All values are converted to character strings except ref_cursors which
+will be represented in the datavariable list as a null string.  
+Likely return values include 0 for success, 1403 for no more data, and -3123 for asyncronous still executing.
+.RS .5i
+.IP \fI-datavariable\fR 1.6i
+Specifies the variable to be set with a list containing the row of data fetched. 
+The list returned in the datavariable by \fBorafetch\fR contains the values of the selected columns in the order specified by \fIselect\fR.
+.IP \fI-dataarray\fR
+Specifies the array in which the individual columns of data fetched will be set. 
+.IP \fI-indexbyname\fR
+When combinded with the \fI-dataarray\fR option, \fBorafetch\fR will use the
+column names from the query as the index (hash) values in the array.
+.IP \fI-indexbynumber\fR
+When combinded with the \fI-dataarray\fR option, \fBorafetch\fR will use the
+column positon number from the query as the index (hash) values in the array.
+.IP \fI-command\fR
+Specifies a script to eval when \fBorafetch\fR retrieves a row of data.
+This script may reference the variable and array specified by other options.
+.br
+.RE
+.sp
+\fBOrafetch\fR raises a Tcl error if the \fIstatement\-handle\fR specified is not 
 open.
 .sp
 .TP
