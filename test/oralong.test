@@ -54,9 +54,9 @@ orabindexec $long_stm :long_key l2
 oracommit $long_lda
 orasql $long_stm $long_sql(select_long_table) -parseonly
 orabindexec $long_stm :long_key l1
-orafetch $long_stm "set rowid1 @1"
+orafetch $long_stm -datavariable rowid1
 orabindexec $long_stm :long_key l2
-orafetch $long_stm "set rowid2 @1"
+orafetch $long_stm -datavariable rowid2
 
 catch {orasql $long_stm $long_sql(drop_longraw_table)}
 orasql $long_stm $long_sql(create_longraw_table)
@@ -66,9 +66,9 @@ orabindexec $long_stm :long_key l4
 oracommit $long_lda
 orasql $long_stm $long_sql(select_longraw_table) -parseonly
 orabindexec $long_stm :long_key l3
-orafetch $long_stm "set rowid3 @1"
+orafetch $long_stm -datavariable rowid3
 orabindexec $long_stm :long_key l4
-orafetch $long_stm "set rowid4 @1"
+orafetch $long_stm -datavariable rowid4
 
 set chr_data [string repeat 0123456789---------- 10000]
 
