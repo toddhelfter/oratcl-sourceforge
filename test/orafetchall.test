@@ -1,0 +1,47 @@
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# This file tests the Oratcl command orafetch when a script is specified
+# as an argument. See the Oratcl section of the Tcl/Tk Tools to see
+# how this command works. This test utilizes the orafetch example written
+# by Tom Poindexter as shown in the book.
+#
+# NOTE: This test relies on the demo "emp" table (shipped with Oracle) to be
+# created in the database.
+# 
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+# All rights reserved.
+#
+# RCS: @(#) $Id: orafetchall.test,v 1.1 1999-08-09 18:26:06 mtariq Exp $
+
+package require Oratcl
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import ::tcltest::*
+}
+
+test orafetchtest {test oratcl cmd orafetch} {
+    set handle [oralogon scott/tiger]
+    set cursor [oraopen $handle]
+    orasql $cursor "select ename from emp order by ename"
+    set num_rows 0
+    orafetch $cursor {
+      incr num_rows
+      if {[string compare @1 M] == 1} {
+         # employee name greater than "L", break out of orafetch
+         break
+      }
+      if {$num_rows > 5} {
+         # more than five rows in query, don't print anymore
+         continue
+      }
+     
+      set name @0
+  }
+  oralogoff $handle
+  set result $name   
+  } {FORD}
+
