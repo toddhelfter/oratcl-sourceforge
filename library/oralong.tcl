@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.4 2001-06-12 18:46:36 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.4.2.1 2002-02-11 00:46:16 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -59,7 +59,7 @@ proc oralong {command handle args} {
 		set ::oratcl::oralong($idx) {}
 	}
 
-	set tcl-res {}
+	set tcl_res {}
 	switch $command {
 
 		alloc 	{set cmd [list ::oratcl::long_alloc $handle $args]}
