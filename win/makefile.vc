@@ -35,7 +35,7 @@ COMMON32 = e:\progra~1\micros~6\common\MSDev98
 # point TCL and TCLLIB to your tcl distribution
 
 TCL     = c:\progra~1\tcl
-TCLLIB  = $(TCL)\lib\tcl83.lib
+TCLLIB  = $(TCL)\lib\tclstub83.lib
 
 ORACLE     = d:
 ORACLE_OCI = $(ORACLE)\oci\oci
@@ -63,7 +63,7 @@ INCLUDES =	-I$(TOOLS32)/include	\
 		-I$(ORACLE_OCI)/include	\
 		-I../generic
 
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION8DB -DVERSION=\"3.0.1\" 
+DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DUSE_TCL_STUBS -DVERSION8DB -DVERSION=\"3.0.1\" 
 
 !include <ntwin32.mak>
 
