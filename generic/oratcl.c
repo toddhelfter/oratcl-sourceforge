@@ -350,9 +350,8 @@ Oratcl_Init (interp)
 	OratclStateList *StateListPtr;
 
 	Tcl_DString	oratclPath;
-	Tcl_DString	tcllibPath;
-	char		*path[3];
-	int		libix, pcnt = 2;
+	char		*path[2];
+	int		libix;
 
 	int		pargc;
 	char		**pargv;
@@ -549,32 +548,15 @@ Oratcl_Init (interp)
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
 
-	if (Tcl_GetNameOfExecutable() != NULL) {
-		Tcl_SplitPath(Tcl_GetNameOfExecutable(), &pargc, &pargv);
-		Tcl_DStringInit(&tcllibPath);
-		pargv[pargc -2] = "lib";
-		pargv[pargc -1] = "oratcl" VERSION;
-		Tcl_JoinPath(pargc, pargv, &tcllibPath);
-
+	path[0] = Tcl_GetVar2(interp, "oratcl", "path", TCL_GLOBAL_ONLY);
+	if (path[0] != NULL) {
 		for (libix=0; OraLibraryList[libix] != NULL; libix++) {
-
-			pcnt = 0;
-			path[pcnt++] = tcllibPath.string;
-#if 0
-			path[pcnt++] = "lib";
-#endif
-			path[pcnt++] = OraLibraryList[libix];
-			if (pcnt > sizeof(path)/sizeof(path[0])) {
-				/* this is really bad :: we killed memory */
-				abort();
-			}
-
+			path[1] = OraLibraryList[libix];
 			Tcl_DStringInit(&oratclPath);
-			Tcl_JoinPath(pcnt, path, &oratclPath);
+			Tcl_JoinPath(2, path, &oratclPath);
 			Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
 			Tcl_DStringFree(&oratclPath);
 		}
-		Tcl_DStringInit(&tcllibPath);
 	}
 
 	if (Tcl_PkgProvide(interp, "Oratcl", VERSION) != TCL_OK) {

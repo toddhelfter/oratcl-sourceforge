@@ -1,1 +1,1 @@
-package ifneeded Oratcl 3.2 [list load [file join $dir .. liboratcl3.2.so]]
+package ifneeded Oratcl 3.3 [list load [file join [set ::oratcl(path) $dir] .. liboratcl3.3.so]]

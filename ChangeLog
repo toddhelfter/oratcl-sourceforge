@@ -286,5 +286,6 @@ Version 3.3 June, 2001
     -	Oracle 9i (9.0.1) returns a precision value for VARCHAR2 and CHAR
 	datatypes.  Prior to this, the precision was always 0 for these
 	datatypes.  /test/oradesc.test has been altered to allow for this.
+    -	Attempt a different method of library directory detection.
 
 -----------------------------------------------------------------------------

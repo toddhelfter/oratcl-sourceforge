@@ -1,1 +1,1 @@
-package ifneeded Oratcl @ORATCL_VERSION@ [list load [file join $dir .. @oratcl_LIB_FILE@]]
+package ifneeded Oratcl @ORATCL_VERSION@ [list load [file join [set ::oratcl(path) $dir] .. @oratcl_LIB_FILE@]]
