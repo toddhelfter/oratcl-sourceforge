@@ -1105,7 +1105,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 			fprintf(stderr, "%s %d, clob type\n", __FILE__, __LINE__);
 			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
 			new_col->dty = SQLT_CLOB;
-			lob = 1;
 			break;
 		case SQLT_BLOB:					/* 113	*/
 			/* 
