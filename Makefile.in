@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.30 2000-09-19 04:57:42 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.31 2000-09-20 20:45:19 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -25,6 +25,7 @@
 
 lib_BINARIES=$(oratcl_LIB_FILE)
 BINARIES=$(lib_BINARIES)
+LIBRARIES=oraclob.tcl
 
 #========================================================================
 # Enumerate the names of the source files included in this package.
@@ -273,6 +274,11 @@ install-binaries: binaries install-lib-binaries install-bin-binaries
 #========================================================================
 
 install-libraries: libraries
+	@for i in $(LIBRARIES); \
+	    do \
+		echo "$(INSTALL_DATA) $(srcdir)/library/$$i $(pkglibdir)/$$i"; \
+		$(INSTALL_DATA) $(srcdir)/library/$$i $(pkglibdir) ; \
+	    done
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(mandir)
@@ -391,7 +397,6 @@ install-lib-binaries: installdirs
 	done
 	@#$(INSTALL_PROGRAM) $(srcdir)/OCIW32.DLL $(DESTDIR)/$(bindir)
 	$(INSTALL_DATA) pkgIndex.tcl $(pkglibdir)
-	$(INSTALL_DATA) ../library/oraclob.tcl $(pkglibdir)
 
 #========================================================================
 # Install binary executables (e.g. .exe files)
