@@ -3041,7 +3041,7 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 		if (rc != OCI_SUCCESS) {
 			return rc;
 		}
-		Tcl_DStringAppend(&column->typename, namep, namesz);
+		Tcl_DStringAppend(&column->typename, (char *)namep, namesz);
 		break;
 #endif
 	default:
