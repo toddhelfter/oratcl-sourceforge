@@ -41,7 +41,7 @@ test oratcl-1.0 {Oracle I18n test 1} {
     }
 
     orasql $ora_cur "select name from internat where id = 1"
-    set result [orafetch $ora_cur]
+    orafetch $ora_cur -datavariable result
     orasql $ora_cur "drop table internat"
     set result [string trimright $result]
     set result_bytes [string bytelength $result]
@@ -66,7 +66,7 @@ test oratcl-3.0 {Oracle I18n test 3} {
     }
 
     orasql $ora_cur "select name from internat where id = 1"
-    set result [orafetch $ora_cur]
+    orafetch $ora_cur -datavariable result
     orasql $ora_cur "drop table internat"
     set result [string trimright $result]
     set result_bytes [string bytelength $result]
@@ -106,7 +106,8 @@ test i18n-2.0 {test creating i18n table} {
   set str2 "insert into \"$tclstr\" (name) values ('apple')"
   orasql $ora_cur $str2
   orasql $ora_cur "select * from \"$tclstr\""
-  set result [orafetch $ora_cur]
+  orafetch $ora_cur -datavariable result
+  set result
 } {apple}
 
 
@@ -146,34 +147,49 @@ test i18n-oraplex-int {test of i18n on oraplexec} {
     orasql $ora_cur "insert into test_int (name, sal, job) values ('Joe', 300, '$x')"
     oraplexec $ora_cur $pl_proc
     oraplexec $ora_cur $anon_pl :type $x :total 0
+    orafetch $ora_cur -datavariable result
+    set result
 } "$x 600"
 
 orasql $ora_cur "drop table test_int"
 orasql $ora_cur "drop procedure  total_salary"
 
 test i18n-orafetchtest {test oratcl cmd orafetch} {
+	catch {
+		oraparse $ora_cur {create table test_ofetchi18n (name varchar2(15))}
+		oraexec $ora_cur
+	}
     set unistr \uc3\ua9
-    orasql $ora_cur {create table test_ofetchi18n (name varchar2(15))}
     set str "insert into test_ofetchi18n (name) values ('$unistr')"
-    orasql $ora_cur $str
-    orasql $ora_cur {insert into test_ofetchi18n (name) values ('Joe')}
-    orasql $ora_cur {insert into test_ofetchi18n (name) values ('Jane')}
-    orasql $ora_cur $str
-    orasql $ora_cur {insert into test_ofetchi18n (name) values ('Bob')}
-    orasql $ora_cur {select name from test_ofetchi18n}
-    set match_rows 0
-    orafetch $ora_cur {
-      if {[string compare @1 $unistr] == 0} {
-         # name equal to test string then increment match_rows
-         incr match_rows
-      }
-      if {$match_rows == 2} {
-        break
-      }
-   }
+    oraparse $ora_cur $str
+    oraexec $ora_cur
+    oraparse $ora_cur {insert into test_ofetchi18n (name) values ('Joe')}
+    oraexec $ora_cur
+    oraparse $ora_cur {insert into test_ofetchi18n (name) values ('Jane')}
+    oraexec $ora_cur
+    oraparse $ora_cur $str
+    oraexec $ora_cur
+    oraparse $ora_cur {insert into test_ofetchi18n (name) values ('Bob')}
+    oraexec $ora_cur
+    oraparse $ora_cur {select name from test_ofetchi18n}
+    oraexec $ora_cur
+
+	set match_rows 0
+	orafetch $ora_cur -datavariable name
+	while {[oramsg $ora_cur rc] == 0} {
+		if {[string compare $name $unistr] == 0} {
+			# name equal to test string then increment match_rows
+			incr match_rows
+		}
+		if {$match_rows == 2} {
+			break
+		}
+		orafetch $ora_cur -datavariable name
+	}
+   
    orasql $ora_cur {drop table test_ofetchi18n}
    unset unistr
-   set result $match_rows
+   set match_rows
 } {2}
 
 test i18n-orabindexec-1.0 {tests oratcl orabindex cmd} {
@@ -184,9 +200,7 @@ test i18n-orabindexec-1.0 {tests oratcl orabindex cmd} {
      catch {orasql $ora_cur $str} error
      catch {orasql $ora_cur {select id from test_obindexi18n where ename = :name} -parseonly} error
      catch {orabindexec $ora_cur :name $unistr} error
-     set result [orafetch $ora_cur]
-     set res $result
-     unset result
+     orafetch $ora_cur -datavariable res
      orasql $ora_cur {drop table test_obindexi18n}
      unset unistr
      set res
