@@ -22,7 +22,7 @@
           <B>Example</B>
 
                package require Oratcl
-
+               package require -exact Oratcl 4.1
 
 
 </PRE>
@@ -150,6 +150,15 @@
                     writting  long  raw type values with <I>oralong</I>.
                     The default is false.
 
+          <I>numbsize</I>  Sets or returns the amount  of  of  data  (in
+                    characters)   used to represent a number column. 
+                    <I>Numbsize</I> defaults to 40 characters and the maximum
+                    is 4000 characters.
+
+          <I>datesize</I>  Sets or returns the amount  of  of  data  (in
+                    characters)   used to represent a date column. 
+                    <I>Datesize</I> defaults to 75 characters and the maximum
+                    is 7500 characters.
 
      <B>oraclose</B> <I>statement</I>-<I>handle</I>
           Closes the  cursor  associated  with  <I>statement</I>-<I>handle</I>.
