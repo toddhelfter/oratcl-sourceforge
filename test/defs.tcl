@@ -7,7 +7,7 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 # 
-# RCS: @(#) $Id: defs.tcl,v 1.2 1999-11-06 03:25:54 mtariq Exp $
+# RCS: @(#) $Id: defs.tcl,v 1.3 2000-06-23 01:38:41 wart Exp $
 
 
 if {[lsearch [namespace children] ::tcltest] == -1} {
@@ -17,8 +17,8 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 
 #Oracle environment variables
 
-set ::env(NLS_LANG) American_America.UTF8
-set ::env(ORACLE_HOME) /tools/1.3/solaris-sparc/oracle
+#set ::env(NLS_LANG) American_America.UTF8
+#set ::env(ORACLE_HOME) /tools/1.3/solaris-sparc/oracle
 
 #Oracle user, password, and connection string information
 set oracleuser scott
