@@ -9,17 +9,10 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 #
-# RCS: @(#) $Id: plexec.test,v 1.3 1999-09-25 02:57:35 mtariq Exp $
+# RCS: @(#) $Id: plexec.test,v 1.4 1999-10-12 02:01:23 mtariq Exp $
 
 
-set ::env(NLS_LANG) American_America.UTF8
-set ::env(ORA_NLS33) /tools/1.3/solaris-sparc/oracle/nls
-package require Oratcl
-
-if {[lsearch [namespace children] ::tcltest] == -1} {
-	package require tcltest
-		namespace import ::tcltest::*
-	}
+source [file  join [pwd] [file dirname [info script]] defs.tcl]
 
 set plsql_proc {
   create procedure total_monthly_job_pay
@@ -47,7 +40,7 @@ set anon_pl {
 }
 
 test oraplex {test of oratcl command oraplexec} {
-    oralogon scott/tiger@or8i
+    oralogon $oracleuser/$oraclepw@$connstring
     oraopen oratcl0.0
     oraplexec oratcl0.0 $plsql_proc
     oraplexec oratcl0.0 $anon_pl :type SALESMAN :total 0
