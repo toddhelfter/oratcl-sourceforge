@@ -123,7 +123,7 @@ SC_PUBLIC_TCL_HEADERS
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
 #--------------------------------------------------------------------
-AC_MSG_RESULT(Looking for TclConfig.sh)
+
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 SEARCH_DIRS="$TCL_BIN_DIR"
@@ -295,14 +295,6 @@ for f in $oracle_directory $oratest1 $oratest2 $oratest3 $oracle4 /opt/oracle /u
         AC_MSG_RESULT(setting ORA to $ORA)
         break
     fi
-    AC_MSG_RESULT(looking for lib/libclient.a in $f)
-    if test -r "$f/lib/libclient.a" ; then
-        ORA="$f/lib"
-	ORACLE_HOME=$f
-        AC_MSG_RESULT(setting ORA to $ORA)
-	testver=7
-        break
-    fi 
     AC_MSG_RESULT(looking for lib/libclient8.a in $f)
     if test -r "$f/lib/libclient8.a" ; then
         ORA="$f/lib"
@@ -352,18 +344,14 @@ case $oracle_version in
     6)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
         ORAVER="-DVERSION6"
-        ORA_DB_VER="-DVERSION7DB"
-
 	;;
     7)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
 	ORAVER="-DVERSION7"
-        ORA_DB_VER="-DVERSION7DB"
 	;;
     8)
 	AC_MSG_RESULT(using --with-oracle-version = $oracle_version)
-        ORAVER="-DVERSION7"
-        ORA_DB_VER="-DVERSION8DB"
+	ORAVER="-DVERSION7"
 	;;
 esac
 		
@@ -371,15 +359,12 @@ if test -z "$ORAVER" ; then
   case $testver in
       6)
 	  ORAVER="-DVERSION6"
-          ORA_DB_VER="-DVERSION7DB"
 	  ;;
       7)
 	  ORAVER="-DVERSION7"
-          ORA_DB_VER="-DVERSION7DB"
 	  ;;
       8)
 	  ORAVER="-DVERSION7"
-          ORA_DB_VER="-DVERSION8DB"
 	  ;;
   esac
 fi
@@ -495,7 +480,7 @@ ORA_SH_LIB=""
 case "`uname -s`" in
     *win32* | *WIN32* | *CYGWIN_NT*)
         if test "${SHARED_BUILD}" = "1" ; then
-	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} '`cygpath -w $ORA/oci.lib`' '`cygpath -w $ORA/ociw32.lib`'" 
+	    SHLIB_LD_LIBS="\"`cygpath -w ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\" ${TCL_SHLIB_LD_LIBS} \"`cygpath -w $ORA/oci.lib`\" \"`cygpath -w $ORA/ociw32.lib`\"" 
 	    eval "${PACKAGE}_LIB_FILE=${PACKAGE}${SHARED_LIB_SUFFIX}"
 	    RANLIB=:
 	else
@@ -548,8 +533,8 @@ fi
    
         if test "${SHARED_BUILD}" = "1" ; then
 	    echo "Performing shared build"
-	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB} ${ORA_SYS_LIBS} ${OTHER_LD_SEARCH_FLAGS}"
-#	    LIB_RUNTIME_DIR=${ORA}/lib
+	    SHLIB_LD_LIBS="${TCL_STUB_LIB_SPEC} ${ORA_SH_LIB}"
+	    LIB_RUNTIME_DIR=${ORA}/lib
 	    eval "ORA_LD_SEARCH_FLAGS=${TCL_LD_SEARCH_FLAGS}"
 	    LD_PROG=`echo ${TCL_SHLIB_LD} | sed -e "s| .*||"`
 	    CC_PROG=`echo ${CC} | sed -e "s| .*||"`
@@ -626,7 +611,6 @@ AC_SUBST(ORATCL_LIBVER)
 AC_SUBST(ORACLE_HOME)
 AC_SUBST(ORA)
 AC_SUBST(ORAVER)
-AC_SUBST(ORA_DB_VER)
 AC_SUBST(ORA72FEATURES)
 AC_SUBST(OCILIB)
 AC_SUBST(OCIMILI)

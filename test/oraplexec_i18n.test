@@ -7,9 +7,17 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 #
-# RCS: @(#) $Id: oraplexec_i18n.test,v 1.4 1999-10-12 02:01:23 mtariq Exp $
+# RCS: @(#) $Id: oraplexec_i18n.test,v 1.3 1999-09-25 02:57:04 mtariq Exp $
 
-source [file  join [pwd] [file dirname [info script]] defs.tcl]
+set ::env(NLS_LANG) American_America.UTF8
+set ::env(ORA_NLS33) /tools/1.3/solaris-sparc/oracle/nls
+package require Oratcl
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+	package require tcltest
+		namespace import ::tcltest::*
+	}
+
 
 set pl_proc {
   create procedure total_salary
@@ -33,7 +41,7 @@ set anon_pl {
 }
 set x \u00c3\u00a9
 test oraplex-int {test of i18n on oraplexec} {
-    oralogon $oracleuser/$oraclepw@$connstring
+    oralogon scott/tiger@or8i
     oraopen oratcl0
     orasql oratcl0.0 "create table test_int (name varchar2(20), sal int, job varchar2(15))"
     orasql oratcl0.0 "insert into test_int (name, sal, job) values ('Joe', 100,'$x')"

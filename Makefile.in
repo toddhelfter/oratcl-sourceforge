@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.13 1999-10-13 00:36:29 mtariq Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.11 1999-09-23 23:07:06 wart Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -86,7 +86,6 @@ ORAVER        = @ORAVER@
 ORA72FEATURES = @ORA72FEATURES@
 ORA_SH_LIB    = @ORA_SH_LIB@
 ORA_SYS_LIBS  = @ORA_SYS_LIBS@
-ORA_DB_VER    = @ORA_DB_VER@
 
 OCILIB        = @OCILIB@
 
@@ -122,8 +121,6 @@ LIBC = -lc
 LIB_INSTALL_DIR        = @SEARCH_DIRS@
 LIB_RUNTIME_DIR        = @SEARCH_DIRS@
 OTHER_LD_SEARCH_FLAGS  = @OTHER_LD_SEARCH_FLAGS@
-
-TCL_LD_SEARCH_FLAGS    = @TCL_LD_SEARCH_FLAGS@
 #========================================================================
 # Nothing of the variables below this line need to be changed.  Please
 # check the TARGETS section below to make sure the make targets are
@@ -219,7 +216,7 @@ LDFLAGS = $(LDFLAGS_DEFAULT)
 
 INCLUDES = @TCL_INCLUDES@
 
-EXTRA_CFLAGS = $(TCL_DEFS) $(PROTO_FLAGS) $(SECURITY_FLAGS) $(MEM_DEBUG_FLAGS) $(KEYSYM_FLAGS) $(NO_DEPRECATED_FLAGS) $(ORAVER) $(ORA72FEATURES) $(ORA_DB_VER)
+EXTRA_CFLAGS = $(TCL_DEFS) $(PROTO_FLAGS) $(SECURITY_FLAGS) $(MEM_DEBUG_FLAGS) $(KEYSYM_FLAGS) $(NO_DEPRECATED_FLAGS) $(ORAVER) $(ORA72FEATURES)
 
 DEFS = @DEFS@ $(EXTRA_CFLAGS)
 
@@ -293,8 +290,7 @@ install-doc: doc
 	    $(INSTALL_DATA) $$i $(mandir)/mann ; \
 	    done
 
-test: binaries
-	  $(TCLSH_PROG) "$(srcdir)/test/all.tcl"
+test:
 
 depend:
 

@@ -57,112 +57,6 @@ Oratcl -  Tcl interface to Oracle database server
  * mtariq@scriptics.com
  *-----------------------------------------------------------------------
 
- ********************ORATCL VERSION 2.6 NOTES********************
-
-(Oratcl Version 2.6 can also be used with Tcl versions up to 8.2
- and with versions of Oracle through Oracle 8.1.5. Note that
- Oratcl still uses the Oracle OCI API version 7 (which is
- still included with Oracle 8 libraries for backwards
- compatibility) so new features  of Oracle 8 such as LOB
- functions are not available yet in Oratcl.)
-
- Oratcl 2.6 is stub aware.
- 
- Since the Oracle 7 OCI function orlon does not work with some
- versions of Oracle 8i (such as 8.1.5 on NT), the Oracle 8 OCI
- call OCILogon is used for logging in. Therefore, if linking
- Oratcl with Oracle 7 libraries, you must compile Oratcl with
- the flag -VERSION7DB specified in your Makefile.
-
-Tcl Extension Architecture
-__________________________
-Tcl Extension Architecure (TEA) support is available for building 
-a shared Oratcl library on NT and Solaris platforms only.
-Support for building a static Oratcl library as well as
-support for other platforms will be added in future releases.
-
-Refer to http://www.scriptics.com/products/tcltk/tea for information
-on TEA.
-
-Building Oratcl on Solaris with TEA
-
-The GNU Autoconf package was used to create the configuration files
-configure.in and Makefile.in. A configure script is generated from
-configure.in using autoconf. Running this configure script generates
-the Makefile from Makefile.in. 
-
-The following steps describe how to build
-Oratcl on Solaris:
-
-
-1.) Type 'autoconf' in the top level Oratcl directory (where configure.in
-    is located). This creates the configure script called configure.
-
-    >autoconf
-
-2.) create a Solaris directory in your Oratcl directory.
-
-3.) cd into the Solaris directory and run the configure script.
-
-    The configure script recognizes the following options:
-
-    --prefix=the name of the directory for the installation of
-    bin, lib, and man files 
-    --with-tcl=Location of the tclConfig.sh file
-    --with-oracle-directory=Location of the Oracle home directory
-    --enable-shared: build a shared library (static libraries currently
-                     not supported)
-    --with-oratcl-version=6,7, or 8 depending on the version of Oracle
-      you have installed
-    --with-tclinclude=Location of installed public Tcl header files
-    --with-enable-gcc: Enables gcc compiler
- 
-For example:
-  
-> ../configure --prefix=/usr/local/tcl --with-oracle-directory=/opt/oracle/8i
-  --with-oracle-version=8 --enable-shared --tclinclude=/usr/local/tcl/include
-  --with-tcl=/usr/local/tcl/lib
-(Depending on your setup, you may not need to specify all the
-configure switches)
-
-This will create the file 'Makefile'
-
-4.) Finally, run 'make' or 'make-install' to generate the shared
-  library liboratcl2.6.so
-
-
-NOTE: After running the configure script, a message indicates
-      that pkgIndex was created. This is a bug. Currently,
-      you have to create and install this file manually.
-
---
-Building Oratcl on Windows with TEA
-
-Building Oratcl for Windows requires the use of Cygwin's GNU utitities
-for Windows and the Microsoft Visual C++ compiler (5.0 or 6.0). For info on 
-where to find and install the Cygwin tools, follow the directions in
-Chapter 6 of the TEA Developers guide. This guide can be found on the
-Scriptics URL mentioned above. 
-
-The same instructions for building on Solaris apply to the Windows
-build. However, path names refer to windows paths. For example,
-running Cygwin's bash utilty you would type the following to generate
-the Windows Makefile:
-
-bash-2.02$ ../configure --with-tcl=//d/tcl8.2/tcl8.2.0/win
---with-tclinclude=//d/tcl8.2/tcl8.2.0/generic --with-oracle-version=8
---with-oracle-directory=//d/Oracle/Ora81 --enable-shared
-
-
-Note: Oracle constantly changes library and pathnames between
-versions. If the configure script complains about not finding a
-particular file, then you may need to edit configure.in to reflect the
-correct search paths.
-
--Mariam Tariq (mtariq@scriptics.com)
-
-**************************************************************         
-
 
 WHAT IS ORATCL?
 
@@ -245,7 +139,25 @@ The specific software versions I used:
 	There are some notes about working with Oracle 8.  See the file
 	'oracle8.mods'
 
-       
+        *************ORATCL VERSION 2.6 NOTES***********************
+
+	(Oratcl Version 2.6 can also be used with Tcl versions up to 8.2
+	 and with versions of Oracle through Oracle 8.1.5. Note that
+	 Oratcl still uses the Oracle OCI API version 7 (which is
+         still included with Oracle 8 libraries for backwards
+	 compatibility) so new features  of Oracle 8 such as LOB
+	 functions are not available.)
+	 
+	 Oratcl 2.6 is stub aware.
+	 
+	 Since the Oracle 7 OCI function orlon does not work with some
+         versions of Oracle 8i (such as 8.1.5 on NT), the Oracle 8 OCI
+         call OCILogon is used for logging in. Therefore, if linking
+         Oratcl with Oracle 7 libraries, you must compile Oratcl with
+         the flag VERSION7DB.
+
+         
+
 
 >>>>>>>	I've put oratcl-2.5.tar.gz on ftp.neosoft.com 
         in /pub/tcl/sorted/databases/oratcl-2.5/oratcl-2.5.tar.gz
