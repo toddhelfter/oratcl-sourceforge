@@ -1,0 +1,187 @@
+# oradesc.test
+#
+# Copyright (c) 2001 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise oradesc
+#
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+global ora_constr
+set desc_usr $ora_userid
+set desc_lda [oralogon $ora_constr]
+set desc_stm [oraopen $desc_lda]
+
+# create tbl_1
+catch {orasql $desc_stm { \
+	create table oratcl_desc_tbl_1 ( \
+		desc_char	char(10), \
+		desc_float	number(6,3), \
+		desc_number	number(5), \
+		desc_varchar2	varchar2(10), \
+		desc_long	long, \
+		desc_clob	clob default empty_clob(), \
+		desc_blob	blob default empty_blob() \
+	) }}
+
+# describe tbl_1 result
+set desc_tbl_1 [list [list DESC_CHAR 10 CHAR 0 0 1] \
+		     [list DESC_FLOAT 22 NUMBER 6 3 1] \
+		     [list DESC_NUMBER 22 NUMBER 5 0 1] \
+		     [list DESC_VARCHAR2 10 VARCHAR2 0 0 1] \
+		     [list DESC_LONG 0 LONG 0 0 1] \
+		     [list DESC_CLOB 86 CLOB 0 0 1] \
+		     [list DESC_BLOB 86 BLOB 0 0 1] ]
+
+# create tbl_2
+catch {orasql $desc_stm { \
+	create table oratcl_desc_tbl_2 ( \
+		desc_char	char(10) \
+	) }}
+
+# describe tbl_2 result
+set desc_tbl_2 [list [list DESC_CHAR 10 CHAR 0 0 1] ]
+
+
+# create a private synonym for tbl_1
+catch {orasql $desc_stm { \
+	create synonym oratcl_desc_syn_1 for oratcl_desc_tbl_1 \
+}}
+
+# create a private synonym for tbl_2
+catch {orasql $desc_stm { \
+	create synonym oratcl_desc_syn_2 for oratcl_desc_tbl_2 \
+}}
+
+# create a public synonym for tbl_1
+catch {orasql $desc_stm { \
+	create public synonym oratcl_public_syn_1 for oratcl_desc_tbl_1 \
+}}
+
+#
+# a simple function to compare two nested lists.
+#
+proc test_list {arg1 arg2} { 
+	upvar $arg1 lst1
+	upvar $arg2 lst2
+
+	if {[llength $lst1] != [llength $lst2]} {
+		puts "\tnumber of columns [llength $lst1] != [llength $lst2]"
+		return 0
+	}
+
+	foreach slst1 $lst1 slst2 $lst2 {
+		if {[llength $slst1] != [llength $slst2]} {
+			return 0
+		}
+		foreach sslst1 $slst1 sslst2 $slst2 {
+			if {! [string equal $sslst1 $sslst2]} {
+				puts "\tcolumn :: [list $slst1] != [list $slst2]"
+				puts "\tvalues :: $sslst1 != $sslst2"
+				return 0
+			}
+		}
+	}
+
+	return 1
+}
+
+test oradesc-1.0 {oradesc: describe table} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda oratcl_desc_tbl_1]}
+	set test_res [test_list desc_res desc_tbl_1]
+	set test_res
+} {1}
+
+test oradesc-1.1 {oradesc: describe table} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda oratcl_desc_tbl_2]}
+	set test_res [test_list desc_res desc_tbl_2]
+	set test_res
+} {1}
+
+test oradesc-1.2 {oradesc: describe schema.table} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda ${desc_usr}.oratcl_desc_tbl_1]}
+	set test_res [test_list desc_res desc_tbl_1]
+	set test_res
+} {1}
+
+test oradesc-1.3 {oradesc: describe schema.table} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda ${desc_usr}.oratcl_desc_tbl_2]}
+	set test_res [test_list desc_res desc_tbl_2]
+	set test_res
+} {1}
+
+test oradesc-2.0 {oradesc: describe non-existent table} {
+	set desc_res {}
+	set table ORATCL_NOEXIST_TBL_1
+	set user [string toupper $desc_usr]
+	set good_res [format "ORA-04043: object %s does not exist\n" $table]
+	catch {set desc_res [oradesc $desc_lda $table]} catch_res
+	set test_res [string compare $catch_res $good_res]
+	set test_res
+} {0}
+
+test oradesc-2.1 {oradesc: describe non-existent schema.table} {
+	set desc_res {}
+	set user [string toupper $desc_usr]
+	set table ${user}.ORATCL_NOEXIST_TBL_1
+	set good_res [format "ORA-04043: object %s does not exist\n" $table]
+	catch {set desc_res [oradesc $desc_lda $table]} catch_res
+	set test_res [string compare $catch_res $good_res]
+	set test_res
+} {0}
+
+test oradesc-3.0 {oradesc: describe private synonym} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda oratcl_desc_syn_1]}
+	set test_res [test_list desc_res desc_tbl_1]
+	set test_res
+} {1}
+
+test oradesc-3.1 {oradesc: describe private synonym} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda oratcl_desc_syn_2]}
+	set test_res [test_list desc_res desc_tbl_2]
+	set test_res
+} {1}
+
+test oradesc-3.2 {oradesc: describe schema.synonym} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda ${desc_usr}.oratcl_desc_syn_1]}
+	set test_res [test_list desc_res desc_tbl_1]
+	set test_res
+} {1}
+
+test oradesc-3.3 {oradesc: describe schema.synonym} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda ${desc_usr}.oratcl_desc_syn_2]}
+	set test_res [test_list desc_res desc_tbl_2]
+	set test_res
+} {1}
+
+test oradesc-4.0 {oradesc: describe public synonym} {
+	set desc_res {}
+	catch {set desc_res [oradesc $desc_lda oratcl_public_syn_1]}
+	set test_res [test_list desc_res desc_tbl_1]
+	set test_res
+} {1}
+
+
+# cleanup after ourselves.
+catch {orasql $desc_stm {drop public synonym oratcl_public_syn_1}}
+catch {orasql $desc_stm {drop synonym oratcl_desc_syn_1}}
+catch {orasql $desc_stm {drop synonym oratcl_desc_syn_2}}
+catch {orasql $desc_stm {drop table oratcl_desc_tbl_1}}
+catch {orasql $desc_stm {drop table oratcl_desc_tbl_2}}
+
+oraclose $desc_stm
+oralogoff $desc_lda
+
+::tcltest::cleanupTests
+return
