@@ -1,0 +1,70 @@
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# This file creates a temporary table in the database  with a column that has
+# unicode characters in the column name. Then the column name
+# is retrieved from the database using the Oratcl command oracols.
+# This retrieved column name is checked to ensure the name is correct
+# i.e. the column name is still in the proper UTF representation.
+# A similar test is done with creating a table with unicode characters.
+#
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+# All rights reserved.
+#
+# RCS: @(#) $Id: i18n3.test,v 1.1 1999-08-09 18:21:25 mtariq Exp $
+
+package require Oratcl
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import ::tcltest::*
+}
+
+set handle [oralogon scott/tiger]
+set cursor [oraopen $handle]
+set tclstr \u592a\u9177
+
+test i18n-1.0 {test creating i18n column} {
+  
+  set str "create table testi18n3 (\"$tclstr\" varchar(15))"
+  orasql $cursor $str
+  orasql $cursor "select * from testi18n3"
+  orafetch $cursor
+  set result1 [oracols $cursor]
+  set resbytes [string bytelength $result1]
+  set reslength [string length $result1]
+  if {[string compare $result1 $tclstr] == 0 && $reslength == 2 && $resbytes == 6} {
+      set passed "test passed"
+  } else {
+     set passed "test failed"
+  }
+  set test_result $passed
+}   {test passed}
+
+test i18n-2.0 {test creating i18n table} {
+  set str "create table \"$tclstr\" (name varchar(10))"
+  orasql $cursor $str
+  set str2 "insert into \"$tclstr\" (name) values ('apple')"
+  orasql $cursor $str2
+  orasql $cursor "select * from \"$tclstr\""
+  set result [orafetch $cursor]
+} {apple}
+
+orasql $cursor "drop table testi18n3"
+
+test i18n-3.0 {test dropping i18n table} {
+   orasql $cursor "drop table \"$tclstr\""
+} {0}
+
+
+oralogoff $handle
+  
+::tcltest::cleanupTests
+
+return
+  
+
+
+
