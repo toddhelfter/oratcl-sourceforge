@@ -296,9 +296,6 @@ Version 3.3 September, 2001
         a zero length string into a long column, put the statement handle
         in an unrecoverable state.
         Thanks to Ulrich Schoebel (SchoebelU@spardat.at) for the alert.
-    -   Correct oradesc to continue describing synonyms until the base
-	table is reached.  Added nested synonym test to oradesc.test.
-	Thanks to Lawrence Little for the alert.
 
 -----------------------------------------------------------------------------
 
@@ -334,5 +331,8 @@ Version 4.0 September, 2001
 	for details.  This is not backwards compatible.  Also see the
 	test suite for examples.
     -   Oratcl now works in 64 bit solaris with 64 bit Oracle.
+    -   Correct oradesc to continue describing synonyms until the base
+	table is reached.  Added nested synonym test to oradesc.test.
+	Thanks to Lawrence Little for the alert.
 
 -----------------------------------------------------------------------------
