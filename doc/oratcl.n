@@ -115,6 +115,13 @@ defaults to 10,000 characters and the maximum is 15,000 characters.
 Sets or returns the amount of of data (in characters) used in piecewise
 reads and writes to LONG types in the \fBoralong\fR command.  \fILongpsize\fR
 defaults to 50,000 characters and the maximum is 2,147,483,648 characters.
+.IP \fIutfmode\fR
+Sets or returns the UTF translation behavior.  Setting this value to true
+causes \fIorasql\fR, \fIorabindexec\fR, \fIoraplexec\fR, \fIorafetch\fR,
+\fIoralong\fR and \fIoralob\fR to perform UTF translation on values written to
+and read from the database with the system encoding.  It is not recommended that
+this function be enabled when reading or writting long raw type values
+with \fIoralong\fR. The default is false. 
 .RE
 .sp
 .TP

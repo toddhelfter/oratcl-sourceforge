@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.33 2000-10-12 21:04:36 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.34 2001-03-26 20:16:11 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -25,7 +25,10 @@
 
 lib_BINARIES=$(oratcl_LIB_FILE)
 BINARIES=$(lib_BINARIES)
-LIBRARIES=oralob.tcl oralong.tcl
+
+LIBRARY1=oralob.tcl
+LIBRARY2=oralong.tcl
+LIBRARIES=${LIBRARY1} ${LIBRARY2}
 
 #========================================================================
 # Enumerate the names of the source files included in this package.
@@ -47,6 +50,16 @@ oratcl_OBJECTS =  oratcl.$(OBJEXT)
 OBJECTS = $(oratcl_OBJECTS)
 
 #========================================================================
+# Enumerate the names of the header files included in this package.
+#========================================================================
+
+oratcl_HEADERS = oratcl.h oratclInt.h
+HEADERS = $(oratcl_HEADERS)
+oratcl_DEP_INC = $(srcdir)/generic/oratcl.h \
+                 $(srcdir)/generic/oratclInt.h
+DEP-INC = $(oratcl_DEP_INC)
+
+#========================================================================
 # The substitution of "exampleA_LIB_FILE" into the variable name below
 # let's us refer to the objects for the library without knowing the name
 # of the library in advance.  It also lets us use the "$@" variable in
@@ -55,7 +68,7 @@ OBJECTS = $(oratcl_OBJECTS)
 #========================================================================
 
 oratcl_LIB_FILE = @oratcl_LIB_FILE@
-$(oratcl_LIB_FILE)_OBJECTS = $(oratcl_OBJECTS)
+#$(oratcl_LIB_FILE)_OBJECTS = $(oratcl_OBJECTS)
 
 #========================================================================
 # This is a list of header files to be installed
@@ -215,7 +228,10 @@ INCLUDES = @TCL_INCLUDES@ -I"../generic" $(ORAINCLUDE)
 
 EXTRA_CFLAGS = $(TCL_DEFS) $(PROTO_FLAGS) $(SECURITY_FLAGS) $(MEM_DEBUG_FLAGS) $(KEYSYM_FLAGS) $(NO_DEPRECATED_FLAGS) $(ORA_DB_VER) $(ORA_MAJOR_VERSION_CFLAG) $(ORA_MINOR_VERSION_CFLAG)
 
-DEFS = @DEFS@ $(EXTRA_CFLAGS)
+DEFS = @DEFS@ \
+	-DLIBRARY1=\"${LIBRARY1}\" \
+	-DLIBRARY2=\"${LIBRARY2}\" \
+	$(EXTRA_CFLAGS)
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 CONFIGDIR = @CONFIGDIR@
@@ -332,11 +348,8 @@ $(oratcl_LIB_FILE): $(oratcl_OBJECTS)
 # 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/src/win/exampleA.c` -o $@
 #========================================================================
 
-oratcl.$(OBJEXT): $(srcdir)/generic/oratcl.c
+oratcl.$(OBJEXT): $(srcdir)/generic/oratcl.c $(oratcl_DEP_INC)
 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/generic/oratcl.c` -o $@
-
-
-
 
 #========================================================================
 # End of user-definable section
@@ -376,16 +389,16 @@ install-lib-binaries: installdirs
 	  if test -f $$p; then \
 	    ext=`echo $$p|sed -e "s/.*\.//"`; \
 	    if test "x$$ext" = "xdll"; then \
-	        echo " $(INSTALL_DATA) $$p $(DESTDIR)$(bindir)/$$p"; \
-	        $(INSTALL_DATA) $$p $(DESTDIR)$(bindir)/$$p; \
-		lib=`basename $$p|sed -e 's/.[^.]*$$//'`.lib; \
+		echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+		$(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
+		lib==`basename $$p|sed -e 's/.[^.]*$$//'`.lib; \
 		if test -f $$lib; then \
 		    echo " $(INSTALL_DATA) $$lib $(DESTDIR)$(libdir)/$$lib"; \
 	            $(INSTALL_DATA) $$lib $(DESTDIR)$(libdir)/$$lib; \
 		fi; \
 	    else \
 		echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
-	        $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
+		$(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
 	    fi; \
 	  else :; fi; \
 	done

@@ -251,3 +251,24 @@ Version 3.1 October, 2000
     -   reorganized the windows prebuilt files directory once again.
 
 -----------------------------------------------------------------------------
+
+Version 3.2 March, 2001
+
+    Todd M. Helfter, Purdue University
+    tmh@purdue.edu
+
+    -   changed Makefile.in to depend on generic/*.h files.
+    -   changed package to eval library files (oralob.tcl, oralong.tcl) from
+	within the 'C' code.  This change removes the source lines from the
+	pkgIndex.tcl file.  This allows the commands implemented in these
+	files to be available with [interp create] and to those linking
+	directly to the library.  The files will not be sourced with the 
+	[interp create -safe] as file I/O has been restricted in this
+	case.  
+    -	added statement handle option utfmode to the oraconfig command.
+	Setting this option to true causes oratcl to use the functions:
+	Tcl_UtfToExternalDstring and Tcl_ExternalToUtfDString on string
+	values in orasql, orabindexec, oraplexec, orafetch and oralong.
+	(Note :: oralob is implemented with oraplexec, so it to is affected.)
+
+-----------------------------------------------------------------------------

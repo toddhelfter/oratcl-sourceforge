@@ -115,6 +115,15 @@ characters. </DD>
 used in piecewise reads and writes to LONG types in the <B>oralong</B> command.
  <I>Longpsize</I> defaults to 50,000 characters and the maximum is 2,147,483,648
 characters. </DD>
+
+<DT><I>utfmode</I></DT>
+<DD>Sets or returns the UTF translation behavior.  Setting this value to true
+causes <B>orasql</B>, <B>orabindexec</B>, <B>oraplexec</B>, <B>orafetch</B>,
+<B>oralong</B> and <B>oralob</B> to perform UTF translation on values written to and
+read from the database with the system encoding.  It is not recommended that
+this function be enabled when reading or writting long raw type values
+with <B>oralong</B>.  The default is false.
+</DD>
 </DL>
 </blockquote>
 <P>

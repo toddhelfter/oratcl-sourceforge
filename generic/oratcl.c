@@ -1,30 +1,23 @@
 /*
  * oratcl.c
- */
-
-/*
+ *
  * Oracle interface to Tcl
  *
  * Copyright 1993 Tom Poindexter and U S WEST Advanced Technologies, Inc.
+ * Copyright 2000-2001 Todd M. Helfter
  *
- * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose and without fee is hereby granted, provided
- * that the above copyright notice appear in all copies.  
- * Tom Poindexter and U S WEST make no representations about the suitability 
- * of this software for any purpose.  It is provided "as is" without express or
- * implied warranty.  By use of this software the user agrees to 
- * indemnify and hold harmless Tom Poindexter and U S WEST from any 
- * claims or liability for loss arising out of such use.
+ * See the file "license.terms" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
  */
 
 #if defined(_WIN32) || defined(__WIN32__)
 #include <windows.h>
 #endif
 
-#include <oci.h>
+#include "oratclInt.h"
 #include "oratcl.h"
-#include "externs.h"
-#include "tcl.h"
+#include <tcl.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -70,6 +63,12 @@ LPVOID reserved;            /* Not used. */
  */
 
 static char *OraHandlePrefix = "oratcl";
+static char *OraLibraryList[] = {
+	LIBRARY1,
+	LIBRARY2,
+	NULL
+};
+
 OratclStateList	*OratclSLP = NULL;
  
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
@@ -349,6 +348,14 @@ Oratcl_Init (interp)
 	OratclState	*OratclStatePtr;
 	OratclStateList *StateListPtr;
 
+	Tcl_DString	oratclPath;
+	Tcl_DString	tcllibPath;
+	char		*path[3];
+	int		libix, pcnt = 2;
+
+	int		pargc;
+	char		**pargv;
+
 #ifdef USE_TCL_STUBS
 	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
 		return TCL_ERROR;
@@ -540,6 +547,33 @@ Oratcl_Init (interp)
 	Tcl_CallWhenDeleted(interp,
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
+
+	Tcl_SplitPath(Tcl_GetNameOfExecutable(), &pargc, &pargv);
+
+	Tcl_DStringInit(&tcllibPath);
+	pargv[pargc -2] = "lib";
+	pargv[pargc -1] = "oratcl" VERSION;
+	Tcl_JoinPath(pargc, pargv, &tcllibPath);
+
+	for (libix=0; OraLibraryList[libix] != NULL; libix++) {
+
+		pcnt = 0;
+		path[pcnt++] = tcllibPath.string;
+#if 0
+		path[pcnt++] = "lib";
+#endif
+		path[pcnt++] = OraLibraryList[libix];
+		if (pcnt > sizeof(path)/sizeof(path[0])) {
+			/* this is really bad :: we killed memory */
+			abort();
+		}
+
+		Tcl_DStringInit(&oratclPath);
+		Tcl_JoinPath(pcnt, path, &oratclPath);
+		Tcl_EvalFile(interp, Tcl_DStringValue(&oratclPath));
+		Tcl_DStringFree(&oratclPath);
+	}
+	Tcl_DStringInit(&tcllibPath);
 
 	if (Tcl_PkgProvide(interp, "Oratcl", VERSION) != TCL_OK) {
 		return TCL_ERROR;
@@ -1045,6 +1079,8 @@ Oratcl_ColAppend (interp, StmPtr)
 	char		*null_str;
 	int		oColsc = 0;
 
+	Tcl_DString	valStr;
+
 	/* quick sanity check */
 	rn = StmPtr->fetchidx;
 	if (rn < 0 || rn >= StmPtr->fetchmem) {
@@ -1085,10 +1121,19 @@ Oratcl_ColAppend (interp, StmPtr)
 			}
 		} else {
 			if (col->column.valuesz > 0) {
-				StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(
-					col->column.valuep + (rn * col->column.valuesz),
-					-1);
-
+                                if (StmPtr->utfmode) {
+                                        Tcl_DStringInit(&valStr);
+                                        Tcl_ExternalToUtfDString(NULL,
+								 col->column.valuep + (rn * col->column.valuesz),
+								 -1,
+								 &valStr);
+                                        StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&valStr), -1);
+                                        Tcl_DStringFree(&valStr);
+                                } else {
+					StmPtr->oColsv[oColsc++] = Tcl_NewStringObj(
+						col->column.valuep + (rn * col->column.valuesz),
+						-1);
+				}
 			} else {
 				StmPtr->oColsv[oColsc++] = OMV_null;
 			}
@@ -1956,6 +2001,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->oColsv		= NULL;
 	StmPtr->sub_list	= NULL;
 	StmPtr->sub_len		= 0;
+	StmPtr->utfmode		= 0;
 
 	Oratcl_ClearGAV(interp);
 
@@ -2065,6 +2111,7 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
+	Tcl_DString	stmStr;
 	sword		rc;
 	int		cols;
 	ub4		oci_mode = OCI_DEFAULT;
@@ -2073,21 +2120,22 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	ub4		iters = 0;
 	char		*p;
 
-	text		*stmt;
-	ub4		stmtlen;
+	char		*stmt;
+	ub4		stln;
 
 	ub4		rowcnt;
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
-
 	if (objc < 3) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle  sql_str ?-parseonly? | ?-commit?");
-		tcl_return = TCL_ERROR;
-		goto common_exit;
+		return TCL_ERROR;
+	}
+
+	Tcl_DStringInit(&stmStr);
+
+	for (objix=0; objix<objc; objix++) {
+		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -2126,7 +2174,13 @@ Oratcl_Sql (clientData, interp, objc, objv)
 		oci_mode = OCI_COMMIT_ON_SUCCESS;
 	}
 
-	stmt = (text *) Tcl_GetStringFromObj(objv[2], (int *) &stmtlen);
+	stmt = Tcl_GetStringFromObj(objv[2], (int *) &stln);
+
+	if (StmPtr->utfmode) {
+		Tcl_UtfToExternalDString(NULL, stmt, -1, &stmStr);
+	} else {
+		Tcl_DStringAppend(&stmStr, stmt, -1);
+	}
 
 	/* clear any previous results */
 	Oratcl_ColFree(StmPtr->col_list);
@@ -2141,8 +2195,8 @@ Oratcl_Sql (clientData, interp, objc, objv)
 
 	rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
 			     LogPtr->errhp,
-			     (text *) stmt,
-			     (ub4) stmtlen,
+			     (text *) Tcl_DStringValue(&stmStr),
+			     (ub4) Tcl_DStringLength(&stmStr),
 			     (ub4) OCI_NTV_SYNTAX,
 			     (ub4) OCI_DEFAULT);
 
@@ -2227,6 +2281,8 @@ Oratcl_Sql (clientData, interp, objc, objv)
 
 common_exit:
 
+	Tcl_DStringFree(&stmStr);
+
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
 	}
@@ -2271,6 +2327,7 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 	OratclCols	*tmp_col;
 	OratclCols	*head_col;
 
+	Tcl_DString	argStr;
 	char		*arg_pcc, *arg_pcp, *p;
 	int		arg_pcc_len, arg_pcp_len;
 	int		objix;
@@ -2381,11 +2438,21 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 
+
 			/* allocate adequate space for reuse */
 			tmp_col->column.valuesz = StmPtr->bindsize;
 			tmp_col->column.valuep   = ckalloc(tmp_col->column.valuesz + 1);
-			memcpy(tmp_col->column.valuep, arg_pcp, arg_pcp_len);
-			tmp_col->column.valuep[arg_pcp_len] = '\0';
+
+			if (StmPtr->utfmode) {
+				Tcl_DStringInit(&argStr);
+				Tcl_UtfToExternalDString(NULL, arg_pcp, -1, &argStr);
+				memcpy(tmp_col->column.valuep, argStr.string, argStr.length);
+				tmp_col->column.valuep[argStr.length] = '\0';
+				Tcl_DStringFree(&argStr);
+			} else {
+				memcpy(tmp_col->column.valuep, arg_pcp, arg_pcp_len);
+				tmp_col->column.valuep[arg_pcp_len] = '\0';
+			}
 
 			tmp_col->bindp = (OCIBind *) 0;
 
@@ -2449,8 +2516,18 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 			while (tmp_col != NULL) {
 				if (strncmp((char *) tmp_col->column.name, Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), 255) == 0) {
 					arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
-					memcpy(tmp_col->column.valuep, arg_pcp, arg_pcp_len);
-					tmp_col->column.valuep[arg_pcp_len] = '\0';
+
+					if (StmPtr->utfmode) {
+						Tcl_DStringInit(&argStr);
+						Tcl_UtfToExternalDString(NULL, arg_pcp, -1, &argStr);
+						memcpy(tmp_col->column.valuep, argStr.string, argStr.length);
+						tmp_col->column.valuep[argStr.length] = '\0';
+						Tcl_DStringFree(&argStr);
+					} else {
+						memcpy(tmp_col->column.valuep, arg_pcp, arg_pcp_len);
+						tmp_col->column.valuep[arg_pcp_len] = '\0';
+					}
+
 					break;
 				}
 				tmp_col = tmp_col->next;
@@ -3181,6 +3258,8 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	OratclLogs	*LogPtr;
 	OratclStms	*CurPtr;
 
+	Tcl_DString	plStr;
+	Tcl_DString	argStr;
 	int		parm_cnt;
 	sword		rc;
 
@@ -3199,14 +3278,15 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
-
 	if (objc < 3) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle pl_block [ :varname value ] ...");
-		tcl_return = TCL_ERROR;
-		goto common_exit;
+		return TCL_ERROR;
+	}
+
+	Tcl_DStringInit(&plStr);
+
+	for (objix=0; objix<objc; objix++) {
+		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -3249,14 +3329,20 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	StmPtr->fetch_cnt  = 0;
 	StmPtr->append_cnt  = 0;
 
-	pl_str = Tcl_GetStringFromObj(objv[2], &pl_len);
+	pl_str = Tcl_GetStringFromObj(objv[2], (int *) &pl_len);
+
+	if (StmPtr->utfmode) {
+		Tcl_UtfToExternalDString(NULL, pl_str, -1, &plStr);
+	} else {
+		Tcl_DStringAppend(&plStr, pl_str, -1);
+	}
 
 	rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
-				 LogPtr->errhp,
-				 (text *) pl_str,
-				 (ub4) pl_len,
-				 (ub4) OCI_NTV_SYNTAX,
-				 (ub4) OCI_DEFAULT);
+			     LogPtr->errhp,
+			     (text *) Tcl_DStringValue(&plStr),
+			     (ub4) Tcl_DStringLength(&plStr),
+			     (ub4) OCI_NTV_SYNTAX,
+			     (ub4) OCI_DEFAULT);
 
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1);
 
@@ -3383,8 +3469,17 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
-		memcpy(new_col->column.valuep, arg_pcp, arg_pcp_len);
-		new_col->column.valuep[arg_pcp_len] = '\0';
+
+		if (StmPtr->utfmode) {
+			Tcl_DStringInit(&argStr);
+			Tcl_UtfToExternalDString(NULL, arg_pcp, -1, &argStr);
+			memcpy(new_col->column.valuep, argStr.string, argStr.length);
+			new_col->column.valuep[argStr.length] = '\0';
+			Tcl_DStringFree(&argStr);
+		} else {
+			memcpy(new_col->column.valuep, arg_pcp, arg_pcp_len);
+			new_col->column.valuep[arg_pcp_len] = '\0';
+		}
 
 		new_col->rlenp[0] = 0;
 		new_col->rcodep[0] = 0;
@@ -3539,6 +3634,8 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	/* don't free col_list yet; allow oracols to fetch info */
 
 common_exit:
+
+	Tcl_DStringFree(&plStr);
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
@@ -4072,7 +4169,7 @@ common_exit:
  *
  * Oratcl_Config --
  *    Implements the oraconfig command:
- *    usage: oradesc stm_handle field value
+ *    usage: oraconfig stm_handle field value
  *	                
  *    results:
  *	table information
@@ -4098,9 +4195,11 @@ Oratcl_Config (clientData, interp, objc, objv)
 				      "fetchrows",
 				      "lobpsize",
 				      "longpsize",
+				      "utfmode",
 				      NULL};
-	enum		optindex {OPT_LONG, OPT_BIND, OPT_NULL, OPT_CACHE, OPT_LOBP, OPT_LONGP};
-	int		optlength = 12;
+
+	enum		optindex {OPT_LONG, OPT_BIND, OPT_NULL, OPT_CACHE, OPT_LOBP, OPT_LONGP, OPT_UTFMODE};
+	int		optlength = 14;
 
 	int		option;
 	int		value;
@@ -4154,6 +4253,8 @@ Oratcl_Config (clientData, interp, objc, objv)
 		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->lobpsize);
 		infoObjv[infoObjc++] = Tcl_NewStringObj(options[5], -1);
 		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->longpsize);
+		infoObjv[infoObjc++] = Tcl_NewStringObj(options[6], -1);
+		infoObjv[infoObjc++] = Tcl_NewBooleanObj(StmPtr->utfmode);
 		Tcl_SetObjResult(interp, Tcl_NewListObj(infoObjc, infoObjv));
 		ckfree((char *) infoObjv);
 		tcl_return = TCL_OK;
@@ -4189,6 +4290,9 @@ Oratcl_Config (clientData, interp, objc, objv)
 		}
 		if (option == OPT_LONGP) {
 			Tcl_SetObjResult(interp, Tcl_NewIntObj(StmPtr->longpsize));
+		}
+		if (option == OPT_UTFMODE) {
+			Tcl_SetObjResult(interp, Tcl_NewBooleanObj(StmPtr->utfmode));
 		}
 		tcl_return = TCL_OK;
 		goto common_exit;
@@ -4278,6 +4382,20 @@ Oratcl_Config (clientData, interp, objc, objv)
 			}
 			StmPtr->longpsize = value;
 		}
+		if (option == OPT_UTFMODE) {
+			tcl_rc = Tcl_GetBooleanFromObj(interp, objv[i], &value);
+			/* test for valid integer */
+			if (tcl_rc != TCL_OK) {
+				Oratcl_ErrorMsg(interp,
+						objv[0],
+						": invalid value",
+						(Tcl_Obj *) NULL,
+						(char *) NULL);
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
+			StmPtr->utfmode = value;
+		}
 	}
 
 common_exit:
@@ -4342,20 +4460,22 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 
 	ub2		bind_type = SQLT_LNG;
 
+	Tcl_DString	uniStr;
 	Tcl_DString	resStr;
 	Tcl_Obj		*res_obj;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
-
 	if (objc < 5) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str datavar");
-		tcl_return = TCL_ERROR;
-		goto common_exit;
+		return TCL_ERROR;
+	}
+
+	Tcl_DStringInit(&resStr);
+
+	for (objix=0; objix<objc; objix++) {
+		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -4437,8 +4557,6 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	Tcl_DStringInit(&resStr);
-
 	frc = OCIStmtFetch(StmPtr->stmhp,
 			  LogPtr->errhp,
 			  1,
@@ -4501,7 +4619,6 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		}
 
 		piece_data[piece_len] = '\0';
-
 		Tcl_DStringAppend(&resStr, piece_data, strlen(piece_data));
 
 		Oratcl_Checkerr(interp, LogPtr->errhp, frc, 1);
@@ -4511,16 +4628,23 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-
 	}
 
-	res_obj = Tcl_NewStringObj(Tcl_DStringValue(&resStr), -1);
+	/*
+	 * Convert the result to UTF from external encoding
+	 */
+	if (StmPtr->utfmode) {
+		Tcl_DStringInit(&uniStr);
+		Tcl_ExternalToUtfDString(NULL, resStr.string, -1, &uniStr);
+		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&uniStr), -1);
+		Tcl_DStringFree(&uniStr);
+	} else {
+		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&resStr), -1);
+	}
 
 	Tcl_IncrRefCount(res_obj);
 	Tcl_ObjSetVar2(interp, objv[3], NULL, res_obj, TCL_LEAVE_ERR_MSG);
 	Tcl_DecrRefCount(res_obj);
-
-	Tcl_DStringFree(&resStr);
 
 	rowcnt = 0;
 	rc = (OCIAttrGet( (dvoid *) StmPtr->stmhp,
@@ -4550,6 +4674,8 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		       TCL_GLOBAL_ONLY);
 
 common_exit:
+
+	Tcl_DStringFree(&resStr);
 
 	if (piece_data != NULL) {
 		ckfree ((char *) piece_data);
@@ -4596,15 +4722,16 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	char		*sql;
 	int		sql_len = 0;
 
-	char		*data;
-	int		data_len = 0;
+	Tcl_DString	outStr;
+	char		*pre_data;
+	int		pre_data_len = 0;
 
 	char		*type;
 	int		type_len = 0;
 
 	char		*pData;
 	char		*pLast;
-	ub4		pSize;
+	ub4		pSize, pLen;
 
 	int		buffer_size;
 	ub2		buffer_rcode;
@@ -4612,8 +4739,6 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	int		rowcnt;
 
 	ub1		piece;
-	char		*piece_data = NULL;
-	ub4		piece_size;
 	sb2		piece_indp;
 
 	ub2		bind_type = SQLT_LNG;
@@ -4621,14 +4746,15 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
-
 	if (objc < 5) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle sql_str datavar");
-		tcl_return = TCL_ERROR;
-		goto common_exit;
+		return TCL_ERROR;
+	}
+
+	Tcl_DStringInit(&outStr);
+
+	for (objix=0; objix<objc; objix++) {
+		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -4648,21 +4774,24 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
 	sql = Tcl_GetStringFromObj(objv[2], &sql_len);
-	data = Tcl_GetStringFromObj(Tcl_ObjGetVar2(interp,
-						   objv[3],
-						   NULL,
-						   TCL_LEAVE_ERR_MSG),
-				    &data_len);
+
+	pre_data = Tcl_GetStringFromObj(Tcl_ObjGetVar2(interp,
+						       objv[3],
+						       NULL,
+						       TCL_LEAVE_ERR_MSG),
+				        &pre_data_len);
+
+	if (StmPtr->utfmode) {
+		Tcl_UtfToExternalDString(NULL, pre_data, -1, &outStr);
+	} else {
+		Tcl_DStringAppend(&outStr, pre_data, -1);
+	}
 
 	type = Tcl_GetStringFromObj(objv[4], &type_len);
 	if (*type == 'l' 
 	   && strcmp(type,"longraw") == 0) {
 		bind_type = SQLT_LBI;
 	}
-
-	piece_size = StmPtr->longpsize;
-	piece_data = ckalloc (piece_size + 1);
-	piece_data[piece_size] = '\0';
 
 	rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
 				 LogPtr->errhp,
@@ -4683,7 +4812,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			   (OCIError *) LogPtr->errhp,
 			   (text *) ":lng",
 			   (sb4) 4,
-			   (dvoid *) piece_data,
+			   (dvoid *) 0,
 			   (sb4) SB4MAXVAL,
 			   (ub2) bind_type,
 			   (dvoid *) &piece_indp,
@@ -4718,25 +4847,23 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 
 	piece = OCI_FIRST_PIECE;
 
-	pData = data;
-	pLast = pData + data_len - 1;
+	pData = outStr.string;
+	pLen = outStr.length;
+	pLast = pData + pLen - 1;
 
 	while (pData <= pLast) {
-		pSize = strlen(pData);
 
-		if (pSize > piece_size) {
-			pSize = piece_size;
+		if (pLen > StmPtr->longpsize) {
+			pSize = StmPtr->longpsize;
 		} else {
+			pSize = pLen;
 			piece = OCI_LAST_PIECE;
 		}
-
-		memcpy(piece_data, pData, pSize);
-		piece_data[pSize] = '\0';
 
 		rc = OCIStmtSetPieceInfo((dvoid *) bindp,
 					 OCI_HTYPE_BIND,
 					 LogPtr->errhp,
-					 (dvoid *) piece_data,
+					 (dvoid *) pData,
 					 (ub4 *) &pSize,
 					 (ub1) piece,
 					 (dvoid *) NULL,
@@ -4765,7 +4892,8 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		pData += piece_size;
+		pData += pSize;
+		pLen -= pSize;
 		piece = OCI_NEXT_PIECE;
 
 	}
@@ -4799,9 +4927,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 
 common_exit:
 
-	if (piece_data != NULL) {
-		ckfree ((char *) piece_data);
-	}
+	Tcl_DStringFree(&outStr);
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);

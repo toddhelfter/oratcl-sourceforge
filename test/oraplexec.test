@@ -78,7 +78,7 @@ test oraplexec-1.4 {oraplexec: bad bind pairs :: result} {
   set pl(4) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
   catch {oraplexec $ora_cur $pl(4) :my_result {} :in1 22 :in2} res
   set res
-} {oraplexec: PL/SQL execution failed.}
+} "ORA-01008: not all variables bound\n"
 
 test oraplexec-1.5 {oraplexec: bad bind pairs :: error code} {
   set pl(5) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
@@ -92,12 +92,11 @@ test oraplexec-1.6 {oraplexec: bad pl/sql :: error text} {
   set oramsg(errortxt)
 } "ORA-01008: not all variables bound\n"
 
-
 test oraplexec-1.7 {oraplexec: bad pl/sql :: result} {
   set pl(7) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
   catch {oraplexec $ora_cur $pl(7) :my_result {} :in1 22 :in2 22} res
   set res
-} {oraplexec: PL/SQL execution failed.}
+} "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored\n"
 
 test oraplexec-1.8 {oraplexec: bad pl/sql :: error code} {
   set pl(8) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
@@ -116,12 +115,7 @@ test oraplexec-1.10 {oraplexec: :bind = function(val)} {
   catch {oraplexec $ora_cur $pls :my_result {} } res
 	#puts [array get oramsg]
   set res
-} {oraplexec: PL/SQL execution failed.}
-
-test oraplexec-1.10 {oraplexec: :cursor = function()} {
-  set x 0
-  set x
-} {0}
+} "ORA-06550: line 1, column 48:\nPLS-00382: expression is of wrong type\nORA-06550: line 1, column 34:\nPL/SQL: Statement ignored\n"
 
 orasql $ora_cur "drop function oratcl___test1"
 orasql $ora_cur "drop function oratcl___test2"
