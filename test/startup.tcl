@@ -50,6 +50,7 @@ proc drop_table {} {
 set sql {select table_name from user_tables where table_name = 'ORATCL___TESTS'}
 orasql $ora_cur $sql
 set table_exists 0
+set column {}
 orafetch $ora_cur -datavariable column
 puts $column
 
