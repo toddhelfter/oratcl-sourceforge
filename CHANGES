@@ -214,7 +214,5 @@ Version 3.0 June, 2000
     -   add new command oradesc to allow table describes.
     -	changed oracols to return the oracle defined byte size instead of
 	the oratcl defined storage size.
-    -   added the most rudimentory clob reading support (still in progress).
-    -	fixed a memory management problem with Oratcl_Clean().
 
 -----------------------------------------------------------------------------
