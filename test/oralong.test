@@ -1,0 +1,128 @@
+# oralong.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise oralong
+#
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+global ora_constr
+set long_lda [oralogon $ora_constr]
+set long_stm [oraopen $long_lda]
+
+set long_sql(create_long_table) {
+	create table oratcl_long ( \
+		long_key varchar2(10), \
+		long_fld long \
+	)
+}
+set long_sql(insert_long_table) { \
+	insert into oratcl_long (long_key) values (:long_key) \
+}
+set long_sql(select_long_table) { \
+	select rowid from oratcl_long where long_key = :long_key \
+}
+set long_sql(drop_long_table) {
+	drop table oratcl_long
+}
+
+set long_sql(create_longraw_table) {
+	create table oratcl_longraw ( \
+		long_key varchar2(10), \
+		long_fld long raw \
+	)
+}
+set long_sql(insert_longraw_table) { \
+	insert into oratcl_longraw (long_key) values (:long_key) \
+}
+set long_sql(select_longraw_table) { \
+	select rowid from oratcl_longraw where long_key = :long_key \
+}
+set long_sql(drop_longraw_table) {
+	drop table oratcl_longraw
+}
+
+catch {orasql $long_stm $long_sql(drop_long_table)}
+orasql $long_stm $long_sql(create_long_table)
+orasql $long_stm $long_sql(insert_long_table) -parseonly
+orabindexec $long_stm :long_key l1
+orabindexec $long_stm :long_key l2
+oracommit $long_lda
+orasql $long_stm $long_sql(select_long_table) -parseonly
+orabindexec $long_stm :long_key l1
+orafetch $long_stm "set rowid1 @1"
+orabindexec $long_stm :long_key l2
+orafetch $long_stm "set rowid2 @1"
+
+catch {orasql $long_stm $long_sql(drop_longraw_table)}
+orasql $long_stm $long_sql(create_longraw_table)
+orasql $long_stm $long_sql(insert_longraw_table) -parseonly
+orabindexec $long_stm :long_key l3
+orabindexec $long_stm :long_key l4
+oracommit $long_lda
+orasql $long_stm $long_sql(select_longraw_table) -parseonly
+orabindexec $long_stm :long_key l3
+orafetch $long_stm "set rowid3 @1"
+orabindexec $long_stm :long_key l4
+orafetch $long_stm "set rowid4 @1"
+
+set chr_data [string repeat 0123456789---------- 10000]
+
+set fileId [open [info nameofexecutable] r]
+fconfigure $fileId -translation binary
+set bin_data [read $fileId]
+close $fileId
+
+test oralong-1.0 {oralong: alloc and free long} {
+	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
+	catch {oralong free $long} free
+	list $free
+} {0}
+
+test oralong-1.1 {oralong: write long} {
+	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
+	catch {oralong write $long -datavar chr_data} write
+	catch {oralong free $long} free
+	list $write $free
+} {0 0}
+
+test oralob-1.2 {oralong: read long} {
+	catch {oralong alloc $long_stm -table oratcl_long -column long_fld -rowid $rowid1} long
+	catch {oralong read $long -datavar chr_out} res
+	set read [string equal $chr_data $chr_out]
+	catch {oralong free $long} free
+	list $read $free
+} {1 0}
+
+test oralong-2.0 {oralong: alloc and free long raw} {
+	catch {oralong alloc $long_stm -table oratcl_longraw -column long_fld -rowid $rowid3} long
+	catch {oralong free $long} free
+	list $free
+} {0}
+
+test oralong-2.1 {oralong: write long raw} {
+	catch {oralong alloc $long_stm -table oratcl_longraw -column long_fld -rowid $rowid3} long
+	catch {oralong write $long -datavar bin_data} write
+	catch {oralong free $long} free
+	list $write $free
+} {0 0}
+
+test oralob-2.2 {oralong: read long raw} {
+	catch {oralong alloc $long_stm -table oratcl_longraw -column long_fld -rowid $rowid3} long
+	catch {oralong read $long -datavar bin_out} res
+	set read [string equal $bin_data $bin_out]
+	catch {oralong free $long} free
+	list $read $free
+} {1 0}
+
+orasql $long_stm $long_sql(drop_long_table)
+orasql $long_stm $long_sql(drop_longraw_table)
+oraclose $long_stm
+oralogoff $long_lda
+
+::tcltest::cleanupTests
+return
