@@ -6,7 +6,7 @@ Version 4.3,  Nov, 2004
 Jan 06 2005
 	
 	If configured with --enable-threads, the -DTCL_THREADS macro is defined.
-	If TCL_THREADS is defined, call OCIEnvCreate with multiple modes:
+	If TCL_THREADS is defined, call OCIEnvInit with multiple modes:
 		OCI_OBJECT | OCI_THREADED
 
 Jan 06 2005
