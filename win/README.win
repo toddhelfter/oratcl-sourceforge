@@ -1,5 +1,12 @@
 Oratcl for Windows
 
+ORATCL WITH TCL8.1
+
+The oratcl81.dll in this directory has been linked with tcl8.1.
+This version takes advantage of the internationalization
+featured of Tcl 8.1 and was compiled with the stubs library.
+
+
 BEFORE YOU BEGIN
 
 Oratcl has been ported to WindowsNT.  Oratcl also works under Windows95.
