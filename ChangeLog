@@ -293,5 +293,9 @@ Version 3.3 August, 2001
 	Tcl_GetNameOfExecutable() without having first called Tcl_Init(interp).
     -   library files oralob.tcl and oralong.tcl are not sourced if the
 	interp is initialized in safe mode.
+    -   Correct a bug affecting the oralong command.  Attempting to write
+	a zero length string into a long column, put the statement handle
+	in an unrecoverable state.
+ 	Thanks to Ulrich Schoebel (SchoebelU@spardat.at) for the alert.
 
 -----------------------------------------------------------------------------
