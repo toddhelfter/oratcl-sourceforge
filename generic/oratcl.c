@@ -4148,11 +4148,6 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	Oratcl_ColFree(StmPtr->bind_list);
 	StmPtr->bind_list	= NULL;
 
-	if (LogPtr->async == 1) {
-		rc = OCIReset((dvoid *) LogPtr->srvhp,
-			       LogPtr->errhp);
-	}
-
 	rc = OCIStmtPrepare( (dvoid *) StmPtr->stmhp,
 			     LogPtr->errhp,
 			     (text *) Tcl_DStringValue(&stmStr),
