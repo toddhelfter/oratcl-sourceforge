@@ -306,5 +306,7 @@ Version 3.3 August, 2001
     -   Correct a bug in the oralob command that prevented reading or writing
 	a one character string.
  	Thanks to Christian Traber (christian@traber-net.de) for the alert.
+    -   Add detection of oracle 9i to configure script.  Oratcl 3.3 works
+	fine with Oracle 9i.
 
 -----------------------------------------------------------------------------

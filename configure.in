@@ -1,6 +1,7 @@
 dnl  
-dnl Oratcl-3.0 configure.in based on the work of Tom Poindexter
+dnl Oratcl-3.3 configure.in based on the work of Tom Poindexter
 dnl Support for TEA Compliance has been added
+dnl Oracle 9i detection has been added
 dnl
 
 AC_INIT(generic/oratcl.c)
