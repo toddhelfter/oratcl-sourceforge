@@ -489,14 +489,32 @@ Oratcl_Init (interp)
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
+			      "oraparse",
+			      Oratcl_Parse,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
+
+	Tcl_CreateObjCommand (interp,
 			      "::oratcl::parse",
 			      Oratcl_Parse,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
 
 	Tcl_CreateObjCommand (interp,
+			      "orabind",
+			      Oratcl_Bind,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
+
+	Tcl_CreateObjCommand (interp,
 			      "::oratcl::bind",
 			      Oratcl_Bind,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
+
+	Tcl_CreateObjCommand (interp,
+			      "oraexec",
+			      Oratcl_Exec,
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
 
