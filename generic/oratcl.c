@@ -3776,11 +3776,16 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	 */
 	if (StmPtr->utfmode) {
 		Tcl_DStringInit(&uniStr);
-		Tcl_ExternalToUtfDString(NULL, resStr.string, -1, &uniStr);
-		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&uniStr), -1);
+		Tcl_ExternalToUtfDString(NULL,
+					Tcl_DStringValue(&resStr),
+					Tcl_DStringLength(&resStr),
+					&uniStr);
+		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&uniStr),
+					   Tcl_DStringLength(&uniStr));
 		Tcl_DStringFree(&uniStr);
 	} else {
-		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&resStr), -1);
+		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&resStr),
+					   Tcl_DStringLength(&resStr));
 	}
 
 	Tcl_IncrRefCount(res_obj);
@@ -3919,9 +3924,9 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 				        &pre_data_len);
 
 	if (StmPtr->utfmode) {
-		Tcl_UtfToExternalDString(NULL, pre_data, -1, &outStr);
+		Tcl_UtfToExternalDString(NULL, pre_data, pre_data_len, &outStr);
 	} else {
-		Tcl_DStringAppend(&outStr, pre_data, -1);
+		Tcl_DStringAppend(&outStr, pre_data, pre_data_len);
 	}
 
 	type = Tcl_GetStringFromObj(objv[4], &type_len);
@@ -4139,9 +4144,9 @@ Oratcl_Parse (clientData, interp, objc, objv)
 
 	stmt = Tcl_GetStringFromObj(objv[2], (int *) &stln);
 	if (StmPtr->utfmode) {
-		Tcl_UtfToExternalDString(NULL, stmt, -1, &stmStr);
+		Tcl_UtfToExternalDString(NULL, stmt, stln, &stmStr);
 	} else {
-		Tcl_DStringAppend(&stmStr, stmt, -1);
+		Tcl_DStringAppend(&stmStr, stmt, stln);
 	}
 
 	/* clear any previous results */
@@ -4430,12 +4435,19 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 			if (StmPtr->utfmode) {
 				Tcl_DStringInit(&argStr);
-				Tcl_UtfToExternalDString(NULL, arg_pcp, -1, &argStr);
-				memcpy(tmp_col->column.valuep, argStr.string, argStr.length);
+				Tcl_UtfToExternalDString(NULL,
+							 arg_pcp,
+							 arg_pcp_len,
+							 &argStr);
+				memcpy(tmp_col->column.valuep,
+				       Tcl_DStringValue(&argStr),
+				       Tcl_DStringLength(&argStr));
 				tmp_col->column.valuep[argStr.length] = '\0';
 				Tcl_DStringFree(&argStr);
 			} else {
-				memcpy(tmp_col->column.valuep, arg_pcp, arg_pcp_len);
+				memcpy(tmp_col->column.valuep,
+				       arg_pcp,
+				       arg_pcp_len);
 				tmp_col->column.valuep[arg_pcp_len] = '\0';
 			}
 
@@ -4549,12 +4561,19 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 					if (StmPtr->utfmode) {
 						Tcl_DStringInit(&argStr);
-						Tcl_UtfToExternalDString(NULL, arg_pcp, -1, &argStr);
-						memcpy(tmp_col->column.valuep, argStr.string, argStr.length);
+						Tcl_UtfToExternalDString(NULL,
+									 arg_pcp,
+									 arg_pcp_len,
+									 &argStr);
+						memcpy(tmp_col->column.valuep,
+						       Tcl_DStringValue(&argStr),
+						       Tcl_DStringLength(&argStr));
 						tmp_col->column.valuep[argStr.length] = '\0';
 						Tcl_DStringFree(&argStr);
 					} else {
-						memcpy(tmp_col->column.valuep, arg_pcp, arg_pcp_len);
+						memcpy(tmp_col->column.valuep,
+						       arg_pcp,
+						       arg_pcp_len);
 						tmp_col->column.valuep[arg_pcp_len] = '\0';
 					}
 
