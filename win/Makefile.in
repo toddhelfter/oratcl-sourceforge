@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.14 2000-02-06 00:48:48 wart Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.1.2.1 2000-06-26 13:01:16 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -261,12 +261,15 @@ binaries: $(BINARIES)
 
 libraries:
 
+#========================================================================
+# If you have documentation to create, place the commands to
+# build the docs in the 'doc:' target.  For example:
+#
+#       xml2nroff oratcl.xml > oratcl.n
+#       xml2html oratcl.xml > oratcl.html
+#========================================================================
+
 doc:
-	@echo "If you have documentation to create, place the commands to"
-	@echo "build the docs in the 'doc:' target.  For example:"
-	@echo ""
-	@echo "xml2nroff oratcl.xml > oratcl.n"
-	@echo "xml2html oratcl.xml > oratcl.html"
 
 install: all install-binaries install-libraries install-doc
 
@@ -284,10 +287,8 @@ install-libraries: libraries
 #========================================================================
 
 install-doc: doc
-	$(mkinstalldirs) $(mandir)/man1
-	$(mkinstalldirs) $(mandir)/man3
 	$(mkinstalldirs) $(mandir)/mann
-	@for i in $(srcdir)/*.n; \
+	@for i in $(srcdir)/../doc/*.n; \
 	    do \
 	    echo "Installing $$i"; \
 	    rm -f $(mandir)/mann/$$i; \
@@ -295,7 +296,7 @@ install-doc: doc
 	    done
 
 test: binaries
-	  $(TCLSH_PROG) "$(srcdir)/test/all.tcl"
+	  $(TCLSH_PROG) "$(srcdir)/../test/all.tcl"
 
 depend:
 
@@ -332,8 +333,8 @@ $(oratcl_LIB_FILE): $(oratcl_OBJECTS)
 # 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/src/win/exampleA.c` -o $@
 #========================================================================
 
-oratcl.$(OBJEXT): $(srcdir)/generic/oratcl.c
-	$(COMPILE) -c `@CYGPATH@ $(srcdir)/generic/oratcl.c` -o $@
+oratcl.$(OBJEXT): $(srcdir)/../generic/oratcl.c
+	$(COMPILE) -c `@CYGPATH@ $(srcdir)/../generic/oratcl.c` -o $@
 
 
 

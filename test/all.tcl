@@ -6,12 +6,12 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.2.6.1 2000-05-25 01:25:43 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.2.6.1.2.1 2000-06-26 13:02:20 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
-    set files [glob test/*.tes]
+    set files [glob ../test/*.tes]
 } else {
-    set files [glob test/*.test]
+    set files [glob ../test/*.test]
 }
 
 global ora_lda

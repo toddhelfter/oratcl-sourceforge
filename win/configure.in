@@ -1,12 +1,12 @@
 dnl  
-dnl Oratcl-2.6 configure.in based on the work of Tom Poindexter   
+dnl Oratcl-2.7 configure.in based on the work of Tom Poindexter   
 dnl Support for TEA Compliance has been added
 dnl
 
-AC_INIT(generic/oratcl.c)
+AC_INIT(../generic/oratcl.c)
 
-AC_CONFIG_AUX_DIR(config)
-CONFIGDIR=${srcdir}/config
+AC_CONFIG_AUX_DIR(../config)
+CONFIGDIR=${srcdir}/../config
 AC_SUBST(CONFIGDIR)
 
 AC_CHECK_FUNC(bcopy, , AC_DEFINE(NO_BCOPY))
@@ -74,7 +74,7 @@ AC_EXEEXT
 #       and set ORATCL_LIBVER
 #----------------------------------------------------------------------------
 
-eval `egrep '^#define ORATCL_VERSION' ${srcdir}/generic/oratcl.c | \
+eval `egrep '^#define ORATCL_VERSION' ${srcdir}/../generic/oratcl.c | \
       sed -e 's/#define //' -e 's/ *"/="/'`
 
 # set the library version as with . stripped out
