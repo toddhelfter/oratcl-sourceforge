@@ -326,5 +326,6 @@ Version 4.0 September, 2001
     -	**** orafetch **** has a completely new API.  See the man page 
 	for details.  This is not backwards compatible.  Also see the
 	test suite for examples.
+    -   Oratcl now works in 64 bit solaris with 64 bit Oracle.
 
 -----------------------------------------------------------------------------
