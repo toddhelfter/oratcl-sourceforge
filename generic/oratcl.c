@@ -868,7 +868,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
-	Tcl_DStringInit(&StmPtr->datavar);
+	Tcl_DStringSetLength(&StmPtr->datavar, 0);
 
 	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
       
@@ -879,16 +879,16 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 
 		if ((sb2) col->indp[rn] == -1) {
 			if (col->column.typecode == SQLT_CUR) {
-				tmp = Tcl_GetStringFromObj(OMV_null, NULL);
+				tmp = "";
 			} else {
 				/* default :: if number "0" else "" */
 				if (*null_str == 'd'
 				   && strcmp(null_str,"default") == 0) {
 
 					if (col->column.typecode == SQLT_NUM) {
-						tmp = Tcl_GetStringFromObj(OMV_zero, NULL);
+						tmp = "0";
 					} else {
-						tmp = Tcl_GetStringFromObj(OMV_null, NULL);
+						tmp = "";
 					}
 				} else {
 					/* return user defined nullvalue */
@@ -906,7 +906,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
                                         tmp = Tcl_DStringValue(&uniStr);
 				}
 			} else {
-				tmp = Tcl_GetStringFromObj(OMV_null, NULL);
+				tmp = "";
 			}
 		}
 
