@@ -1,4 +1,4 @@
-# ora03sql.test
+# orasql.test
 #
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
@@ -11,20 +11,17 @@ if {[info exists ora_lda] == 0} {
 }
 
 test orasql-1.1 {orasql: no rows returned} {
-  global oramsg
   orasql $ora_cur {select * from oratcl___tests where v_number < 0}
-  set oramsg(rows)
+  oramsg $ora_cur rows
 } {0}
 
 test orasql-1.2 {orasql: no more results} {
-  global oramsg
   orasql $ora_cur {select * from oratcl___tests where v_number < 0}
   orafetch $ora_cur
-  set oramsg(rc)
+  oramsg $ora_cur rc
 } {1403}
 
 test orasql-1.3 {orasql: one row returned} {
-  global oramsg
   orasql $ora_cur {select * from oratcl___tests where v_number = 0}
   set cnt 0
   orafetch $ora_cur {incr cnt}
@@ -53,7 +50,7 @@ test orasql-1.6 {orasql: multiple result sets with one compute row (buffered row
   set cnt1 0
   set cnt2 0
   orafetch $ora_cur {set cnt1 @1; set cnt2 @2}
-  format "$cnt1 $cnt2 $oramsg(rc)"
+  format "$cnt1 $cnt2 [oramsg $ora_cur rc]"
 } {30 435 1403}
 
 test orasql-1.8 {orasql: orafetch commands with break} {
@@ -62,7 +59,7 @@ test orasql-1.8 {orasql: orafetch commands with break} {
   set i 0
   orafetch $ora_cur {incr cnt1; incr i; if {$i>22} {break}}
   orafetch $ora_cur {incr cnt1}
-  format "$cnt1 $oramsg(rc)"
+  format "$cnt1 [oramsg $ora_cur rc]"
 } {30 1403}
 
 test orasql-1.9 {orasql: orafetch correct number of rows and columns} {
@@ -189,17 +186,17 @@ test orasql-1.19 {orasql: orafetch with commands substituion and tclvars} { set 
 
 test orasql-1.19 {orasql: no results returned, sql update} {
   orasql $ora_cur "update oratcl___tests set v_number=0 where v_number <0"
-  set oramsg(rc)
+  oramsg $ora_cur rc
 } {0}
 
 test orasql-1.20 {orasql: no results returned, sql create index} {
   orasql $ora_cur {create index oratcl___tests_idx1 on oratcl___tests(v_number)}
-  set oramsg(rc)
+  oramsg $ora_cur rc
 } {0}
 
 test orasql-1.21 {orasql: no results returned, sql drop index} {
   orasql $ora_cur {drop index oratcl___tests_idx1}
-  set oramsg(rc)
+  oramsg $ora_cur rc
 } {0}
 
 test orasql-1.22 {orasql: orafetch with commands quoted substitution character} {

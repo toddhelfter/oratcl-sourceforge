@@ -1,4 +1,4 @@
-# ora05cols.test
+# oracols.test
 #
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
@@ -53,28 +53,5 @@ test oracols-1.1 {oracols: all options after orasql} {
   set res
 } {7}
 
-
-
-if 0 {
-	test oracols-1.2 {oracols: all column names after one fetch} {
-	  global oracol_sql name_result len_result type_result
-	  orasql $ora_cur $oracol_sql
-	  set row [orafetch $ora_cur]
-	  set cols [oracols $ora_cur]
-	  expr {([string compare $cols $name_result] == 0) +
-		([string compare $oramsg(collengths) $len_result] == 0) +
-		([string compare $oramsg(coltypes) $type_result] == 0)}
-	} {3}
-
-	test oracols-1.3 {oracols: all column names after all fetch} {
-	  global oracol_sql name_result len_result type_result
-	  orasql $ora_cur $oracol_sql
-	  orafetch $ora_cur {}
-	  set cols [oracols $ora_cur]
-	  expr {([string compare $cols $name_result] == 0) +
-		([string compare $oramsg(collengths) $len_result] == 0) +
-		([string compare $oramsg(coltypes) $type_result] == 0)}
-	} {3}
-}
 ::tcltest::cleanupTests
 return

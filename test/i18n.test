@@ -31,12 +31,14 @@ proc test_string {res_bytes res_length tst_bytes tst_length} {
 }
 
 test oratcl-1.0 {Oracle I18n test 1} { 
-    orasql $ora_cur "create table internat (name varchar(20), id int)"
-    set x \u592a
-    set x_length [string length $x]
-    set x_bytes [string bytelength $x]
-    set str "insert into internat (name, id) values ('$x', 1)"
-    orasql $ora_cur $str
+    catch {orasql $ora_cur "create table internat (name varchar(20), id int)"}
+    if {[oramsg $ora_cur rc] == 0} {
+	    set x \u592a
+	    set x_length [string length $x]
+	    set x_bytes [string bytelength $x]
+	    set str "insert into internat (name, id) values ('$x', 1)"
+	    orasql $ora_cur $str
+    }
 
     orasql $ora_cur "select name from internat where id = 1"
     set result [orafetch $ora_cur]
@@ -54,12 +56,14 @@ test oratcl-2.0 {Oracle I18n test 2} {
 
 
 test oratcl-3.0 {Oracle I18n test 3} { 
-    orasql $ora_cur "create table internat (name varchar(20), id int)"
-    set x  \u0043\u0061\u0066\u00c3\u00a9
-    set x_length [string length $x]
-    set x_bytes [string bytelength $x]
-    set str "insert into internat (name, id) values ('$x', 1)"
-    orasql $ora_cur $str
+    catch {orasql $ora_cur "create table internat (name varchar(20), id int)"}
+    if {[oramsg $ora_cur rc] == 0} {
+	    set x  \u0043\u0061\u0066\u00c3\u00a9
+	    set x_length [string length $x]
+	    set x_bytes [string bytelength $x]
+	    set str "insert into internat (name, id) values ('$x', 1)"
+	    orasql $ora_cur $str
+    }
 
     orasql $ora_cur "select name from internat where id = 1"
     set result [orafetch $ora_cur]
@@ -79,20 +83,20 @@ set tclstr \u592a\u9177
 
 
 test i18n-1.0 {test creating i18n column} {
-  set str "create table testi18n3 (\"$tclstr\" varchar(15))"
-  orasql $ora_cur $str
-  orasql $ora_cur "select * from testi18n3"
-  orafetch $ora_cur
-  set result1 [oracols $ora_cur]
-  set resbytes [string bytelength $result1]
-  set reslength [string length $result1]
-  if {[string compare $result1 $tclstr] == 0 && $reslength == 2 && $resbytes == 6} {
-      set passed "test passed"
-  } else {
-     set passed "test failed"
-  }
-  unset result1
-  set test_result $passed
+    set str "create table testi18n3 (\"$tclstr\" varchar(15))"
+    catch {orasql $ora_cur $str}
+    orasql $ora_cur "select * from testi18n3"
+    orafetch $ora_cur
+    set result1 [oracols $ora_cur]
+    set resbytes [string bytelength $result1]
+    set reslength [string length $result1]
+    if {[string compare $result1 $tclstr] == 0 && $reslength == 2 && $resbytes == 6} {
+       set passed "test passed"
+    } else {
+       set passed "test failed"
+    }
+    unset result1
+    set test_result $passed
 }   {test passed}
 
 

@@ -75,7 +75,7 @@ puts "creating test table oratcl___tests & procedure oratcl___test1"
 flush stdout
 
 proc create_table {} {
-    global ora_lda ora_cur oramsg
+    global ora_lda ora_cur
 
     set sql {create table oratcl___tests (
                 v_number       number(2),
@@ -90,7 +90,7 @@ proc create_table {} {
         oraclose $ora_cur
         oralogoff $ora_lda
         puts "can't create table oratcl___tests"
-        puts "$reason:\n$oramsg(errortxt)"
+        puts "$reason:\n[oramsg $ora_cur error]"
         exit
     }
 if 0 {

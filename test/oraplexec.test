@@ -1,4 +1,4 @@
-# ora07plexec.test
+# oraplexec.test
 #
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
@@ -101,44 +101,44 @@ test oraplexec-1.3 {oraplexec: :bind = function(:bindval, :bindval)} {
 test oraplexec-1.4 {oraplexec: bad bind pairs :: result} {
   set pl(4) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
   catch {oraplexec $pl_stm $pl(4) :my_result {} :in1 22 :in2} res
-  set res
-} "ORA-01008: not all variables bound\n"
+  oramsg $pl_stm error
+} [list [format "ORA-01008: not all variables bound"]]
 
 test oraplexec-1.5 {oraplexec: bad bind pairs :: error code} {
   set pl(5) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
   catch {oraplexec $pl_stm $pl(5) :my_result {} :in1 22 :in2} res
-  set oramsg(rc)
+  oramsg $pl_stm rc
 } {1008}
 
 test oraplexec-1.6 {oraplexec: bad pl/sql :: error text} {
   set pl(9) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
   catch {oraplexec $pl_stm $pl(5) :my_result {} :in1 22 :in2} res
-  set oramsg(errortxt)
-} "ORA-01008: not all variables bound\n"
+  oramsg $pl_stm error
+} [list [format "ORA-01008: not all variables bound"]]
 
 test oraplexec-1.7 {oraplexec: bad pl/sql :: result} {
   set pl(7) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
   catch {oraplexec $pl_stm $pl(7) :my_result {} :in1 22 :in2 22} res
-  set res
-} "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored\n"
+  oramsg $pl_stm error
+} [list [format "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored"]]
 
 test oraplexec-1.8 {oraplexec: bad pl/sql :: error code} {
   set pl(8) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
   catch {oraplexec $pl_stm $pl(8) :my_result {} :in1 22 :in2 22}
-  set oramsg(rc)
+  oramsg $pl_stm rc
 } {6550}
 
 test oraplexec-1.9 {oraplexec: bad pl/sql :: error text} {
   set pl(9) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
   catch {oraplexec $pl_stm $pl(9) :my_result {} :in1 22 :in2 22}
-  set oramsg(errortxt)
-} "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored\n"
+  oramsg $pl_stm error
+} [list [format "ORA-06550: line 1, column 45:\nPLS-00201: identifier 'ORATCL___TEST' must be declared\nORA-06550: line 1, column 31:\nPL/SQL: Statement ignored"]]
 
 test oraplexec-1.10 {oraplexec: :bind = function(val)} {
   set pls {declare my_result boolean; begin :my_result := oratcl___test2(5); end;}
   catch {oraplexec $pl_stm $pls :my_result {} } res
-  set res
-} "ORA-06550: line 1, column 48:\nPLS-00382: expression is of wrong type\nORA-06550: line 1, column 34:\nPL/SQL: Statement ignored\n"
+  oramsg $pl_stm error
+} [list [format "ORA-06550: line 1, column 48:\nPLS-00382: expression is of wrong type\nORA-06550: line 1, column 34:\nPL/SQL: Statement ignored"]]
 
 test oraplexec-1.11 {oraplexec: procedure(:bind_ref_cursor)} {
 	set plsql {begin oratcl___test_pkg.open_ref_cur(:ret_cur); end;}
