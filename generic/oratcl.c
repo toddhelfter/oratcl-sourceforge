@@ -1191,7 +1191,10 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	char 		*con_str, *cpy_str, *cpy_pos1, *cpy_pos2;
+	char 		*con_str = NULL;
+	char		*cpy_str = NULL;
+	char		*cpy_pos1 = NULL;
+	char		*cpy_pos2 = NULL;
 	int		con_len;
 	sword		rc;
 
@@ -1206,9 +1209,9 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	ub4		oci_cred = OCI_CRED_RDBMS;
 	ub4		oci_conn = OCI_DEFAULT;
 
-	char		*p;
+	char		*p = NULL;
 	char		buf[20];
-	Tcl_Obj		*buf_obj;
+	Tcl_Obj		*buf_obj = NULL;
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);

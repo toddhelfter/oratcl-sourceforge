@@ -442,3 +442,8 @@ Version 4.2 May, 2003
 	This decreases the memory loss in the 'oralong' and 'oralob' commands.
  	Thanks to Manfred Frey (Manfred.Frey@ZF-Lenksysteme.com) for the alert.
 
+18-MAY-2003
+
+    -	Oralogon:: set char * initialization to NULL.  This fixes a core
+	dump when multiple calls are mede to oralogon with no args (an error) 
+	when tcl is compiled with --enable-symbols=mem.
