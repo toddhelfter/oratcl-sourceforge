@@ -275,7 +275,7 @@ Version 3.2 March, 2001
 
 -----------------------------------------------------------------------------
 
-Version 3.3 August, 2001
+Version 4.0 August, 2001
 
     Todd M. Helfter, Purdue University
     tmh@purdue.edu
@@ -291,5 +291,9 @@ Version 3.3 August, 2001
     -   Corrected the eval of library files (oralob.tcl, oralong.tcl) from
 	within the 'C' code.  This fixes crash when calling 
 	Tcl_GetNameOfExecutable() without having first called Tcl_Init(interp).
+    -	**** oramsg **** array has been removed.  This is not backwards 
+	compatible.  The remaining values that were accessed through the 
+	oramsg array can be obtained with the new _oramsg_ command.
+    -	Oratcl is now thread safe.
 
 -----------------------------------------------------------------------------
