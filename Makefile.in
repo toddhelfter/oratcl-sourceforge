@@ -11,7 +11,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.35 2001-03-29 13:42:43 tmh Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.36 2001-03-30 15:07:03 tmh Exp $
 
 #========================================================================
 # Edit the following few lines when writing a new extension
@@ -391,7 +391,7 @@ install-lib-binaries: installdirs
 	    if test "x$$ext" = "xdll"; then \
 		echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
 		$(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
-		lib==`basename $$p|sed -e 's/.[^.]*$$//'`.lib; \
+		lib=`basename $$p|sed -e 's/.[^.]*$$//'`.lib; \
 		if test -f $$lib; then \
 		    echo " $(INSTALL_DATA) $$lib $(DESTDIR)$(libdir)/$$lib"; \
 	            $(INSTALL_DATA) $$lib $(DESTDIR)$(libdir)/$$lib; \
