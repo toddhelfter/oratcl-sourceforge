@@ -432,4 +432,10 @@ Version 4.1 August, 2002
 	indicated a 'sqlcode' option to the oramsg command.  The option
 	is really 'sqltype'
 
------------------------------------------------------------------------------
+08-MAY-2003
+
+    -	Corrected massive memory leak of column names in 'oradesc'.
+	This decreases the memory loss in the 'oralong' and 'oralob' commands.
+	(Back ported from 4.2 development version)
+	Thanks to Manfred Frey (Manfred.Frey@ZF-Lenksysteme.com) for the alert.
+
