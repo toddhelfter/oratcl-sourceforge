@@ -574,7 +574,7 @@ Oratcl_Init (interp)
 		return TCL_ERROR;
 	}
 	pt2_obj = Tcl_NewStringObj("lib", -1);
-	pt3_obj = Tcl_NewStringObj("libclntsh.so", -1);
+	pt3_obj = Tcl_NewStringObj("libclntsh"SHLIB_SUFFIX, -1);
 
 	Tcl_IncrRefCount(pt1_obj);
 	Tcl_IncrRefCount(pt2_obj);
@@ -597,7 +597,6 @@ Oratcl_Init (interp)
 	native = Tcl_FSGetNativePath(tmp_obj);
 	Tcl_DecrRefCount(tmp_obj);
 
-fprintf(stderr, "%s(): native = %s\n", "Oratcl_Init", native);
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
 
 	if (handle == NULL) {

@@ -3,6 +3,9 @@ Oratcl change history
 
 Version 4.3,  Nov, 2004
 
+Nov 22 2004
+	Improvements to the autoconf scripts provide more introspection.
+
 Nov 20 2004
      	* Dynamic loading of oracle share library now builds a path containing these 
 	elements: env(ORACLE_HOME) lib libclntsh.so for unix.	
