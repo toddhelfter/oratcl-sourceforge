@@ -132,6 +132,49 @@ Closes the cursor associated with \fIstatement\-handle\fR.
 open.
 .sp
 .TP
+.B oraparse \fIstatement-handle statement-text\fR
+.br
+Parse the statement \fIstatment\-text\fR on the Oracle server.
+\fIStatement-handle\fR must be a valid handle previously opened with 
+\fBoraopen\fR.
+\fIStatement-text\fR can be either a SQL or anonymous PL/SQL statement.
+.sp
+\fBOraparse\fR will return the numeric return code "0" on successful parsing of the  \fIstatement\-text\fR, and the error code returned by Oracle when parsing fails.
+\fBOraparse\fR raises a Tcl error if the \fIstatement\-handle\fR specified is
+not 
+open.
+.sp
+.TP
+.B orabind \fIstatement\-handle  ?:varname  value ...?\fR
+.br
+Bind values SQL variables in a previously parsed SQL statement. 
+\fIStatement-handle\fR must be a valid handle previously opened with 
+\fBoraopen\fR.
+An SQL or PL/SQL statement must have previously been parsed by executing
+\fBoraparse\fR.
+\fBOrabind\fR may be executed repeatedly on a previously parsed statement.
+.sp
+Optional \fI:varname value\fR pairs allow substitutions on SQL bind variables.
+As many :varname value pairs should be specified as there are defined in the
+previously parsed SQL statement.  Varnames must be prefixed by a colon ":".
+It is not an error to call \fBorabind\fR without any \fI:varname value\fR
+pairs, but no binding will occur.
+.sp
+\fBOrabind\fR will return "0" when bindings are successful; 
+"1003" if a previous SQL has not been parsed with \fBoraparse\fR;
+"1008" if not all SQL bind variables have been specified.  Refer to Oracle
+error numbers and messages for other possible values.
+.sp
+\fBOrabind\fR raises a Tcl error if the \fIstatement\-handle\fR specified has
+not ben opened with \fBoraopen\fR.
+.sp
+.TP
+.B oraexec \fIstatement\-handle\fR
+.br
+\fBOraexec\fR raises a Tcl error if the \fIstatement\-handle\fR specified is not 
+open.
+.sp
+.TP
 .B orasql \fIstatement-handle sql-statement  ?-parseonly?  ?-commit? \fR
 .br
 Execute the SQL statement \fIsql\-statement\fR on the Oracle server.
