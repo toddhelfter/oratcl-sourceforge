@@ -22,8 +22,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include <dlfcn.h>
-
 #ifdef NO_STRING_H
 #include <strings.h>
 #else
@@ -57,6 +55,36 @@ LPVOID reserved;            /* Not used. */
 
 #define strncasecmp strnicmp
 #define strcasecmp stricmp
+
+#define DLOPEN(libname, flags)	LoadLibrary(libname)
+#define DLCLOSE(path)		((void *) FreeLibrary((HMODULE) path))
+#define DLSYM(handle, symbol, proc, type) \
+	(proc = (type) GetProcAddress((HINSTANCE) handle, symbol))
+
+#else /* UNIX */
+
+#if defined(__hpux)
+
+#define HMODULE shl_t
+#define DLOPEN(libname, flags)	shl_load(libname, \
+	BIND_DEFERRED|BIND_VERBOSE|DYNAMIC_PATH, 0L)
+#define DLCLOSE(path)		shl_unload((shl_t) path)
+#define DLSYM(handle, symbol, proc, type) \
+	if (shl_findsym(&handle, symbol, (short) TYPE_PROCEDURE, \
+		(void *) &proc) != 0) { proc = NULL; }
+
+#else
+
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#endif
+#define HMODULE void *
+#define DLOPEN	dlopen
+#define DLCLOSE	dlclose
+#define DLSYM(handle, symbol, proc, type) \
+	(proc = (type) dlsym(handle, symbol))
+
+#endif
 
 #endif
 
@@ -286,26 +314,26 @@ Tcl_ObjType *tListObjType = NULL;
 
 OratclStateList	*OratclSLP = NULL;
 
-extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
-extern int	  Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp		*interp));
-extern void    	  Oratcl_StmFree	_ANSI_ARGS_((OratclStms		*StmPtr));
-extern void    	  Oratcl_LogFree	_ANSI_ARGS_((OratclLogs		*LogPtr));
-extern void	  Oratcl_ColFree	_ANSI_ARGS_((OratclCols 	*ColPtr));
-extern OratclCols *Oratcl_ColAlloc	_ANSI_ARGS_((int 		fetchrows));
-extern sword	  Oratcl_Attributes	_ANSI_ARGS_((Tcl_Interp		*interp,
-						     OCIError		*errhp,
-						     OCIParam		*parmh,
-						     OratclDesc		*column,
-						     int		explicit));
-extern int	  Oratcl_ColDescribe	_ANSI_ARGS_((Tcl_Interp 	*interp,
-						     OratclStms		*StmPtr));
-extern int	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
-						     OratclStms		*StmPtr,
-						     Tcl_Obj		*listvar,
-						     Tcl_Obj		*arrayvar,
-						     int		hashType));
-extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
-extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
+extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
+extern int	  Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp	*interp));
+extern void    	  Oratcl_StmFree	_ANSI_ARGS_((OratclStms	*StmPtr));
+extern void    	  Oratcl_LogFree	_ANSI_ARGS_((OratclLogs	*LogPtr));
+extern void	  Oratcl_ColFree	_ANSI_ARGS_((OratclCols *ColPtr));
+extern OratclCols *Oratcl_ColAlloc	_ANSI_ARGS_((int 	fetchrows));
+extern sword	  Oratcl_Attributes	_ANSI_ARGS_((Tcl_Interp	*interp,
+						     OCIError	*errhp,
+						     OCIParam	*parmh,
+						     OratclDesc	*column,
+						     int	explicit));
+extern int	  Oratcl_ColDescribe	_ANSI_ARGS_((Tcl_Interp *interp,
+						     OratclStms	*StmPtr));
+extern int	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp	*interp,
+						     OratclStms	*StmPtr,
+						     Tcl_Obj	*listvar,
+						     Tcl_Obj	*arrayvar,
+						     int	hashType));
+extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
+extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 
 /*
  *----------------------------------------------------------------------
@@ -504,14 +532,11 @@ Oratcl_Init (interp)
 
 	int		rc = 0;
 
+	HMODULE		handle;
+
 #ifdef __WIN32__
-
-	HINSTANCE	hOCI;
 	DWORD		last_error;
-
 #else
-
-	VOID *handle;
 	CONST char	*native;
 
 	Tcl_Obj		*env_obj;
@@ -523,7 +548,6 @@ Oratcl_Init (interp)
 	Tcl_Obj		**pathObjv;
 	int		pathObjc;
 	Tcl_Obj		*pathList;
-
 #endif
 
 #ifdef USE_TCL_STUBS
@@ -532,50 +556,7 @@ Oratcl_Init (interp)
 	}
 #endif
 
-#ifdef __WIN32__
-
-	hOCI = LoadLibrary(TEXT("OCI.DLL"));
-	if(hOCI == NULL || hOCI == INVALID_HANDLE_VALUE) {
-		last_error = GetLastError();
-		fprintf(stderr, "%s(): %s with error %lu",
-			"Oratcl_Init",
-			"Failed loading oci.dll symbols",
-			(unsigned long) last_error);
-		return TCL_ERROR;
-	}
-
-	OCI_EnvCreate	  = (OCIENVCREATE)     GetProcAddress(hOCI, "OCIEnvCreate");
-	OCI_Initialize	  = (OCIINITIALIZE)    GetProcAddress(hOCI, "OCIInitialize");
-	OCI_EnvInit	  = (OCIENVINIT)       GetProcAddress(hOCI, "OCIEnvInit");
-	OCI_HandleAlloc   = (OCIHANDLEALLOC)   GetProcAddress(hOCI, "OCIHandleAlloc");
-	OCI_HandleFree    = (OCIHANDLEFREE)    GetProcAddress(hOCI, "OCIHandleFree");
-	OCI_AttrGet       = (OCIATTRGET)       GetProcAddress(hOCI, "OCIAttrGet");
-	OCI_AttrSet       = (OCIATTRSET)       GetProcAddress(hOCI, "OCIAttrSet");
-	OCI_ServerAttach  = (OCISERVERATTACH)  GetProcAddress(hOCI, "OCIServerAttach");
-	OCI_ServerDetach  = (OCISERVERDETACH)  GetProcAddress(hOCI, "OCIServerDetach");
-	OCI_SessionBegin  = (OCISESSIONBEGIN)  GetProcAddress(hOCI, "OCISessionBegin"); 		
-	OCI_SessionEnd    = (OCISESSIONEND)    GetProcAddress(hOCI, "OCISessionEnd"); 		
-	OCI_ErrorGet      = (OCIERRORGET)      GetProcAddress(hOCI, "OCIErrorGet"); 
-	OCI_TransCommit   = (OCITRANSCOMMIT)   GetProcAddress(hOCI, "OCITransCommit"); 
-	OCI_TransRollback = (OCITRANSROLLBACK) GetProcAddress(hOCI, "OCITransRollback"); 
-	OCI_ServerVersion = (OCISERVERVERSION) GetProcAddress(hOCI, "OCIServerVersion"); 
-	OCI_Terminate     = (OCITERMINATE)     GetProcAddress(hOCI, "OCITerminate"); 		
-	OCI_ParamGet      = (OCIPARAMGET)      GetProcAddress(hOCI, "OCIParamGet");
-	OCI_ParamSet      = (OCIPARAMSET)      GetProcAddress(hOCI, "OCIParamSet");
-	OCI_DescribeAny   = (OCIDESCRIBEANY)   GetProcAddress(hOCI, "OCIDescribeAny");
-	OCI_Break         = (OCIBREAK)         GetProcAddress(hOCI, "OCIBreak");
-	OCI_Reset         = (OCIRESET)         GetProcAddress(hOCI, "OCIReset");
-	OCI_DefineByPos   = (OCIDEFINEBYPOS)   GetProcAddress(hOCI, "OCIDefineByPos");
-	OCI_BindByName    = (OCIBINDBYNAME)    GetProcAddress(hOCI, "OCIBindByName");
-	OCI_StmtPrepare   = (OCISTMTPREPARE)   GetProcAddress(hOCI, "OCIStmtPrepare");
-	OCI_StmtExecute   = (OCISTMTEXECUTE)   GetProcAddress(hOCI, "OCIStmtExecute");
-	OCI_StmtFetch     = (OCISTMTFETCH)     GetProcAddress(hOCI, "OCIStmtFetch");
-
-	OCI_StmtGetPieceInfo = (OCISTMTGETPIECEINFO)   GetProcAddress(hOCI, "OCIStmtGetPieceInfo");
-	OCI_StmtSetPieceInfo = (OCISTMTSETPIECEINFO)   GetProcAddress(hOCI, "OCIStmtSetPieceInfo");
-
-
-#else
+#ifndef __WIN32__
 
 	/* Load the oracle client library*/
 
@@ -602,7 +583,7 @@ Oratcl_Init (interp)
 	pathObjv[pathObjc++] = pt1_obj;
 	pathObjv[pathObjc++] = pt2_obj;
 	pathObjv[pathObjc++] = pt3_obj;
-	
+
 	pathList = Tcl_NewListObj(pathObjc, pathObjv);
 
 	ckfree((char *)pathObjv);
@@ -626,37 +607,60 @@ fprintf(stderr, "%s(): native = %s\n", "Oratcl_Init", native);
 		return TCL_ERROR;
 	}
 
-	OCI_EnvCreate	  = (OCIENVCREATE)     dlsym(handle, "OCIEnvCreate");
-	OCI_Initialize	  = (OCIINITIALIZE)    dlsym(handle, "OCIInitialize");
-	OCI_EnvInit	  = (OCIENVINIT)       dlsym(handle, "OCIEnvInit");
-	OCI_HandleAlloc   = (OCIHANDLEALLOC)   dlsym(handle, "OCIHandleAlloc");
-	OCI_HandleFree    = (OCIHANDLEFREE)    dlsym(handle, "OCIHandleFree");
-	OCI_AttrGet       = (OCIATTRGET)       dlsym(handle, "OCIAttrGet");
-	OCI_AttrSet       = (OCIATTRSET)       dlsym(handle, "OCIAttrSet");
-	OCI_ServerAttach  = (OCISERVERATTACH)  dlsym(handle, "OCIServerAttach");
-	OCI_ServerDetach  = (OCISERVERDETACH)  dlsym(handle, "OCIServerDetach");
-	OCI_SessionBegin  = (OCISESSIONBEGIN)  dlsym(handle, "OCISessionBegin"); 		
-	OCI_SessionEnd    = (OCISESSIONEND)    dlsym(handle, "OCISessionEnd"); 		
-	OCI_ErrorGet      = (OCIERRORGET)      dlsym(handle, "OCIErrorGet"); 
-	OCI_TransCommit   = (OCITRANSCOMMIT)   dlsym(handle, "OCITransCommit"); 
-	OCI_TransRollback = (OCITRANSROLLBACK) dlsym(handle, "OCITransRollback"); 
-	OCI_ServerVersion = (OCISERVERVERSION) dlsym(handle, "OCIServerVersion"); 
-	OCI_Terminate     = (OCITERMINATE)     dlsym(handle, "OCITerminate"); 		
-	OCI_ParamGet      = (OCIPARAMGET)      dlsym(handle, "OCIParamGet");
-	OCI_ParamSet      = (OCIPARAMSET)      dlsym(handle, "OCIParamSet");
-	OCI_DescribeAny   = (OCIDESCRIBEANY)   dlsym(handle, "OCIDescribeAny");
-	OCI_Break         = (OCIBREAK)         dlsym(handle, "OCIBreak");
-	OCI_Reset         = (OCIRESET)         dlsym(handle, "OCIReset");
-	OCI_DefineByPos   = (OCIDEFINEBYPOS)   dlsym(handle, "OCIDefineByPos");
-	OCI_BindByName    = (OCIBINDBYNAME)    dlsym(handle, "OCIBindByName");
-	OCI_StmtPrepare   = (OCISTMTPREPARE)   dlsym(handle, "OCIStmtPrepare");
-	OCI_StmtExecute   = (OCISTMTEXECUTE)   dlsym(handle, "OCIStmtExecute");
-	OCI_StmtFetch     = (OCISTMTFETCH)     dlsym(handle, "OCIStmtFetch");
+#else
 
-	OCI_StmtGetPieceInfo = (OCISTMTGETPIECEINFO)   dlsym(handle, "OCIStmtGetPieceInfo");
-	OCI_StmtSetPieceInfo = (OCISTMTSETPIECEINFO)   dlsym(handle, "OCIStmtSetPieceInfo");
+	handle = LoadLibrary(TEXT("OCI.DLL"));
+	if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
+		last_error = GetLastError();
+		fprintf(stderr, "%s(): %s with error %lu",
+			"Oratcl_Init",
+			"Failed loading oci.dll symbols",
+			(unsigned long) last_error);
+		return TCL_ERROR;
+	}
 
-#endif			/* WIN32 */
+#endif	/* WIN32 */
+
+	DLSYM(handle, "OCIEnvCreate",	OCI_EnvCreate,	     OCIENVCREATE);
+	DLSYM(handle, "OCIInitialize",	OCI_Initialize,	     OCIINITIALIZE);
+	DLSYM(handle, "OCIEnvInit",	OCI_EnvInit,	     OCIENVINIT);
+	DLSYM(handle, "OCIHandleAlloc",	OCI_HandleAlloc,     OCIHANDLEALLOC);
+	DLSYM(handle, "OCIHandleFree",	OCI_HandleFree,	     OCIHANDLEFREE);
+	DLSYM(handle, "OCIAttrGet",	OCI_AttrGet,	     OCIATTRGET);
+	DLSYM(handle, "OCIAttrSet",	OCI_AttrSet,	     OCIATTRSET);
+	DLSYM(handle, "OCIServerAttach", OCI_ServerAttach,   OCISERVERATTACH);
+	DLSYM(handle, "OCIServerDetach", OCI_ServerDetach,   OCISERVERDETACH);
+	DLSYM(handle, "OCISessionBegin", OCI_SessionBegin,   OCISESSIONBEGIN);
+	DLSYM(handle, "OCISessionEnd",	OCI_SessionEnd,	     OCISESSIONEND);
+	DLSYM(handle, "OCIErrorGet",	OCI_ErrorGet,	     OCIERRORGET);
+	DLSYM(handle, "OCITransCommit",	OCI_TransCommit,     OCITRANSCOMMIT);
+	DLSYM(handle, "OCITransRollback", OCI_TransRollback, OCITRANSROLLBACK);
+	DLSYM(handle, "OCIServerVersion", OCI_ServerVersion, OCISERVERVERSION);
+	DLSYM(handle, "OCITerminate",	OCI_Terminate,	     OCITERMINATE);
+	DLSYM(handle, "OCIParamGet",	OCI_ParamGet,	     OCIPARAMGET);
+	DLSYM(handle, "OCIParamSet",	OCI_ParamSet,	     OCIPARAMSET);
+	DLSYM(handle, "OCIDescribeAny",	OCI_DescribeAny,     OCIDESCRIBEANY);
+	DLSYM(handle, "OCIBreak",	OCI_Break,	     OCIBREAK);
+	DLSYM(handle, "OCIReset",	OCI_Reset,	     OCIRESET);
+	DLSYM(handle, "OCIDefineByPos",	OCI_DefineByPos,     OCIDEFINEBYPOS);
+	DLSYM(handle, "OCIBindByName",	OCI_BindByName,	     OCIBINDBYNAME);
+	DLSYM(handle, "OCIStmtPrepare",	OCI_StmtPrepare,     OCISTMTPREPARE);
+	DLSYM(handle, "OCIStmtExecute",	OCI_StmtExecute,     OCISTMTEXECUTE);
+	DLSYM(handle, "OCIStmtFetch",	OCI_StmtFetch,	     OCISTMTFETCH);
+
+	DLSYM(handle, "OCIStmtGetPieceInfo", OCI_StmtGetPieceInfo,
+		OCISTMTGETPIECEINFO);
+	DLSYM(handle, "OCIStmtSetPieceInfo", OCI_StmtSetPieceInfo,
+		OCISTMTSETPIECEINFO);
+
+	/* sanity check at least one symbol */
+	if (OCI_Initialize == NULL) {
+	    DLCLOSE(handle);
+	    Tcl_AppendResult(interp,
+		    "Oratcl_Init failed to find symbols in dll",
+		    (char *) NULL);
+	    return TCL_ERROR;
+	}
 
 	OratclStatePtr = (OratclState *) ckalloc (sizeof(OratclState));
 	StateListPtr = (OratclStateList *) ckalloc (sizeof(OratclStateList));
