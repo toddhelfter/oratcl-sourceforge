@@ -69,7 +69,6 @@ Tcl_Obj *OMV_null = NULL;
 Tcl_Obj *OMV_zero = NULL;
 Tcl_ObjType *tListObjType = NULL;
 
-
 OratclStateList	*OratclSLP = NULL;
 
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp		*interp));
@@ -85,7 +84,7 @@ extern sword	  Oratcl_Attributes	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     int		explicit));
 extern int	  Oratcl_ColDescribe	_ANSI_ARGS_((Tcl_Interp 	*interp,
 						     OratclStms		*StmPtr));
-extern void	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
+extern int	  Oratcl_ColAppend 	_ANSI_ARGS_((Tcl_Interp		*interp,
 						     OratclStms		*StmPtr,
 						     Tcl_Obj		*listvar,
 						     Tcl_Obj		*arrayvar,
@@ -811,7 +810,7 @@ Oratcl_LogFree (LogPtr)
  *----------------------------------------------------------------------
  */
 
-void
+int
 Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	Tcl_Interp	*interp;
 	OratclStms	*StmPtr;
@@ -939,6 +938,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	StmPtr->ora_row = StmPtr->append_cnt;
 
 	StmPtr->fetch_ok = 1;
+	return 0;
 }
 
 
@@ -1036,7 +1036,8 @@ Oratcl_ColDescribe (interp, StmPtr)
 		new_col->column.valuesz = new_col->column.size;
 		
 		switch (new_col->column.typecode) {
-		case SQLT_CUR:					/* 1	*/
+		case SQLT_CHR:					/* 1	*/
+		case SQLT_CUR:					/* 102	*/
 			break;
 		case SQLT_LNG:					/* 8	*/
 		case SQLT_LBI:					/* 24	*/
@@ -4392,6 +4393,8 @@ Oratcl_Parse (clientData, interp, objc, objv)
 		return TCL_ERROR;
 	}
 
+	Tcl_DStringInit(&stmStr);
+
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);
 	}
@@ -4412,7 +4415,6 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
-	Tcl_DStringInit(&stmStr);
 	stmt = Tcl_GetStringFromObj(objv[2], (int *) &stln);
 	if (StmPtr->utfmode) {
 		Tcl_UtfToExternalDString(NULL, stmt, stln, &stmStr);
@@ -4908,6 +4910,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 	ub4		oci_mode = OCI_DEFAULT;
 	ub4		rowcnt;
 	sword		rc;
+	int		ca = 0;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -5114,10 +5117,14 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			StmPtr->fetch_end  = 0;		/* let Oratcl_ColAppend work */
 			StmPtr->fetch_cnt  = 0;
 			StmPtr->append_cnt = 0;
-			StmPtr->fetchidx    = 0;
+			StmPtr->fetchidx   = 0;
 
 			/* set results, same as orafetch */
-			Oratcl_ColAppend(interp, StmPtr, NULL, NULL, 0);
+			ca = Oratcl_ColAppend(interp, StmPtr, NULL, NULL, 0);
+			if (ca == -1) {
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
 
 			StmPtr->fetch_end  = 1;
 			StmPtr->fetch_cnt  = 1;
@@ -5263,6 +5270,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
+	int		ca = 0;
 	int		i;
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
@@ -5447,7 +5455,11 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		StmPtr->fetchidx = 0;
 	}
 
-	Oratcl_ColAppend(interp, StmPtr, dvarObjPtr, avarObjPtr, hashType);
+	ca = Oratcl_ColAppend(interp, StmPtr, dvarObjPtr, avarObjPtr, hashType);
+	if (ca == -1) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
 	/* preserve the result we have set for this command */
 	oResult = Tcl_GetObjResult(interp);
