@@ -839,7 +839,7 @@ the Sybase RDBMS product.
 .P
 tpoindex@nyx.net
 .P
-Todd Helfter, Purdue University.  Version 3.1 released September 2000.
+Todd Helfter, Purdue University.  Version 3.2 released March 2001.
 Created with permission from Tom Poindexter.
 .P
 tmh@purdue.edu
