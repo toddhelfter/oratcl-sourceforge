@@ -363,5 +363,6 @@ Version 4.0 December, 2001
 	    - datesize : amount of space to allocate for the data returned
 			 for date columns.  Default is 75.
     -	Enable binding of clobs when compiled with Oracle 9i.
+    -	05-MAY-2002 (tmh) fixed compiler warnings about 'const' mismatches.
 
 -----------------------------------------------------------------------------
