@@ -1,3 +1,8 @@
+2005-03-22  Todd Helfter <thelfter@gmail.com>
+
+        * generic/oratcl.c: Handle ORA-28002 'warning password is about
+        to expire.  Allow login, but place message in oramsg buffer.
+
 2005-03-18  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* Makefile.in (AR): ues @AR@
