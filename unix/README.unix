@@ -1,6 +1,6 @@
 
 standard commands to build unix.
 
-> ../configure --prefix=TCL_INSTALLED_DIRECTORY --enable-stubs --with_oracle_directory=$ORACLE_HOME
+> ../configure --prefix=TCL_INSTALLED_DIRECTORY --enable-stubs --with-oracle-directory=$ORACLE_HOME
 > make
 > make install
