@@ -45,14 +45,14 @@ network unavailable, etc.).  If the connect string does not include a
 database specification, a connection will be established with the 
 server specified in the environment variable ORACLE_SID.
 .sp
-The optional \fI-async\fR argument specifies the all commands that
-allow asynchronous (nonblocking) operation will do so.  The commands
-affected are \fBoraparse\fR, \fBoraexec\fR, \fBorafetch\fR and those
+The optional \fI-async\fR argument specifies that all commands 
+allowing asynchronous (nonblocking) operation will do so.  The commands
+affected are: \fBoraparse\fR, \fBoraexec\fR, \fBorafetch\fR and those
 that make use of these such as \fBorasql\fR, \fBorabindexec\fR and \fBoraplexec\fR.
 These commands will immediately return a code of OCI_STILL_EXECUTING which
 is equal to the numeric value of -3123.  Repeat calls to these commands
 with the same arguements until a return value of OCI_SUCCESS, a 0, is
-retuned.   See the section below on asynchronous transaction handling.
+retuned.   See the section below on ASYNCHRONOUS TRANSACTION HANDLING.
 .TP
 .B oralogoff \fIlogon\-handle\fR
 .br
@@ -140,17 +140,81 @@ Closes the cursor associated with \fIstatement\-handle\fR.
 open.
 .sp
 .TP
+.B oramsg \fIhandle option\fR
+.RS .5i
+.IP \fIall\fR 1i
+returns all values as a list in the format
+{rc error rows peo ocicode sqlcode}
+.IP \fIrc\fR
+returns the result code of the last OCI library function called by Oratcl
+with this handle.  This code is a numeric value that often corresponds to
+an Oracle error code.  Refer to the Oracle Error Messages and Codes manual
+for more detailed information.  Typical values are:
+.sp
+.br
+    0 - Function completed normally
+.br
+ 1403 - End of data in \fBorafetch\fR command
+.br
+ 1406 - Fetched column was truncated.
+.br
+-3123 - Asynchronous command still processing
+.br
+.IP \fIerror\fR 
+returns the message text associated with the return code.
+.IP \fIrows\fR 
+returns the number of rows affected by an \fIinsert\fR, \fIupdate\fR,
+\fIdelete\fR statement by \fBoraexec\fR, or the number of
+rows fetched to date by \fBorafetch\fR.
+.IP \fIpeo\fR 
+returns the parse error offset, an index position in an SQL string that
+failed to parse due to a syntax error.
+.IP \fIocicode\fR 
+returns the OCI code of the last OCI function called by Oratcl.  See the OCI
+manual for descriptions.
+.IP \fIsqlcode\fR 
+returns a code set by last SQL or PL/SQL parsed with \fBoraparse\fR.
+Valid values are:
+.sp
+.br
+1 == SELECT  corresponds to OCI_STMT_SELECT
+.br
+2 == UPDATE  corresponds to OCI_STMT_UPDATE
+.br
+3 == DELETE  corresponds to OCI_STMT_DELETE
+.br
+4 == INSERT  corresponds to OCI_STMT_INSERT
+.br
+5 == CREATE  corresponds to OCI_STMT_CREATE
+.br
+6 == DROP    corresponds to OCI_STMT_DROP
+.br
+7 == ALTER   corresponds to OCI_STMT_ALTER
+.br
+8 == BEGIN   corresponds to OCI_STMT_BEGIN
+.br
+9 == DECLARE corresponds to OCI_STMT_DECLARE
+.br
+.sp
+.RE
+\fBOramsg\fR raises a Tcl error if the \fIhandle\fR cannot be located
+in the set of open statement-handles and connected logon-handle.
+.sp
+.TP
 .B oraparse \fIstatement-handle statement-text\fR
 .br
 Parse the statement \fIstatment\-text\fR on the Oracle server.
 \fIStatement-handle\fR must be a valid handle previously opened with 
 \fBoraopen\fR.
 \fIStatement-text\fR can be either a SQL or anonymous PL/SQL statement.
+the \fIStatement-text\fR may contain bind variables that begin with a
+colon ':'.
 .sp
-\fBOraparse\fR will return the numeric return code "0" on successful parsing of the  \fIstatement\-text\fR, and the error code returned by Oracle when parsing fails.
+\fBOraparse\fR will return the numeric return code "0" on successful
+parsing of the  \fIstatement\-text\fR, and the error code returned by
+Oracle when parsing fails.
 \fBOraparse\fR raises a Tcl error if the \fIstatement\-handle\fR specified is
-not 
-open.
+not open, or if the \fIstatment-text\fR is syntactically incorrect.
 .sp
 .TP
 .B orabind \fIstatement\-handle  ?:varname  value ...?\fR
@@ -161,6 +225,9 @@ Bind values SQL variables in a previously parsed SQL statement.
 An SQL or PL/SQL statement must have previously been parsed by executing
 \fBoraparse\fR.
 \fBOrabind\fR may be executed repeatedly on a previously parsed statement.
+Binding should only be done in conjunction with sqlcode (1-4)
+select, insert, update, delete and with the PL/SQL codes (8-9) begin
+and declare type statements.
 .sp
 Optional \fI:varname value\fR pairs allow substitutions on SQL bind variables.
 As many :varname value pairs should be specified as there are defined in the
@@ -191,9 +258,13 @@ committed upon successful execution.
 .sp
 .TP
 .B orafetch \fIstatement\-handle\fR ?options ...?
-Retrieve data from the database as specified by prior oraparse, orabind, oraxec calls.  All values are converted to character strings except ref_cursors which
+Retrieve data from the database as specified by prior
+\fBoraparse\fR, \fBorabind\fR, \fBoraxec\fR calls.  All
+values are converted to character strings except ref_cursors which
 will be represented in the datavariable list as a null string.  
-Likely return values include 0 for success, 1403 for no more data, and -3123 for asyncronous still executing.
+\fBOrafetch\fR returns the code from the OCIStmtExecute() library
+function.  Likely values include 0 for success, 1403 for no more data,
+and -3123 for asyncronous still executing.
 .RS .5i
 .IP \fI-datavariable\fR 1.6i
 Specifies the variable to be set with a list containing the row of data fetched. 
@@ -202,10 +273,10 @@ The list returned in the datavariable by \fBorafetch\fR contains the values of t
 Specifies the array in which the individual columns of data fetched will be set. 
 .IP \fI-indexbyname\fR
 When combinded with the \fI-dataarray\fR option, \fBorafetch\fR will use the
-column names from the query as the index (hash) values in the array.
+column names from the query as the index (hash) values of the array.
 .IP \fI-indexbynumber\fR
 When combinded with the \fI-dataarray\fR option, \fBorafetch\fR will use the
-column positon number from the query as the index (hash) values in the array.
+column positon number from the query as the index (hash) values of the array.
 .IP \fI-command\fR
 Specifies a script to eval when \fBorafetch\fR retrieves a row of data.
 This script may reference the variable and array specified by other options.
@@ -213,7 +284,7 @@ This script may reference the variable and array specified by other options.
 .RE
 .sp
 \fBOrafetch\fR raises a Tcl error if the \fIstatement\-handle\fR specified is not 
-open.
+open, or if an unknown option is specified.
 .sp
 .TP
 .B orasql \fIstatement-handle sql-statement  ?-parseonly?  ?-commit? \fR
@@ -223,15 +294,6 @@ Execute the SQL statement \fIsql\-statement\fR on the Oracle server.
 \fBoraopen\fR.
 \fBOrasql\fR will return the numeric return code "0" on successful execution of
 the  \fIsql\-statement\fR.
-The \fBoramsg\fR array index
-\fIrc\fR
-is set with the return code; the
-\fIrows\fR index is set to the number of rows affected by the SQL statement
-in the case of \fBinsert, update, \fRor\fB delete\fR.
-.sp
-Only a single SQL statement may be specified in \fIsql-statement\fR.  
-\fIOrafetch\fR allows
-retrieval of return rows generated.  
 .sp
 The optional \fI-parseonly\fR argument causes \fBorasql\fR to parse
 but not execute the SQL statement.  The SQL statement may contain bind
@@ -256,7 +318,8 @@ Execute a previously parsed SQL statement, optionally binding values
 to SQL variables.  
 \fIStatement-handle\fR must be a valid handle previously opened with 
 \fBoraopen\fR.
-An SQL statement must have previously been parsed by executing \fBorasql\fR
+An SQL statement must have previously been parsed by executing \fBoraparse\fR
+or \fBorasql\fR
 with the \fI-parseonly\fR option.  \fBOrabindexec\fR may be repeatedly executed
 after a statement is parsed with bind variables substituted on each execution.
 \fBOrabindexec\fR does not re-parse SQL statements before execution.
@@ -269,7 +332,7 @@ before execution.  As many :varname value pairs should be specified as there
 are defined in the previously parsed SQL statement.  Varnames must be prefixed
 by a colon ":".
 .sp
-Orabindexec will return "0" when the SQL is executed successfully; 
+\fBOrabindexec\fR will return "0" when the SQL is executed successfully; 
 "1003" if a previous SQL
 has not been parsed with orasql; "1008" if not all SQL bind variables have
 been specified.  Refer to Oracle error numbers and messages for other
@@ -296,18 +359,14 @@ open \fIstatement\-handle\fR as the bind value for a :varname bind variable.
 The handle must have previously been opened by \fBoraopen\fR using the 
 same \fIlogon\-handle\fR as the cursor used to execute the \fBoraplexec\fR
 command.
-After \fBoraplexec\fR completes, the handle returned may then fetch result rows
-by using orafetch; column information is available by using oracols.
+After \fBoraplexec\fR completes, the handle may be used to fetch result rows
+by using orafetch; column information is available by using \fBoracols\fR.
 .sp
-\fBOraplexec\fR returns the contents of each :varname as a Tcl list
-upon the termination of PL/SQL block.  
+\fBOraplexec\fR will return "0" when executed successfully;  Use the command
+\fBorafetch\fR to retrieve the bind results. 
+.sp
 \fBOraplexec\fR raises a Tcl error if the cursor handle specified is not open,
 or if the PL/SQL block is in error.  
-The \fBoramsg\fR array index \fIrc\fR 
-contains the return code from the stored procedure.
-The \fBoramsg\fR array index \fIerrortxt\fR 
-contains the Oracle error message from the stored procedure if one is 
-generated.
 .sp
 .TP 
 .B oralob \fIsub\-command handle ?options ...?\fR
@@ -419,9 +478,10 @@ of a row may be determined easily, as shown in the example below.
 .nf
 # Assume that $sth is a valid statement-handle 
 # opened earlier
-orasql $sth "select rowid from my_table \\
+oraparse $sth "select rowid from my_table \\
        where my_key = 'keyvalue'"
-orafetch $sth "set rowid @1"
+oraexec $sth
+orafetch $sth -datavariable rowid
 set data "abcdeabcdeabcde"
 set lobid [oralob alloc $sth -table "my_table" \\
   	     -column "clob_col" -rowid $rowid]
@@ -535,9 +595,10 @@ LONG specified by \fILONG\-handle\fR.
 set chr_data [string repeat 0123456789---------- 10000]
 
 # Find the ROWID for the LONG handle
-orasql $sth {select rowid from oratcl_long \\
+oraparse $sth {select rowid from oratcl_long \\
 		where field = 'value'}
-orafetch $sth "set rowid @1"
+oraexec $sth
+orafetch $sth -datavariable rowid
 set longid [oralong alloc $sth -table oratcl_long \\
 		-column mp3 -rowid $rowid]
 
@@ -662,14 +723,8 @@ login handle that the login handle was opened under.
 .RE	
 
 .sp
-.SH "SERVER MESSAGE AND ERROR INFORMATION"
+.SH "ASYNCHRONOUS TRANSACTION PROCESSING"
 .P
-Oratcl creates and maintains a Tcl global array to provide feedback of
-Oracle server messages, named \fBoramsg\fR.  In all cases each element
-is reset to null upon invocation of any Oratcl command, and any
-element affected by the command is set.  The oramsg array is shared
-among all open Oratcl handles.  Oramsg should be defined with the
-global statement in any Tcl procedure needing access to oramsg.
 .P
 .B NOTE
 .br
@@ -724,20 +779,25 @@ set plsql { begin
 	   end;
 	}
 oraplexec  $exec_cur  $plsql  :job  ANALYST  :fetchcur  $fetch_cur
-orafetch  $fetch_cur  {puts "$empno $ename"}  ""  empno  1  ename  2
+orafetch  $fetch_cur -arrayvariable dbres -indexbyname
+while {[oramsg $fetch_cur rc] == 0} {
+	puts "$dbres(EMPNO) $dbres(ENAME)"
+	orafetch  $fetch_cur -arrayvariable dbres -indexbyname
+}
 .fi
 .RE
 .TP
 .B Bind Variables
-Using SQL bind variables are more efficient than letting Oracle reparse
-SQL statements.  Use a combination of orasql ... -parseonly / orabindexec:
+Using SQL bind variables is more efficient than letting Oracle reparse
+SQL statements.  Use a combination of oraparse / orabind / oraexec:
 .sp
 .RS
 .nf
 set sql "insert into name_tab(first_name) values(:firstname)" 
-orasql $cur $sql -parseonly
+oraparse $cur $sql
 foreach name [list Ted Alice John Sue] {
-  orabindexec $cur :firstname $name
+  orabind $cur :firstname $name
+  oraexec $cur
 }
 .sp
 .fi
@@ -748,7 +808,8 @@ rather than:
 .nf
 foreach name [list Ted Alice John Sue] {
   set sql "insert into name_tab(first_name) values('$name')"
-  orasql $cur $sql
+  oraparse $cur $sql
+  oraexec $cur
 }
 .sp
 .fi
