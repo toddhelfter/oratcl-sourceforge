@@ -983,6 +983,7 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar, hashType)
 	StmPtr->fetchidx += 1;
 	StmPtr->append_cnt += 1;
 	StmPtr->ora_rc = 0;
+	Tcl_SetObjResult(interp, OMV_zero);
 	StmPtr->ora_row = StmPtr->append_cnt;
 
 	StmPtr->fetch_ok = 1;
@@ -4815,8 +4816,8 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			StmPtr->append_cnt = 0;
 			StmPtr->fetchidx    = 0;
 
-			/* get results, same as orafetch */
-			Oratcl_ColAppend(interp, StmPtr, 1, NULL, NULL, 0);
+			/* set results, same as orafetch */
+			Oratcl_ColAppend(interp, StmPtr, 0, NULL, NULL, 0);
 
 			StmPtr->fetch_end  = 1;
 			StmPtr->fetch_cnt  = 1;
@@ -4971,6 +4972,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	ub4		rowcnt;
 	sword		rc;
 	int		hashType = 1;	/* default use column name for array index */
+	Tcl_Obj		*oResult;
 
 	int		option;
 	char 		*options[] = {
@@ -5103,10 +5105,10 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 				  OCI_FETCH_NEXT,
 				  OCI_DEFAULT);
 
-		StmPtr->ora_rc = rc;
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 
 		if (rc == OCI_STILL_EXECUTING) {
+			StmPtr->ora_rc = rc;
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 			tcl_return = TCL_OK;
 			goto common_exit;
 		}
@@ -5121,6 +5123,8 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		if (rc == OCI_NO_DATA) {
 			StmPtr->fetch_end = 1;
 			if (StmPtr->append_cnt >= StmPtr->fetch_cnt) {
+				Tcl_SetObjResult(interp, Tcl_NewIntObj(NO_DATA_FOUND));
+				StmPtr->ora_rc = NO_DATA_FOUND;
 				tcl_return = TCL_OK;
 				goto common_exit;
 			}
@@ -5146,9 +5150,14 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 
 	Oratcl_ColAppend(interp, StmPtr, 0, dvarObjPtr, avarObjPtr, hashType);
 
+	/* preserve the result we have set for this command */
+	oResult = Tcl_GetObjResult(interp);
+
 	if (evalObjPtr) {
 		tcl_return = Tcl_EvalObjEx(interp, evalObjPtr, 0);
 	}
+
+	Tcl_SetObjResult(interp, oResult);
 
 common_exit:
 
