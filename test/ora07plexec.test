@@ -1,0 +1,73 @@
+# ora07plexec.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise various oraplexec
+#
+
+if {[info exists ora_lda] == 0} {source defs.tcl}
+
+set oratcl___test1 {
+       create or replace function oratcl___test1 (
+         arg_x number, arg_y char) return date as
+
+        nres number(10);
+        dres date;
+
+
+        cursor cur_tests(arg_x number, arg_y char)
+                is select v_number, v_date from oratcl___tests
+                        where v_number = arg_x
+                        and v_char = arg_y;
+       begin
+
+           open cur_tests(arg_x, arg_y);
+           fetch cur_tests into nres, dres;
+           close cur_tests;
+           return dres;
+       end;
+}
+
+test oraplexec-1.0 {oraplexec: :bind = function(val, val)} {
+	oraplexec $ora_cur $oratcl___test1
+} {}
+
+test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {
+  set pl(1) {declare my_result date; begin :my_result := oratcl___test1(22, '22'); end;}
+  oraplexec $ora_cur $pl(1) :my_result {}
+  set rv(1) [orafetch $ora_cur]
+  set rv(1)
+} [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]]
+
+test oraplexec-1.2 {oraplexec: :bind = function(:bindval, val)} {
+  set pl(2) {declare my_result date; begin :my_result := oratcl___test1(:in1, '22'); end;}
+  oraplexec $ora_cur $pl(2) :my_result {} :in1 22
+  set rv(2) [orafetch $ora_cur]
+  set rv(2)
+} [list [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]] 22]
+
+test oraplexec-1.3 {oraplexec: :bind = function(:bindval, :bindval)} {
+  set pl(3) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
+  oraplexec $ora_cur $pl(3) :my_result {} :in1 22 :in2 {22}
+  set rv(3) [orafetch $ora_cur]
+  set rv(3)
+} [list [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]] 22 22]
+
+test oraplexec-1.4 {oraplexec: bad bind pairs} {
+  set pl(4) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
+  oraplexec $ora_cur $pl(4) :my_result {} :in1 22 :in2
+  set rv(4) [string trimright [set oramsg(errortxt)]]
+  set rv(4)
+} {ORA-01008: not all variables bound}
+
+test oraplexec-1.5 {oraplexec: bad pl/sql} {
+  set pl(5) {declare my_result date; begin :my_result := oratcl___test(:in1, :in2); end;}
+  oraplexec $ora_cur $pl(5) :my_result {} :in1 22 :in2 22
+  string range $oramsg(errortxt) 0 8
+} {ORA-06550}
+
+orasql $ora_cur "drop function oratcl___test1"
+
+::tcltest::cleanupTests
+return

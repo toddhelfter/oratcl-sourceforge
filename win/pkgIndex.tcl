@@ -1,1 +1,1 @@
-package ifneeded Oratcl 2.6 "load [list [file join $dir .. oratcl26.dll]]"
+package ifneeded Oratcl 2.7 {load [file join [info library] .. Oratcl27 oratcl27.dll]}

@@ -8,8 +8,8 @@
 # Copyright 1997 Tom Poindexter.
 #
 
-ORATCL_VERSION = 2.6
-DLL_VERSION = 26
+ORATCL_VERSION = 3.0
+DLL_VERSION = 30
 
 PROJECT = oratcl$(DLL_VERSION)
 
@@ -28,38 +28,39 @@ PROJECT = oratcl$(DLL_VERSION)
 
 ROOT    = .
 TMPDIR  = .
-TOOLS32 = c:\msdev
+#TOOLS32 = c:\msdev
+TOOLS32 = e:\micros~1\vc98
+COMMON32 = e:\progra~1\micros~6\common\MSDev98
 
 # point TCL and TCLLIB to your tcl distribution
 
 TCL     = c:\progra~1\tcl
-TCLLIB  = $(TCL)\lib\tclstub81.lib
+TCLLIB  = $(TCL)\lib\tcl83.lib
 
-#TCL     = c:\progra~1\tcl80
-#TCLLIB  = $(TCL)\lib\tcl80vc.lib
-
-
-ORACLE     = c:\orant\oci80
-ORACLE_LIB = $(ORACLE)\lib\msvc\ociw32.lib 
-
+ORACLE     = d:
+ORACLE_OCI = $(ORACLE)\oci\oci
+ORACLE_LIB = $(ORACLE_OCI)\lib\msvc\oci.lib 
 
 
 # comment the following line to compile with symbols
 NODEBUG=1
-VER=81
 
 #
 # Visual C++ tools
 #
 
-PATH=$(TOOLS32)\bin;$(PATH)
+PATH=$(COMMON32)/bin;$(TOOLS32)\bin;$(PATH)
 
 cc32    = $(TOOLS32)\bin\cl -I$(TOOLS32)\include
 CP      = copy
 RM      = del
 
-INCLUDES = -I$(TOOLS32)\include -I$(TCL)\include 
-DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION7 -DNONBLOCK_CURSOR  -DUSE_TCL_STUBS
+INCLUDES =	-I$(TOOLS32)/include	\
+		-I$(TCL)/include	\
+		-I$(ORACLE_OCI)/include	\
+		-I../generic
+
+DEFINES = -nologo $(DEBUGDEFINES) -DNO_BCOPY -DVERSION8DB -DVERSION=\"3.0\" 
 
 !include <ntwin32.mak>
 

@@ -57,6 +57,15 @@ Oratcl -  Tcl interface to Oracle database server
  * mtariq@scriptics.com
  *-----------------------------------------------------------------------
 
+ ********************ORATCL VERSION 2.7 NOTES********************
+
+(Oratcl Version 2.7 can be used with Tcl versions up to 8.3
+ and with versions of Oracle through Oracle 8.1.6. Note that
+ Oratcl still uses the Oracle OCI API version 7 (which is
+ still included with Oracle 8 libraries for backwards
+ compatibility) so new features  of Oracle 8 such as LOB
+ functions are not available yet in Oratcl.)
+
  ********************ORATCL VERSION 2.6 NOTES********************
 
 (Oratcl Version 2.6 can also be used with Tcl versions up to 8.2

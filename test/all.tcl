@@ -3,27 +3,31 @@
 # This file is sourced by the 'make test' target to execute the
 # Oratcl test suite
 #
-#
-# Copyright (c) 1998-1999 by Scriptics Corporation.
+# Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
-# 
-# RCS: @(#) $Id: all.tcl,v 1.2 1999-10-13 00:37:35 mtariq Exp $
+#
+# RCS: @(#) $Id: all.tcl,v 1.2.6.1 2000-05-25 01:25:43 tmh Exp $
 
-
-source [file  join [file dirname [info script]] defs.tcl]
-
-if {[catch {set t [oralogon $oracleuser/$oraclepw@$connstring]} msg]} {
-	puts "Connection to Oracle database can not be established"
-} elseif {[regexp ^(oratcl)+.* $t]} {
-   oralogoff $t
-#   set tests [glob -nocomplain ../test/*.test]
-    set tests [glob -nocomplain [file join [file dirname [info script]] *.test]]
-   foreach i $tests {
-      puts stdout $i
-      flush stdout
-       if {[catch {source $i} msg]} {
-        puts $msg
-       }
-   }     
+if {$tcl_platform(os) == "Win32s"} {
+    set files [glob test/*.tes]
+} else {
+    set files [glob test/*.test]
 }
 
+global ora_lda
+
+source [file join [file dirname [info script]] defs.tcl]
+source [file join [file dirname [info script]] startup.tcl]
+
+set tests [glob -nocomplain \
+	     [file join [file dirname [info script]] ora*.test]]
+
+foreach test [lsort $tests] {
+	puts stdout $test
+	flush stdout
+	if {[catch {source $test} msg]} {
+		puts $msg
+	}
+}     
+
+source [file join [file dirname [info script]] cleanup.tcl]

@@ -1,0 +1,47 @@
+# ora05cols.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+# 
+# exercise various oracols
+#
+
+if {[info exists ora_lda] == 0} {source defs.tcl}
+
+set oracol_sql {select v_number, v_date, v_char, v_varchar2 from oratcl___tests}
+set col_result [list V_NUMBER V_DATE V_CHAR V_VARCHAR2]
+set len_result [list 40 75 2 36]
+set type_result [list number date char varchar2]
+
+test oracols-1.1 {oracols: all column names after sql} {
+  global oracol_sql col_result len_result type_result
+  orasql $ora_cur $oracol_sql
+  set cols [oracols $ora_cur]
+
+  expr {([string compare $cols $col_result] == 0) +
+        ([string compare $oramsg(collengths) $len_result] == 0) +
+        ([string compare $oramsg(coltypes) $type_result] == 0)}
+} {3}
+
+test oracols-1.2 {oracols: all column names after one fetch} {
+  global oracol_sql col_result len_result type_result
+  orasql $ora_cur $oracol_sql
+  set row [orafetch $ora_cur]
+  set cols [oracols $ora_cur]
+  expr {([string compare $cols $col_result] == 0) +
+        ([string compare $oramsg(collengths) $len_result] == 0) +
+        ([string compare $oramsg(coltypes) $type_result] == 0)}
+} {3}
+
+test oracols-1.3 {oracols: all column names after all fetch} {
+  global oracol_sql col_result len_result type_result
+  orasql $ora_cur $oracol_sql
+  orafetch $ora_cur {}
+  set cols [oracols $ora_cur]
+  expr {([string compare $cols $col_result] == 0) +
+        ([string compare $oramsg(collengths) $len_result] == 0) +
+        ([string compare $oramsg(coltypes) $type_result] == 0)}
+} {3}
+
+::tcltest::cleanupTests
+return
