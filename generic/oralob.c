@@ -6,7 +6,7 @@ int
 Oralob_Init (interp)
 	Tcl_Interp	*interp;
 {
-	char		*proc;
+	CONST84 char	*proc;
 	int		tcl_return = TCL_OK;
 	int		tcl_rc;
 

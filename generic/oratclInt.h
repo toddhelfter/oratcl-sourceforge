@@ -20,6 +20,11 @@
 #define _ANSI_ARGS_() ()
 #endif
 
+/* For pre-8.4 Tcl Support */
+#ifndef CONST84
+#   define CONST84
+#endif
+
 /* various limits for arrays of structures, default buffer sizes */
 #define ORA_MSG_SIZE    1000    /* oracle error message max size*/
 #define NO_DATA_FOUND   1403    /* oracle error # no data for this fetch */
