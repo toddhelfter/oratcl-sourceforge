@@ -886,6 +886,7 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
 	OratclCols	*col, *src;
 	char		*null_str;
 	int		oColsc = 0;
+	int		iTcl;
 
 	Tcl_DString	valStr;
 
@@ -894,6 +895,13 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
 	if (rn < 0 || rn >= StmPtr->fetchmem) {
 		/* TMH Does this ever happen ??? if so can it be tested for? */
 		return;
+	}
+
+	if (arrayvar) {
+		iTcl = Tcl_UnsetVar2(interp,
+				     Tcl_GetStringFromObj(arrayvar, NULL),
+				     (char *) NULL,
+				     0);
 	}
 
 	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
@@ -953,6 +961,14 @@ Oratcl_ColAppend (interp, StmPtr, setResult, listvar, arrayvar)
 			} else {
 				StmPtr->oColsv[oColsc++] = OMV_null;
 			}
+		}
+
+		if (arrayvar) {
+			Tcl_ObjSetVar2(interp,
+					arrayvar,
+					Tcl_NewStringObj(col->column.name, -1),
+					StmPtr->oColsv[oColsc - 1],
+					TCL_LEAVE_ERR_MSG);
 		}
 
 	}
@@ -1088,6 +1104,9 @@ Oratcl_ColDescribe (interp, StmPtr)
 			fprintf(stderr, "%s %d, blob type\n", __FILE__, __LINE__);
 			new_col->column.valuesz = MAX_LONG_SIZE;		/* 24	*/
 			new_col->dty = SQLT_BLOB;
+			break;
+		default:
+			/*NOTREACHED*/
 			break;
 #endif
 		}
@@ -4612,6 +4631,9 @@ Oratcl_Async (clientData, interp, objc, objv)
 			tcl_return = Oratcl_Break(clientData, interp, argObjc, argObjv);
 			goto common_exit;
 			break;
+		default:
+			/*NOTREACHED*/
+			break;
 	}
 
 common_exit:
@@ -5528,15 +5550,25 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
 	int		parm_cnt;
-	ub4		oci_mode = OCI_DEFAULT;
 	ub4		rowcnt;
 	sword		rc;
+
+	int		option;
+	char 		*options[] = {"-datavariable", "-dataarray", "-command", NULL};
+	enum		optindex { OPT_DVAR, OPT_DARR, OPT_EVAL};
+
+	Tcl_Obj		*dvarObjPtr = NULL;
+	Tcl_Obj		*avarObjPtr = NULL;
+	Tcl_Obj		*evalObjPtr = NULL;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
 
-	if (objc < 4) {
-		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle -listvar var");
+	if (objc < 2) {
+		Tcl_WrongNumArgs(interp,
+				 objc,
+				 objv,
+				 "stm_handle -listvar var -arrayvar var");
 		return TCL_ERROR;
 	}
 
@@ -5559,6 +5591,38 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
+
+	for (objix=2; objix<objc; objix++) {
+		if (Tcl_GetIndexFromObj(interp,
+					objv[objix],
+					options,
+					"option",
+					0,
+					&option)) {
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+		objix++;
+                if (objix < objc) {
+			switch (option) {
+				case OPT_DVAR:
+					dvarObjPtr = objv[objix];
+					Tcl_IncrRefCount(dvarObjPtr);
+					break;
+				case OPT_DARR:
+					avarObjPtr = objv[objix];
+					Tcl_IncrRefCount(avarObjPtr);
+					break;
+				case OPT_EVAL:
+					evalObjPtr = objv[objix];
+					Tcl_IncrRefCount(evalObjPtr);
+					break;
+				default:
+					/*NOTREACHED*/
+					break;
+			}
+		}
+	}
 
 	/*
 	 * If PL/SQL, use bind_list else use col_list.
@@ -5629,7 +5693,12 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 			StmPtr->fetch_cnt = 0;
 			StmPtr->fetchidx  = 0;
 			StmPtr->fetch_end = 1;
-			Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
@@ -5637,9 +5706,23 @@ Oratcl_AsyncFetch (clientData, interp, objc, objv)
 		StmPtr->fetchidx = 0;
 	}
 
-	Oratcl_ColAppend(interp, StmPtr, 0, objv[3], NULL);
+	Oratcl_ColAppend(interp, StmPtr, 0, dvarObjPtr, avarObjPtr);
+
+	if (evalObjPtr) {
+		tcl_return = Tcl_EvalObjEx(interp, evalObjPtr, 0);
+	}
 
 common_exit:
+
+	if (dvarObjPtr) {
+		Tcl_DecrRefCount(dvarObjPtr);
+	}
+	if (avarObjPtr) {
+		Tcl_DecrRefCount(avarObjPtr);
+	}
+	if (evalObjPtr) {
+		Tcl_DecrRefCount(evalObjPtr);
+	}
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
