@@ -10,13 +10,18 @@ Oratcl - Oracle Database Server access commands for Tcl
 .sp
 .SH "INTRODUCTION"
 .P
-Oratcl is a collection of Tcl 
-commands and a Tcl global array that provides access to an
-Oracle Database Server.
+Oratcl is an extention to the Tcl language designed to
+provide access to an Oracle Database Server.
 Each Oratcl command generally invokes several 
 Oracle Call Interface (OCI) library functions.
 Programmers using Oratcl should be familar with basic concepts of
-OCI programming.  
+OCI programming.  Oratcl is loaded into the Tcl interpreter with
+the tcl \fBpackage\fR command. 
+.RS .5i
+.sp
+.B Example
+.IP
+package require Oratcl
 .sp
 .SH "ORATCL COMMANDS"
 .TP
@@ -725,9 +730,6 @@ login handle that the login handle was opened under.
 .fi
 .RE	
 
-.sp
-.SH "ASYNCHRONOUS TRANSACTION PROCESSING"
-.P
 .P
 .B NOTE
 .br
@@ -817,6 +819,50 @@ foreach name [list Ted Alice John Sue] {
 .sp
 .fi
 .RE
+.sp
+.SH ASYNCHRONOUS TRANSACTION PROCESSING
+.nf
+set lda [oralogon scott/tiger -async]
+set sth [oraopen $lda]
+set sql {select empno, ename from emp where job = :job}
+
+#parse phase
+while {[oraparse $sth $sql] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+	...
+	process other events
+	...
+}
+
+#bind phase
+orabind $sth :job ANALYST
+
+#execution phase
+while {[oraexec $sth] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+	...
+	process other events
+	...
+}
+
+#fetch one row
+while {[orafetch $sth -datavar row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+	...
+	process other events
+	...
+}
+#while row found, process and fetch another row
+while {[oramsg $sth rc] == 0} {
+
+	puts "row [oramsg $sth rows] == $row"
+
+	while {[orafetch $sth -datavar row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		...
+		process other events
+		...
+	}
+}
+
+.fi
+.sp
 .sp
 .SH ENVIRONMENT VARIABLES
 .TP
