@@ -7,7 +7,7 @@ For installation on win and mac platforms, see the ./win and ./mac directories.
 Oratcl can be added to standard Tcl's tclsh and wish, or to Extended Tcl's
 tcl and wishx.  
 
-Change to the ./unix directory to run configure and make.
+Change to the toplevel directory to run configure and make.
 
 Oratcl supports building a shared library by default that can be
 loaded using Tcl's 'package require' or 'load' commands.
