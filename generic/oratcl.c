@@ -690,7 +690,7 @@ Oratcl_ColAlloc(fetchrows)
 	if ((ColPtr = (OratclCols *) ckalloc(sizeof (OratclCols))) != NULL) {
 		ColPtr->next = NULL;
 		ColPtr->column.typecode = 0;
-		ColPtr->column.typename = NULL;
+		Tcl_DStringInit(&ColPtr->column.typename);
 		ColPtr->column.size = 0;
 		ColPtr->column.name = NULL;
 		ColPtr->column.namesz = 0;
@@ -737,6 +737,7 @@ Oratcl_ColFree (ColPtr)
 		if (ColPtr->column.valuep != NULL) {
 			ckfree(ColPtr->column.valuep);
 		}
+		Tcl_DStringFree(&ColPtr->column.typename);
 		
 		ckfree ((char *) ColPtr->indp);
 		ckfree ((char *) ColPtr->rlenp);
@@ -1734,13 +1735,16 @@ Oratcl_Info (clientData, interp, objc, objv)
 	sword		rc;
 	static text	svr[ORA_MSG_SIZE];
 	Tcl_Obj		*res_obj;
+	ub4		serverStatus = 0;
 
 	static const char *options[] = {"server",
+					"status",
 					"version",
 					"loginhandle",
 					NULL};
 
 	enum		optindex {OPT_SERVER,
+				  OPT_STATUS,
 				  OPT_VERSION,
 				  OPT_LOGINHANDLE};
 
@@ -1772,6 +1776,49 @@ Oratcl_Info (clientData, interp, objc, objv)
 		Tcl_SetObjResult(interp, Tcl_NewStringObj(VERSION, -1));
 	}
 
+	if (index == OPT_STATUS) {
+		if (objc < 3) {
+			Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		logHashPtr = Tcl_FindHashEntry(OratclStatePtr->logHash,
+					       Tcl_GetStringFromObj(objv[2],
+								    NULL));
+
+		if (logHashPtr == NULL) {
+			Oratcl_ErrorMsg(interp,
+					objv[0],
+					": lda_handle ",
+					objv[2],
+					" not valid");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+
+		rc = OCIAttrGet (LogPtr->srvhp,
+				 OCI_HTYPE_SERVER,
+				 (dvoid *)&serverStatus,
+				 (ub4 *) 0,
+				 OCI_ATTR_SERVER_STATUS,
+				 LogPtr->errhp);
+
+		if (serverStatus == OCI_SERVER_NORMAL) {
+			res_obj = Tcl_NewIntObj(OCI_SERVER_NORMAL);
+			fprintf(stderr, "Connection is up.\n");
+		}
+		if (serverStatus == OCI_SERVER_NOT_CONNECTED) {
+			res_obj = Tcl_NewIntObj(OCI_SERVER_NOT_CONNECTED);
+			fprintf(stderr, "Connection is down.\n");
+		}
+		Tcl_IncrRefCount(res_obj);
+		Tcl_SetObjResult(interp, res_obj);
+		Tcl_DecrRefCount(res_obj);
+	}
+
 	if (index == OPT_SERVER) {
 		if (objc < 3) {
 			Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -1780,7 +1827,8 @@ Oratcl_Info (clientData, interp, objc, objv)
 		}
 
 		logHashPtr = Tcl_FindHashEntry(OratclStatePtr->logHash,
-					       Tcl_GetStringFromObj(objv[2], NULL));
+					       Tcl_GetStringFromObj(objv[2],
+								    NULL));
 
 		if (logHashPtr == NULL) {
 			Oratcl_ErrorMsg(interp,
@@ -1800,12 +1848,17 @@ Oratcl_Info (clientData, interp, objc, objv)
 				      ORA_MSG_SIZE,
 				      OCI_HTYPE_SVCCTX);
 
-		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0, &LogPtr->ora_rc, &LogPtr->ora_err);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				0,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
 			Oratcl_ErrorMsg(interp,
 					objv[0],
-					": commit failed",
+					": server version request failed",
 					(Tcl_Obj *) NULL,
 					(char *) NULL);
 			tcl_return = TCL_ERROR;
@@ -1827,7 +1880,8 @@ Oratcl_Info (clientData, interp, objc, objv)
 		}
 
 		stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
-					       Tcl_GetStringFromObj(objv[2], NULL));
+					       Tcl_GetStringFromObj(objv[2],
+								    NULL));
 
 		if (stmHashPtr == NULL) {
 			Oratcl_ErrorMsg(interp,
@@ -1840,7 +1894,8 @@ Oratcl_Info (clientData, interp, objc, objv)
 		}
 
 		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
-		logHashKey = Tcl_GetHashKey(OratclStatePtr->logHash, StmPtr->logHashPtr);
+		logHashKey = Tcl_GetHashKey(OratclStatePtr->logHash,
+					    StmPtr->logHashPtr);
 
 		res_obj = Tcl_NewStringObj((char *) logHashKey, -1);
 		Tcl_IncrRefCount(res_obj);
@@ -2523,7 +2578,8 @@ Oratcl_Cols (clientData, interp, objc, objv)
 		}
 
 		if (mode == OPT_ALL || mode == OPT_TYPE) {
-			oCols[oColsc++] = Tcl_NewStringObj((char *) col->column.typename, -1);
+			oCols[oColsc++] = Tcl_NewStringObj(Tcl_DStringValue(&col->column.typename),
+							   Tcl_DStringLength(&col->column.typename));
 		}
 
 		if (mode == OPT_ALL || mode == OPT_PREC) {
@@ -2816,6 +2872,7 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	int		explicit;
 {
 	text		*namep;
+	ub4		namesz;
 	sword		rc;
 	ub1		prec_ub1;	
 	sb2		prec_sb2;	
@@ -2912,69 +2969,83 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 		return rc;
 	}
 
+#if 0
+	Tcl_DStringInit(&column->typename);
+#endif
 	/* data type name */
 	switch (column->typecode) {
 	case SQLT_CHR:					/* 1	*/
-		column->typename = "VARCHAR2";
+		Tcl_DStringAppend(&column->typename, "VARCHAR2", -1);
 		break;
 	case SQLT_AFC:					/* 96	*/
-		column->typename = "CHAR";
+		Tcl_DStringAppend(&column->typename, "CHAR", -1);
 		break;
 	case SQLT_LNG:					/* 8	*/
-		column->typename = "LONG";
+		Tcl_DStringAppend(&column->typename, "LONG", -1);
 		break;
 	case SQLT_BIN:					/* 23	*/
-		column->typename = "RAW";
+		Tcl_DStringAppend(&column->typename, "RAW", -1);
 		break;
 	case SQLT_LBI:					/* 24	*/
-		column->typename = "LONG RAW";
+		Tcl_DStringAppend(&column->typename, "LONG RAW", -1);
 		break;
 	case SQLT_NUM:					/* 2	*/
-		column->typename = "NUMBER";
+		Tcl_DStringAppend(&column->typename, "NUMBER", -1);
 		break;
 	case SQLT_DAT:					/* 12	*/
-		column->typename = "DATE";
+		Tcl_DStringAppend(&column->typename, "DATE", -1);
 		break;
 	case SQLT_RID:					/* 11	*/
-		column->typename = "ROWID";
-		break;
 	case SQLT_RDD:					/* 104	*/
-		column->typename = "ROWID";
+		Tcl_DStringAppend(&column->typename, "ROWID", -1);
 		break;
 	case SQLT_CUR:					/* 102	*/
-		column->typename = "CURSOR";
+		Tcl_DStringAppend(&column->typename, "CURSOR", -1);
 		break;
 	case SQLT_CLOB:
-		column->typename = "CLOB";
+		Tcl_DStringAppend(&column->typename, "CLOB", -1);
 		break;
 	case SQLT_BLOB:
-		column->typename = "BLOB";
+		Tcl_DStringAppend(&column->typename, "BLOB", -1);
 		break;
 	case 105:
-		column->typename = "MLSLABEL";
+		Tcl_DStringAppend(&column->typename, "MSLABEL", -1);
 		break;
 	case 106:
-		column->typename = "RAW MLSLABEL";
+		Tcl_DStringAppend(&column->typename, "RAW MSLABEL", -1);
 		break;
 #if (ORA_MAJOR_VERSION >= 9 && ORA_MINOR_VERSION >= 0)
 	case SQLT_TIMESTAMP:
-		column->typename = "TIMESTAMP";
+		Tcl_DStringAppend(&column->typename, "TIMESTAMP", -1);
 		break;
 	case SQLT_TIMESTAMP_TZ:
-		column->typename = "TIMESTAMP WITH TIME ZONE";
+		Tcl_DStringAppend(&column->typename, "TIMESTAMP WITH TIME ZONE", -1);
 		break;
 	case SQLT_INTERVAL_YM:
-		column->typename = "INTERVAL YEAR TO MONTH";
+		Tcl_DStringAppend(&column->typename, "INTERVAL YEAR TO MONTH", -1);
 		break;
 	case SQLT_INTERVAL_DS:
-		column->typename = "INTERVAL DAY TO SECOND";
+		Tcl_DStringAppend(&column->typename, "INTERVAL DAY TO SECOND", -1);
 		break;
 	case SQLT_TIMESTAMP_LTZ:
-		column->typename = "TIMESTAMP WITH LOCAL TIME ZONE";
+		Tcl_DStringAppend(&column->typename, "TIMESTAMP WITH LOCAL TIME ZONE", -1);
+		break;
+	case SQLT_NTY:
+		/* named type - get the name */
+		rc = OCIAttrGet((dvoid*) parmh,
+				(ub4) OCI_DTYPE_PARAM,
+				(dvoid*) &namep,
+				(ub4 *) &namesz,
+				(ub4) OCI_ATTR_TYPE_NAME,
+				(OCIError *) errhp);
+		if (rc != OCI_SUCCESS) {
+			return rc;
+		}
+		Tcl_DStringAppend(&column->typename, namep, namesz);
 		break;
 #endif
 	default:
-		column->typename = "UNKNOWN";
+		Tcl_DStringAppend(&column->typename, "UNKNOWN", -1);
 	}
 
 	return rc;
@@ -3029,6 +3100,18 @@ Oratcl_Describe (clientData, interp, objc, objv)
 
 	Tcl_DStringInit(&tblStr);
 	Tcl_DStringInit(&resStr);
+
+	/* Initialize the column structure */
+	column.typecode = 0;
+	Tcl_DStringInit(&column.typename);
+	column.size = 0;
+	column.name = NULL;
+	column.namesz = 0;
+	column.prec = 0;
+	column.scale = 0;
+	column.nullok = 0;
+	column.valuep = NULL;
+	column.valuesz	= 0;
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);
@@ -3272,6 +3355,8 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
+		Tcl_DStringSetLength(&column.typename, 0);
+
 		rc = Oratcl_Attributes(interp, LogPtr->errhp, parmh, &column, 1);
 		Oratcl_Checkerr(interp, LogPtr->errhp, rc, 1, &LogPtr->ora_rc, &LogPtr->ora_err);
 		if (rc != OCI_SUCCESS) {
@@ -3281,12 +3366,22 @@ Oratcl_Describe (clientData, interp, objc, objv)
 		}
 
 		Tcl_DStringStartSublist(&resStr);
-		Tcl_DStringAppendElement(&resStr, (char *) column.name);
-		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.size), NULL));
-		Tcl_DStringAppendElement(&resStr, (char *) column.typename);
-		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.prec), NULL));
-		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.scale), NULL));
-		Tcl_DStringAppendElement(&resStr, Tcl_GetStringFromObj(Tcl_NewIntObj(column.nullok), NULL));
+		Tcl_DStringAppendElement(&resStr, 
+					 (char *) column.name);
+		Tcl_DStringAppendElement(&resStr,
+					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.size),
+							       NULL));
+		Tcl_DStringAppendElement(&resStr,
+					  Tcl_DStringValue(&column.typename));
+		Tcl_DStringAppendElement(&resStr,
+					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.prec),
+							       NULL));
+		Tcl_DStringAppendElement(&resStr,
+					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.scale),
+							       NULL));
+		Tcl_DStringAppendElement(&resStr,
+					  Tcl_GetStringFromObj(Tcl_NewIntObj(column.nullok),
+							       NULL));
 		Tcl_DStringEndSublist(&resStr);
 	}
 

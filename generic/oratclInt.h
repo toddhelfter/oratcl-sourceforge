@@ -40,7 +40,7 @@
 
 struct OratclDesc {
 	ub2		typecode;	/* column type code		*/
-	char		*typename;	/* column type name		*/
+	Tcl_DString	typename;	/* column type name		*/
 	ub2		size;       	/* column internal size		*/
 	text        	*name;		/* column name			*/
 	ub4		namesz; 	/* column name length  		*/
@@ -107,7 +107,7 @@ typedef struct OratclStms {
 	Tcl_Obj		*nullvalue;	/* null display value		*/
 	int		fetchrows;	/* rows to fetch		*/
 	int		lobpsize;	/* lob piece size allocation	*/
-	int		longpsize;	/* long piece size allocation	*/
+	ub4		longpsize;	/* long piece size allocation	*/
 	int		fetchmem;	/* save value at parse time 	*/
 	int		fetchidx;	/* row in cache to fetch	*/
 	int		fetch_end;	/* true when fetches exhausted	*/

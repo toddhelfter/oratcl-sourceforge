@@ -727,12 +727,21 @@ Return a list of all opened statement-handles associated with the
 .B orainfo \fIoption ?args?\fR
 .br
 Retrieves information about oratcl.  \fIOption\fR may be either
-"version", "server", or "loginhandle".  "orainfo version" returns the
-current oratcl version.  "orainfo server" requires a valid logon
+"version", "server", "status", or "loginhandle".  
+.sp
+"\fBorainfo\fR version" returns the current oratcl version.  
+.sp
+"\fBorainfo\fR server" requires a valid logon
 handle previously opened with \fBoralogon\fR as an argument and
-returns the oracle server information.  "orainfo logonhandle" requires
+returns the oracle server information.  
+.sp
+"\fBorainfo\fR status" requires a valid logon
+handle previously opened with \fBoralogon\fR as an argument and
+returns the oracle server connection status (1 connected, 0 not connected).  
+.sp
+"\fBorainfo\fR logonhandle" requires
 a statement handle previously opened with \fBoraopen\fR and returns the 
-login handle that the login handle was opened under.
+login handle that the statement handle was opened under.
 .sp
 .RS .5i
 .B EXAMPLES

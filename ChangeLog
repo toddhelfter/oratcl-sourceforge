@@ -391,6 +391,20 @@ Version 4.1 August, 2002
     -   Fixed a bug in oraparse that prevented asynchronous
         transactions from parsing properly with the supplied examples.
         Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
+    -   Changed oralongp to type ub4 to eliminate a compiler warning.
+        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
+
+17-SEP-2002
+
+    -   Added support for describing user defined types to Oracols and
+	Oradesc.  Began work for a test suite file.
+	Thanks to Olly Stephens (ollystephens@sourceforge.net) for the patch.
+    -	Changed a bogus error message in [orainfo server $lda]. 
+    -	Added a 'status' option to 'orainfo' that returns the server status.
+	Example: orainfo status $lda
+	Returns 1 if server status is OCI_SERVER_NORMAL
+	Returns 0 if server status is OCI_SERVER_NOT_CONNECTED
+	This is useful for detected loss of server, due to crash or shutdown.
 
 
 -----------------------------------------------------------------------------

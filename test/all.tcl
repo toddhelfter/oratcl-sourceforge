@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.17 2001-11-03 13:41:19 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.18 2002-09-17 20:42:05 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
     set files [glob ../test/*.tes]
@@ -40,6 +40,7 @@ set testlist [list \
 		i18n.test \
 		codes.test \
 		async.test \
+		usertype.test \
 	]
 
 foreach test $testlist {

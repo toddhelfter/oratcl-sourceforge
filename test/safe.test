@@ -38,25 +38,6 @@ if {[interp exists s]} {
 	puts {	skipping test :: orasafeinterp-1.3 'safeinterp: open cursor'}
 }
 
-
-if {[interp exists s]} {
-	test orasafeinterp-1.4 {safeinterp: is safe} {
-		set rval [s eval " info command orawrlong"]
-		set rval
-	} {}
-} else {
-	puts {	skipping test :: orasafeinterp-1.4 'slaveinterp: is safe'}
-}
-
-if {[interp exists s]} {
-	test orasafeinterp-1.5 {safeinterp: is safe} {
-		set rval [s eval " info command orardlong"]
-		set rval
-	} {}
-} else {
-	puts {	skipping test :: orasafeinterp-1.5 'slaveinterp: is safe'}
-}
-
 if {[interp exists s]} {
 	test orasafeinterp-1.6 {safeinterp: delete interp} {
 		global ora_slda ora_scur

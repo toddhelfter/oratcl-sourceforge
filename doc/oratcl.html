@@ -696,13 +696,20 @@
 
      <B>orainfo</B> <I>option</I> ?<I>args</I>?
           Retrieves information  about  oratcl.   <I>Option</I>  may  be
-          either "version", "server", or "loginhandle".  "orainfo
-          version" returns the current oratcl version.   "orainfo
-          server" requires a valid logon handle previously opened
-          with <B>oralogon</B> as an argument  and  returns  the  oracle
-          server  information.   "orainfo logonhandle" requires a
+          either "version", "server", or "loginhandle".
+	  "<B>orainfo</B> version" returns the current oratcl version.   
+
+	  "<B>orainfo</B> server" requires a valid logon handle previously opened
+          with <B>oralogon</B> as an argument and returns the oracle
+          server information.   
+
+          "<B>orainfo</B> status" requires a valid logon handle previously opened 
+	  with <B>oralogon</B> as an argument and returns the oracle server
+	  connection status (1 connected, 0 not connected).
+
+	  "<B>orainfo</B> logonhandle" requires a
           statement handle previously  opened  with  <B>oraopen</B>  and
-          returns  the  login  handle  that  the login handle was
+          returns the login handle that the statement handle was
           opened under.
 
           <B>EXAMPLES</B>
