@@ -6,7 +6,7 @@
 # built-in commands.  Sourcing this file into Tcl runs the tests and
 # generates output for errors.  No output means no errors were found.
 # 
-# This file creates a temporary table in the database  and inserts 
+# This file creates a temporary table in the database  and inserts
 # unicode characters into it as column data. It then retrieves that
 # unicode data to check if it is the correct data i.e. it has not been
 # converted to a non UTF-8 character set.

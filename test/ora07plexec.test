@@ -3,34 +3,35 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# exercise various oraplexec
+# exercise various oraplexec operations
 #
 
-if {[info exists ora_lda] == 0} {source defs.tcl}
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
 
 set oratcl___test1 {
-       create or replace function oratcl___test1 (
-         arg_x number, arg_y char) return date as
+	create or replace function oratcl___test1 (
+		arg_x number,
+		arg_y char
+	) return date as
+	nres number(10);
+	dres date;
+	cursor cur_tests(arg_x number, arg_y char)
+		is select v_number, v_date from oratcl___tests
+			where v_number = arg_x
+			and v_char = arg_y;
+	begin
 
-        nres number(10);
-        dres date;
-
-
-        cursor cur_tests(arg_x number, arg_y char)
-                is select v_number, v_date from oratcl___tests
-                        where v_number = arg_x
-                        and v_char = arg_y;
-       begin
-
-           open cur_tests(arg_x, arg_y);
-           fetch cur_tests into nres, dres;
-           close cur_tests;
-           return dres;
-       end;
+		open cur_tests(arg_x, arg_y);
+		fetch cur_tests into nres, dres;
+		close cur_tests;
+		return dres;
+	end;
 }
 
 test oraplexec-1.0 {oraplexec: :bind = function(val, val)} {
-	oraplexec $ora_cur $oratcl___test1
+  oraplexec $ora_cur $oratcl___test1
 } {}
 
 test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {

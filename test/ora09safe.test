@@ -2,13 +2,13 @@
 #
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
-# 
-# exercise various safe interp
+#
+# exercise various safe interp operations
 #
 
-# ora11text should have run before this 
-
-if {[info exists ora_lda] == 0} {source defs.tcl}
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
 
 test orasafeinterp-1.1 {safeinterp: load package into safe interp} {
 	interp create -safe s

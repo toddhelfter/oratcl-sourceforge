@@ -2,12 +2,12 @@
 #
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
-# 
+#
 # exercise various combinations of orasql and orafetch
 #
 
 if {[info exists ora_lda] == 0} {
-        source [file  join [pwd] [file dirname [info script]] defs.tcl]
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
 test orasql-1.1 {orasql: no rows returned} {

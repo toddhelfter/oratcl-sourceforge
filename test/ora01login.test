@@ -7,19 +7,20 @@
 #
 
 if {[info exists ora_lda] == 0} {
-        source [file  join [pwd] [file dirname [info script]] defs.tcl]
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
 test oralogon-1.0 {oralogon: no arguments} {
-  catch {oralogon} res
-  set res
+	catch {oralogon} res
+	set res
 } {wrong # args: should be "oralogon connect_str"}
 
 test oralogon-1.1 {oralogon: all arguments} {
-  global ora_constr
-  catch {oralogon $ora_constr} res
-  catch {oralogoff $lda}
-  set res
+	global ora_constr
+	catch {oralogon $ora_constr} res
+	catch {oralogoff $lda}
+
+	set res
 } {oratcl1}
 
 test oralogon-1.2 {oraopen: max connections} {
