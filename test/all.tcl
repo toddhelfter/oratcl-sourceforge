@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.16 2001-09-10 13:31:57 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.17 2001-11-03 13:41:19 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
     set files [glob ../test/*.tes]
@@ -46,12 +46,23 @@ foreach test $testlist {
 	lappend tests [file join [file dirname [info script]] $test]
 }
 
+set testtimes {}
 foreach test $tests {
-	puts stdout $test
+	puts stdout \n$test
 	flush stdout
+	set t0 [clock clicks -milliseconds]
 	if {[catch {source $test} msg]} {
 		puts $msg
 	}
+	set tD [clock clicks -milliseconds]
+	set times "$test :: [expr {$tD - $t0}] ms"
+	puts stdout $times
+	lappend testtimes $times
 }     
 
 source [file join [file dirname [info script]] cleanup.tcl]
+
+puts stderr "\ntest timings\n"
+foreach times $testtimes {
+	puts stdout $times
+}
