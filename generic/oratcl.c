@@ -4900,7 +4900,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 		rc = OCIStmtExecute(LogPtr->svchp,
 				    StmPtr->stmhp,
 				    LogPtr->errhp,
-				    (ub4) 0,
+				    (ub4) 1,
 				    (ub4) 0,
 				    (OCISnapshot *) NULL,
 				    (OCISnapshot *) NULL,
