@@ -237,8 +237,6 @@ void
 Oratcl_Exit (clientData)
 	ClientData clientData;
 {
-	OratclState	*OratclStatePtr = (OratclState *) clientData;
-
 	Oratcl_Clean(clientData);
 
 	Tcl_DecrRefCount(OMV_null);
@@ -289,9 +287,6 @@ Oratcl_Init (interp)
 	Tcl_DString	oratclPath;
 	const char	*path[4];
 	int		libix;
-
-	int		pargc;
-	char		**pargv;
 
 	int		path_cnt;
 	Tcl_Obj		*pathObj;
@@ -867,7 +862,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 {
 	int		rn;
 	OratclCols 	*ColPtr;
-	OratclCols	*col, *src;
+	OratclCols	*col;
 	char		*null_str;
 	int		oColsc = 0;
 	int		iTcl;
@@ -1017,8 +1012,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 	OCIParam	*parmdp;
 	ub4		parmcnt;
 	ub4		parmix;
-
-	int		lob;
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
@@ -2076,7 +2069,6 @@ Oratcl_Message (clientData, interp, objc, objv)
 
 	int		mode = 1;
 
-	OratclCols	*col;
 	int		oColsc;
         Tcl_Obj		**oCols = NULL;
         int		oColslen = 6;
@@ -2307,11 +2299,7 @@ Oratcl_Sql (clientData, interp, objc, objv)
         int		objc;
         Tcl_Obj		*CONST objv[];
 {
-	OratclState	*OratclStatePtr = (OratclState *) clientData;
-	Tcl_HashEntry	*stmHashPtr;
-
 	int		parseonly = 0;
-
 	char		*p;
 
 	int		objix;
@@ -2631,8 +2619,6 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 
 	int             bindObjc = 0;
 	Tcl_Obj         **bindObjv = NULL;
-	int             execObjc = 0;
-	Tcl_Obj         **execObjv = NULL;
 
 	int		i;
 	
@@ -3048,7 +3034,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	Tcl_HashEntry	*logHashPtr;
 	OratclLogs	*LogPtr;
 
-	sword		rc, ec;
+	sword		rc;
 
 	OCIDescribe	*dschp = (OCIDescribe *)0;
 
@@ -4380,16 +4366,14 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	Tcl_HashEntry	*refHashPtr;
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
-	OratclStms	*RefPtr;
+	OratclStms	*RefPtr = NULL;
 
 	int		parm_cnt;
-	ub4		oci_mode = OCI_DEFAULT;
-	ub4		rowcnt;
 	sword		rc;
 
-	OratclCols	*tmp_col_head;
-	OratclCols	*tmp_col;
-	OratclCols	*head_col;
+	OratclCols	*tmp_col_head = NULL;
+	OratclCols	*tmp_col = NULL;
+	OratclCols	*head_col = NULL;
 
 	Tcl_DString	argStr;
 	char		*arg_pcc, *arg_pcp;
@@ -4986,10 +4970,6 @@ Oratcl_Break (clientData, interp, objc, objv)
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
-	char		*p;
-	int		parm_cnt;
-	ub4		oci_mode = OCI_DEFAULT;
-	ub4		rowcnt;
 	sword		rc;
 
 	int		objix;
@@ -5089,12 +5069,9 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	OratclStms	*StmPtr;
 	OratclLogs	*LogPtr;
 
-	char		*p;
 	int		i;
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
-	int		parm_cnt;
-	ub4		rowcnt;
 	sword		rc;
 	int		hashType = 1;	/* default use column name for array index */
 	Tcl_Obj		*oResult;
