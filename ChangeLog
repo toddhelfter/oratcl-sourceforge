@@ -472,3 +472,10 @@ Version 4.2 May, 2003
 	"We had a lot of serialization errors with just WRITE, the way oracle
 	handles the storage of CLOBs. With this new function, we were able to
 	reduce the likelihood of a serialization error."
+
+02-SEP-2003
+
+    -	Altered the "oralong read" command.   Changed the "indp" arguement
+	to (void *) 0 in calls to OCIBindByName() and OCIStmtSetPieceInfo().
+	This fixes an oracle error encountered in "oralong read".
+

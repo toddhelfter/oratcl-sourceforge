@@ -3866,7 +3866,6 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 
 	char		*piece_data = NULL;
 	ub4		piece_len;
-	sb2		piece_indp;
 	ub2		piece_rcode;
 
 	ub2		bind_type = SQLT_LNG;
@@ -3960,7 +3959,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			    (dvoid *) 0,
 			    (sb4) SB4MAXVAL,
 			    (ub2) bind_type,
-			    (sb2 *) &piece_indp,
+			    (dvoid *) 0,
 			    (ub2 *) &piece_size,
 			    (ub2 *) &piece_rcode,
 			    (ub4) OCI_DYNAMIC_FETCH);
@@ -4009,7 +4008,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 					(dvoid *) piece_data,
 					(ub4 *) &piece_len,
 					(ub1) piece,
-					(dvoid *) &piece_indp,
+					(CONST dvoid *) 0,		/* no indicator */
 					(ub2 *) NULL);
 
 		Oratcl_Checkerr(interp, LogPtr->errhp, prc, 1, &StmPtr->ora_rc, &StmPtr->ora_err);
@@ -4019,21 +4018,14 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		if ((sb2) piece_indp == -1) {
-			break;
-		}
-
 		frc = OCIStmtFetch(StmPtr->stmhp,
 				  LogPtr->errhp,
 				  1,
 				  (ub2) OCI_FETCH_NEXT,
 				  (ub4) OCI_DEFAULT);
 
-		if ((sb2) piece_indp == -1) {
-			break;
-		}
-
 		piece_data[piece_len] = '\0';
+
 		Tcl_DStringAppend(&resStr, piece_data, piece_len);
 
 		Oratcl_Checkerr(interp,
