@@ -17,10 +17,12 @@
  * claims or liability for loss arising out of such use.
  */
 
+#if defined(_WIN32) || defined(__WIN32__)
+#include <windows.h>
+#endif
 #include <oci.h>
 #include "oratcl.h"
 #include "externs.h"
-#include "tcl.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -33,54 +35,18 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#if 0
-#ifdef __WIN32
-
+/* rip off from example.c: defines plus .dll entry point function */
+ 
+#ifdef __WIN32__
 #if defined(__WIN32__)
-#   define WIN32_LEAN_AND_MEAN
-#   include <windows.h>
-#   undef WIN32_LEAN_AND_MEAN
+#   if defined(_MSC_VER)
+#       define DllEntryPoint DllMain
+#   endif   
 #endif
 
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLEXPORT
 
-#define strncasecmp strnicmp
-
-#endif	/* __WIN32__ */
-
-#define strncasecmp strnicmp
-extern int	Oratcl_Init		_ANSI_ARGS_((Tcl_Interp *interp));
-extern int	Oratcl_SafeInit		_ANSI_ARGS_((Tcl_Interp *interp));
-extern int     	Oratcl_FetchAll();
-#endif
-
-/* rip off from example.c: defines plus .dll entry point function */
- 
-#ifdef __WIN32__
-#if defined(__WIN32__)
-#   define WIN32_LEAN_AND_MEAN
-#   include <windows.h>
-#   undef WIN32_LEAN_AND_MEAN
- 
-#   if defined(_MSC_VER)
-#       define EXPORT(a,b) __declspec(dllexport) a b
-#       define DllEntryPoint DllMain
-#   else
-#       if defined(__BORLANDC__)
-#           define EXPORT(a,b) a _export b
-#       else
-#           define EXPORT(a,b) a b
-#       endif
-#   endif
-#else
-#   define EXPORT(a,b) a b
-#endif
-
- 
-EXTERN EXPORT(int,Oratcl_Init)		_ANSI_ARGS_((Tcl_Interp *interp));
-EXTERN EXPORT(int,Oratcl_SafeInit)	_ANSI_ARGS_((Tcl_Interp *interp));
- 
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
 HINSTANCE hInst;            /* Library instance handle. */
@@ -105,6 +71,9 @@ extern void * malloc();
  
 #endif
 
+
+EXTERN int Oratcl_Init		_ANSI_ARGS_((Tcl_Interp *interp));
+EXTERN int Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp *interp));
 /* 
  *----------------------------------------------------------------------
  * oTcl_ErrorMsg
