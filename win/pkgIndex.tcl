@@ -1,4 +1,9 @@
 package ifneeded Oratcl 3.0.2 "
-        load [file join $dir .. liboratcl3.0.2.so]
+	global tcl_platform
+	if {[string equal $tcl_platform(platform) unix]} {
+		load [file join $dir .. oratcl302.dll]
+	} else {
+		load [file join $dir .. .. bin oratcl302.dll]
+	}
         source [file join $dir oraclob.tcl]
 "
