@@ -9,8 +9,14 @@
 # Copyright (c) 1998-1999 by Scriptics Corporation.
 # All rights reserved.
 #
-# RCS: @(#) $Id: plexec.test,v 1.1 1999-08-09 18:27:30 mtariq Exp $
+# RCS: @(#) $Id: plexec.test,v 1.2 1999-09-22 05:51:09 mtariq Exp $
 
+package require Oratcl
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+	package require tcltest
+		namespace import ::tcltest::*
+	}
 
 set plsql_proc {
   create procedure total_monthly_job_pay
@@ -38,13 +44,16 @@ set anon_pl {
 }
 
 test oraplex {test of oratcl command oraplexec} {
-    oralogon system/manager
+    oralogon scott/tiger@or8i
     oraopen oratcl0.0
     oraplexec oratcl0.0 $plsql_proc
     oraplexec oratcl0.0 $anon_pl :type SALESMAN :total 0
 } {SALESMAN 7800}
 
+orasql oratcl0.0 "drop procedure total_monthly_job_pay"
+oralogoff oratcl0 
+::tcltest::cleanupTests
 
-
+return
 
 
