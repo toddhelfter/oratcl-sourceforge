@@ -13,7 +13,7 @@ if {[info exists ora_lda] == 0} {
 test oralogon-1.0 {oralogon: no arguments} {
 	catch {oralogon} res
 	set res
-} {wrong # args: should be "oralogon connect_str"}
+} {wrong # args: should be "oralogon connect_str ?-async?"}
 
 test oralogon-1.1 {oralogon: all arguments} {
 	global ora_constr
@@ -38,7 +38,7 @@ test oralogon-1.2 {oraopen: many connections} {
 		if { [string range $llda($ix) 0 5] != {oratcl}} {
 			set res 0
 		} else {
-			if {$ix > 50} {
+			if {$ix > 35} {
 				break
 			}
 			incr ix
@@ -51,7 +51,7 @@ test oralogon-1.2 {oraopen: many connections} {
 	unset llda
 	unset cres
 	set ores($ix)
-} {oratcl51}
+} {oratcl36}
 
 ::tcltest::cleanupTests
 return
