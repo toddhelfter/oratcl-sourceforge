@@ -2357,6 +2357,15 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	int		parseonly = 0;
 	char		*p;
 
+	OratclState	*OratclStatePtr = (OratclState *) clientData;
+	Tcl_HashEntry	*stmHashPtr;
+	OratclStms	*StmPtr;
+	int		postcommit = 0;
+	int             commitObjc = 0;
+	Tcl_Obj         **commitObjv = NULL;
+	char		*logHashKey;
+	Tcl_Obj		*res_obj;
+
 	int		objix;
 	int		tcl_return = TCL_OK;
 
@@ -2378,6 +2387,9 @@ Oratcl_Sql (clientData, interp, objc, objv)
 		if (strcmp(p,"parseonly") == 0) {
 			parseonly = 1;
 		}
+		if (strcmp(p,"commit") == 0) {
+			postcommit = 1;
+		}
 	}
 
 	tcl_return = Oratcl_Parse(clientData, interp, objc, objv);
@@ -2391,7 +2403,39 @@ Oratcl_Sql (clientData, interp, objc, objv)
 
 	tcl_return = Oratcl_Exec(clientData, interp, objc, objv);
 
+	if (postcommit) {
+		stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
+					       Tcl_GetStringFromObj(objv[1],
+								    NULL));
+
+		if (stmHashPtr == NULL) {
+			Oratcl_ErrorMsg(interp,
+					objv[0],
+					": stm_handle ",
+					objv[1],
+					" not open");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
+		logHashKey = Tcl_GetHashKey(OratclStatePtr->logHash,
+					    StmPtr->logHashPtr);
+
+		res_obj = Tcl_NewStringObj((char *) logHashKey, -1);
+		Tcl_IncrRefCount(res_obj);
+		commitObjc = 2;	
+		commitObjv = (Tcl_Obj **) ckalloc(commitObjc * sizeof(Tcl_Obj *));
+		commitObjv[0] = objv[0];
+		commitObjv[1] = res_obj;
+		Oratcl_Commit (clientData, interp, commitObjc, commitObjv);
+		Tcl_DecrRefCount(res_obj);
+	}
 common_exit:
+
+	if (commitObjv) {
+		ckfree ((char *) commitObjv);
+	}
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
