@@ -1,3 +1,13 @@
+Feb 14 2005
+	
+	Relocate a Tcl_DecrRefCount() call to after the call to DLOPEN.
+	Thanks to Miguel Bagnon (miguel@bagnon.com) for the patch.
+
+Jan 06 2005
+	
+	If configured with --enable-threads, the -DTCL_THREADS macro is defined.
+	If TCL_THREADS is defined, call OCIEnvInit with multiple modes:
+		OCI_OBJECT | OCI_THREADED
 2005-01-28  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* generic/oratcl.c: include dl.h on hpux
@@ -12,12 +22,6 @@ Oratcl change history
 
 
 Version 4.3,  Nov, 2004
-
-Jan 06 2005
-	
-	If configured with --enable-threads, the -DTCL_THREADS macro is defined.
-	If TCL_THREADS is defined, call OCIEnvInit with multiple modes:
-		OCI_OBJECT | OCI_THREADED
 
 Jan 06 2005
 

@@ -661,16 +661,16 @@ Oratcl_Init (interp)
 	tmp_obj = Tcl_FSJoinPath(pathList, -1);
 	Tcl_IncrRefCount(tmp_obj);
 	native = Tcl_FSGetNativePath(tmp_obj);
-	Tcl_DecrRefCount(tmp_obj);
 
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
-
 	if (handle == NULL) {
 		fprintf(stderr, "%s(): %s with error",
 			"Oratcl_Init",
 			"Failed to load %");
 		return TCL_ERROR;
 	}
+
+	Tcl_DecrRefCount(tmp_obj);
 
 #else
 
