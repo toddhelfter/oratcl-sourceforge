@@ -21,7 +21,6 @@
 #include <windows.h>
 #endif
 
-#include "oratypes.h"
 #include "oratclInt.h"
 #include "oratcl.h"
 #include <tcl.h>
