@@ -1,0 +1,60 @@
+# |>Description.<|
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# This file test for correct logon and logoff into an Oracle Database
+# from Oratcl. 
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+# All rights reserved.
+#
+# RCS: @(#) $Id: logon.test,v 1.1 1999-11-06 03:21:24 mtariq Exp $
+
+source [file  join [pwd] [file dirname [info script]] defs.tcl]
+
+test oralogon-1.0 {Oratcl logon/logoff test} { 
+    oralogon $oracleuser/$oraclepw@$connstring
+ } {oratcl0}
+
+test oralogon-2.0 {Oratcl logon/logoff test} { 
+    oralogon $oracleuser/$oraclepw@$connstring
+ } {oratcl1}
+
+test oralogon-3.0 {Oratcl logon/logoff test} { 
+    oralogon $oracleuser/$oraclepw@$connstring
+ } {oratcl2}
+
+test oralogon-4.0 {Oratcl logon/logoff test} { 
+    oralogon $oracleuser/$oraclepw@$connstring
+ } {oratcl3}
+
+test oralogon-5.0 {Oratcl logon/logoff test} { 
+    oralogon $oracleuser/$oraclepw@$connstring
+ } {oratcl4}
+
+
+test oralogon-6.0 {Oratcl logoon/logoff test} {
+    oralogoff oratcl3
+ } {}
+
+test oralogon-7.0 {Oratcl logon/logoff test} { 
+    oralogoff oratcl1
+ } {}
+
+test oralogon-8.0 {Oratcl logon/logoff test} { 
+    oralogoff oratcl0
+ } {}
+
+test oralogon-9.0 {Oratcl logon/logoff test} { 
+    oralogoff oratcl4
+ } {}
+
+test oralogon-10.0 {Oratcl logon/logoff test} { 
+    oralogoff oratcl2
+ } {}
+
+
+::tcltest::cleanupTests
+
+return
