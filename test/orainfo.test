@@ -1,0 +1,37 @@
+# orainfo.test
+#
+# Copyright (c) 2000 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise orainfo
+#
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+global ora_constr
+set info_lda [oralogon $ora_constr]
+set info_stm [oraopen $info_lda]
+
+test orainfo-1.0 {orainfo: version} {
+	catch {orainfo version} ver
+	set ver
+} {3.1}
+
+test orainfo-1.1 {orainfo: server} {
+	catch {orainfo server $info_lda} ver
+	set word [string range $ver 0 5]
+	string equal $word Oracle
+} {1}
+
+test orainfo-1.2 {orainfo: loginhandle} {
+	catch {orainfo loginhandle $info_stm} log
+	string equal $log $info_lda
+} {1}
+
+oraclose $info_stm
+oralogoff $info_lda
+
+::tcltest::cleanupTests
+return
