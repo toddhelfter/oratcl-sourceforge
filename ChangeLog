@@ -275,7 +275,7 @@ Version 3.2 March, 2001
 
 -----------------------------------------------------------------------------
 
-Version 3.3 June, 2001
+Version 3.3 August, 2001
 
     Todd M. Helfter, Purdue University
     tmh@purdue.edu
@@ -289,6 +289,7 @@ Version 3.3 June, 2001
     -	Attempt a different method of library directory detection.
     -   Alter configuration to detect and use Oracle 9i in a unix build.
     -   Corrected the eval of library files (oralob.tcl, oralong.tcl) from
-	within the 'C' code.
+	within the 'C' code.  This fixes crash when calling 
+	Tcl_GetNameOfExecutable() without having first called Tcl_Init(interp).
 
 -----------------------------------------------------------------------------
