@@ -15,6 +15,7 @@
 #include <windows.h>
 #endif
 
+#include "oratclExt.h"
 #include "oratclInt.h"
 #include "oratcl.h"
 #include <tcl.h>
@@ -3985,7 +3986,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 			    LogPtr->errhp,
 			    (ub4) 1,
 			    (dvoid *) 0,
-			    (sb4) SB4MAXVAL,
+			    (sb4) INT_MAX,
 			    (ub2) bind_type,
 			    (dvoid *) 0,
 			    (ub2 *) &piece_size,
@@ -4259,7 +4260,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			   (text *) ":lng",
 			   (sb4) 4,
 			   (dvoid *) 0,
-			   (sb4) SB4MAXVAL,
+			   (sb4) INT_MAX,
 			   (ub2) bind_type,
 			   (dvoid *) &piece_indp,
 			   (ub2 *) &buffer_size,
