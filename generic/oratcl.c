@@ -5073,6 +5073,21 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 			}
 
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
+
+			if (rc != OCI_SUCCESS) {
+				Oratcl_ColFree(tmp_col_head);
+				StmPtr->bind_list = NULL;
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
+
+
 			parm_cnt += 2;
 
 			if (objc > parm_cnt + 1) {       /* more args? alloc new colbufs */
