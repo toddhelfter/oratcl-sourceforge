@@ -17,6 +17,10 @@
  * claims or liability for loss arising out of such use.
  */
 
+#if defined(_WIN32) || defined(__WIN32__)
+#include <windows.h>
+#endif
+
 #include <oci.h>
 #include "oratcl.h"
 #include "externs.h"
@@ -32,29 +36,19 @@
 
 #include <ctype.h>
 #include <stdlib.h>
- 
-#ifdef __WIN32__
-#if defined(__WIN32__)
-#   define WIN32_LEAN_AND_MEAN
-#   include <windows.h>
-#   undef WIN32_LEAN_AND_MEAN
- 
-#   if defined(_MSC_VER)
-#       define EXPORT(a,b) __declspec(dllexport) a b
-#       define DllEntryPoint DllMain
-#   else
-#       if defined(__BORLANDC__)
-#           define EXPORT(a,b) a _export b
-#       else
-#           define EXPORT(a,b) a b
-#       endif
-#   endif
-#else
-#   define EXPORT(a,b) a b
+
+#if defined(WIN32) || defined(_WIN32)
+#ifndef __WIN32__
+#define __WIN32__
+#endif
 #endif
 
-EXTERN EXPORT(int,Oratcl_Init)		_ANSI_ARGS_((Tcl_Interp *interp));
-EXTERN EXPORT(int,Oratcl_SafeInit)	_ANSI_ARGS_((Tcl_Interp *interp));
+#ifdef __WIN32__
+#undef  TCL_STORAGE_CLASS
+#define TCL_STORAGE_CLASS  DLLEXPORT
+
+EXTERN Oratcl_Init	_ANSI_ARGS_((Tcl_Interp *interp));
+EXTERN Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp *interp));
  
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
@@ -526,9 +520,6 @@ Oratcl_Init (interp)
 			      (ClientData) OratclStatePtr,
 			      (Tcl_CmdDeleteProc *) NULL);
 
-#if 0
-	Tcl_EvalFile(interp, "/opt/tcl8.3.2/lib/oratcl3.0.2/oraclob.tcl");
-#endif
 
 	/* other indices - correspond to error and message handler arguments */
 	Oratcl_ClearGAV(interp);
