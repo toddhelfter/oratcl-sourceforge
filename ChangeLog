@@ -374,5 +374,7 @@ Version 4.0 December, 2001
 		INTERVAL DAY TO SECOND
 		TIMESTAMP WITH LOCAL TIME ZONE
         Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
+    -   Removed several unused variables eliminating compile warnings.
+        Thanks to Miguel Bagnon (bagnonm@safelayer.com) for the alert.
 
 -----------------------------------------------------------------------------
