@@ -1382,8 +1382,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	Oratcl_Checkerr(interp, LogPtr->errhp, rc, 0);
 
-	ckfree(cpy_str);
-
 	if (rc != OCI_SUCCESS) {
 		(void) OCIServerDetach(LogPtr->srvhp, LogPtr->errhp, (ub4) OCI_DEFAULT);
 		Oratcl_LogFree(LogPtr);
