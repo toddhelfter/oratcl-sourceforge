@@ -14,7 +14,7 @@
 
 #include <stdarg.h>
 #include "oratypes.h"
-#include "oraconst.h"
+#include "oradefs.h"
 #include <tcl.h>
 
 /* _ANSI_ARGS_ should be defined by tcl.h; ignore if not defined */
