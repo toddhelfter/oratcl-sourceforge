@@ -1,1 +1,1 @@
-package ifneeded Oratcl 3.2 [list load [file join $dir .. oratcl32.dll]]
+package ifneeded Oratcl 3.3 [list load [file join $dir .. oratcl33.dll]]
