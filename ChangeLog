@@ -1,3 +1,9 @@
+2005-01-27  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* Makefile.in (pkgIndex.tcl): generate pkgIndex.tcl by hand
+	instead of with pkg_mkIndex.  This ensures correct creation even
+	when the oracle client libraries are not on the build machine.
+
 Oratcl change history
 
 
