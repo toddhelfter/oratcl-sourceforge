@@ -1276,6 +1276,31 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	if (ora_conn)
 		ora_connlen = strlen(ora_conn);
 
+#if ORA_MAJOR_VERSION > 9 
+
+	rc = OCIEnvCreate ( (OCIEnv **) &LogPtr->envhp,
+			    OCI_OBJECT,
+			    (dvoid *)0,
+			    NULL,
+			    NULL,
+			    NULL,
+			    0,
+			    (dvoid *) 0 );
+
+	if (rc != OCI_SUCCESS) {
+		Oratcl_LogFree(LogPtr);
+		Tcl_DeleteHashEntry(logHashPtr);
+		Oratcl_ErrorMsg(interp,
+				objv[0],
+				" (Unknown OCI status) OCIEnvCreate. Check ORACLE_HOME setting!",
+				(Tcl_Obj *) NULL,
+				(char *) NULL);
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+#else
+
 	rc = OCIInitialize( (ub4) OCI_OBJECT,
 			    (dvoid *)0,
 			    (dvoid * (*)(dvoid *, size_t)) 0,
@@ -1299,6 +1324,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			    OCI_DEFAULT,
 			    (size_t) 0,
 			    (dvoid **) 0 );
+
+#endif
 
 	(void) OCIHandleAlloc( (dvoid *) LogPtr->envhp,
 			       (dvoid **) &LogPtr->errhp,
