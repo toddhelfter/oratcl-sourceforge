@@ -291,5 +291,7 @@ Version 3.3 August, 2001
     -   Corrected the eval of library files (oralob.tcl, oralong.tcl) from
 	within the 'C' code.  This fixes crash when calling 
 	Tcl_GetNameOfExecutable() without having first called Tcl_Init(interp).
+    -   library files oralob.tcl and oralong.tcl are not sourced if the
+	interp is initialized in safe mode.
 
 -----------------------------------------------------------------------------
