@@ -1,4 +1,4 @@
-# oraopen.test
+# ora02open.test
 #
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
@@ -7,7 +7,7 @@
 #
 
 if {[info exists ora_lda] == 0} {
-        source [file  join [pwd] [file dirname [info script]] defs.tcl]
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
 test oraopen-1.0 {oraopen: no arguments} {
