@@ -20,7 +20,7 @@ test oracommit-1.1 {orasql: commit} {
   orasql $tst1_cur {update oratcl___tests set v_varchar2 = 'changed1' where v_number = 0}
   oracommit $tst1_lda
   orasql $tst2_cur {select v_varchar2 from oratcl___tests where v_number = 0}
-  set res [orafetch $tst2_cur]
+  orafetch $tst2_cur -datavariable res
   set res 
 } {changed1}
 
