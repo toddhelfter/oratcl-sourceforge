@@ -16,6 +16,10 @@
 
 #include <tcl.h>
 
+#ifndef _STDIO_H
+#include <stdio.h>
+#endif
+
 /* prototypes for TCL visible functions */
 
 extern Tcl_ObjCmdProc  Oratcl_Logon;
