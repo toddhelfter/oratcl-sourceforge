@@ -225,8 +225,28 @@ test oralob-3.1 {oralob: compare blob} {
 	set res
 } {0}
 
-test oralob-4.0 {oralob: write clob 'single character'} {
+test oralob-4.0 {oralob: write clob 'double character'} {
+	set one_chr zz
+	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+	catch {oralob write $lob -datavar one_chr} write
+	catch {oralob read $lob -datavar one_out} res
+	set res [string equal $one_chr $one_out]
+	catch {oralob free $lob} free
+	set res
+} {1}
+
+test oralob-4.1 {oralob: write clob 'single character'} {
 	set one_chr z
+	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+	catch {oralob write $lob -datavar one_chr} write
+	catch {oralob read $lob -datavar one_out} res
+	set res [string equal $one_chr $one_out]
+	catch {oralob free $lob} free
+	set res
+} {1}
+
+test oralob-4.2 {oralob: write clob 'null string'} {
+	set one_chr {}
 	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
 	catch {oralob write $lob -datavar one_chr} write
 	catch {oralob read $lob -datavar one_out} res
