@@ -9,10 +9,11 @@
 set oratcl___async1 { \
 	create or replace function oratcl___async1 ( \
 		 arg_int number \
-	) return number as begin \
-		var_int number; \
+	) return number as \
+		var_int number(10); \
 	begin \
-		select 22+arg_int into var_int from dual; \
+		var_int := 22 + arg_int; \
+		return var_int;
 	end;}
 
 if {[info exists ora_lda] == 0} {
@@ -20,16 +21,15 @@ if {[info exists ora_lda] == 0} {
 }
 
 global ora_constr
-set async_lda [oralogon $ora_constr -async]
 set block_lda [oralogon $ora_constr]
+set block_stm [oraopen $block_lda]
+set async_lda [oralogon $ora_constr -async]
 set async_stm [oraopen $async_lda]
-set block_stm [oraopen $async_lda]
 
-#oraplexec $block_stm $oratcl___async1
 orasql $block_stm $oratcl___async1
 
 #
-# ::oratcl__async_parse section
+# ::oratcl::async_parse section
 #
 test oratcl::async_parse-1.1 {::oratcl::async_parse command} {
 	info commands ::oratcl::async_parse
@@ -74,7 +74,7 @@ test oratcl::async_parse-1.5 {oraasync parse command (PL/SQL)} {
 } $::oratcl::codes(OCI_SUCCESS)
 
 #
-# ::oratcl__async_bind section
+# ::oratcl::async_bind section
 #
 test oratcl::async_bind-2.1 {::oratcl::async_bind command} {
 	info commands ::oratcl::async_bind
@@ -82,28 +82,132 @@ test oratcl::async_bind-2.1 {::oratcl::async_bind command} {
 
 test oratcl::async_bind-2.2 {::oratcl::async_bind command (SQL)} {
 	set sql {select * from oratcl___tests where v_number < :zero}	
+	# parse
 	::oratcl::async_parse $async_stm $sql
 	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
 		::oratcl::async_parse $async_stm $sql
 	}
+	# bind
 	::oratcl::async_bind $async_stm :zero 0
 	oramsg $async_stm rc
 } $::oratcl::codes(OCI_SUCCESS)
 
 test oratcl::async_bind-2.3 {oraasync bind command (SQL)} {
 	set sql {select * from oratcl___tests where v_number < :zero}	
+	# parse
 	oraasync parse $async_stm $sql
 	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
 		oraasync parse $async_stm $sql
 	}
+	# bind
 	oraasync bind $async_stm :zero 0
 	oramsg $async_stm rc
 } $::oratcl::codes(OCI_SUCCESS)
 
+test oratcl::async_bind-2.4 {::oratcl::async_bind command (PL/SQL)} {
+	set pl {declare my_result number; begin :my_result := oratcl___async1(:in1); end;}
+	# parse
+	::oratcl::async_parse $async_stm $pl
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		::oratcl::async_parse $async_stm $pl
+	}
+	# bind
+	::oratcl::async_bind $async_stm :my_result {} :in1 38
+	oramsg $async_stm rc
+} $::oratcl::codes(OCI_SUCCESS)
+
+test oratcl::async_bind-2.5 {oraasync bind command (PL/SQL)} {
+	set pl {declare my_result number; begin :my_result := oratcl___async1(:in1); end;}
+	# parse
+	oraasync parse $async_stm $pl
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		oraasync parse $async_stm $pl
+	}
+	# bind
+	oraasync bind $async_stm :my_result {} :in1 38
+	oramsg $async_stm rc
+} $::oratcl::codes(OCI_SUCCESS)
+
+
+#
+# ::oratcl::async_exec section
+#
 test oratcl::async_exec-3.1 {::oratcl::async_exec command} {
 	info commands ::oratcl::async_exec
 } {::oratcl::async_exec}
 
+test oratcl::async_exec-3.2 {::oratcl::async_exec command (SQL)} {
+	set sql {select * from oratcl___tests where v_number < :zero}	
+	# parse
+	::oratcl::async_parse $async_stm $sql
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		::oratcl::async_parse $async_stm $sql
+	}
+	# bind
+	::oratcl::async_bind $async_stm :zero 0
+	# exec
+	::oratcl::async_exec $async_stm
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		::oratcl::async_exec $async_stm
+	}
+	oramsg $async_stm rc
+} $::oratcl::codes(OCI_SUCCESS)
+
+test oratcl::async_exec-3.3 {oraasync exec command (SQL)} {
+	set sql {select * from oratcl___tests where v_number < :zero}	
+	# parse
+	oraasync parse $async_stm $sql
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		oraasync parse $async_stm $sql
+	}
+	# bind
+	oraasync bind $async_stm :zero 0
+	# exec
+	oraasync exec $async_stm
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		oraasync exec $async_stm
+	}
+	oramsg $async_stm rc
+} $::oratcl::codes(OCI_SUCCESS)
+
+test oratcl::async_exec-3.4 {::oratcl::async_exec command (PL/SQL)} {
+	set pl {declare my_result number; begin :my_result := oratcl___async1(:in1); end;}
+	# parse
+	::oratcl::async_parse $async_stm $pl
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		::oratcl::async_parse $async_stm $pl
+	}
+	# bind
+	::oratcl::async_bind $async_stm :my_result {} :in1 38
+	# exec
+	::oratcl::async_exec $async_stm
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		::oratcl::async_exec $async_stm
+	}
+	oramsg $async_stm rc
+} $::oratcl::codes(OCI_SUCCESS)
+
+test oratcl::async_exec-3.5 {oraasync exec command (PL/SQL)} {
+	set pl {declare my_result number; begin :my_result := oratcl___async1(:in1); end;}
+	# parse
+	oraasync parse $async_stm $pl
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		oraasync parse $async_stm $pl
+	}
+	# bind
+	oraasync bind $async_stm :my_result {} :in1 38
+	# exec
+	oraasync exec $async_stm
+	while {[oramsg $async_stm rc] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+		oraasync exec $async_stm
+	}
+	oramsg $async_stm rc
+} $::oratcl::codes(OCI_SUCCESS)
+
+
+#
+# ::oratcl::async_fetch section
+#
 test oratcl::async_fetch-4.1 {::oratcl::async_fetch command} {
 	info commands ::oratcl::async_fetch
 } {::oratcl::async_fetch}
