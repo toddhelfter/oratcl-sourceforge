@@ -1562,7 +1562,7 @@ Oratcl_ColDescribe (interp, StmPtr)
  *----------------------------------------------------------------------
  * Oratcl_Logon --
  *    Implements the oralogon command:
- *    usage: oralogon connect_string ?-async?
+ *    usage: oralogon connect_string ?-async? ?-failovercallback <procname>?
  *    connect_string should be a valid oracle logon string:
  *         name
  *         name/password
