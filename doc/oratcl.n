@@ -281,6 +281,123 @@ contains the return code from the stored procedure.
 The \fBoramsg\fR array index \fIerrortxt\fR 
 contains the Oracle error message from the stored procedure if one is 
 generated.
+.TP 
+.B oraclob \fIsub\-command handle ?options ...?\fR
+.br
+Perform operations on Oracle Character Long Objects.
+.sp
+\fIHandle\fR must be either a valid statement handle previously opened
+with \fBoraopen\fR or a LOB identifier (lobId) created with the
+\fBalloc\fR sub-command.  The following \fIsub\-commands\fR are
+available:
+.RS .5i
+.sp
+\fBalloc\fR \fIstatement\-handle -table $table -column $column -rowid $rowid\fR
+.in +.5i
+.br
+Create and return a LOB identifier that refers to the CLOB specified by
+(\fI$table\fR, \fI$column\fR, \fI$rowid\fR).  \fIstatement\-handle\fR
+must be a statement handle previously created with \fBoraopen\fR and
+will be used implicitly by the other \fBoraclob\fR sub-commands that
+operate on this CLOB.
+.in -.5i
+.sp
+.TP
+.B free \fIlobId\fR
+.br
+Destroy the LOB identifier and free any resources associated with it.
+.sp
+.TP
+.B read \fIlobId \-datavar varname\fR
+.br
+Read the CLOB specified by \fIlobId\fR into the variable identified by
+\fIvarname\fR.
+.sp
+.TP
+.B write \fIlobId \-datavar varname\fR
+.br
+Write the data in the variable identified by \fIvarname\fR into the
+CLOB specified by lobId.
+.sp
+.TP
+.B length \fIlobId\fR
+.br
+Returns the length (in characters) of the CLOB specified by \fIlobId\fR.
+.sp
+.TP
+.B erase \fIlobId \-start $start\fR \fI\-stop $stop\fR
+.br
+Overwrites the data in the CLOB specified by \fIlobId\fR from
+\fI$start\fR to \fI$stop\fR with NULL characters.
+\fI$start\fR and \fI$stop\fR both default to 0.
+.sp
+.TP
+.B trim \fIlobId \-length $length\fR
+.br
+Trims the CLOB specified by \fIlobId\fR to \fI$length\fR characters.
+.sp
+.TP
+\fBsubstr \fIlobId \-start $start \-stop $stop \-datavar varname\fR
+.br
+Reads characters of the CLOB specified by \fIlobId\fR, beginning at
+\fI$startpos\fR and ending at \fI$stoppos\fR, into \fIvarname\fR.
+\fI$startpos\fR and \fI$stoppos\fR both default to 0.
+.sp
+.TP
+\fBinstr \fIlobId \-pattern $pattern \-start $start \-nth $nth\fR
+.br
+Returns the position in the CLOB specified by \fIlobId\fR at which the
+\fI$nth\fR occurrence of the pattern \fI$pattern\fR appears.  The
+search is started at \fI$start\fR.  \fI$start\fR defaults to 0
+and \fI$nth\fR defaults to 1.
+.in -.5i
+.sp
+.RE
+.RS
+The \fBoraclob\fR commands are a collection of TCL and anonymous
+PL/SQL wrappers for the Oracle \fBdbms_lob\fR PL/SQL package and
+therefore require the \fIrowid\fR (as well as the table name and
+column name) of the CLOB in order to operate.  The \fIrowid\fR
+of a row may be determined easily, as shown in the example below.
+.sp
+.B CLOB Example
+.sp
+.RS 
+.nf
+# Assume that $sth is a valid statement-handle 
+.br
+# opened earlier
+.br
+orasql $sth "select rowid from my_table \\
+.br
+       where my_key = 'keyvalue'"
+.br
+orafetch $sth "set rowid @1"
+.br
+set data "abcdeabcdeabcde"
+.br
+set lobid [oraclob alloc $sth -table "my_table" \\
+.br
+  	     -column "clob_col" -rowid $rowid]
+oraclob write $lobid -datavar data
+.br
+set l [oraclob length $lobid]
+.br
+# $l == 15
+.br
+set data ""
+.br
+oraclob read $lobid -datavar data
+.br
+# $data contains "abcdeabcdeabcde"
+.br
+set i [oraclob instr $lobid -pattern "eab" -start 3 -nth 2]
+.br
+# $i == 9 -- TCL-like indexing, not Oracle indexing
+.br
+.fi
+.RE
+.RE
 .sp
 .TP 
 .B oracols \fIstatement-handle ?option?\fR
