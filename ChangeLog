@@ -351,5 +351,8 @@ Version 4.0 December, 2001
     -	Corrected a gaping memory leak in orafetch.  Use of the -dataarray
 	option leaked memory for each column name or number used as the
 	array hash.
+    -   Correct a bug in the oraconfig command.  Attempting to query the
+        fetchrows value incorrectly reports the bindsize.
+        Thanks to Christian Traber (christian@traber-net.de) for the alert.
 
 -----------------------------------------------------------------------------
