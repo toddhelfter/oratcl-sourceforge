@@ -178,7 +178,7 @@ and messages for other possible values. <P>
 </DL>
 </blockquote>
 <B>orafetch</B> <I>statement-handle ?commands?
-?substitution_character? <I>?varname colnum ...?</I></I><blockquote>Return the next row from the
+?substitution_character? <I>?varname colnum ...?</I></I> <blockquote>Return the next row from the
 last SQL statement executed with <B>orasql</B> as a Tcl list. <I>Statement-handle</I> must
 be a valid handle previously opened with  <B>oraopen</B>. <B>Orafetch</B> raises a Tcl
 error if the statement handle specified is not  open. All returned columns
@@ -352,8 +352,7 @@ value indicates that the two LOBs differ. </blockquote>
 of TCL and anonymous PL/SQL wrappers for the Oracle <B>dbms_lob</B> PL/SQL package
 and therefore require the <I>rowid</I> (as well as the table name and column name)
 of the LOB in order to operate.  The <I>rowid</I> of a row may be determined easily,
-as shown in the example below. 
-<P>
+as shown in the example below. <P>
 <B>LOB Example</B> <P>
 <blockquote><BR>
 <PRE># Assume that $sth is a valid statement-handle 
@@ -373,7 +372,42 @@ oralob read $lobid -datavar data
 set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
 # $i == 9 -- TCL-like indexing, not Oracle indexing
 
-</PRE></blockquote></blockquote>
+</PRE></blockquote>
+<P>
+<B>NOTE:</B> <blockquote>The PL/SQL DBMS_LOB package used by the <B>oralob</B> command requires BLOB
+and CLOB fields to be initialized before they may be operated upon.  You
+may automatically initialize a LOB field by using EMPTY_BLOB() or EMPTY_CLOB()
+in the DEFAULT clause of a table definition or initialize before use by
+inserting an EMPTY_BLOB() or EMPTY_CLOB(). <P>
+<B>Table Definition Example:</B> <blockquote><BR>
+<PRE>create table test_lob_1 (
+    lob_key     varchar2(10)  primary key,
+    lob_clob    clob          default empty_clob(),
+    lob_blob    blob          default empty_blob()
+)
+</PRE></blockquote>
+<P>
+<B>Initialize Before Use Example:</B> <blockquote><BR>
+<PRE># Assume the following table definition:
+# create table test_lob_2 (
+#     lob_key     varchar2(10),
+#     lob_clob    clob,
+#     lob_blob    blob
+# )
+
+set sql { \
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;insert into test_lob_2 \
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;  (lob_key, lob_clob, lob_blob) \
+<tt> </tt>&nbsp;<tt> </tt>&nbsp;values (:lob_key, empty_clob(), empty_blob() )\
+}
+
+orasql $sth $sql -parseonly
+
+# Create a new row in test_lob_2 with lob_clob 
+# and lob_blob properly initialized.
+orabindexec $sth :lob_key "AAAAAAAAAA"
+</PRE></blockquote>
+</blockquote>
 </blockquote>
 <P>
 
@@ -702,7 +736,7 @@ foreach name [list Ted Alice John Sue] {
 
 </PRE></DD>
 </DL>
-</blockquote>
+
 rather than: <P>
 <blockquote><BR>
 <PRE>foreach name [list Ted Alice John Sue] {
@@ -711,6 +745,7 @@ rather than: <P>
 }
 
 </PRE></blockquote>
+</blockquote>
 <P>
 
 <H2><A NAME="sect5" HREF="#toc5">Environment Variables</A></H2>

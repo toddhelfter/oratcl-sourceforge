@@ -417,6 +417,50 @@ set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
 .br
 .fi
 .RE
+.sp
+.B NOTE:
+.RS
+The PL/SQL DBMS_LOB package used by the \fBoralob\fR command requires
+BLOB and CLOB fields to be initialized before they may be operated
+upon.  You may automatically initialize a LOB field by using
+EMPTY_BLOB() or EMPTY_CLOB() in the DEFAULT clause of a table definition
+or initialize before use by inserting an EMPTY_BLOB() or EMPTY_CLOB().
+.sp
+.B Table Definition Example:
+.RS
+.nf
+create table test_lob_1 (
+    lob_key     varchar2(10)  primary key,
+    lob_clob    clob          default empty_clob(),
+    lob_blob    blob          default empty_blob()
+)
+.fi
+.RE
+.sp
+.B Initialize Before Use Example:
+.RS
+.nf
+# Assume the following table definition:
+# create table test_lob_2 (
+#     lob_key     varchar2(10),
+#     lob_clob    clob,
+#     lob_blob    blob
+# )
+.sp
+set sql { \\
+	insert into test_lob_2 \\
+	  (lob_key, lob_clob, lob_blob) \\
+	values (:lob_key, empty_clob(), empty_blob() )\\
+}
+.sp
+orasql $sth $sql -parseonly
+.sp
+# Create a new row in test_lob_2 with lob_clob 
+# and lob_blob properly initialized.
+orabindexec $sth :lob_key "AAAAAAAAAA"
+.fi
+.RE
+.RE
 .RE
 .RS
 .sp
