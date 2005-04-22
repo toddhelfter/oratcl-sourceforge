@@ -14,64 +14,87 @@
 #include "oratcl.h"
 #include <tcl.h>
 
+
 int
 Oralong_Init (interp)
 	Tcl_Interp	*interp;
 {
-	CONST84 char	*proc;
-	int		tcl_return = TCL_OK;
+	size_t		x;
+	int		debug = 0;
+	CONST84 char	*rx;
+	Tcl_Obj		*tmp1_obj;
 
-	Tcl_SetVar(interp, 
-		   "::oratcl::longidx", 
-		   "0", 
-		   0);
+	struct tvars {
+		CONST84 char * ns;
+		CONST84 char * name;
+		CONST84 char * value;
+	};
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::sql", 
-		   "longraw_write", 
-		   "update %s set %s = :lng where rowid = '%s'", 
-		   0);
+	struct tvars tvars_list [] = {
+		{
+			"::oratcl::longidx",
+			NULL,
+			"0"
+		},
+		{
+			"::oratcl::sql",
+			"longraw_write",
+			"update %s set %s = :lng where rowid = '%s'"
+		},
+		{
+			"::oratcl::sql",
+			"longraw_read",
+			"select %s from %s where rowid = '%s'"
+		},
+		{
+			"::oratcl::sql",
+			"long_write",
+			"update %s set %s = :lng where rowid = '%s'"
+		},
+		{
+			"::oratcl::sql",
+			"long_read",
+			"select %s from %s where rowid = '%s'"
+		},
+		{
+			"::oratcl::oralong",
+			"oratcl_ok",
+			"0"
+		},
+		{
+			"::oratcl::oralong",
+			"oratcl_error",
+			"1"
+		}
+	};
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::sql", 
-		   "longraw_read", 
-		   "select %s from %s where rowid = '%s'", 
-		   0);
+	for (x = 0; x < (sizeof(tvars_list)/sizeof(struct tvars)); x++) {
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::sql", 
-		   "long_write", 
-		   "update %s set %s = :lng where rowid = '%s'", 
-		   0);
+		if (debug) {
+			fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
+			fprintf(stderr, "name = %s\n", tvars_list[x].name);
+			fprintf(stderr, "value = %s\n", tvars_list[x].value);
+		}
+					
+		rx = Tcl_SetVar2((Tcl_Interp *) interp,
+				 (CONST char *) tvars_list[x].ns,
+				 (CONST char *) tvars_list[x].name,
+				 (CONST char *) tvars_list[x].value,
+				 0); 
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::sql", 
-		   "long_read", 
-		   "select %s from %s where rowid = '%s'", 
-		   0);
+		if (rx == NULL) {
+			fprintf(stderr,
+				"%sset variable '%s'",
+				"Oralong_Init(): Failed to ",
+				(CONST char *) tvars_list[x].name);
+				return TCL_ERROR;
+		}
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::oralong", 
-		   "script", 
-		   "/home/flare/a/tmh/work/oratcl-head/library/oralong.tcl", 
-		   0);
+	}
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::oralong", 
-		   "oratcl_ok", 
-		   "0", 
-		   0);
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::oralong", 
-		   "oratcl_error", 
-		   "1", 
-		   0);
-
-	/*
-	 *  Create the oralong proc.
-	 */
-	proc = "proc oralong {command handle args} { "
+	CONST84 char *script[] = {
+	        "proc oralong {command handle args} { "
 		"	global errorInfo; "
 		"	foreach idx [list rowid table column datavar] { "
 		"		set ::oratcl::oralong($idx) {}; "
@@ -90,14 +113,9 @@ Oralong_Init (interp)
 		"		return -code error \"$tcl_res\"; "
 		"	}; "
 		"	return $tcl_res; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::parse_long_args proc.
-	 */
-	proc = "proc ::oratcl::parse_long_args {args} { "
+	        "proc ::oratcl::parse_long_args {args} { "
 		"	set argv [lindex $args 0]; "
 		"	set argc [llength $argv]; "
 		"	for {set argx 0} {$argx < $argc} {incr argx} { "
@@ -112,14 +130,9 @@ Oralong_Init (interp)
 		"			set ::oratcl::oralong($index) $value ; "
 		"		}; "
 		"	}; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::long_alloc proc.
-	 */
-	proc = "proc ::oratcl::long_alloc {handle args} { "
+		"proc ::oratcl::long_alloc {handle args} { "
 		"	global errorInfo; "
 		"	variable longidx ; "
 		"	variable longlst; "
@@ -179,14 +192,9 @@ Oralong_Init (interp)
 		"	incr longidx; "
 		"	set longlst($lng) [list $handle $oralong(table) $oralong(column) $oralong(rowid) $longtype]; "
 		"	return $lng; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::long_free proc.
-	 */
-	proc = "proc ::oratcl::long_free {handle} { "
+	        "proc ::oratcl::long_free {handle} { "
 		"	variable oralong; "
 		"	variable longlst; "
 		"	set fn free; "
@@ -200,14 +208,9 @@ Oralong_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralong(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::long_read proc.
-	 */
-	proc = "proc ::oratcl::long_read {handle args} { "
+	       "proc ::oratcl::long_read {handle args} { "
 		"	global errorInfo; "
 		"	variable longlst; "
 		"	variable oralong; "
@@ -237,14 +240,9 @@ Oralong_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralong(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::long_write proc.
-	 */
-	proc = "proc ::oratcl::long_write {handle args} { "
+	        "proc ::oratcl::long_write {handle args} { "
 		"	global errorInfo; "
 		"	variable longlst; "
 		"	variable oralong; "
@@ -274,9 +272,22 @@ Oralong_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralong(oratcl_ok); "
-		"} ";
+		"} "
 
-	Tcl_Eval(interp, proc);
+	};
 
-	return tcl_return;
+	for (x = 0; x < (sizeof(script)/sizeof(char const *)); x++) {
+		tmp1_obj=Tcl_NewStringObj(script[x], -1);
+		Tcl_IncrRefCount(tmp1_obj);
+		if (Tcl_EvalObjEx(interp, tmp1_obj, 0) != TCL_OK) {
+			fprintf(stderr,
+				"%sevaluate internal script at index %ul",
+				"Oralong_Init(): Failed to ",
+				(size_t) x);
+			return TCL_ERROR;
+		}
+		Tcl_DecrRefCount(tmp1_obj);
+	}
+
+	return TCL_OK;
 }

@@ -18,156 +18,172 @@ int
 Oralob_Init (interp)
 	Tcl_Interp	*interp;
 {
-	CONST84 char	*proc;
-	int		tcl_return = TCL_OK;
+	size_t		x;
+	int             debug = 0;
+	CONST84 char    *rx;
+	Tcl_Obj         *tmp1_obj;
 
-	Tcl_SetVar(interp, 
-		   "::oratcl::lobidx", 
-		   "0", 
-		   0);
+	struct tvars {
+		CONST84 char * ns;
+		CONST84 char * name;
+		CONST84 char * value;
+	};
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_length", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  :rlen := DBMS_LOB.GETLENGTH(lob_loc);  end;", 
-		   0);
+	struct tvars tvars_list [] = {
+		{
+			"::oratcl::lobidx",
+			NULL,
+			"0"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_length",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  :rlen := DBMS_LOB.GETLENGTH(lob_loc);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_length",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  :rlen := DBMS_LOB.GETLENGTH(lob_loc);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_read",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_write",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_trim",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.TRIM(lob_loc, :lob_len);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_read",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_read",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_trim",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.TRIM(lob_loc, :lob_len);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_compare",
+			"declare  lob_loc1 CLOB;  lob_loc2 CLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  :lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt, :lob_of1, :lob_of2);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_erase",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.ERASE(lob_loc, :lob_amt, :lob_off);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_instr",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :ins_pos := DBMS_LOB.INSTR(lob_loc, :lob_ptn, :lob_off, :lob_nth);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_write",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_substr",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :sub_str := DBMS_LOB.SUBSTR(lob_loc, :lob_amt, :lob_off);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_substr",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :sub_str := DBMS_LOB.SUBSTR(lob_loc, :lob_amt, :lob_off);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_compare",
+			"declare  lob_loc1 BLOB;  lob_loc2 BLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  :lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt, :lob_of1, :lob_of2);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_instr",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :ins_pos := DBMS_LOB.INSTR(lob_loc, :lob_ptn, :lob_off, :lob_nth);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_append",
+			"declare  lob_loc1 BLOB;  lob_loc2 BLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  DBMS_LOB.APPEND(lob_loc1, lob_loc2);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_erase",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.ERASE(lob_loc, :lob_amt, :lob_off);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_append",
+			"declare  lob_loc1 CLOB;  lob_loc2 CLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  DBMS_LOB.APPEND(lob_loc1, lob_loc2);  end;"
+		},
+		{
+			"::oratcl::plsql",
+			"clob_writeappend",
+			"declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, :lob_str); end;"
+		},
+		{
+			"::oratcl::plsql",
+			"blob_writeappend",
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, :lob_str); end;"
+		},
+		{
+			"::oratcl::oralob",
+			"script",
+			"oralob2c.tcl",
+		},
+		{
+			"::oratcl::oralob",
+			"oratcl_ok",
+			"0",
+		},
+		{
+			"::oratcl::oralob",
+			"oratcl_error",
+			"1",
+		}
+	};
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_length", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  :rlen := DBMS_LOB.GETLENGTH(lob_loc);  end;", 
-		   0);
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_read", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;", 
-		   0);
+	for (x = 0; x < (sizeof(tvars_list)/sizeof(struct tvars)); x++) {
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_write", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;", 
-		   0);
+		if (debug) {
+			fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
+			fprintf(stderr, "name = %s\n", tvars_list[x].name);
+			fprintf(stderr, "value = %s\n", tvars_list[x].value);
+		}
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_trim", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.TRIM(lob_loc, :lob_len);  end;", 
-		   0);
+		rx = Tcl_SetVar2((Tcl_Interp *) interp,
+				 (CONST char *) tvars_list[x].ns,
+				 (CONST char *) tvars_list[x].name,
+				 (CONST char *) tvars_list[x].value,
+				 0);
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_read", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;", 
-		   0);
+		if (rx == NULL) {
+			fprintf(stderr,
+				"%sset variable '%s'",
+				"Oralob_Init(): Failed to ",
+				(CONST char *) tvars_list[x].name);
+				return TCL_ERROR;
+		}
+	}
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_trim", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.TRIM(lob_loc, :lob_len);  end;", 
-		   0);
 
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_compare", 
-		   "declare  lob_loc1 CLOB;  lob_loc2 CLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  :lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt, :lob_of1, :lob_of2);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_erase", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.ERASE(lob_loc, :lob_amt, :lob_off);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_instr", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :ins_pos := DBMS_LOB.INSTR(lob_loc, :lob_ptn, :lob_off, :lob_nth);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_write", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_substr", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :sub_str := DBMS_LOB.SUBSTR(lob_loc, :lob_amt, :lob_off);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_substr", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :sub_str := DBMS_LOB.SUBSTR(lob_loc, :lob_amt, :lob_off);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_compare", 
-		   "declare  lob_loc1 BLOB;  lob_loc2 BLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  :lob_cmp := DBMS_LOB.COMPARE(lob_loc1, lob_loc2, :lob_amt, :lob_of1, :lob_of2);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_instr", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  :ins_pos := DBMS_LOB.INSTR(lob_loc, :lob_ptn, :lob_off, :lob_nth);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_append", 
-		   "declare  lob_loc1 BLOB;  lob_loc2 BLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  DBMS_LOB.APPEND(lob_loc1, lob_loc2);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_erase", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.ERASE(lob_loc, :lob_amt, :lob_off);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_append", 
-		   "declare  lob_loc1 CLOB;  lob_loc2 CLOB;  begin  select %s into lob_loc1 from %s where rowid = :rid1 for update;  select %s into lob_loc2 from %s where rowid = :rid2;  DBMS_LOB.APPEND(lob_loc1, lob_loc2);  end;", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "clob_writeappend", 
-		   "declare  lob_loc CLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, :lob_str); end;",
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::plsql", 
-		   "blob_writeappend", 
-		   "declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, :lob_str); end;",
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::oralob", 
-		   "script", 
-		   "oralob2c.tcl", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::oralob", 
-		   "oratcl_ok", 
-		   "0", 
-		   0);
-
-	Tcl_SetVar2(interp, 
-		   "::oratcl::oralob", 
-		   "oratcl_error", 
-		   "1", 
-		   0);
-
-	/*
-	 *  Create the oralob proc.
-	 */
-	proc = "proc oralob {command handle args} { "
+	CONST84 char *script[] = {
+		"proc oralob {command handle args} { "
 		"	global errorInfo; "
 		"	foreach idx [list rowid table column pattern datavar] { "
 		"		set ::oratcl::oralob($idx) {}; "
@@ -200,14 +216,10 @@ Oralob_Init (interp)
 		"		return -code error \"$tcl_res\"; "
 		"	}; "
 		"	return $tcl_res; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
 
-	/*
-	 *  Create the ::oratcl::parse_lob_args proc.
-	 */
-	proc = "proc ::oratcl::parse_lob_args {args} { "
+		"proc ::oratcl::parse_lob_args {args} { "
 		"	set argv [lindex $args 0]; "
 		"	set argc [llength $argv]; "
 		"	for {set argx 0} {$argx < $argc} {incr argx} { "
@@ -222,14 +234,9 @@ Oralob_Init (interp)
 		"                        set ::oratcl::oralob($index) $value; "
 		"                }; "
 		"	}		; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_alloc proc.
-	 */
-	proc = "proc ::oratcl::lob_alloc {handle args} { "
+		"proc ::oratcl::lob_alloc {handle args} { "
 		"	global errorInfo; "
 		"	variable lobidx ; "
 		"	variable loblst; "
@@ -294,14 +301,10 @@ Oralob_Init (interp)
 		"	incr lobidx; "
 		"	set loblst($lob) [list $handle $oralob(table) $oralob(column) $oralob(rowid) $lobtype]; "
 		"	return $lob; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
 
-	/*
-	 *  Create the ::oratcl::lob_free proc.
-	 */
-	proc = "proc ::oratcl::lob_free {handle} { "
+		"proc ::oratcl::lob_free {handle} { "
 		"	variable oralob; "
 		"	variable loblst; "
 		"	set fn free; "
@@ -315,14 +318,10 @@ Oralob_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
 
-	/*
-	 *  Create the ::oratcl::lob_read proc.
-	 */
-	proc = "proc ::oratcl::lob_read {handle args} { "
+		"proc ::oratcl::lob_read {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -380,14 +379,9 @@ Oralob_Init (interp)
 		"		return -code error -errorinfo $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_write proc.
-	 */
-	proc = "proc ::oratcl::lob_write {handle args} { "
+		"proc ::oratcl::lob_write {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -442,14 +436,9 @@ Oralob_Init (interp)
 		"		return -code error -errorinfo $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_length proc.
-	 */
-	proc = "proc ::oratcl::lob_length {handle} { "
+		"proc ::oratcl::lob_length {handle} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	set fn length; "
@@ -471,14 +460,9 @@ Oralob_Init (interp)
 		"	}; "
 		"	orafetch $stm -datavariable tcl_res; "
 		"	return [lindex $tcl_res 1]; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_trim proc.
-	 */
-	proc = "proc ::oratcl::lob_trim {handle args} { "
+		"proc ::oratcl::lob_trim {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -506,14 +490,9 @@ Oralob_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_erase proc.
-	 */
-	proc = "proc ::oratcl::lob_erase {handle args} { "
+		"proc ::oratcl::lob_erase {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -555,14 +534,9 @@ Oralob_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_substr proc.
-	 */
-	proc = "proc ::oratcl::lob_substr {handle args} { "
+		"proc ::oratcl::lob_substr {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -633,14 +607,9 @@ Oralob_Init (interp)
 		"	}; "
 		"	catch {oraconfig $stm bindsize $bsz}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_instr proc.
-	 */
-	proc = "proc ::oratcl::lob_instr {handle args} { "
+		"proc ::oratcl::lob_instr {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -686,14 +655,9 @@ Oralob_Init (interp)
 		"	}; "
 		"	orafetch $stm -datavariable tcl_res; "
 		"	return -code ok [expr [lindex $tcl_res 1] - 1]; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	/*
-	 *  Create the ::oratcl::lob_append proc.
-	 */
-	proc = "proc ::oratcl::lob_append {handle1 handle2} { "
+		"proc ::oratcl::lob_append {handle1 handle2} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -728,14 +692,10 @@ Oralob_Init (interp)
 		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
 
-	/*
-	 *  Create the ::oratcl::lob_compare proc.
-	 */
-	proc = "proc ::oratcl::lob_compare {handle1 handle2 args} { "
+		"proc ::oratcl::lob_compare {handle1 handle2 args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -813,11 +773,9 @@ Oralob_Init (interp)
 		"	}; "
 		"	orafetch $stm1 -datavariable tcl_res; "
 		"	return -code ok [lindex $tcl_res 2]; "
-		"} ";
+		"} ",
 
-	Tcl_Eval(interp, proc);
-
-	proc = "proc ::oratcl::lob_writeappend {handle args} { "
+		"proc ::oratcl::lob_writeappend {handle args} { "
 		"	global errorInfo; "
 		"	variable loblst; "
 		"	variable oralob; "
@@ -866,10 +824,21 @@ Oralob_Init (interp)
 		"		return -code error -errorinfo $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
-		"} ";
+		"} "
+	};
 
-	Tcl_Eval(interp, proc);
+	for (x = 0; x < (sizeof(script)/sizeof(char const *)); x++) {
+		tmp1_obj=Tcl_NewStringObj(script[x], -1);
+		Tcl_IncrRefCount(tmp1_obj);
+		if (Tcl_EvalObjEx(interp, tmp1_obj, 0) != TCL_OK) {
+			fprintf(stderr,
+				"%sevaluate internal script at index %ul",
+				"Oralong_Init(): Failed to ",
+				(size_t) x);
+			return TCL_ERROR;
+		}
+		Tcl_DecrRefCount(tmp1_obj);
+	}
 
-
-	return tcl_return;
+	return TCL_OK;
 }

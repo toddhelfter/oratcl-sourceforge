@@ -1,3 +1,13 @@
+2005-04-22  Todd Helfter <thelfter@gmail.com>
+
+	* generic/oralob.c  Handle return codes from Tcl_SetVar2(),
+	replace calls to Tcl_Eval with Tcl_EvalObjEx() 
+
+	* generic/oralong.c  Handle return codes from Tcl_SetVar2(),
+	replace calls to Tcl_Eval with Tcl_EvalObjEx() 
+
+	Thanks to Markus Elfring <elfring@users.sourceforge.net> for the patch.
+
 2005-03-23  Todd Helfter <thelfter@gmail.com>
 
         * generic/oratcl.c  Fix path generation to work with Tcl 8.3
