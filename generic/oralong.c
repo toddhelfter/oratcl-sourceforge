@@ -284,6 +284,7 @@ Oralong_Init (interp)
 				"%sevaluate internal script at index %ul",
 				"Oralong_Init(): Failed to ",
 				(size_t) x);
+			Tcl_DecrRefCount(tmp1_obj);
 			return TCL_ERROR;
 		}
 		Tcl_DecrRefCount(tmp1_obj);

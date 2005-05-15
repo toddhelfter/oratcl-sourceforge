@@ -1,3 +1,7 @@
+2005-05-15  Todd Helfter <thelfter@gmail.com>
+
+	* generic/oralong.c Add a missing Tcl_DecrRefCount() to the error condition.
+
 2005-04-22  Todd Helfter <thelfter@gmail.com>
 
 	* generic/oralob.c  Handle return codes from Tcl_SetVar2(),
