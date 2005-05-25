@@ -1540,7 +1540,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 			break;
 		case SQLT_RID:					/* 11	*/
 		case SQLT_RDD:					/* 104	*/
-			new_col->column.valuesz = 23;
+			new_col->column.valuesz = 140;
 			break;
 		case SQLT_TIMESTAMP:				/* 187	*/
 		case SQLT_TIMESTAMP_TZ:				/* 188  */
@@ -5437,6 +5437,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			/* allocate adequate space for reuse */
 			tmp_col->column.valuesz = StmPtr->bindsize;
 			tmp_col->column.valuep   = ckalloc(tmp_col->column.valuesz + 1);
+fprintf(stderr, "TMH %s , %d \n", "sizeof(valuep)", sizeof(tmp_col->column.valuep));
 			if (tmp_col->column.valuep == NULL) {
 				Oratcl_ColFree(tmp_col_head);
 				StmPtr->bind_list = NULL;
@@ -5449,6 +5450,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 
+fprintf(stderr, "TMH %s , %d \n", arg_pcp, arg_pcp_len);
 			if (StmPtr->utfmode) {
 				Tcl_DStringInit(&argStr);
 				Tcl_UtfToExternalDString(NULL,
