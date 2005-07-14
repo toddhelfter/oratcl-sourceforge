@@ -1,6 +1,8 @@
 2005-06-21  Todd Helfter <thelfter@gmail.com>
 
 	* generic/oralob.c Add a missing Tcl_DecrRefCount() to the error condition.
+	Fixes BugID 1221820
+	Thanks to Markus Elfring <elfring@users.sourceforge.net> for the patch.
 
 2005-05-25  Todd Helfter <thelfter@gmail.com>
 
@@ -10,6 +12,8 @@
 2005-05-15  Todd Helfter <thelfter@gmail.com>
 
 	* generic/oralong.c Add a missing Tcl_DecrRefCount() to the error condition.
+	Fixes BugID 1221820
+	Thanks to Markus Elfring <elfring@users.sourceforge.net> for the patch.
 
 2005-04-22  Todd Helfter <thelfter@gmail.com>
 
