@@ -678,6 +678,7 @@ Oratcl_Init (interp)
 	tmp_obj = Tcl_FSJoinPath(pathList, -1);
 	Tcl_IncrRefCount(tmp_obj);
 	native = Tcl_FSGetNativePath(tmp_obj);
+
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
 	pathObjv[pathObjc++] = Tcl_GetString(pt1_obj);
 	pathObjv[pathObjc++] = Tcl_GetString(pt2_obj);
@@ -5437,7 +5438,6 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			/* allocate adequate space for reuse */
 			tmp_col->column.valuesz = StmPtr->bindsize;
 			tmp_col->column.valuep   = ckalloc(tmp_col->column.valuesz + 1);
-fprintf(stderr, "TMH %s , %d \n", "sizeof(valuep)", sizeof(tmp_col->column.valuep));
 			if (tmp_col->column.valuep == NULL) {
 				Oratcl_ColFree(tmp_col_head);
 				StmPtr->bind_list = NULL;
@@ -5450,7 +5450,6 @@ fprintf(stderr, "TMH %s , %d \n", "sizeof(valuep)", sizeof(tmp_col->column.value
 				goto common_exit;
 			}
 
-fprintf(stderr, "TMH %s , %d \n", arg_pcp, arg_pcp_len);
 			if (StmPtr->utfmode) {
 				Tcl_DStringInit(&argStr);
 				Tcl_UtfToExternalDString(NULL,
