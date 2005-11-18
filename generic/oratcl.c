@@ -709,16 +709,26 @@ Oratcl_Init (interp)
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
 	if (handle == NULL) {
-		fprintf(stderr, "%s(): Failed to load %s with error %s",
+		fprintf(stderr, "%s(): Failed to load %s with error %s\n",
 			"Oratcl_Init",
 			native,
 			DLERROR);
+		if (ora_lib) {
+			fprintf(stderr, 
+				"%s(): ORACLE_LIBRARY = %s : file not found.\n",
+				"Oratcl_Init",
+				native);
+		}
+
+		if (ora_lib == NULL) {
 #if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
-		Tcl_DecrRefCount(tmp_obj);
+			Tcl_DecrRefCount(tmp_obj);
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		Tcl_DStringFree(&result);
+			Tcl_DStringFree(&result);
 #endif
-		ckfree((char *) ora_lib);
+		} else {
+			ckfree((char *) ora_lib);
+		}
 		ckfree((char *) native);
 		return TCL_ERROR;
 	}
@@ -729,9 +739,9 @@ Oratcl_Init (interp)
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
 		Tcl_DStringFree(&result);
 #endif
+	} else {
+		ckfree((char *) ora_lib);
 	}
-
-	ckfree((char *) ora_lib);
 	ckfree((char *) native);
 
 #else
