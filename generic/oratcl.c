@@ -609,11 +609,11 @@ Oratcl_Init (interp)
 
 	Tcl_Obj		*env_obj;
 #if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
-	Tcl_Obj		*tmp_obj;
+	Tcl_Obj		*tmp_obj = NULL;
 #endif
-	Tcl_Obj		*pt1_obj;
-	Tcl_Obj		*pt2_obj;
-	Tcl_Obj		*pt3_obj;
+	Tcl_Obj		*pt1_obj = NULL;
+	Tcl_Obj		*pt2_obj = NULL;
+	Tcl_Obj		*pt3_obj = NULL;
 
 #if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		**pathObjv;
@@ -624,6 +624,7 @@ Oratcl_Init (interp)
 	int		pathObjc;
 	Tcl_DString	result;
 #endif
+	CONST char	*ora_lib = NULL;
 
 #endif							/* __WIN32__ */
 
@@ -635,64 +636,75 @@ Oratcl_Init (interp)
 
 #ifndef __WIN32__
 
-	/* Load the oracle client library*/
+	/* Load the oracle client library:
+	 * if env(ORACLE_LIBRARY) is defined use it.
+	 * else use $env(ORACLE_HOME)/lib/libclntsh.SHLIB_SUFFIX
+	 */
+
+	ora_lib = Tcl_GetVar2(interp, "env", "ORACLE_LIBRARY", TCL_GLOBAL_ONLY);
+
+	if (ora_lib) {
+		native = ora_lib;
+	} else {
 
 #if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
-	pathObjv = (Tcl_Obj **) ckalloc (3 * sizeof(*pathObjv));
+		pathObjv = (Tcl_Obj **) ckalloc (3 * sizeof(*pathObjv));
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-	Tcl_DStringInit(&result);
-	pathObjv = (char **) ckalloc (3 * sizeof(char *));
+		Tcl_DStringInit(&result);
+		pathObjv = (char **) ckalloc (3 * sizeof(char *));
 #endif
-	pathObjc = 0;
+		pathObjc = 0;
 
-	env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
-	Tcl_IncrRefCount(env_obj);
+		env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
+		Tcl_IncrRefCount(env_obj);
 
-	pt1_obj = Tcl_ObjGetVar2(interp,
-				env_obj,
-				NULL,
-				TCL_LEAVE_ERR_MSG);
-	if (pt1_obj == NULL) {
-		return TCL_ERROR;
+		pt1_obj = Tcl_ObjGetVar2(interp,
+					env_obj,
+					NULL,
+					TCL_LEAVE_ERR_MSG);
+		if (pt1_obj == NULL) {
+			return TCL_ERROR;
+		}
+		pt2_obj = Tcl_NewStringObj("lib", -1);
+		pt3_obj = Tcl_NewStringObj("libclntsh"SHLIB_SUFFIX, -1);
+
+		Tcl_IncrRefCount(pt1_obj);
+		Tcl_IncrRefCount(pt2_obj);
+		Tcl_IncrRefCount(pt3_obj);
+
+#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
+		pathObjv[pathObjc++] = pt1_obj;
+		pathObjv[pathObjc++] = pt2_obj;
+		pathObjv[pathObjc++] = pt3_obj;
+
+		pathList = Tcl_NewListObj(pathObjc, pathObjv);
+
+		ckfree((char *)pathObjv);
+		Tcl_DecrRefCount(pt1_obj);
+		Tcl_DecrRefCount(pt2_obj);
+		Tcl_DecrRefCount(pt3_obj);
+		Tcl_DecrRefCount(env_obj);
+
+		tmp_obj = Tcl_FSJoinPath(pathList, -1);
+		Tcl_IncrRefCount(tmp_obj);
+		native = Tcl_FSGetNativePath(tmp_obj);
+
+#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
+		pathObjv[pathObjc++] = Tcl_GetString(pt1_obj);
+		pathObjv[pathObjc++] = Tcl_GetString(pt2_obj);
+		pathObjv[pathObjc++] = Tcl_GetString(pt3_obj);
+
+		Tcl_JoinPath(pathObjc, pathObjv, &result);
+
+		ckfree((char *)pathObjv);
+		Tcl_DecrRefCount(pt1_obj);
+		Tcl_DecrRefCount(pt2_obj);
+		Tcl_DecrRefCount(pt3_obj);
+		Tcl_DecrRefCount(env_obj);
+		native = Tcl_DStringValue(&result);
+#endif
+
 	}
-	pt2_obj = Tcl_NewStringObj("lib", -1);
-	pt3_obj = Tcl_NewStringObj("libclntsh"SHLIB_SUFFIX, -1);
-
-	Tcl_IncrRefCount(pt1_obj);
-	Tcl_IncrRefCount(pt2_obj);
-	Tcl_IncrRefCount(pt3_obj);
-
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
-	pathObjv[pathObjc++] = pt1_obj;
-	pathObjv[pathObjc++] = pt2_obj;
-	pathObjv[pathObjc++] = pt3_obj;
-
-	pathList = Tcl_NewListObj(pathObjc, pathObjv);
-
-	ckfree((char *)pathObjv);
-	Tcl_DecrRefCount(pt1_obj);
-	Tcl_DecrRefCount(pt2_obj);
-	Tcl_DecrRefCount(pt3_obj);
-	Tcl_DecrRefCount(env_obj);
-
-	tmp_obj = Tcl_FSJoinPath(pathList, -1);
-	Tcl_IncrRefCount(tmp_obj);
-	native = Tcl_FSGetNativePath(tmp_obj);
-
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-	pathObjv[pathObjc++] = Tcl_GetString(pt1_obj);
-	pathObjv[pathObjc++] = Tcl_GetString(pt2_obj);
-	pathObjv[pathObjc++] = Tcl_GetString(pt3_obj);
-
-	Tcl_JoinPath(pathObjc, pathObjv, &result);
-
-	ckfree((char *)pathObjv);
-	Tcl_DecrRefCount(pt1_obj);
-	Tcl_DecrRefCount(pt2_obj);
-	Tcl_DecrRefCount(pt3_obj);
-	Tcl_DecrRefCount(env_obj);
-	native = Tcl_DStringValue(&result);
-#endif
 
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
@@ -706,14 +718,21 @@ Oratcl_Init (interp)
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
 		Tcl_DStringFree(&result);
 #endif
+		ckfree((char *) ora_lib);
+		ckfree((char *) native);
 		return TCL_ERROR;
 	}
         
+	if (ora_lib == NULL) {
 #if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
-        Tcl_DecrRefCount(tmp_obj);
+		Tcl_DecrRefCount(tmp_obj);
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-	Tcl_DStringFree(&result);
+		Tcl_DStringFree(&result);
 #endif
+	}
+
+	ckfree((char *) ora_lib);
+	ckfree((char *) native);
 
 #else
 

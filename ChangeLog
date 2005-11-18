@@ -1,3 +1,22 @@
+2005-11-18  Todd Helfter <thelfter@gmail.com>
+
+	* generic/oratcl.c Recognize a new environment variable ORACLE_LIBRARY.
+	On platforms where libclntsh has to be loaded (WIN32 uses OCI.DLL),
+	allow for an environment variable to specify where to find the file at
+	load time.  Default behavior is to load this library:
+	ORACLE_HOME/lib/libcltntsh.SHLIB_SUFFIX
+
+	now if ORACLE_LIBRARY environment variable is set.  The contents of that 	variable will be passed to the dlopen() function call.
+
+	Example 1: For 10gR2 instant client on solaris.
+		Bash:  export ORACLE_LIBRARY=/path/to/libclntsh.so.10.1
+		Csh:   setenv ORACLE_LIBRARY /path/to/libclntsh.so.10.1
+
+	Example 2: For 32 bit tcl on 64 bit solaris with 64 bit oracle.
+		Bash:  export ORACLE_LIBRARY=$ORACLE_HOME/lib32/libclntsh.so
+		Csh:   setenv ORACLE_LIBRARY $ORACLE_HOME/lib32/libclntsh.so
+
+
 2005-06-21  Todd Helfter <thelfter@gmail.com>
 
 	* generic/oralob.c Add a missing Tcl_DecrRefCount() to the error condition.
