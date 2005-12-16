@@ -40,7 +40,7 @@
 #define MAX_BIND_SIZE	2147483647
 #define ORA_FETCH_ROWS	10
 #define ORA_LOBP_SIZE	10000
-#define MAX_LOBP_SIZE	15000
+#define MAX_LOBP_SIZE	2147492647
 #define ORA_LONGP_SIZE  50000
 #define MAX_LONGP_SIZE	2147483647
 
@@ -64,7 +64,7 @@ typedef struct OratclDesc OratclDesc;
 struct OratclCols {
 	struct OratclCols *next;	 	/* pointer to next OratclCols in list */
 	ub2		dty;		
-	OCILobLocator	*lobp;
+	int		nFetchRows;		/* rows to fetch */
 	OCIDefine   	*defnp;			/* define pointer */
 	OCIBind		*bindp;			/* bind pointer */
 	Tcl_HashEntry	*bindPtr;

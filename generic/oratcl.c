@@ -955,7 +955,7 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->column.valuesz	= 0;
 		ColPtr->defnp = NULL;
 		ColPtr->bindp = NULL;
-		ColPtr->lobp = NULL;
+		ColPtr->nFetchRows = fetchrows;
 		ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows);
 		ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows);
 		ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows);
@@ -986,9 +986,27 @@ Oratcl_ColFree (ColPtr)
 		if (ColPtr->column.name != NULL) {
 			ckfree((char *) ColPtr->column.name);
 		}
+
 		if (ColPtr->column.valuep != NULL) {
+
+			/* 
+			 * if column is a LOB, the LobLocator has been stored in valuep
+			 */
+			if( ( ColPtr->dty == SQLT_CLOB ) || ( ColPtr->dty == SQLT_BLOB ) ){
+				int    nRow;
+				for( nRow = 0; nRow < ColPtr->nFetchRows; nRow++) {
+					OCILobLocator  **pLocator;
+					pLocator = (OCILobLocator**)(ColPtr->column.valuep
+							           + ColPtr->column.valuesz * nRow);
+					OCI_DescriptorFree((dvoid*)*pLocator,
+							   (ub4) OCI_DTYPE_LOB);
+				}
+			}
+
 			ckfree(ColPtr->column.valuep);
+
 		}
+
 		Tcl_DStringFree(&ColPtr->column.typename);
 		
 		ckfree ((char *) ColPtr->indp);
@@ -1094,7 +1112,9 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	int		iTcl;
 
 	Tcl_DString	uniStr;
-	char 		*tmp;
+	Tcl_DString	lobStr;
+	char 		*tmp = NULL;
+	char		*pValue = NULL;
 	Tcl_Obj		*val_obj;
 	Tcl_Obj		*tmp_obj;
 	Tcl_Obj		*lst_obj;
@@ -1125,9 +1145,26 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 	Tcl_DStringSetLength(&StmPtr->datavar, 0);
 
+	/* 
+         * Check for a LOB column and allocate a buffer piece.
+	 * The buffer piece can be used for multiple columns.
+         */
+	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
+		if (( col->dty == SQLT_BLOB ) || ( col->dty == SQLT_CLOB )) {
+			pValue = ckalloc( StmPtr->lobpsize + 1 );
+			if( pValue == NULL ) {
+				fprintf(stderr, "error:: pValue is NULL return -1\n");
+				return -1;
+			}
+			pValue[0] = '\0';
+			break;
+		}
+	}
+
 	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
       
 		Tcl_DStringInit(&uniStr);
+		Tcl_DStringInit(&lobStr);
 
 		/* for cursor type, just return a null */
 		/* get pointer to next row column data buffer */
@@ -1150,19 +1187,85 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 					tmp = null_str;
 				}
 			}
-		} else {
-			if (col->column.valuesz > 0) {
-				tmp = col->column.valuep + (rn * col->column.valuesz);
-				if (StmPtr->utfmode) {
-					Tcl_ExternalToUtfDString(NULL,
-								 tmp,
-								 -1,
-								 &uniStr);
-					tmp = Tcl_DStringValue(&uniStr);
-				}
+		} else if (col->column.valuesz > 0) {
+
+			/*
+			 *  Read the LOB value
+			 */
+
+			if (( col->dty == SQLT_BLOB ) || ( col->dty == SQLT_CLOB )) {
+				OCILobLocator** pLocator;
+				ub4             nLength = 0;
+				ub4             nAMTP;
+				sword           nStatus;                    
+				ub4             nOffset       = 1;
+
+				pLocator = (OCILobLocator**)(col->column.valuep + (rn * col->column.valuesz));
+
+				(void)OCI_LobGetLength( LogPtr->svchp,
+							LogPtr->errhp,
+							*pLocator,
+							&nLength );
+
+				if( nLength > 0 ) {
+
+					nAMTP = nLength;
+
+					do{
+
+						nStatus = OCI_LobRead(LogPtr->svchp,
+								      LogPtr->errhp,
+								      *pLocator,
+								      &nAMTP,
+								      (ub4)nOffset,
+								      (dvoid*)(pValue),
+								      StmPtr->lobpsize,
+								      (dvoid *)0,
+								      (sb4 (*)(dvoid *, CONST dvoid *, ub4, ub1)) 0,
+								      (ub2) 0,
+								      (ub1) SQLCS_IMPLICIT);
+
+						if( ( nStatus != OCI_SUCCESS ) && ( nStatus != OCI_NEED_DATA ) ) {
+							fprintf(stderr, "nStatus = %d\n", nStatus);
+							fprintf(stderr, "error:: return -3\n");
+							ckfree(pValue);
+							Tcl_DStringFree(&lobStr);
+							return -3;
+						}
+
+						if( nAMTP == 0 ) {
+							fprintf(stderr, "error:: return -4\n");
+							ckfree(pValue);
+							Tcl_DStringFree(&lobStr);
+							return -4;
+						}
+
+
+						Tcl_DStringAppend(&lobStr, pValue, nAMTP);
+
+					} while ( nStatus == OCI_NEED_DATA );
+
+					tmp = Tcl_DStringValue(&lobStr);
+
+				} else {
+					tmp = "";
+				}                
+
+
 			} else {
-				tmp = "";
+				tmp = col->column.valuep + (rn * col->column.valuesz);
 			}
+
+			if (StmPtr->utfmode) {
+				Tcl_ExternalToUtfDString(NULL,
+							 tmp,
+							 -1,
+							 &uniStr);
+				tmp = Tcl_DStringValue(&uniStr);
+			}
+
+		} else {
+			tmp = "";
 		}
 
 		if (arrayvar) {
@@ -1188,12 +1291,15 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 			Tcl_DecrRefCount(val_obj);
 		}
 
-		Tcl_DStringAppendElement(&StmPtr->datavar, tmp);
+		if (listvar) {
+			Tcl_DStringAppendElement(&StmPtr->datavar, tmp);
+		}
 
 		Tcl_DStringFree(&uniStr);
+		Tcl_DStringFree(&lobStr);
 	}
 
-	if (listvar != NULL) {
+	if (listvar) {
 		lst_obj = Tcl_NewStringObj(Tcl_DStringValue(&StmPtr->datavar),
 					   Tcl_DStringLength(&StmPtr->datavar));
 		Tcl_IncrRefCount(lst_obj);
@@ -1201,12 +1307,15 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 		Tcl_DecrRefCount(lst_obj);
 	}
 
+	if (pValue) {
+		ckfree(pValue);
+	}
+
 	StmPtr->fetchidx += 1;
 	StmPtr->append_cnt += 1;
 	StmPtr->ora_rc = 0;
 	Tcl_SetObjResult(interp, OMV_zero);
 	StmPtr->ora_row = StmPtr->append_cnt;
-
 	StmPtr->fetch_ok = 1;
 	return 0;
 }
@@ -1335,30 +1444,75 @@ Oratcl_ColDescribe (interp, StmPtr)
 			break;
 		case SQLT_CLOB:                                 /* 112  */
 		case SQLT_BLOB:                                 /* 113  */
-			new_col->dty = SQLT_LNG;
-			new_col->column.valuesz = StmPtr->longsize;
+			new_col->column.valuesz = sizeof(OCILobLocator*);
+			new_col->dty = new_col->column.typecode;
 			break;
 		default:
 			/* Should not be reached */
 			break;
 		}
 
-		new_col->column.valuesz = new_col->column.valuesz + 1;
-		new_col->column.valuep =
-			ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
 		StmPtr->fetchmem = StmPtr->fetchrows;
 
-		rc = OCI_DefineByPos(StmPtr->stmhp,
-				     &new_col->defnp,
-				     LogPtr->errhp,
-				     (ub4) parmix,
-				     (dvoid *) new_col->column.valuep,
-				     (sb4) new_col->column.valuesz,
-				     new_col->dty,
-				     (sb2 *) new_col->indp,
-				     (ub2 *) new_col->rlenp,
-				     (ub2 *) new_col->rcodep,
-				     (ub4) OCI_DEFAULT);
+		if ( ( new_col->dty == SQLT_BLOB ) || (new_col->dty == SQLT_CLOB ) ) {
+			
+			int nRow;
+			char *pLocators;
+			pLocators = ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
+			for (nRow = 0; nRow < StmPtr->fetchrows; nRow++ ) {
+				OCILobLocator **pLocator;
+				pLocator = (OCILobLocator**)(pLocators + nRow * new_col->column.valuesz);
+				rc = OCI_DescriptorAlloc( (dvoid *)LogPtr->envhp,
+							 (dvoid **)pLocator,
+							 (ub4)OCI_DTYPE_LOB,
+							 (size_t) 0,
+							 (dvoid **) 0 );
+
+				Oratcl_Checkerr(interp,
+						LogPtr->errhp,
+						rc,
+						1,
+						&StmPtr->ora_rc,
+						&StmPtr->ora_err);
+
+				if (rc != OCI_SUCCESS) {
+					Oratcl_ColFree(new_col_head);
+					return -1;
+				}
+
+			}
+
+			new_col->column.valuep = pLocators;
+			rc = OCI_DefineByPos(StmPtr->stmhp,
+					     &new_col->defnp,
+					     LogPtr->errhp,
+					     (ub4) parmix,
+					     (dvoid *) new_col->column.valuep,
+					     (sb4) 0,
+					     new_col->dty,
+					     (sb2 *) new_col->indp,
+					     (ub2 *) new_col->rlenp,
+					     (ub2 *) new_col->rcodep,
+					     (ub4) OCI_DEFAULT);
+
+		} else {
+
+			new_col->column.valuesz = new_col->column.valuesz + 1;
+			new_col->column.valuep =
+				ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
+
+			rc = OCI_DefineByPos(StmPtr->stmhp,
+					     &new_col->defnp,
+					     LogPtr->errhp,
+					     (ub4) parmix,
+					     (dvoid *) new_col->column.valuep,
+					     (sb4) new_col->column.valuesz,
+					     new_col->dty,
+					     (sb2 *) new_col->indp,
+					     (ub2 *) new_col->rlenp,
+					     (ub2 *) new_col->rcodep,
+					     (ub4) OCI_DEFAULT);
+		}
 
 		Oratcl_Checkerr(interp,
 				LogPtr->errhp,
