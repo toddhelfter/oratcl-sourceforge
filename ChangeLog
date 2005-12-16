@@ -1,5 +1,9 @@
 2005-12-16  Todd Helfter <thelfter@gmail.com>
 
+	* generic/oratclInt.h Increase default value of ORA_LOBP_SIZE
+
+2005-12-16  Todd Helfter <thelfter@gmail.com>
+
 	* generic/oratcl.c Allow for the direct reading of LOBS using SQL select.
 	maximum value of lobpsize (oraconfig) increased.  Original idea and sample
 	code contributed by Peter Schindler with Synchronicity Inc. <pschindler@synchronicity.com>
