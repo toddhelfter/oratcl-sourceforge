@@ -76,6 +76,11 @@ test oraparse-2.1 {oraparse bad sql} {
 	-cleanup {
                 oraclose $tst_stm
                 oralogoff $tst_lda
+		unset tst_lda
+		unset tst_stm
+		unset tst_res
+		unset p
+		unset n
 	}
 	-result {923 933}
 }

@@ -68,6 +68,13 @@ test oracommit-1.4 {orasql: commit} {
   oraexec $tst2_cur
   orafetch $tst2_cur -datavariable res
   oraautocom $tst1_lda false
+  unset sql1
+  unset sql2
+  unset tst1_cur
+  unset tst1_lda
+  unset tst1_cur
+  unset tst2_lda
+  unset tst2_cur
   set res 
 } {changed4}
 

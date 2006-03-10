@@ -56,6 +56,9 @@ if {[info exists ora_lda] == 0} {
 			catch {oraclose $cur}
 		}
                 oralogoff $tst_lda
+		unset tst_lda
+		unset cur_list
+		unset cur
 	}
 	-result 100
 } 

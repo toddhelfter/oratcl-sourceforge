@@ -49,6 +49,8 @@ if {[info exists ora_lda] == 0} {
 	}
 	-cleanup {
 		oralogoff $info_lda
+		unset info_lda
+		unset res
 	}
 	-result 1
 }

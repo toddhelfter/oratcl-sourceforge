@@ -52,6 +52,10 @@ if {[info exists ora_lda] == 0} {
 		foreach lda $lda_list {
 			catch {oralogoff $lda}
 		}
+		unset lda
+		unset lda_list
+		unset cr
+		unset res
 	}
 	-result 35
 }
