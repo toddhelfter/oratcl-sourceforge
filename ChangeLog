@@ -1,3 +1,14 @@
+2006-03-09  Todd Helfter <thelfter@gmail.com>
+	* generic/oralob.c correct several usages of the tcl 'return' function.  
+		-errorinfo is not a recognized parameter (anymore?)
+	* tests/oralob.test I get an ORA-01460 error for lob pieces > 32500
+	* tests/oralob.test Compare the results of 'oralob read' and 'select lob from table'
+
+	Direct querying of LOB columns with SQL commands {oraparse, orafetch} is much more efficient
+	and much larger pieces are possible than with using {oralob read} syntax.  
+	Lob pieces of 1000000, the query is 4 times faster than the equivalent 'oralob read' command.  
+	Lob pieces of size 9999999999 execute 161 times faster.
+
 2006-01-25  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* Makefile.in: 
@@ -23,7 +34,8 @@
 	load time.  Default behavior is to load this library:
 	ORACLE_HOME/lib/libcltntsh.SHLIB_SUFFIX
 
-	now if ORACLE_LIBRARY environment variable is set.  The contents of that 	variable will be passed to the dlopen() function call.
+	now if ORACLE_LIBRARY environment variable is set.  The contents of that
+	variable will be passed to the dlopen() function call.
 
 	Example 1: For 10gR2 instant client on solaris.
 		Bash:  export ORACLE_LIBRARY=/path/to/libclntsh.so.10.1

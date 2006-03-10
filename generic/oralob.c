@@ -376,7 +376,7 @@ Oralob_Init (interp)
 		"	}; "
 		"	catch {oraconfig $stm bindsize $bsz}; "
 		"	if {$tcl_err} { "
-		"		return -code error -errorinfo $err_txt; "
+		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
 		"} ",
@@ -433,7 +433,7 @@ Oralob_Init (interp)
 		"	}; "
 		"	catch {oraconfig $stm bindsize $bsz}; "
 		"	if {$tcl_err} { "
-		"		return -code error -errorinfo $err_txt; "
+		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
 		"} ",
@@ -821,7 +821,7 @@ Oralob_Init (interp)
 		"	}; "
 		"	catch {oraconfig $stm bindsize $bsz}; "
 		"	if {$tcl_err} { "
-		"		return -code error -errorinfo $err_txt; "
+		"		return -code error $err_txt; "
 		"	}; "
 		"	return -code ok $oralob(oratcl_ok); "
 		"} "

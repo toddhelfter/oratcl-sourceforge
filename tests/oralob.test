@@ -13,6 +13,8 @@ if {[info exists ora_lda] == 0} {
 global ora_constr
 set lob_lda [oralogon $ora_constr]
 set lob_stm [oraopen $lob_lda]
+# this appears to be very near the maximum piece size in pl/sql for 10gR2
+oraconfig $lob_stm lobpsize 32500
 
 set lob_sql(create_lob_table) {
 	create table oratcl_lob ( \
@@ -304,6 +306,32 @@ test oralob-5.0 {oralob: writeappend clob 'double writeappend'} {
 	set res [string equal ${in_str}${in_str} $out_str]
 	catch {oralob free $lob} free
 	set res
+} {1}
+
+test oralob-6.0 {oralob: write clob} {
+        catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+        catch {oralob write $lob -datavar chr_data} write
+        catch {oralob free $lob} free
+        list $write
+} {0}
+
+test oralob-6.1 {oralob: read clob with SQL} {
+        catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+        catch {oralob read $lob -datavar chr_out} res
+        set read [string equal $chr_data $chr_out]
+        catch {oralob free $lob} free
+        catch {
+           oraconfig $lob_stm lobpsize 1000000
+           oraparse $lob_stm {select lob_clob from oratcl_lob where lob_key = :key}
+           orabind $lob_stm :key 'l1'
+           oraexec $lob_stm
+           if {[orafetch $lob_stm -datavariable sql_out]} {
+                set read [string equal $chr_out $sql_out]
+           } else {
+                set read 0
+           }
+        }
+        list $read
 } {1}
 
 orasql $lob_stm $lob_sql(drop_lob_table)
