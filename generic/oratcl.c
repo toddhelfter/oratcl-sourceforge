@@ -435,6 +435,7 @@ Oratcl_Init (interp)
 		pathObjv[pathObjc++] = pt3_obj;
 
 		pathList = Tcl_NewListObj(pathObjc, pathObjv);
+		Tcl_IncrRefCount(pathList);
 
 		ckfree((char *)pathObjv);
 		Tcl_DecrRefCount(pt1_obj);
@@ -444,6 +445,7 @@ Oratcl_Init (interp)
 
 		tmp_obj = Tcl_FSJoinPath(pathList, -1);
 		Tcl_IncrRefCount(tmp_obj);
+		Tcl_DecrRefCount(pathList);
 		native = Tcl_FSGetNativePath(tmp_obj);
 
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
