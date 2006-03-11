@@ -355,6 +355,7 @@ Oratcl_Init (interp)
 	OratclStateList *StateListPtr;
 
 	int		rc = 0;
+	Tcl_Obj		*rc_obj;
 
 	HMODULE		handle;
 
@@ -782,47 +783,68 @@ Oratcl_Init (interp)
 
 	/* set some OCI constants for ease of use */
 
+	rc_obj = Tcl_NewIntObj(OCI_SUCCESS);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_SUCCESS",
-		       Tcl_NewIntObj(OCI_SUCCESS),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
+	rc_obj = Tcl_NewIntObj(OCI_SUCCESS_WITH_INFO);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_SUCCESS_WITH_INFO",
-		       Tcl_NewIntObj(OCI_SUCCESS_WITH_INFO),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
+	rc_obj = Tcl_NewIntObj(OCI_ERROR);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_ERROR",
-		       Tcl_NewIntObj(OCI_ERROR),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
+	rc_obj = Tcl_NewIntObj(OCI_INVALID_HANDLE);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_INVALID_HANDLE",
-		       Tcl_NewIntObj(OCI_INVALID_HANDLE),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
+	rc_obj = Tcl_NewIntObj(OCI_STILL_EXECUTING);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_STILL_EXECUTING",
-		       Tcl_NewIntObj(OCI_STILL_EXECUTING),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
+	rc_obj = Tcl_NewIntObj(OCI_NO_DATA);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_NO_DATA",
-		       Tcl_NewIntObj(OCI_NO_DATA),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
+	rc_obj = Tcl_NewIntObj(OCI_NEED_DATA);
+	Tcl_IncrRefCount(rc_obj);
 	Tcl_SetVar2Ex(interp,
 		      "::oratcl::codes",
 		       "OCI_NEED_DATA",
-		       Tcl_NewIntObj(OCI_NEED_DATA),
+		       rc_obj,
 		       TCL_LEAVE_ERR_MSG);
+	Tcl_DecrRefCount(rc_obj);
 
 	/* callback - clean up procs left open on interpreter deletetion */
 	Tcl_CallWhenDeleted(interp,
@@ -5585,6 +5607,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 	int		objix;
 	int		tcl_return = TCL_OK;
+	Tcl_Obj		*rc_obj;
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp,
@@ -5655,7 +5678,11 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 
 	StmPtr->ora_rc = rc;
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
+
+	rc_obj = Tcl_NewIntObj(rc);
+	Tcl_IncrRefCount(rc_obj);
+	Tcl_SetObjResult(interp, rc_obj);
+	Tcl_DecrRefCount(rc_obj);
 
 	if (rc == OCI_STILL_EXECUTING) {
 		if (LogPtr->async == 1) {
@@ -5845,6 +5872,7 @@ Oratcl_Break (clientData, interp, objc, objv)
 	OratclLogs	*LogPtr;
 
 	sword		rc;
+	Tcl_Obj		*rc_obj;
 
 	int		objix;
 	int		tcl_return = TCL_OK;
@@ -5883,7 +5911,10 @@ Oratcl_Break (clientData, interp, objc, objv)
 	if (LogPtr->async == 1) {
 		rc = OCI_Break((dvoid *) LogPtr->srvhp,
 			       LogPtr->errhp);
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
+		rc_obj = Tcl_NewIntObj(rc);
+		Tcl_IncrRefCount(rc_obj);
+		Tcl_SetObjResult(interp, rc_obj);
+		Tcl_DecrRefCount(rc_obj);
 		Oratcl_Checkerr(interp,
 				LogPtr->errhp,
 				rc,
@@ -5898,7 +5929,10 @@ Oratcl_Break (clientData, interp, objc, objv)
 
 		rc = OCI_Reset((dvoid *) LogPtr->srvhp,
 			       LogPtr->errhp);
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
+		rc_obj = Tcl_NewIntObj(rc);
+		Tcl_IncrRefCount(rc_obj);
+		Tcl_SetObjResult(interp, rc_obj);
+		Tcl_DecrRefCount(rc_obj);
 		Oratcl_Checkerr(interp,
 				LogPtr->errhp,
 				rc,
@@ -5951,6 +5985,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
 	sword		rc;
+	Tcl_Obj		*rc_obj;
 	int		hashType = 1;	/* default use column name for array index */
 	Tcl_Obj		*oResult;
 
@@ -6066,8 +6101,10 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	if (StmPtr->fetch_end
 	    && StmPtr->append_cnt >= StmPtr->fetch_cnt
 	    && StmPtr->fetch_cnt >  0) {
-
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(NO_DATA_FOUND));
+		rc_obj = Tcl_NewIntObj(NO_DATA_FOUND);
+		Tcl_IncrRefCount(rc_obj);
+		Tcl_SetObjResult(interp, rc_obj);
+		Tcl_DecrRefCount(rc_obj);
 		StmPtr->ora_rc = NO_DATA_FOUND;
 		tcl_return = TCL_OK;
 		goto common_exit;
@@ -6106,7 +6143,10 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		if (rc == OCI_NO_DATA) {
 			StmPtr->fetch_end = 1;
 			if (StmPtr->append_cnt >= StmPtr->fetch_cnt) {
-				Tcl_SetObjResult(interp, Tcl_NewIntObj(NO_DATA_FOUND));
+				rc_obj = Tcl_NewIntObj(NO_DATA_FOUND);
+				Tcl_IncrRefCount(rc_obj);
+				Tcl_SetObjResult(interp, rc_obj);
+				Tcl_DecrRefCount(rc_obj);
 				StmPtr->ora_rc = NO_DATA_FOUND;
 				tcl_return = TCL_OK;
 				goto common_exit;

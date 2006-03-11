@@ -1,4 +1,8 @@
 2006-03-10  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c improve handling of temporary Tcl_Obj with proper
+	calls to Tcl_IncrRefCount and Tcl_DecrRefCount.
+
+2006-03-10  Todd Helfter <thelfter@gmail.com>
 	* tests/codes.test tests/oracommit.test tests/orainfo.test test/oraopen.test 
 	test/oraparse.test  changes to use the features of the tcltest package.
 
@@ -6,7 +10,7 @@
 	* generic/oralob.c correct several usages of the tcl 'return' function.  
 		-errorinfo is not a recognized parameter (anymore?)
 	* tests/oralob.test I get an ORA-01460 error for lob pieces > 32500
-	* tests/oralob.test Compare the results of 'oralob read' and 'select lob from table'
+	* tests/oralob.test Compare the results of 'oralob read' and 'select from table'
 
 2006-01-25  Jeff Hobbs  <jeffh@ActiveState.com>
 
