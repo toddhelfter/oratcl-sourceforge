@@ -72,7 +72,6 @@ test oracommit-1.4 {orasql: commit} {
   unset sql2
   unset tst1_cur
   unset tst1_lda
-  unset tst1_cur
   unset tst2_lda
   unset tst2_cur
   set res 
