@@ -178,6 +178,8 @@ test oralob-1.12 {oralob: erase clob} {
 	catch {oralob substr $lob -start 10 -stop 16 -datavar erase_out}
 	catch {oralob free $lob} free
 	set res [string equal $source $erase_out]
+	unset erase_res
+	unset erase_out
 	list $lob $res $free
 } {oralob.12 1 0}
 
@@ -287,6 +289,8 @@ oraexec $type_stm
 
 oraclose $type_stm
 oralogoff $type_lda
+unset type_stm
+unset type_lda
 
 ::tcltest::cleanupTests
 return

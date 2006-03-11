@@ -337,6 +337,9 @@ test oralob-6.1 {oralob: read clob with SQL} {
 orasql $lob_stm $lob_sql(drop_lob_table)
 oraclose $lob_stm
 oralogoff $lob_lda
+unset lob_sql
+unset lob_stm
+unset lob_lda
 
 ::tcltest::cleanupTests
 return

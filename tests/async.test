@@ -241,6 +241,10 @@ oraexec $block_stm
 
 oraclose $async_stm
 oralogoff $async_lda
+unset block_lda
+unset block_stm
+unset async_lda
+unset async_stm
 
 ::tcltest::cleanupTests
 return

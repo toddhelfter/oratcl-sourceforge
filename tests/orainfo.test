@@ -20,6 +20,9 @@ if {[info exists ora_lda] == 0} {
 		catch {orainfo version} res
 		set res
 	}
+	-cleanup {
+		unset res
+	}
 	-result 4.4
 }
 
@@ -35,6 +38,9 @@ if {[info exists ora_lda] == 0} {
 	}
 	-cleanup {
 		oralogoff $info_lda
+		unset info_lda
+		unset word
+		unset res
 	}
 	-result 1
 }
@@ -68,6 +74,9 @@ if {[info exists ora_lda] == 0} {
 	-cleanup {
 		oraclose $info_stm
 		oralogoff $info_lda
+		unset info_stm
+		unset info_lda
+		unset res
 	}
 	-result 1
 }

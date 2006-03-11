@@ -211,5 +211,10 @@ catch {orasql $desc_stm {drop table oratcl_desc_tbl_2}}
 oraclose $desc_stm
 oralogoff $desc_lda
 
+unset desc_usr
+unset desc_lda
+unset desc_stm
+unset desc_ver
+
 ::tcltest::cleanupTests
 return

@@ -147,6 +147,12 @@ orasql $long_stm $long_sql(drop_long_table)
 orasql $long_stm $long_sql(drop_longraw_table)
 oraclose $long_stm
 oralogoff $long_lda
+unset long_stm
+unset long_lda
+unset rowid1
+unset rowid2
+unset rowid3
+unset rowid4
 
 ::tcltest::cleanupTests
 return
