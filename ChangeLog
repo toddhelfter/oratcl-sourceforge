@@ -1,3 +1,7 @@
+2006-03-11  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c Oratcl_ErrorMsg()  Use Tcl_AppendObjToObj() eliminating a needless
+	string conversion.
+
 2006-03-10  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c improve handling of temporary Tcl_Obj with proper
 	calls to Tcl_IncrRefCount and Tcl_DecrRefCount.
