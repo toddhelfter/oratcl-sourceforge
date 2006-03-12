@@ -910,6 +910,7 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	Tcl_DString	errStr;
 	static char	errbuf[ORA_MSG_SIZE];
 	sb4		errcode = 0;
+	Tcl_Obj		*tmp_obj;
 
 	errbuf[0] = '\0';
 	Tcl_DStringInit(&errStr);
@@ -941,9 +942,11 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	}
 
 	if (flag==1) {
-		Tcl_SetObjResult(interp,
-		Tcl_NewStringObj(Tcl_DStringValue(&errStr),
-				 Tcl_DStringLength(&errStr)));
+		tmp_obj = Tcl_NewStringObj(Tcl_DStringValue(&errStr),
+					   Tcl_DStringLength(&errStr));
+		Tcl_IncrRefCount(tmp_obj);
+		Tcl_SetObjResult(interp, tmp_obj);
+		Tcl_DecrRefCount(tmp_obj);
 	}
 
 	if (rcPtr) {
@@ -5526,14 +5529,13 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 			}
 
-			Oratcl_Checkerr(interp,
-					LogPtr->errhp,
-					rc,
-					1,
-					&StmPtr->ora_rc,
-					&StmPtr->ora_err);
-
 			if (rc != OCI_SUCCESS) {
+				Oratcl_Checkerr(interp,
+						LogPtr->errhp,
+						rc,
+						1,
+						&StmPtr->ora_rc,
+						&StmPtr->ora_err);
 				Oratcl_ColFree(tmp_col_head);
 				StmPtr->bind_list = NULL;
 				tcl_return = TCL_ERROR;
@@ -6231,7 +6233,6 @@ common_exit:
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
 	}
-
 	return tcl_return;
 }
 
