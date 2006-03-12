@@ -10,7 +10,6 @@ if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-
 global ora_constr
 set desc_usr $ora_userid
 set desc_lda [oralogon $ora_constr]
@@ -148,12 +147,13 @@ test oradesc-2.0 {oradesc: describe non-existent table} {
 } {0}
 
 test oradesc-2.1 {oradesc: describe non-existent schema.table} {
-	set desc_res {}
 	set user [string toupper $desc_usr]
 	set table ${user}.ORATCL_NOEXIST_TBL_1
 	set good_res [format "ORA-04043: object %s does not exist" $table]
-	catch {set desc_res [oradesc $desc_lda $table]} catch_res
+	catch {[oradesc $desc_lda $table]} catch_res
 	set test_res [string compare $catch_res $good_res]
+	unset catch_res
+	unset good_res
 	set test_res
 } {0}
 
@@ -196,6 +196,7 @@ test oradesc-4.0 {oradesc: describe public synonym} {
 	set desc_res {}
 	catch {set desc_res [oradesc $desc_lda oratcl_public_syn_1]}
 	set test_res [test_list desc_res desc_tbl_1]
+	unset desc_res
 	set test_res
 } {1}
 
