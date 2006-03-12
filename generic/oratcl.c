@@ -1634,9 +1634,11 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	ub4		oci_cred = OCI_CRED_RDBMS;
 	ub4		oci_conn = OCI_DEFAULT;
 
+	Tcl_Obj		*handlep1 = NULL;
+	Tcl_Obj		*handlep2 = NULL;
+
 	char		*p = NULL;
-	char		buf[20];
-	Tcl_Obj		*buf_obj = NULL;
+	char		*tbuf = NULL;
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_IncrRefCount(objv[objix]);
@@ -1655,8 +1657,18 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	/* generate an lda name and put it in the hash table. */
 	OratclStatePtr->logid++;
-	sprintf(buf,"%s%d",OraHandlePrefix,OratclStatePtr->logid);
-	logHashPtr = Tcl_CreateHashEntry(OratclStatePtr->logHash, buf, &new);
+
+	handlep1 = Tcl_NewStringObj(OraHandlePrefix, -1);
+	Tcl_IncrRefCount(handlep1);
+
+	handlep2 = Tcl_NewIntObj(OratclStatePtr->logid);
+	Tcl_IncrRefCount(handlep2);
+	Tcl_AppendObjToObj(handlep1, handlep2);
+	Tcl_DecrRefCount(handlep2);
+
+	logHashPtr = Tcl_CreateHashEntry(OratclStatePtr->logHash,
+					 Tcl_GetStringFromObj(handlep1 ,NULL),
+					 &new);
 
 	LogPtr->envhp = NULL;
 	LogPtr->errhp = NULL;
@@ -1874,9 +1886,11 @@ Oratcl_Logon (clientData, interp, objc, objv)
 				i++;
 				p = Tcl_GetStringFromObj(objv[i], NULL);
 
+				tbuf = Tcl_GetStringFromObj(handlep1, NULL);
+
 				/* append oralogon handle string */
-				LogPtr->failovercallback = ckalloc(strlen(p) + strlen(buf) +2);
-				sprintf(LogPtr->failovercallback, "%s %s", p, buf);
+				LogPtr->failovercallback = ckalloc(strlen(p) + strlen(tbuf) +2);
+				sprintf(LogPtr->failovercallback, "%s %s", p, tbuf);
 				LogPtr->interp = interp;
 				failover.fo_ctx = (dvoid *)LogPtr;
 				failover.callback_function = &callback_fn;
@@ -1922,10 +1936,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	buf_obj = Tcl_NewStringObj(buf, -1);
-	Tcl_IncrRefCount(buf_obj);
-	Tcl_SetObjResult(interp, buf_obj);
-	Tcl_DecrRefCount(buf_obj);
+	Tcl_SetObjResult(interp, handlep1);
 
 common_exit:
 
@@ -1955,6 +1966,9 @@ common_exit:
 		}
 
 	}
+
+	if (handlep1)
+		Tcl_DecrRefCount(handlep1);
 
 	ckfree(cpy_str);
 
@@ -2544,12 +2558,13 @@ Oratcl_Open (clientData, interp, objc, objv)
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
 	Tcl_HashEntry	*stmHashPtr;
-	char		*logHashKey;
+	char		*logHashKey = NULL;
 	OratclLogs	*LogPtr;
 	OratclStms	*StmPtr;
 
-	char		buf[20];
-	Tcl_Obj		*buf_obj;
+	Tcl_Obj		*handlep1 = NULL;
+	Tcl_Obj		*handlep2 = NULL;
+
 	sword		rc;
 	int		new;
 
@@ -2586,8 +2601,19 @@ Oratcl_Open (clientData, interp, objc, objv)
 
 	/* generate an lda name and put it in the hash table. */
 	OratclStatePtr->stmid++;
-	sprintf(buf,"%s.%d",logHashKey,OratclStatePtr->stmid);
-	stmHashPtr = Tcl_CreateHashEntry(OratclStatePtr->stmHash, buf, &new);
+
+	handlep1 = Tcl_NewStringObj((char *)logHashKey, -1);
+	Tcl_IncrRefCount(handlep1);
+	Tcl_AppendStringsToObj(handlep1, ".", NULL);
+
+	handlep2 = Tcl_NewIntObj(OratclStatePtr->stmid);
+	Tcl_IncrRefCount(handlep2);
+	Tcl_AppendObjToObj(handlep1, handlep2);
+	Tcl_DecrRefCount(handlep2);
+	
+	stmHashPtr = Tcl_CreateHashEntry(OratclStatePtr->stmHash,
+					 Tcl_GetStringFromObj(handlep1 ,NULL),
+					 &new);
 
 	if (stmHashPtr == NULL) {
 		Oratcl_ErrorMsg(interp,
@@ -2660,12 +2686,12 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->sub_len		= 0;
 	StmPtr->utfmode		= 0;
 
-	buf_obj = Tcl_NewStringObj(buf, -1);
-	Tcl_IncrRefCount(buf_obj);
-	Tcl_SetObjResult(interp, buf_obj);
-	Tcl_DecrRefCount(buf_obj);
+	Tcl_SetObjResult(interp, handlep1);
 
 common_exit:
+
+	if (handlep1)
+		Tcl_DecrRefCount(handlep1);
 
 	for (objix=0; objix<objc; objix++) {
 		Tcl_DecrRefCount(objv[objix]);
@@ -5703,19 +5729,13 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	Oratcl_Checkerr(interp,
-			LogPtr->errhp,
-			rc,
-			0,
-			&StmPtr->ora_rc,
-			&StmPtr->ora_err);
-
 	if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
-		Oratcl_ErrorMsg(interp,
-				objv[0],
-				": SQL execution failed.",
-				(Tcl_Obj *) NULL,
-				(char *) NULL);
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 		Oratcl_ColFree(StmPtr->col_list);
 		StmPtr->col_list = NULL;
 		Oratcl_ColFree(StmPtr->bind_list);

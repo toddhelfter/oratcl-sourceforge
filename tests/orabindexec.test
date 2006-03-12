@@ -103,8 +103,7 @@ if {[info exists ora_lda] == 0} {
 		oraparse $tst_cur $sql
 	}
 	-body { 
-		  catch {orabindexec $tst_cur :n1 {10} :n2 {10}} res
-		  set res
+		  orabindexec $tst_cur :n1 {10} :n2 {10}
 	}
 	-cleanup {
 		oraclose $tst_cur
@@ -112,7 +111,8 @@ if {[info exists ora_lda] == 0} {
 		unset tst_cur
 		unset tst_lda
 	}
-	-result {orabindexec: SQL execution failed.}
+	-result {ORA-01008: not all variables bound}
+	-returnCodes {1}
 } 
 
 
