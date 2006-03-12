@@ -5103,6 +5103,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	Tcl_DString	stmStr;
 	sword		rc;
 	int		cols;
+	Tcl_Obj		*res_obj;
 
 	char		*stmt;
 	ub4		stln;
@@ -5199,7 +5200,10 @@ Oratcl_Parse (clientData, interp, objc, objv)
 				     OCI_DESCRIBE_ONLY);
 
 		if (rc == OCI_STILL_EXECUTING) {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
+			res_obj = Tcl_NewIntObj(rc);
+			Tcl_IncrRefCount(res_obj);
+			Tcl_SetObjResult(interp, res_obj);
+			Tcl_DecrRefCount(res_obj);
 			StmPtr->ora_rc = rc;
 			if (LogPtr->async == 1) {
 				tcl_return = TCL_OK;
@@ -5211,12 +5215,12 @@ Oratcl_Parse (clientData, interp, objc, objv)
 
 		if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
 #ifdef OCI_ATTR_PARSE_ERROR_OFFSET
-				OCI_AttrGet( (dvoid *) StmPtr->stmhp,
-					    (ub4) OCI_HTYPE_STMT,
-					    (ub2 *) &StmPtr->ora_peo,
-					    (ub4) 0,
-					    OCI_ATTR_PARSE_ERROR_OFFSET,
-					    LogPtr->errhp);
+			OCI_AttrGet( (dvoid *) StmPtr->stmhp,
+				    (ub4) OCI_HTYPE_STMT,
+				    (ub2 *) &StmPtr->ora_peo,
+				    (ub4) 0,
+				    OCI_ATTR_PARSE_ERROR_OFFSET,
+				    LogPtr->errhp);
 #endif
 			Oratcl_Checkerr(interp,
 					LogPtr->errhp,
@@ -5246,7 +5250,10 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	}
 
 	StmPtr->ora_rc = 0;
-	Tcl_SetObjResult(interp, OMV_zero);
+	res_obj = Tcl_NewIntObj(0);
+	Tcl_IncrRefCount(res_obj);
+	Tcl_SetObjResult(interp, res_obj);
+	Tcl_DecrRefCount(res_obj);
 
 common_exit:
 
