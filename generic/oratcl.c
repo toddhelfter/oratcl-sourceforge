@@ -186,11 +186,7 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 	newPtr = Tcl_DuplicateObj(OMV_null);
 	if (obj0) {
 		Tcl_IncrRefCount(obj0);
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		Tcl_AppendObjToObj(newPtr, obj0);
-#else
-		Tcl_AppendStringsToObj(newPtr, Tcl_GetString(obj0), (char *) NULL);
-#endif
 		Tcl_DecrRefCount(obj0);
 	}
 	if (msg0) {
@@ -198,11 +194,7 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 	}
 	if (obj1) {
 		Tcl_IncrRefCount(obj1);
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		Tcl_AppendObjToObj(newPtr, obj1);
-#else
-		Tcl_AppendStringsToObj(newPtr, Tcl_GetString(obj1), (char *) NULL);
-#endif
 		Tcl_DecrRefCount(obj1);
 	}
 	if (msg1) {
