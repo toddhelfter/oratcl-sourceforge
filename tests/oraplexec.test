@@ -6,6 +6,10 @@
 # exercise various oraplexec operations
 #
 
+package require tcltest
+::tcltest::configure -verbose ept
+::tcltest::testConstraint testoraplexec [llength [info commands oraplexec]]
+
 if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
@@ -75,29 +79,74 @@ oraplexec $pl_stm $oratcl___test2
 oraplexec $pl_stm $oratcl_pkg
 oraplexec $pl_stm $oratcl_pkgbody
 
-test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {
-  set pl(1) {declare my_result date; begin :my_result := oratcl___test1(22, '22'); end;}
-  oraplexec $pl_stm $pl(1) :my_result {}
-  orafetch $pl_stm -datavariable rv_1
-  set rv_2 [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]]
-  string equal $rv_1 $rv_2
-} 1
+::tcltest::test oraplexec-1.1 {oraplexec: :bind = function(val, val)} {
+        -constraints testoraplexec
+        -setup {
+                set test1(lda) [oralogon $ora_constr]
+                set test1(stm) [oraopen $test1(lda)]
+		set test1(pl1) {declare my_result date; begin :my_result := oratcl___test1(22, '22'); end;}
+		oraparse $test1(stm) {alter session set nls_date_format = 'DD-MON-YYYY'}
+		oraexec $test1(stm)
+        }
+	-body {
+		oraplexec $test1(stm) $test1(pl1) :my_result {}
+		orafetch $test1(stm) -datavariable test1(rv1)
+		set test1(rv2) [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]]
+		list [string equal $test1(rv1) $test1(rv2)]
+	}
+	-cleanup {
+                oraclose $test1(stm)
+                oralogoff $test1(lda)
+                array unset test1
+	}
+	-result {1}
+}
 
-test oraplexec-1.2 {oraplexec: :bind = function(:bindval, val)} {
-  set pl(2) {declare my_result date; begin :my_result := oratcl___test1(:in1, '22'); end;}
-  oraplexec $pl_stm $pl(2) :my_result {} :in1 22
-  orafetch $pl_stm -datavariable rv_1
-  set rv_2 [list [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]] 22]
-  string equal $rv_1 $rv_2
-} 1
+::tcltest::test oraplexec-1.2 {oraplexec: :bind = function(:bindval, val)} {
+        -constraints testoraplexec
+        -setup {
+                set test2(lda) [oralogon $ora_constr]
+                set test2(stm) [oraopen $test2(lda)]
+		set test2(pl2) {declare my_result date; begin :my_result := oratcl___test1(:in1, '22'); end;}
+		oraparse $test2(stm) {alter session set nls_date_format = 'DD-MON-YYYY'}
+		oraexec $test2(stm)
+        }
+	-body {
+		oraplexec $test2(stm) $test2(pl2) :my_result {} :in1 22
+		orafetch $test2(stm) -datavariable test2(rv1)
+		set test2(rv2) [list [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]] 22]
+		list [string equal $test2(rv1) $test2(rv2)]
+	}
+	-cleanup {
+                oraclose $test2(stm)
+                oralogoff $test2(lda)
+                array unset test2
+	}
+	-result {1}
+}
 
-test oraplexec-1.3 {oraplexec: :bind = function(:bindval, :bindval)} {
-  set pl(3) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
-  oraplexec $pl_stm $pl(3) :my_result {} :in1 22 :in2 {22}
-  orafetch $pl_stm -datavariable rv_1
-  set rv_2 [list [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]] 22 22]
-  string equal $rv_1 $rv_2
-} 1
+::tcltest::test oraplexec-1.3 {oraplexec: :bind = function(:bindval, :bindval)} {
+        -constraints testoraplexec
+        -setup {
+                set test3(lda) [oralogon $ora_constr]
+                set test3(stm) [oraopen $test3(lda)]
+		set test3(pl3) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
+		oraparse $test3(stm) {alter session set nls_date_format = 'DD-MON-YYYY'}
+		oraexec $test3(stm)
+        }
+	-body {
+		oraplexec $test3(stm) $test3(pl3) :my_result {} :in1 22 :in2 {22}
+		orafetch $test3(stm) -datavariable test3(rv1)
+		set test3(rv2) [list [string toupper [clock format [clock seconds] -format {%d-%b-%Y}]] 22 22]
+		list [string equal $test3(rv1) $test3(rv2)]
+	}
+	-cleanup {
+                oraclose $test3(stm)
+                oralogoff $test3(lda)
+                array unset test3
+	}
+	-result {1}
+}
 
 test oraplexec-1.4 {oraplexec: bad bind pairs :: result} {
   set pl(4) {declare my_result date; begin :my_result := oratcl___test1(:in1, :in2); end;}
@@ -164,5 +213,11 @@ oraclose $pl_exe
 oraclose $pl_stm
 oralogoff $pl_lda
 
+#array unset pl
+#unset $pl_stm
+#unset $pl_lda
+
 ::tcltest::cleanupTests
+::tcltest::configure -verbose b
+
 return
