@@ -27,29 +27,30 @@ if {[info exists ora_lda] == 0} {
 ::tcltest::test oraparse-1.1 {oraparse 9 sql types} {
 	-constraints testoraparse
 	-setup {
-		set tst_lda [oralogon $ora_constr]
-		set tst_stm [oraopen $tst_lda]
-		set tst_res {}
-		set p(1) {select * from oratcl___tests where v_number = 0}
-		set p(2) {update oratcl___tests set v_number = 0 where v_number = 0}
-		set p(3) {delete from oratcl___tests where v_number = 0}
-		set p(4) {insert into oratcl___tests (v_number) values (20)}
-		set p(5) {create table oratcl___tests (v_number number(2))}
-		set p(6) {drop table oratcl___tests}
-		set p(7) {alter session set nls_date_format = 'DD-MON-YYYY'}
-		set p(8) {begin bogus_package; end;}
-		set p(9) {declare x number(3); begin bogus_package; end;}
+		set tst(lda) [oralogon $ora_constr]
+		set tst(stm) [oraopen $tst(lda)]
+		set tst(res) {}
+		set tst(1) {select * from oratcl___tests where v_number = 0}
+		set tst(2) {update oratcl___tests set v_number = 0 where v_number = 0}
+		set tst(3) {delete from oratcl___tests where v_number = 0}
+		set tst(4) {insert into oratcl___tests (v_number) values (20)}
+		set tst(5) {create table oratcl___tests (v_number number(2))}
+		set tst(6) {drop table oratcl___tests}
+		set tst(7) {alter session set nls_date_format = 'DD-MON-YYYY'}
+		set tst(8) {begin bogus_package; end;}
+		set tst(9) {declare x number(3); begin bogus_package; end;}
 	}
 	-body {
 		for {set n 1} {$n <= 9} {incr n} {
-			oraparse $tst_stm $p($n)
-			lappend tst_res [oramsg $tst_stm sqltype]
+			oraparse $tst(stm) $tst($n)
+			lappend tst(res) [oramsg $tst(stm) sqltype]
 		}
-		set tst_res
+		set tst(res)
 	}
 	-cleanup {
-                oraclose $tst_stm
-                oralogoff $tst_lda
+                oraclose $tst(stm)
+                oralogoff $tst(lda)
+		array unset tst
 	}
 	-result {1 2 3 4 5 6 7 8 9}
 }
@@ -60,27 +61,23 @@ if {[info exists ora_lda] == 0} {
 test oraparse-2.1 {oraparse bad sql} {
 	-constraints testoraparse
 	-setup {
-		set tst_lda [oralogon $ora_constr]
-		set tst_stm [oraopen $tst_lda]
-		set tst_res {}
-		set p(1) {select * oratcl___tests where v_number = 0}
-		set p(2) {select * from oratcl___tests v_number = 0}
+		set tst(lda) [oralogon $ora_constr]
+		set tst(stm) [oraopen $tst(lda)]
+		set tst(res) {}
+		set tst(1) {select * oratcl___tests where v_number = 0}
+		set tst(2) {select * from oratcl___tests v_number = 0}
 	}
 	-body {
 		for {set n 1} {$n <= 2} {incr n} {
-			catch {oraparse $tst_stm $p($n)}
-			lappend tst_res [oramsg $tst_stm rc]
+			catch {oraparse $tst(stm) $tst($n)}
+			lappend tst(res) [oramsg $tst(stm) rc]
 		}
-		set tst_res
+		set tst(res)
 	}
 	-cleanup {
-                oraclose $tst_stm
-                oralogoff $tst_lda
-		unset tst_lda
-		unset tst_stm
-		unset tst_res
-		unset p
-		unset n
+                oraclose $tst(stm)
+                oralogoff $tst(lda)
+		array unset tst
 	}
 	-result {923 933}
 }
