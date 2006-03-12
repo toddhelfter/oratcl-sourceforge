@@ -1,6 +1,18 @@
 2006-03-11  Todd Helfter <thelfter@gmail.com>
-	* generic/oratcl.c Oratcl_ErrorMsg()  Use Tcl_AppendObjToObj() eliminating a needless
-	string conversion.
+	* generic/oratcl.c Oratcl_Login() and Oratcl_Open() eliminate the char *buf[20]
+	object for a dynamic Tcl_Obj.
+
+2006-03-11  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c Oratcl_Exec() will now return specific Oracle error message
+	instead of the generic message it previously returned.
+
+2006-03-11  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c Oratcl_Open() eliminated a memory leak caused by initializing
+	the StmPtr->nullvalue twice.
+
+2006-03-11  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c Oratcl_ErrorMsg()  Use Tcl_AppendObjToObj() eliminating a
+	needless string conversion.
 
 2006-03-10  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c improve handling of temporary Tcl_Obj with proper
