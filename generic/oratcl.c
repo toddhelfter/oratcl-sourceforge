@@ -490,7 +490,7 @@ Oratcl_Init (interp)
 		}
 		return TCL_ERROR;
 	}
-        
+
 	if (ora_lib == NULL) {
 #if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		Tcl_DecrRefCount(tmp_obj);
@@ -914,7 +914,7 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 		case OCI_ERROR:
 		case OCI_STILL_EXECUTING:
 			OCI_ErrorGet ((dvoid *) errhp,
-		 		      (ub4) 1,
+				      (ub4) 1,
 				      (text *) NULL,
 				      &errcode,
 				      (text *) errbuf,
@@ -1024,7 +1024,7 @@ Oratcl_ColFree (ColPtr)
 				for( nRow = 0; nRow < ColPtr->nFetchRows; nRow++) {
 					OCILobLocator  **pLocator;
 					pLocator = (OCILobLocator**)(ColPtr->column.valuep
-							           + ColPtr->column.valuesz * nRow);
+								   + ColPtr->column.valuesz * nRow);
 					OCI_DescriptorFree((dvoid*)*pLocator,
 							   (ub4) OCI_DTYPE_LOB);
 				}
@@ -1173,9 +1173,9 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	Tcl_DStringSetLength(&StmPtr->datavar, 0);
 
 	/* 
-         * Check for a LOB column and allocate a buffer piece.
+	 * Check for a LOB column and allocate a buffer piece.
 	 * The buffer piece can be used for multiple columns.
-         */
+	 */
 	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
 		if (( col->dty == SQLT_BLOB ) || ( col->dty == SQLT_CLOB )) {
 			pValue = ckalloc( StmPtr->lobpsize + 1 );
@@ -1818,7 +1818,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	 */
 
 	rc = OCI_AttrSet((dvoid *) LogPtr->usrhp,
-		 	 (ub4) OCI_HTYPE_SESSION,
+			 (ub4) OCI_HTYPE_SESSION,
 			 (dvoid *) ora_name,
 			 (ub4) ora_namelen,
 			 (ub4) OCI_ATTR_USERNAME,
@@ -1835,7 +1835,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	rc = OCI_AttrSet((dvoid *) LogPtr->usrhp,
 			 (ub4) OCI_HTYPE_SESSION,
-		  	 (dvoid *) ora_pass,
+			 (dvoid *) ora_pass,
 			 (ub4) ora_passlen,
 			 (ub4) OCI_ATTR_PASSWORD,
 			 LogPtr->errhp);
@@ -2605,7 +2605,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 	Tcl_IncrRefCount(handlep2);
 	Tcl_AppendObjToObj(handlep1, handlep2);
 	Tcl_DecrRefCount(handlep2);
-	
+
 	stmHashPtr = Tcl_CreateHashEntry(OratclStatePtr->stmHash,
 					 Tcl_GetStringFromObj(handlep1 ,NULL),
 					 &new);
