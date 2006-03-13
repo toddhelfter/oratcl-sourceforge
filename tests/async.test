@@ -455,6 +455,7 @@ oralogoff $block_lda
 
 unset block_lda
 unset block_stm
+unset oratcl___async1
 
 ::tcltest::configure -verbose b
 ::tcltest::cleanupTests

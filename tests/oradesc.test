@@ -216,6 +216,8 @@ unset desc_usr
 unset desc_lda
 unset desc_stm
 unset desc_ver
+unset desc_tbl_1
+unset desc_tbl_2
 
 ::tcltest::cleanupTests
 return
