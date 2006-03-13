@@ -24,10 +24,16 @@
 #define OCI_STILL_EXECUTING	-3123
 #define OCI_CONTINUE		-24200
 
-
+/* OCI Error Codes Strings */
+#define STR_OCI_SUCCESS			"0"
+#define STR_OCI_SUCCESS_WITH_INFO	"1"
+#define STR_OCI_NEED_DATA		"99"
+#define STR_OCI_NO_DATA			"100"
+#define STR_OCI_ERROR			"-1"
+#define STR_OCI_INVALID_HANDLE		"-2"
+#define STR_OCI_STILL_EXECUTING		"-3123"
 
 #define OCI_ATTR_ROW_COUNT	9
-
 
 /* OCI Statement Types */
 

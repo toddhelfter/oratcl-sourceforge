@@ -785,68 +785,47 @@ Oratcl_Init (interp)
 
 	/* set some OCI constants for ease of use */
 
-	rc_obj = Tcl_NewIntObj(OCI_SUCCESS);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_SUCCESS",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		    "OCI_SUCCESS",
+		    STR_OCI_SUCCESS,
+		    TCL_LEAVE_ERR_MSG);
 
-	rc_obj = Tcl_NewIntObj(OCI_SUCCESS_WITH_INFO);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_SUCCESS_WITH_INFO",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		    "OCI_SUCCESS_WITH_INFO",
+		    STR_OCI_SUCCESS_WITH_INFO,
+		    TCL_LEAVE_ERR_MSG);
 
-	rc_obj = Tcl_NewIntObj(OCI_ERROR);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_ERROR",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		     "OCI_ERROR",
+		     STR_OCI_ERROR,
+		     TCL_LEAVE_ERR_MSG);
 
-	rc_obj = Tcl_NewIntObj(OCI_INVALID_HANDLE);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_INVALID_HANDLE",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		    "OCI_INVALID_HANDLE",
+		    STR_OCI_INVALID_HANDLE,
+		    TCL_LEAVE_ERR_MSG);
 
-	rc_obj = Tcl_NewIntObj(OCI_STILL_EXECUTING);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_STILL_EXECUTING",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		     "OCI_STILL_EXECUTING",
+		     STR_OCI_STILL_EXECUTING,
+		     TCL_LEAVE_ERR_MSG);
 
-	rc_obj = Tcl_NewIntObj(OCI_NO_DATA);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_NO_DATA",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		    "OCI_NO_DATA",
+		    STR_OCI_NO_DATA,
+		    TCL_LEAVE_ERR_MSG);
 
-	rc_obj = Tcl_NewIntObj(OCI_NEED_DATA);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetVar2Ex(interp,
-		      "::oratcl::codes",
-		       "OCI_NEED_DATA",
-		       rc_obj,
-		       TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(rc_obj);
+	Tcl_SetVar2(interp,
+		    "::oratcl::codes",
+		    "OCI_NEED_DATA",
+		    STR_OCI_NEED_DATA,
+		    TCL_LEAVE_ERR_MSG);
 
 	/* callback - clean up procs left open on interpreter deletetion */
 	Tcl_CallWhenDeleted(interp,
@@ -900,11 +879,10 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 {
 
 	Tcl_DString	errStr;
-	static char	errbuf[ORA_MSG_SIZE];
+	char		*errstr = NULL;
 	sb4		errcode = 0;
 	Tcl_Obj		*tmp_obj;
 
-	errbuf[0] = '\0';
 	Tcl_DStringInit(&errStr);
 
 	switch (rc) {
@@ -913,16 +891,20 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 		case OCI_NO_DATA:
 		case OCI_ERROR:
 		case OCI_STILL_EXECUTING:
-			OCI_ErrorGet ((dvoid *) errhp,
-				      (ub4) 1,
-				      (text *) NULL,
-				      &errcode,
-				      (text *) errbuf,
-				      (ub4) sizeof(errbuf),
-				      (ub4) OCI_HTYPE_ERROR); 
-			/* remove trailing carriage return from Oracle string */
-			errbuf[strlen(errbuf) - 1] = '\0';
-			Tcl_DStringAppend(&errStr, errbuf, -1);
+			if ((errstr = (char *) ckalloc(ORA_MSG_SIZE)) != NULL) {
+				errstr[0] = '\0';
+				OCI_ErrorGet ((dvoid *) errhp,
+					      (ub4) 1,
+					      (text *) NULL,
+					      &errcode,
+					      (text *) errstr,
+					      (ub4) ORA_MSG_SIZE,
+					      (ub4) OCI_HTYPE_ERROR); 
+				/* remove trailing carriage return from Oracle string */
+				errstr[strlen(errstr) - 1] = '\0';
+				Tcl_DStringAppend(&errStr, errstr, -1);
+				ckfree (errstr);
+			}
 			break;
 		case OCI_SUCCESS:
 		case OCI_INVALID_HANDLE:
