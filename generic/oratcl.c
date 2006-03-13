@@ -355,7 +355,6 @@ Oratcl_Init (interp)
 	OratclStateList *StateListPtr;
 
 	int		rc = 0;
-	Tcl_Obj		*rc_obj;
 
 	HMODULE		handle;
 
