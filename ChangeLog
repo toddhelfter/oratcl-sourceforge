@@ -1,3 +1,6 @@
+2006-03-13  Todd Helfter <
+	* generic/oratclInt.h remove unused members lobid and lobHash from struct OratclState
+
 2006-03-12  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c Oratcl_Checkerr() improve Tcl_Obj handling.
 	* generic/oratcl.c Oratcl_Bind() correct error handling.

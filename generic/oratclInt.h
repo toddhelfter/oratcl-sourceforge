@@ -145,8 +145,6 @@ typedef struct OratclState {
         int		logid;		/* login handle id		*/
         Tcl_HashTable	*stmHash;	/* statement handle hash	*/
         int		stmid;		/* statement handle id		*/
-        Tcl_HashTable	*lobHash;	/* statement handle hash	*/
-        int		lobid;		/* statement handle id		*/
 } OratclState;
 
 typedef struct OratclStateList {
