@@ -80,7 +80,6 @@ if {[info exists ora_lda] == 0} {
 	-result {100}
 }
 
-
 ::tcltest::test oratcl::codes-1.7 {::oratcl::codes array} {
 	-body {
 		if {[info exists ::oratcl::codes(OCI_STILL_EXECUTING)]} {
