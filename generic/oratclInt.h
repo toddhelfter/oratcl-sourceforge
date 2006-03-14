@@ -136,9 +136,6 @@ typedef struct OratclStms {
 	ub2		ora_fcd;	/* oracle function code		*/
 } OratclStms;
 
-#if 0
-extern Tcl_Obj		*OMV_null;
-#endif
 extern Tcl_Obj		*OMV_zero;
 
 typedef struct OratclState {
