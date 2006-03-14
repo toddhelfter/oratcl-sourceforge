@@ -1,4 +1,8 @@
 2006-03-13  Todd Helfter <
+	* generic/oratcl.c: 
+	* generic/oratclInt.h    remove unused tListObjType global variable
+
+2006-03-13  Todd Helfter <
 	* generic/oradefs.h Add string representations of some numbers to avoid code conversions
 	* generic/oratcl.c Use string rep. instead of number conversion to strings.
 	* generic/oratcl.c Oratcl_Checkerr() Use dynamic string buffer, eliminate static char buffer.

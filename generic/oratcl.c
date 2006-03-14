@@ -103,7 +103,6 @@ static char *OraHandlePrefix = "oratcl";
 
 Tcl_Obj *OMV_null = NULL;
 Tcl_Obj *OMV_zero = NULL;
-Tcl_ObjType *tListObjType = NULL;
 
 OratclStateList	*OratclSLP = NULL;
 
@@ -311,7 +310,7 @@ Oratcl_Exit (clientData)
 	Tcl_DecrRefCount(OMV_null);
 	Tcl_DecrRefCount(OMV_zero);
 
-#if 0
+#if 1
 #ifdef TCL_MEM_DEBUG
 	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
 #endif
@@ -597,8 +596,6 @@ Oratcl_Init (interp)
 
 		Tcl_IncrRefCount(OMV_null);
 		Tcl_IncrRefCount(OMV_zero);
-
-		tListObjType	= Tcl_GetObjType("list");
 
 		Tcl_CreateExitHandler ((Tcl_ExitProc *) Oratcl_Exit,
 				       (ClientData) OratclStatePtr);

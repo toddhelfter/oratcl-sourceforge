@@ -138,7 +138,6 @@ typedef struct OratclStms {
 
 extern Tcl_Obj		*OMV_null;
 extern Tcl_Obj		*OMV_zero;
-extern Tcl_ObjType      *tListObjType;
 
 typedef struct OratclState {
         Tcl_HashTable	*logHash;	/* login handle hash		*/
