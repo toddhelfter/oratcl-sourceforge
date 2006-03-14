@@ -310,7 +310,7 @@ Oratcl_Exit (clientData)
 	Tcl_DecrRefCount(OMV_null);
 	Tcl_DecrRefCount(OMV_zero);
 
-#if 1
+#ifndef __WIN32__
 #ifdef TCL_MEM_DEBUG
 	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
 #endif
