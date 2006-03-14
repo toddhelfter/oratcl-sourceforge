@@ -37,14 +37,14 @@ if {[info exists ora_lda] == 0} {
 
 ::tcltest::test oraopen-1.2 {oraopen: many cursors} {
 	-setup {
-                set tst_lda [oralogon $ora_constr]
+                set tst(lda) [oralogon $ora_constr]
 		set cur_list {}
 	}
 	-body {
 		for {set n 0} {$n < 100} {incr n} {
-			set cr [catch {set cur [oraopen $tst_lda]}]
+			set cr [catch {set tst(st$n) [oraopen $tst(lda)]}]
 			if {$cr == 0} {
-				lappend cur_list $cur
+				lappend cur_list $tst(st$n)
 			} else {
 				break
 			}
@@ -55,8 +55,8 @@ if {[info exists ora_lda] == 0} {
 		foreach cur $cur_list {
 			catch {oraclose $cur}
 		}
-                oralogoff $tst_lda
-		unset tst_lda
+                oralogoff $tst(lda)
+		array unset tst
 		unset cur_list
 		unset cur
 	}

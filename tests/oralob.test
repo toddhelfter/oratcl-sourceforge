@@ -116,6 +116,7 @@ test oralob-1.3 {oralob: read clob} {
 	catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
 	catch {oralob read $lob -datavar chr_out} res
 	set read [string equal $chr_data $chr_out]
+	unset chr_out
 	catch {oralob free $lob} free
 	list $lob $read $free
 } {oralob.3 1 0}
