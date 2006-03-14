@@ -1,3 +1,7 @@
+2006-03-14  Todd Helfter <
+	* generic/oratcl.c: 
+	* generic/oratclInt.h    remove global Tcl_Obj OMV_null.
+
 2006-03-13  Todd Helfter <
 	* generic/oratcl.c: 
 	* generic/oratclInt.h    remove unused tListObjType global variable

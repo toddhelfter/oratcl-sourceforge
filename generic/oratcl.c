@@ -101,7 +101,6 @@ LPVOID reserved;            /* Not used. */
 
 static char *OraHandlePrefix = "oratcl";
 
-Tcl_Obj *OMV_null = NULL;
 Tcl_Obj *OMV_zero = NULL;
 
 OratclStateList	*OratclSLP = NULL;
@@ -182,7 +181,7 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 {
 	Tcl_Obj		*newPtr;
 
-	newPtr = Tcl_DuplicateObj(OMV_null);
+	newPtr = Tcl_NewStringObj("",	-1);
 	if (obj0) {
 		Tcl_IncrRefCount(obj0);
 		Tcl_AppendObjToObj(newPtr, obj0);
@@ -307,7 +306,6 @@ Oratcl_Exit (clientData)
 {
 	Oratcl_Clean(clientData);
 
-	Tcl_DecrRefCount(OMV_null);
 	Tcl_DecrRefCount(OMV_zero);
 
 #ifndef __WIN32__
@@ -591,10 +589,7 @@ Oratcl_Init (interp)
 
 		OratclInitFlag = 1;
 
-		OMV_null	= Tcl_NewStringObj("",	-1);
 		OMV_zero	= Tcl_NewIntObj(0);
-
-		Tcl_IncrRefCount(OMV_null);
 		Tcl_IncrRefCount(OMV_zero);
 
 		Tcl_CreateExitHandler ((Tcl_ExitProc *) Oratcl_Exit,
@@ -2798,35 +2793,35 @@ Oratcl_Message (clientData, interp, objc, objv)
 		} else if (StmPtr) {
 			oCols[oColsc++] = Tcl_NewStringObj(StmPtr->ora_err.string, StmPtr->ora_err.length);
 		} else {
-			oCols[oColsc++] = OMV_null;
+			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}
 	}
 	if (mode == OPT_ALL || mode == OPT_ROW) {
 		if (StmPtr) {
 			oCols[oColsc++] = Tcl_NewLongObj(StmPtr->ora_row);
 		} else {
-			oCols[oColsc++] = OMV_null;
+			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}
 	}
 	if (mode == OPT_ALL || mode == OPT_PEO) {
 		if (StmPtr) {
 			oCols[oColsc++] = Tcl_NewIntObj(StmPtr->ora_peo);
 		} else {
-			oCols[oColsc++] = OMV_null;
+			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}
 	}
 	if (mode == OPT_ALL || mode == OPT_FCD) {
 		if (StmPtr) {
 			oCols[oColsc++] = Tcl_NewIntObj(StmPtr->ora_fcd);
 		} else {
-			oCols[oColsc++] = OMV_null;
+			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}
 	}
 	if (mode == OPT_ALL || mode == OPT_SQL) {
 		if (StmPtr) {
 			oCols[oColsc++] = Tcl_NewIntObj(StmPtr->sqltype);
 		} else {
-			oCols[oColsc++] = OMV_null;
+			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}
 	}
 
@@ -3242,7 +3237,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 			if (col->column.typecode == 2) {
 				oCols[oColsc++] = Tcl_NewIntObj(col->column.prec);
 			} else {
-				oCols[oColsc++] = OMV_null;
+				oCols[oColsc++] = Tcl_NewStringObj("",   -1);;
 			}
 		}
 
@@ -3250,7 +3245,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 			if (col->column.typecode == 2) {
 				oCols[oColsc++] = Tcl_NewIntObj(col->column.scale);
 			} else {
-				oCols[oColsc++] = OMV_null;
+				oCols[oColsc++] = Tcl_NewStringObj("",   -1);;
 			}
 		}
 
