@@ -1,3 +1,7 @@
+2006-03-15  Todd Helfter <
+	* generic/oratcl.c: 
+	* generic/oratclInt.h    remove typedef OratclSubs and member sub_list from OratclStms.
+
 2006-03-14  Todd Helfter <
 	* generic/oratcl.c:  check for ckalloc() returning NULL.
 			     only call ckfree() if object is not NULL.

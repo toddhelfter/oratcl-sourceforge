@@ -1056,9 +1056,6 @@ Oratcl_StmFree (StmPtr)
 		Tcl_DStringFree(&StmPtr->ora_err);
 		Tcl_DStringFree(&StmPtr->datavar);
 
-		if (StmPtr->sub_list != NULL)
-			ckfree((char *) StmPtr->sub_list);
-
 		ckfree((char *) StmPtr);
 
 	}
@@ -2664,7 +2661,6 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->logHashPtr	= logHashPtr;
 	StmPtr->logid		= LogPtr->logid;
 	Tcl_DStringInit(&StmPtr->datavar);
-	StmPtr->sub_list	= NULL;
 	StmPtr->sub_len		= 0;
 	StmPtr->utfmode		= 0;
 

@@ -75,14 +75,6 @@ struct OratclCols {
 };
 typedef struct OratclCols OratclCols;
 
-#define COL_INC 10
-struct OratclSubs {
-        int     	column;		/* column number index		*/
-        char    	*strpos;	/* str location			*/
-        int     	strlen;		/* str length			*/
-};
-typedef struct OratclSubs OratclSubs;
-
 /* OratclLogs - oracle logon struct */
 typedef struct OratclLogs {
 	OCIEnv		*envhp;		/* environment handle	*/
@@ -106,7 +98,6 @@ typedef struct OratclStms {
 	OCIStmt		*stmhp;		/* statement handle	*/
 	OratclCols	*col_list;	/* select columns	*/
 	OratclCols	*bind_list;	/* bind vars/values	*/
-	OratclSubs	*sub_list;
 	int      	sub_len;
 	int		longsize;	/* long size allocation		*/
 	int		bindsize;	/* bind size allocation		*/
