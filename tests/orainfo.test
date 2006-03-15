@@ -81,6 +81,23 @@ if {[info exists ora_lda] == 0} {
 	-result 1
 }
 
+::tcltest::test orainfo-1.4 {orainfo: client} {
+	-constraints testorainfo
+	-setup {
+		set info_lda [oralogon $ora_constr]
+	}
+	-body {
+		catch {orainfo client} res
+		regexp {\d.\d.\d.\d.\d} $res
+	}
+	-cleanup {
+		oralogoff $info_lda
+		unset info_lda
+		unset res
+	}
+	-result 1
+}
+
 ::tcltest::cleanupTests
 ::tcltest::configure -verbose b
 return

@@ -125,6 +125,13 @@ typedef	sword (*OCISERVERVERSION) (dvoid *hndlp,
 				   ub1 hndltype);
 OCISERVERVERSION OCI_ServerVersion;
 
+typedef	sword (*OCICLIENTVERSION) (sword *major_version,
+				   sword *minor_version,
+				   sword *update_num,
+				   sword *patch_num,
+				   sword *port_update_num);
+OCICLIENTVERSION OCI_ClientVersion;
+
 typedef sword (*OCISTMTPREPARE)	(OCIStmt *stmtp,
 				 OCIError *errhp,
 				 CONST OraText *stmt,

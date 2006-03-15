@@ -526,6 +526,7 @@ Oratcl_Init (interp)
 	DLSYM(handle, "OCITransCommit",	OCI_TransCommit,     OCITRANSCOMMIT);
 	DLSYM(handle, "OCITransRollback", OCI_TransRollback, OCITRANSROLLBACK);
 	DLSYM(handle, "OCIServerVersion", OCI_ServerVersion, OCISERVERVERSION);
+	DLSYM(handle, "OCIClientVersion", OCI_ClientVersion, OCICLIENTVERSION);
 	DLSYM(handle, "OCITerminate",	OCI_Terminate,	     OCITERMINATE);
 	DLSYM(handle, "OCIParamGet",	OCI_ParamGet,	     OCIPARAMGET);
 	DLSYM(handle, "OCIParamSet",	OCI_ParamSet,	     OCIPARAMSET);
@@ -2328,12 +2329,14 @@ Oratcl_Info (clientData, interp, objc, objv)
 	ub4		serverStatus = 0;
 
 	CONST84 char *options[] = {"server",
+				   "client",
 				   "status",
 				   "version",
 				   "loginhandle",
 				   NULL};
 
 	enum		optindex {OPT_SERVER,
+				  OPT_CLIENT,
 				  OPT_STATUS,
 				  OPT_VERSION,
 				  OPT_LOGINHANDLE};
@@ -2464,6 +2467,27 @@ Oratcl_Info (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
+		res_obj = Tcl_NewStringObj((char *) svr, -1);
+		Tcl_IncrRefCount(res_obj);
+		Tcl_SetObjResult(interp, res_obj);
+		Tcl_DecrRefCount(res_obj);
+
+	}
+
+	if (index == OPT_CLIENT) {
+		sword	major_version;
+		sword	minor_version;
+		sword 	update_num;
+		sword	patch_num;
+		sword	port_update_num;
+
+		rc = OCI_ClientVersion(&major_version,
+				       &minor_version,
+				       &update_num,
+				       &patch_num,
+				       &port_update_num);
+
+		sprintf(svr, "%d.%d.%d.%d.%d", major_version, minor_version,update_num, patch_num, port_update_num);
 		res_obj = Tcl_NewStringObj((char *) svr, -1);
 		Tcl_IncrRefCount(res_obj);
 		Tcl_SetObjResult(interp, res_obj);
