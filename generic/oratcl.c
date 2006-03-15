@@ -2661,7 +2661,6 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->logHashPtr	= logHashPtr;
 	StmPtr->logid		= LogPtr->logid;
 	Tcl_DStringInit(&StmPtr->datavar);
-	StmPtr->sub_len		= 0;
 	StmPtr->utfmode		= 0;
 
 	Tcl_SetObjResult(interp, handlep1);

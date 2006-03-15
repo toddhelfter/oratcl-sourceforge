@@ -98,7 +98,6 @@ typedef struct OratclStms {
 	OCIStmt		*stmhp;		/* statement handle	*/
 	OratclCols	*col_list;	/* select columns	*/
 	OratclCols	*bind_list;	/* bind vars/values	*/
-	int      	sub_len;
 	int		longsize;	/* long size allocation		*/
 	int		bindsize;	/* bind size allocation		*/
 	Tcl_Obj		*nullvalue;	/* null display value		*/
