@@ -1,4 +1,8 @@
 2006-03-14  Todd Helfter <
+	* generic/oratcl.c:  check for ckalloc() returning NULL.
+			     only call ckfree() if object is not NULL.
+
+2006-03-14  Todd Helfter <
 	* generic/oratcl.c: 
 	* generic/oratclInt.h    remove global Tcl_Obj OMV_null.
 

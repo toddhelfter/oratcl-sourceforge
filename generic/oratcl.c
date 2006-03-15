@@ -956,9 +956,15 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->defnp = NULL;
 		ColPtr->bindp = NULL;
 		ColPtr->nFetchRows = fetchrows;
-		ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows);
-		ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows);
-		ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows);
+		if ((ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows)) == NULL) {
+			fprintf(stderr, "ColPtr->indp is NULL\n");
+		}
+		if ((ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows)) == NULL) {
+			fprintf(stderr, "ColPtr->rlenp is NULL\n");
+		}
+		if ((ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows)) == NULL) {
+			fprintf(stderr, "ColPtr->rcodep is NULL\n");
+		}
 		ColPtr->indp[0] = 0;
 		ColPtr->rlenp[0] = 0;
 		ColPtr->rcodep[0] = 0;
@@ -1009,9 +1015,17 @@ Oratcl_ColFree (ColPtr)
 
 		Tcl_DStringFree(&ColPtr->column.typename);
 		
-		ckfree ((char *) ColPtr->indp);
-		ckfree ((char *) ColPtr->rlenp);
-		ckfree ((char *) ColPtr->rcodep);
+		if (ColPtr->indp) {
+			ckfree ((char *) ColPtr->indp);
+		}
+
+		if (ColPtr->rlenp) {
+			ckfree ((char *) ColPtr->rlenp);
+		}
+
+		if (ColPtr->rcodep) {
+			ckfree ((char *) ColPtr->rcodep);
+		}
 
 		ckfree((char *) ColPtr);
 		ColPtr = next;
