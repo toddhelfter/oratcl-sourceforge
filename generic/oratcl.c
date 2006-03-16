@@ -4597,14 +4597,17 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	rc = OCI_StmtExecute(LogPtr->svchp,
-			     StmPtr->stmhp,
+	rc = OCI_DefineByPos(StmPtr->stmhp,
+			     &defnp,
 			     LogPtr->errhp,
-			     (ub4) 0,
-			     (ub4) 0,
-			     (OCISnapshot *) NULL,
-			     (OCISnapshot *) NULL,
-			     OCI_DEFAULT);
+			     (ub4) 1,
+			     (dvoid *) 0,
+			     (sb4) INT_MAX,
+			     (ub2) bind_type,
+			     (dvoid *) 0,
+			     (ub2 *) &piece_size,
+			     (ub2 *) &piece_rcode,
+			     (ub4) OCI_DYNAMIC_FETCH);
 
 	Oratcl_Checkerr(interp,
 			LogPtr->errhp,
@@ -4618,17 +4621,14 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	rc = OCI_DefineByPos(StmPtr->stmhp,
-			     &defnp,
+	rc = OCI_StmtExecute(LogPtr->svchp,
+			     StmPtr->stmhp,
 			     LogPtr->errhp,
-			     (ub4) 1,
-			     (dvoid *) 0,
-			     (sb4) INT_MAX,
-			     (ub2) bind_type,
-			     (dvoid *) 0,
-			     (ub2 *) &piece_size,
-			     (ub2 *) &piece_rcode,
-			     (ub4) OCI_DYNAMIC_FETCH);
+			     (ub4) 0,
+			     (ub4) 0,
+			     (OCISnapshot *) NULL,
+			     (OCISnapshot *) NULL,
+			     OCI_DEFAULT);
 
 	Oratcl_Checkerr(interp,
 			LogPtr->errhp,
@@ -4833,8 +4833,9 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	char		*type;
 	int		type_len = 0;
 
+	int		offset, sofar;
+	char		*wherebuf;
 	char		*pData;
-	char		*pLast;
 	ub4		pSize, pLen;
 
 	int		buffer_size;
@@ -4909,14 +4910,13 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			      (ub4) OCI_NTV_SYNTAX,
 			      (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp,
-			LogPtr->errhp,
-			rc,
-			1,
-			&StmPtr->ora_rc,
-			&StmPtr->ora_err);
-
-	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+	if (rc != OCI_SUCCESS) {
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -4932,18 +4932,17 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			    (dvoid *) &piece_indp,
 			    (ub2 *) &buffer_size,
 			    (ub2 *) &buffer_rcode,
-			    (ub4) NULL,
-			    (ub4 *) NULL,
+			    (ub4) 0,
+			    (ub4 *) 0,
 			    (ub4) OCI_DATA_AT_EXEC);
 
-	Oratcl_Checkerr(interp,
-			LogPtr->errhp,
-			rc,
-			1,
-			&StmPtr->ora_rc,
-			&StmPtr->ora_err);
-
-	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+	if (rc != OCI_SUCCESS) {
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&StmPtr->ora_rc,
+				&StmPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -4957,81 +4956,101 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 			     (OCISnapshot *) NULL,
 			     OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp,
-			LogPtr->errhp,
-			rc,
-			1,
-			&StmPtr->ora_rc,
-			&StmPtr->ora_err);
 
-	if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
-		tcl_return = TCL_ERROR;
-		goto common_exit;
-	}
-
-	piece = OCI_FIRST_PIECE;
-
-	pData = outStr.string;
-	pLen = outStr.length;
-	pLast = pData + pLen - 1;
-
-	while (piece != OCI_LAST_PIECE) {
-
-		if (pLen > StmPtr->longpsize) {
-			pSize = StmPtr->longpsize;
-		} else {
-			pSize = pLen;
-			piece = OCI_LAST_PIECE;
-		}
-
-		rc = OCI_StmtSetPieceInfo((dvoid *) bindp,
-					  OCI_HTYPE_BIND,
-					  LogPtr->errhp,
-					  (dvoid *) pData,
-					  (ub4 *) &pSize,
-					  (ub1) piece,
-					  (dvoid *) NULL,
-					  (ub2 *) NULL);
-
-		Oratcl_Checkerr(interp,
-				LogPtr->errhp,
-				rc,
-				1,
-				&LogPtr->ora_rc,
-				&LogPtr->ora_err);
-
-		if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
-			tcl_return = TCL_ERROR;
-			goto common_exit;
-		}
-
-		rc = OCI_StmtExecute(LogPtr->svchp,
-				     StmPtr->stmhp,
-				     LogPtr->errhp,
-				     (ub4) 1,
-				     (ub4) 0,
-				     (OCISnapshot *) NULL,
-				     (OCISnapshot *) NULL,
-				     OCI_DEFAULT);
-
+	if (rc != OCI_SUCCESS && rc != OCI_NEED_DATA) {
 		Oratcl_Checkerr(interp,
 				LogPtr->errhp,
 				rc,
 				1,
 				&StmPtr->ora_rc,
 				&StmPtr->ora_err);
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
-		if (rc == OCI_ERROR || rc == OCI_INVALID_HANDLE) {
+	pData = Tcl_DStringValue(&outStr);
+	pLen = Tcl_DStringLength(&outStr);
+	offset = 1;
+	sofar = 0;
+
+	if (pLen <= StmPtr->longpsize) {
+		pSize = pLen;
+		piece = OCI_ONE_PIECE;
+	} else {
+		pSize = StmPtr->longpsize;
+		piece = OCI_FIRST_PIECE;
+	}
+
+	while (sofar < pLen) {
+
+		wherebuf = &pData[offset -1];
+
+		rc = OCI_StmtSetPieceInfo((dvoid *) bindp,
+					  OCI_HTYPE_BIND,
+					  LogPtr->errhp,
+					  (dvoid *) wherebuf,
+					  (ub4 *) &pSize,
+					  (ub1) piece,
+					  (CONST dvoid *) 0,
+					  (ub2 *) 0);
+
+		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&LogPtr->ora_rc,
+					&LogPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
 
-		pData += pSize;
-		pLen -= pSize;
-		if (piece != OCI_LAST_PIECE) {
+#if ORATCL_LONGWRITE_DEBUG
+		if (piece == OCI_ONE_PIECE)
+			fprintf(stderr, "OCI_ONE_PIECE\n");
+		if (piece == OCI_FIRST_PIECE)
+			fprintf(stderr, "OCI_FIRST_PIECE\n");
+		if (piece == OCI_NEXT_PIECE)
+			fprintf(stderr, "OCI_NEXT_PIECE\n");
+		if (piece == OCI_LAST_PIECE)
+			fprintf(stderr, "OCI_LAST_PIECE\n");
+#endif
+
+		rc = OCI_StmtExecute(LogPtr->svchp,
+				     StmPtr->stmhp,
+				     LogPtr->errhp,
+				     (ub4) 1,
+				     (ub4) 0,
+				     (CONST OCISnapshot *) NULL,
+				     (OCISnapshot *) NULL,
+				     (ub4) OCI_DEFAULT);
+
+		if (rc != OCI_SUCCESS && rc != OCI_NEED_DATA) {
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		if (pSize < StmPtr->longpsize)
+			sofar += pSize;
+		else if (pSize == pLen)
+			sofar = pLen;
+		else
+			sofar += StmPtr->longpsize;
+
+		if (pLen <= sofar + StmPtr->longpsize) {
+			piece = OCI_LAST_PIECE;
+			pSize = pLen - sofar;
+		} else {
 			piece = OCI_NEXT_PIECE;
 		}
 
+		offset += StmPtr->longpsize;
 	}
 
 	rowcnt = 0;

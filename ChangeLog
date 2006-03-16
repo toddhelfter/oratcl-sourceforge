@@ -1,4 +1,7 @@
 2006-03-15  Todd Helfter <
+	* generic/oratcl.c: 	Recode Oratcl_LongWrite() to work properly with 10g libraries.
+
+2006-03-15  Todd Helfter <
 	* generic/oratcl.c: 	     New functionality [orainfo client] returns the oracle client library
 	* generic/oratclTypes.h:     version information.  I.E. 9.2.0.7.0 or 10.2.0.1.0 
 	* doc/oratcl.n:
