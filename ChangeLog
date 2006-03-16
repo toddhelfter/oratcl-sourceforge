@@ -1,4 +1,8 @@
 2006-03-16  Todd Helfter <
+	* generic/oralob.c:	Fix error message format to use %zu for (size_t) and fix message typo.		
+	  generic/oralong.c:
+
+2006-03-16  Todd Helfter <
 	* Oratcl is now able to execute the test suite aka. 'make test' using Tcl 8.5.
 	  The test suite works in both threaded and non-threaded 8.5a4 and 8.4.13
 

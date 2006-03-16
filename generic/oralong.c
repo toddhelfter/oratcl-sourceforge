@@ -281,7 +281,7 @@ Oralong_Init (interp)
 		Tcl_IncrRefCount(tmp1_obj);
 		if (Tcl_EvalObjEx(interp, tmp1_obj, 0) != TCL_OK) {
 			fprintf(stderr,
-				"%sevaluate internal script at index %ul",
+				"%sevaluate internal script at index %zu",
 				"Oralong_Init(): Failed to ",
 				(size_t) x);
 			Tcl_DecrRefCount(tmp1_obj);

@@ -832,8 +832,8 @@ Oralob_Init (interp)
 		Tcl_IncrRefCount(tmp1_obj);
 		if (Tcl_EvalObjEx(interp, tmp1_obj, 0) != TCL_OK) {
 			fprintf(stderr,
-				"%sevaluate internal script at index %ul",
-				"Oralong_Init(): Failed to ",
+				"%sevaluate internal script at index %zu",
+				"Oralob_Init(): Failed to ",
 				(size_t) x);
 			Tcl_DecrRefCount(tmp1_obj);
 			return TCL_ERROR;
