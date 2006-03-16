@@ -3821,7 +3821,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	Tcl_DStringInit(&LogPtr->ora_err);
 
 	rc = OCI_HandleAlloc((dvoid *) LogPtr->envhp,
-			     (dvoid **) &dschp,
+			     (dvoid *) &dschp,
 			     (ub4) OCI_HTYPE_DESCRIBE,
 			     (size_t) 0,
 			     (dvoid **) 0);
@@ -4518,7 +4518,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	int		rowcnt;
 
 	ub1		piece;
-	ub4		piece_size;
+	ub2		piece_size;
 
 	char		*piece_data = NULL;
 	ub4		piece_len;
@@ -4664,7 +4664,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 
 		prc = OCI_StmtGetPieceInfo(StmPtr->stmhp,
 					   LogPtr->errhp,
-					   (dvoid **) &defnp,
+					   (dvoid *) &defnp,
 					   (ub4 *) &type,
 					   (ub1 *) &p_type,
 					   (ub4 *) &iteration,

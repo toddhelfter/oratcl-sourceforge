@@ -8,6 +8,9 @@
 	the Tcl 8.5 test suite runs each test in a separate thread, concurrently.
 
 2006-03-15  Todd Helfter <
+	* generic/oratcl.c: 	Fix 3 castes for OCI parameters to correct compiler warnings.
+
+2006-03-15  Todd Helfter <
 	* generic/oratcl.c: 	Recode Oratcl_LongWrite() to work properly with 10g libraries.
 
 2006-03-15  Todd Helfter <
