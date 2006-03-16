@@ -1591,7 +1591,6 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	OratclLogs	*LogPtr = NULL;
 	int		new;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	char 		*con_str = NULL;
@@ -1614,15 +1613,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	ub4		oci_cred = OCI_CRED_RDBMS;
 	ub4		oci_conn = OCI_DEFAULT;
 
-	Tcl_Obj		*handlep1 = NULL;
-	Tcl_Obj		*handlep2 = NULL;
-
 	char		*p = NULL;
-	char		*tbuf = NULL;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
+	char		buf[25];
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp,
@@ -1637,18 +1629,8 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	/* generate an lda name and put it in the hash table. */
 	OratclStatePtr->logid++;
-
-	handlep1 = Tcl_NewStringObj(OraHandlePrefix, -1);
-	Tcl_IncrRefCount(handlep1);
-
-	handlep2 = Tcl_NewIntObj(OratclStatePtr->logid);
-	Tcl_IncrRefCount(handlep2);
-	Tcl_AppendObjToObj(handlep1, handlep2);
-	Tcl_DecrRefCount(handlep2);
-
-	logHashPtr = Tcl_CreateHashEntry(OratclStatePtr->logHash,
-					 Tcl_GetStringFromObj(handlep1 ,NULL),
-					 &new);
+	sprintf(buf,"%s%d",OraHandlePrefix,OratclStatePtr->logid);
+	logHashPtr = Tcl_CreateHashEntry(OratclStatePtr->logHash, buf, &new);
 
 	LogPtr->envhp = NULL;
 	LogPtr->errhp = NULL;
@@ -1866,11 +1848,9 @@ Oratcl_Logon (clientData, interp, objc, objv)
 				i++;
 				p = Tcl_GetStringFromObj(objv[i], NULL);
 
-				tbuf = Tcl_GetStringFromObj(handlep1, NULL);
-
 				/* append oralogon handle string */
-				LogPtr->failovercallback = ckalloc(strlen(p) + strlen(tbuf) +2);
-				sprintf(LogPtr->failovercallback, "%s %s", p, tbuf);
+				LogPtr->failovercallback = ckalloc(strlen(p) + strlen(buf) +2);
+				sprintf(LogPtr->failovercallback, "%s %s", p, buf);
 				LogPtr->interp = interp;
 				failover.fo_ctx = (dvoid *)LogPtr;
 				failover.callback_function = &callback_fn;
@@ -1916,7 +1896,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	Tcl_SetObjResult(interp, handlep1);
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(buf, -1));
 
 common_exit:
 
@@ -1947,14 +1927,7 @@ common_exit:
 
 	}
 
-	if (handlep1)
-		Tcl_DecrRefCount(handlep1);
-
 	ckfree(cpy_str);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -2565,18 +2538,11 @@ Oratcl_Open (clientData, interp, objc, objv)
 	OratclLogs	*LogPtr;
 	OratclStms	*StmPtr;
 
-	Tcl_Obj		*handlep1 = NULL;
-	Tcl_Obj		*handlep2 = NULL;
-
 	sword		rc;
 	int		new;
+	char		buf[25];
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -2604,19 +2570,8 @@ Oratcl_Open (clientData, interp, objc, objv)
 
 	/* generate an lda name and put it in the hash table. */
 	OratclStatePtr->stmid++;
-
-	handlep1 = Tcl_NewStringObj((char *)logHashKey, -1);
-	Tcl_IncrRefCount(handlep1);
-	Tcl_AppendStringsToObj(handlep1, ".", NULL);
-
-	handlep2 = Tcl_NewIntObj(OratclStatePtr->stmid);
-	Tcl_IncrRefCount(handlep2);
-	Tcl_AppendObjToObj(handlep1, handlep2);
-	Tcl_DecrRefCount(handlep2);
-
-	stmHashPtr = Tcl_CreateHashEntry(OratclStatePtr->stmHash,
-					 Tcl_GetStringFromObj(handlep1 ,NULL),
-					 &new);
+	sprintf(buf,"%s.%d",logHashKey,OratclStatePtr->stmid);
+	stmHashPtr = Tcl_CreateHashEntry(OratclStatePtr->stmHash, buf, &new);
 
 	if (stmHashPtr == NULL) {
 		Oratcl_ErrorMsg(interp,
@@ -2687,16 +2642,9 @@ Oratcl_Open (clientData, interp, objc, objv)
 	Tcl_DStringInit(&StmPtr->datavar);
 	StmPtr->utfmode		= 0;
 
-	Tcl_SetObjResult(interp, handlep1);
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(buf, -1));
 
 common_exit:
-
-	if (handlep1)
-		Tcl_DecrRefCount(handlep1);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
