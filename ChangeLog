@@ -1,3 +1,12 @@
+2006-03-16  Todd Helfter <
+	* Oratcl is now able to execute the test suite aka. 'make test' using Tcl 8.5.
+	  The test suite works in both threaded and non-threaded 8.5a4 and 8.4.13
+
+2006-03-16  Todd Helfter <
+	* tests/oralong.test recode test so that write + read operations occur in the same test proc.
+        simultaneous read and write of the same row will result in an Oracle error being returned and
+	the Tcl 8.5 test suite runs each test in a separate thread, concurrently.
+
 2006-03-15  Todd Helfter <
 	* generic/oratcl.c: 	Recode Oratcl_LongWrite() to work properly with 10g libraries.
 
