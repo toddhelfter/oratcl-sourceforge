@@ -4792,6 +4792,7 @@ common_exit:
 	return tcl_return;
 }
 
+#define ORATCL_LONGWRITE_DEBUG 0
 
 /*
  *----------------------------------------------------------------------
@@ -4838,13 +4839,9 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	char		*pData;
 	ub4		pSize, pLen;
 
-	int		buffer_size;
-	ub2		buffer_rcode;
-
 	int		rowcnt;
 
 	ub1		piece;
-	sb2		piece_indp;
 
 	ub2		bind_type = SQLT_LNG;
 
@@ -4891,10 +4888,12 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 						       TCL_LEAVE_ERR_MSG),
 					&pre_data_len);
 
-	if (StmPtr->utfmode) {
-		Tcl_UtfToExternalDString(NULL, pre_data, pre_data_len, &outStr);
-	} else {
-		Tcl_DStringAppend(&outStr, pre_data, pre_data_len);
+	if (pre_data_len > 0) {
+		if (StmPtr->utfmode) {
+			Tcl_UtfToExternalDString(NULL, pre_data, pre_data_len, &outStr);
+		} else {
+			Tcl_DStringAppend(&outStr, pre_data, pre_data_len);
+		}
 	}
 
 	type = Tcl_GetStringFromObj(objv[4], &type_len);
@@ -4921,20 +4920,50 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	rc = OCI_BindByName((OCIStmt *) StmPtr->stmhp,
-			    (OCIBind **) &bindp,
-			    (OCIError *) LogPtr->errhp,
-			    (text *) ":lng",
-			    (sb4) 4,
-			    (dvoid *) 0,
-			    (sb4) INT_MAX,
-			    (ub2) bind_type,
-			    (dvoid *) &piece_indp,
-			    (ub2 *) &buffer_size,
-			    (ub2 *) &buffer_rcode,
-			    (ub4) 0,
-			    (ub4 *) 0,
-			    (ub4) OCI_DATA_AT_EXEC);
+
+	pData = Tcl_DStringValue(&outStr);
+	pLen = Tcl_DStringLength(&outStr);
+
+	if (pLen == 0) {
+
+		/*
+		 * if assigning the empty string,
+		 * then piecewise operations are not needed
+		 */
+		rc = OCI_BindByName((OCIStmt *) StmPtr->stmhp,
+				    (OCIBind **) &bindp,
+				    (OCIError *) LogPtr->errhp,
+				    (text *) ":lng",
+				    (sb4) 4,
+				    (dvoid *) pData,
+				    (sb4) pLen,
+				    (ub2) SQLT_STR,
+				    (dvoid *) 0,
+				    (ub2 *) 0,
+				    (ub2 *) 0,
+				    (ub4) 0,
+				    (ub4 *) 0,
+				    (ub4) OCI_DEFAULT);
+
+
+	} else {
+
+		rc = OCI_BindByName((OCIStmt *) StmPtr->stmhp,
+				    (OCIBind **) &bindp,
+				    (OCIError *) LogPtr->errhp,
+				    (text *) ":lng",
+				    (sb4) 4,
+				    (dvoid *) 0,
+				    (sb4) INT_MAX,
+				    (ub2) bind_type,
+				    (dvoid *) 0,
+				    (ub2 *) 0,
+				    (ub2 *) 0,
+				    (ub4) 0,
+				    (ub4 *) 0,
+				    (ub4) OCI_DATA_AT_EXEC);
+
+	}
 
 	if (rc != OCI_SUCCESS) {
 		Oratcl_Checkerr(interp,
@@ -4968,10 +4997,6 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	pData = Tcl_DStringValue(&outStr);
-	pLen = Tcl_DStringLength(&outStr);
-	offset = 1;
-	sofar = 0;
 
 	if (pLen <= StmPtr->longpsize) {
 		pSize = pLen;
@@ -4980,6 +5005,9 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 		pSize = StmPtr->longpsize;
 		piece = OCI_FIRST_PIECE;
 	}
+
+	offset = 1;
+	sofar = 0;
 
 	while (sofar < pLen) {
 
