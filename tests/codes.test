@@ -5,93 +5,97 @@
 #
 # exercise various oraasync operations
 #
-package require tcltest
 
-::tcltest::configure -verbose ept
+package require tcltest 2.2
 
 if {[info exists ora_lda] == 0} {
-	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+        source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
+namespace eval ::oratest::codes {
+        namespace import ::tcltest::*
+	configure -verbose ept
 
-::tcltest::test oratcl::codes-1.1 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_INVALID_HANDLE)]} {
-			set ::oratcl::codes(OCI_INVALID_HANDLE)
+
+	::tcltest::test oratcl::codes-1.1 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_INVALID_HANDLE)]} {
+				set ::oratcl::codes(OCI_INVALID_HANDLE)
+			}
 		}
-	}
-	-cleanup {
-	}
-	-result {-2}
-}
-
-::tcltest::test oratcl::codes-1.2 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_ERROR)]} {
-			set ::oratcl::codes(OCI_ERROR)
+		-cleanup {
 		}
+		-result {-2}
 	}
-	-cleanup {
-	}
-	-result {-1}
-}
 
-::tcltest::test oratcl::codes-1.3 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_SUCCESS)]} {
-			set ::oratcl::codes(OCI_SUCCESS)
+	::tcltest::test oratcl::codes-1.2 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_ERROR)]} {
+				set ::oratcl::codes(OCI_ERROR)
+			}
 		}
-	}
-	-cleanup {
-	}
-	-result {0}
-}
-
-::tcltest::test oratcl::codes-1.4 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_SUCCESS_WITH_INFO)]} {
-			set ::oratcl::codes(OCI_SUCCESS_WITH_INFO)
+		-cleanup {
 		}
+		-result {-1}
 	}
-	-cleanup {
-	}
-	-result {1}
-}
 
-::tcltest::test oratcl::codes-1.5 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_NEED_DATA)]} {
-			set ::oratcl::codes(OCI_NEED_DATA)
+	::tcltest::test oratcl::codes-1.3 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_SUCCESS)]} {
+				set ::oratcl::codes(OCI_SUCCESS)
+			}
 		}
-	}
-	-cleanup {
-	}
-	-result {99}
-}
-
-::tcltest::test oratcl::codes-1.6 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_NO_DATA)]} {
-			set ::oratcl::codes(OCI_NO_DATA)
+		-cleanup {
 		}
+		-result {0}
 	}
-	-cleanup {
-	}
-	-result {100}
-}
 
-::tcltest::test oratcl::codes-1.7 {::oratcl::codes array} {
-	-body {
-		if {[info exists ::oratcl::codes(OCI_STILL_EXECUTING)]} {
-			set ::oratcl::codes(OCI_STILL_EXECUTING)
+	::tcltest::test oratcl::codes-1.4 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_SUCCESS_WITH_INFO)]} {
+				set ::oratcl::codes(OCI_SUCCESS_WITH_INFO)
+			}
 		}
+		-cleanup {
+		}
+		-result {1}
 	}
-	-cleanup {
+
+	::tcltest::test oratcl::codes-1.5 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_NEED_DATA)]} {
+				set ::oratcl::codes(OCI_NEED_DATA)
+			}
+		}
+		-cleanup {
+		}
+		-result {99}
 	}
-	-result {-3123}
+
+	::tcltest::test oratcl::codes-1.6 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_NO_DATA)]} {
+				set ::oratcl::codes(OCI_NO_DATA)
+			}
+		}
+		-cleanup {
+		}
+		-result {100}
+	}
+
+	::tcltest::test oratcl::codes-1.7 {::oratcl::codes array} {
+		-body {
+			if {[info exists ::oratcl::codes(OCI_STILL_EXECUTING)]} {
+				set ::oratcl::codes(OCI_STILL_EXECUTING)
+			}
+		}
+		-cleanup {
+		}
+		-result {-3123}
+	}
+
+        cleanupTests
+	configure -verbose b
 }
 
-::tcltest::cleanupTests
-::tcltest::configure -verbose b
-
-return
+namespace delete ::oratest::codes

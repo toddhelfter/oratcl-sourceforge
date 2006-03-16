@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.3 2006-03-14 16:04:20 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.4 2006-03-16 21:36:54 tmh Exp $
 
 if {$tcl_platform(os) == "Win32s"} {
     set files [glob ./*.tes]
@@ -71,4 +71,4 @@ foreach times $testtimes {
 
 unset testlist
 unset testtimes
-puts stderr "GLOBALS :: [lsort [info globals]]"
+puts stderr "GLOBALS ([llength [info globals]]):: [lsort [info globals]]"
