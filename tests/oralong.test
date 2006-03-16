@@ -59,8 +59,10 @@ proc long_begin {} {
 			drop table oratcl_longraw
 		}
 
-		oraparse $long_stm $long_sql(drop_long_table)
-		catch {oraexec $long_stm}
+		catch {
+			oraparse $long_stm $long_sql(drop_long_table)
+			oraexec $long_stm
+		}
 
 		oraparse $long_stm $long_sql(create_long_table)
 		oraexec $long_stm
@@ -75,7 +77,10 @@ proc long_begin {} {
 		orabindexec $long_stm :long_key l2
 		orafetch $long_stm -datavariable rowid2
 
-		catch {orasql $long_stm $long_sql(drop_longraw_table)}
+		catch {
+			oraparse $long_stm $long_sql(drop_longraw_table)
+			oraexec $long_stm
+		}
 		orasql $long_stm $long_sql(create_longraw_table)
 		oraparse $long_stm $long_sql(insert_longraw_table)
 		orabind $long_stm :long_key l3
@@ -153,6 +158,7 @@ long_begin
 		list $test1(res)
 	}
 	-cleanup {
+		oracommit $test1(lda)
 		oralong free $test1(lng)
 		oraclose $test1(stm)
 		oralogoff $test1(lda)
@@ -192,6 +198,7 @@ long_begin
 		list [oralong write $test3(lng) -datavar chr_byte]
 	}
 	-cleanup {
+		oracommit $test3(lda)
 		oralong free $test3(lng)
 		oraclose $test3(stm)
 		oralogoff $test3(lda)
@@ -211,6 +218,7 @@ long_begin
 		list [oralong write $test4(lng) -datavar chr_null]
 	}
 	-cleanup {
+		oracommit $test4(lda)
 		oralong free $test4(lng)
 		oraclose $test4(stm)
 		oralogoff $test4(lda)
@@ -250,6 +258,7 @@ long_begin
 		list $test1(res)
 	}
 	-cleanup {
+		oracommit $test1(lda)
 		oralong free $test1(lng)
 		oraclose $test1(stm)
 		oralogoff $test1(lda)
