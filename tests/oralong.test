@@ -81,6 +81,7 @@ proc long_begin {} {
 			oraparse $long_stm $long_sql(drop_longraw_table)
 			oraexec $long_stm
 		}
+
 		orasql $long_stm $long_sql(create_longraw_table)
 		oraparse $long_stm $long_sql(insert_longraw_table)
 		orabind $long_stm :long_key l3
@@ -146,16 +147,18 @@ long_begin
 	-result {oralong.0 0}
 }
 
-::tcltest::test oralong-1.1 {oralong: write long} {
+::tcltest::test oralong-1.1 {oralong: write long; read long} {
 	-constraints testoralong
 	-setup {
 		set test1(lda) [oralogon $ora_constr]
 		set test1(stm) [oraopen $test1(lda)]
+		oraconfig $test1(stm) longsize [string length $chr_data]
 		set test1(lng) [oralong alloc $test1(stm) -table oratcl_long -column long_fld -rowid $rowid1]
 	}
 	-body {
-		catch {oralong write $test1(lng) -datavar chr_data} test1(res)
-		list $test1(res)
+		catch {oralong write $test1(lng) -datavar chr_data}
+		catch {oralong read $test1(lng) -datavar test1(out)}
+		list [string equal $chr_data $test1(out)]
 	}
 	-cleanup {
 		oracommit $test1(lda)
@@ -164,29 +167,10 @@ long_begin
 		oralogoff $test1(lda)
 		array unset test1
 	}
-	-result {0}
-}
-
-::tcltest::test oralong-1.2 {oralong: read long} {
-	-constraints testoralong
-	-setup {
-		set test2(lda) [oralogon $ora_constr]
-		set test2(stm) [oraopen $test2(lda)]
-		set test2(lng) [oralong alloc $test2(stm) -table oratcl_long -column long_fld -rowid $rowid1]
-	}
-	-body {
-		catch {oralong read $test2(lng) -datavar test2(out)}
-		list [string equal $chr_data $test2(out)]
-	}
-	-cleanup {
-		oralong free $test2(lng)
-		oraclose $test2(stm)
-		oralogoff $test2(lda)
-		array unset test2
-	}
 	-result {1}
 }
 
+if 0 {
 ::tcltest::test oralong-1.3 {oralong: write long BYTE} {
 	-constraints testoralong
 	-setup {
@@ -285,6 +269,7 @@ long_begin
 		array unset test2
 	}
 	-result {1}
+}
 }
 
 long_final
