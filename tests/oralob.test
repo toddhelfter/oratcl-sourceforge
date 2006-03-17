@@ -41,6 +41,11 @@ namespace eval ::oralob::test {
 		drop table oratcl_lob
 	}
 
+	catch {
+		oraparse $lob_stm $lob_sql(drop_lob_table)
+		oraexec $lob_stm
+	}
+
 	oraparse $lob_stm $lob_sql(create_lob_table)
 	oraexec $lob_stm
 
@@ -328,21 +333,21 @@ namespace eval ::oralob::test {
 	} {1}
 
 	test oralob-6.0 {oralob: write clob} {
-		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
 		catch {oralob write $lob -datavar chr_data} write
 		catch {oralob free $lob} free
 		list $write
 	} {0}
 
 	test oralob-6.1 {oralob: read clob with SQL} {
-		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
+		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
 		catch {oralob read $lob -datavar chr_out} res
 		set read [string equal $chr_data $chr_out]
 		catch {oralob free $lob} free
 		catch {
 		   oraconfig $lob_stm lobpsize 1000000
 		   oraparse $lob_stm {select lob_clob from oratcl_lob where lob_key = :key}
-		   orabind $lob_stm :key l1
+		   orabind $lob_stm :key l2
 		   oraexec $lob_stm
 		   if {[orafetch $lob_stm -datavariable sql_out] == 0} {
 			set read [string equal $chr_out $sql_out]
@@ -353,6 +358,55 @@ namespace eval ::oralob::test {
 		}
 		list $read
 	} {1}
+
+        ::tcltest::test oralob-6.2 {oralob: insert clob with SQL} {
+                -setup {
+                        set tst6_2(lda) [oralogon $ora_constr]
+                        set tst6_2(stm) [oraopen $tst6_2(lda)]
+                        oraconfig $tst6_2(stm) lobpsize 1000000
+                }
+                -body {
+catch {
+			oraparse $tst6_2(stm) {update oratcl_lob set lob_clob = :val where lob_key = :key}
+			orabind $tst6_2(stm) :val TMH :key l1
+			set rc [oraexec $tst6_2(stm)]
+			oracommit $tst6_2(lda)
+} foo
+puts $foo
+			set rc
+                }
+                -cleanup {
+                        oraclose $tst6_2(stm)
+                        oralogoff $tst6_2(lda)
+                        array unset tst6_2
+                }
+                -result {0}
+        }
+
+        ::tcltest::test oralob-6.1 {oralob: update clob with SQL} {
+                -setup {
+                        set tst6_3(lda) [oralogon $ora_constr]
+                        set tst6_3(stm) [oraopen $tst6_3(lda)]
+                        oraconfig $tst6_3(stm) lobpsize 1000000
+                }
+                -body {
+catch {
+			oraparse $tst6_3(stm) {insert into oratcl_lob (lob_key, lob_clob) values (:lkey, :lclb)}
+			orabind $tst6_3(stm) :lkey l4 :lclb TMH
+			set rc [oraexec $tst6_3(stm)]
+			oracommit $tst6_3(lda)
+} foo
+puts $foo
+			set rc
+                }
+                -cleanup {
+                        oraclose $tst6_3(stm)
+                        oralogoff $tst6_3(lda)
+                        array unset tst6_3
+                }
+                -result {0}
+        }
+
 
 	orasql $lob_stm $lob_sql(drop_lob_table)
 	oraclose $lob_stm
