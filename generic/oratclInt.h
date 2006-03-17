@@ -126,8 +126,6 @@ typedef struct OratclStms {
 	ub2		ora_fcd;	/* oracle function code		*/
 } OratclStms;
 
-extern Tcl_Obj		*OMV_zero;
-
 typedef struct OratclState {
         Tcl_HashTable	*logHash;	/* login handle hash		*/
         int		logid;		/* login handle id		*/

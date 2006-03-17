@@ -366,13 +366,10 @@ namespace eval ::oratest::oralob {
                         oraconfig $tst6_2(stm) lobpsize 1000000
                 }
                 -body {
-catch {
 			oraparse $tst6_2(stm) {update oratcl_lob set lob_clob = :val where lob_key = :key}
 			orabind $tst6_2(stm) :val TMH :key l1
 			set rc [oraexec $tst6_2(stm)]
 			oracommit $tst6_2(lda)
-} foo
-puts $foo
 			set rc
                 }
                 -cleanup {
@@ -383,20 +380,17 @@ puts $foo
                 -result {0}
         }
 
-        ::tcltest::test oralob-6.1 {oralob: update clob with SQL} {
+        ::tcltest::test oralob-6.3 {oralob: update clob with SQL} {
                 -setup {
                         set tst6_3(lda) [oralogon $ora_constr]
                         set tst6_3(stm) [oraopen $tst6_3(lda)]
                         oraconfig $tst6_3(stm) lobpsize 1000000
                 }
                 -body {
-catch {
 			oraparse $tst6_3(stm) {insert into oratcl_lob (lob_key, lob_clob) values (:lkey, :lclb)}
 			orabind $tst6_3(stm) :lkey l4 :lclb TMH
 			set rc [oraexec $tst6_3(stm)]
 			oracommit $tst6_3(lda)
-} foo
-puts $foo
 			set rc
                 }
                 -cleanup {

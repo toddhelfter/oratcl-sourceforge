@@ -101,8 +101,6 @@ LPVOID reserved;            /* Not used. */
 
 static char *OraHandlePrefix = "oratcl";
 
-Tcl_Obj *OMV_zero = NULL;
-
 OratclStateList	*OratclSLP = NULL;
 
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
@@ -181,19 +179,15 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 {
 	Tcl_Obj		*newPtr;
 
-	newPtr = Tcl_NewStringObj("",	-1);
+	newPtr = Tcl_NewObj();
 	if (obj0) {
-		Tcl_IncrRefCount(obj0);
 		Tcl_AppendObjToObj(newPtr, obj0);
-		Tcl_DecrRefCount(obj0);
 	}
 	if (msg0) {
 		Tcl_AppendToObj(newPtr, msg0, -1);
 	}
 	if (obj1) {
-		Tcl_IncrRefCount(obj1);
 		Tcl_AppendObjToObj(newPtr, obj1);
-		Tcl_DecrRefCount(obj1);
 	}
 	if (msg1) {
 		Tcl_AppendToObj(newPtr, msg1, -1);
@@ -306,8 +300,6 @@ Oratcl_Exit (clientData)
 {
 	Oratcl_Clean(clientData);
 
-	Tcl_DecrRefCount(OMV_zero);
-
 #ifndef __WIN32__
 #ifdef TCL_MEM_DEBUG
 	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
@@ -410,11 +402,11 @@ Oratcl_Init (interp)
 
 		env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
 		Tcl_IncrRefCount(env_obj);
-
 		pt1_obj = Tcl_ObjGetVar2(interp,
 					env_obj,
 					NULL,
 					TCL_LEAVE_ERR_MSG);
+		Tcl_DecrRefCount(env_obj);
 		if (pt1_obj == NULL) {
 			return TCL_ERROR;
 		}
@@ -437,7 +429,6 @@ Oratcl_Init (interp)
 		Tcl_DecrRefCount(pt1_obj);
 		Tcl_DecrRefCount(pt2_obj);
 		Tcl_DecrRefCount(pt3_obj);
-		Tcl_DecrRefCount(env_obj);
 
 		tmp_obj = Tcl_FSJoinPath(pathList, -1);
 		Tcl_IncrRefCount(tmp_obj);
@@ -589,10 +580,6 @@ Oratcl_Init (interp)
 	if (!OratclInitFlag) {
 
 		OratclInitFlag = 1;
-
-		OMV_zero	= Tcl_NewIntObj(0);
-		Tcl_IncrRefCount(OMV_zero);
-
 		Tcl_CreateExitHandler ((Tcl_ExitProc *) Oratcl_Exit,
 				       (ClientData) OratclStatePtr);
 	}
@@ -873,7 +860,6 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	Tcl_DString	errStr;
 	char		*errstr = NULL;
 	sb4		errcode = 0;
-	Tcl_Obj		*tmp_obj;
 
 	Tcl_DStringInit(&errStr);
 
@@ -908,11 +894,9 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
 	}
 
 	if (flag==1) {
-		tmp_obj = Tcl_NewStringObj(Tcl_DStringValue(&errStr),
-					   Tcl_DStringLength(&errStr));
-		Tcl_IncrRefCount(tmp_obj);
-		Tcl_SetObjResult(interp, tmp_obj);
-		Tcl_DecrRefCount(tmp_obj);
+		Tcl_SetObjResult(interp, 	
+				 Tcl_NewStringObj(Tcl_DStringValue(&errStr),
+					          Tcl_DStringLength(&errStr)));
 	}
 
 	if (rcPtr) {
@@ -1326,9 +1310,9 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	StmPtr->fetchidx += 1;
 	StmPtr->append_cnt += 1;
 	StmPtr->ora_rc = 0;
-	Tcl_SetObjResult(interp, OMV_zero);
 	StmPtr->ora_row = StmPtr->append_cnt;
 	StmPtr->fetch_ok = 1;
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 	return 0;
 }
 
@@ -1836,14 +1820,12 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	/* check for options and deprecated keywords */
 	for (i = 2; i < objc; i++) {
-		p = Tcl_GetStringFromObj(objv[2], NULL);
-		if (*p == '-') {
-			p++;
-		}
-		if (strcmp(p,"async") == 0) {
+		
+		if (0 == strcmp(Tcl_GetString(objv[2]), "-async")) {
 			LogPtr->async = 1;
 		}
-		if (strcmp(p,"failovercallback") == 0) {
+
+		if (0 == strcmp(Tcl_GetString(objv[2]), "-failovercallback")) {
 			if (objc > i) {
 				i++;
 				p = Tcl_GetStringFromObj(objv[i], NULL);
@@ -1869,6 +1851,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 				}
 			}
 		}
+
 	}
 
 	if (LogPtr->async == 1) {
@@ -1962,12 +1945,7 @@ Oratcl_Logoff (clientData, interp, objc, objv)
 	Tcl_HashSearch  search;
 	
 	sword		rc;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -2035,10 +2013,6 @@ Oratcl_Logoff (clientData, interp, objc, objv)
 
 common_exit:
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -2067,12 +2041,7 @@ Oratcl_Commit (clientData, interp, objc, objv)
 	Tcl_HashEntry	*logHashPtr;
 	OratclLogs	*LogPtr;
 	sword		rc;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -2100,23 +2069,20 @@ Oratcl_Commit (clientData, interp, objc, objv)
 			     (dvoid *) LogPtr->errhp,
 			     (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp,
-			LogPtr->errhp,
-			rc,
-			1,
-			&LogPtr->ora_rc,
-			&LogPtr->ora_err);
-
 	if (rc != OCI_SUCCESS) {
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
 
-common_exit:
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
+common_exit:
 
 	return tcl_return;
 }
@@ -2146,12 +2112,7 @@ Oratcl_Roll (clientData, interp, objc, objv)
 	Tcl_HashEntry	*logHashPtr;
 	OratclLogs	*LogPtr;
 	sword		rc;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -2179,23 +2140,20 @@ Oratcl_Roll (clientData, interp, objc, objv)
 			       (dvoid *) LogPtr->errhp,
 			       (ub4) OCI_DEFAULT);
 
-	Oratcl_Checkerr(interp,
-			LogPtr->errhp,
-			rc,
-			1,
-			&LogPtr->ora_rc,
-			&LogPtr->ora_err);
-
 	if (rc != OCI_SUCCESS) {
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
 
-common_exit:
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
+common_exit:
 
 	return tcl_return;
 }
@@ -2226,12 +2184,7 @@ Oratcl_Autocom (clientData, interp, objc, objv)
 	OratclLogs	*LogPtr;
 
 	int		bool;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 3) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle on|off");
@@ -2260,10 +2213,6 @@ Oratcl_Autocom (clientData, interp, objc, objv)
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(bool));
 
 common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -2298,7 +2247,6 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 	sword		rc;
 	static text	svr[ORA_MSG_SIZE];
-	Tcl_Obj		*res_obj;
 	ub4		serverStatus = 0;
 
 	CONST84 char *options[] = {"server",
@@ -2315,12 +2263,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 				  OPT_LOGINHANDLE};
 
 	int		index = 0;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "option ?args?");
@@ -2374,10 +2317,10 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 		switch (serverStatus) {
 		case OCI_SERVER_NORMAL:
-			res_obj = Tcl_NewIntObj(OCI_SERVER_NORMAL);
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(OCI_SERVER_NORMAL));
 			break;
 		case OCI_SERVER_NOT_CONNECTED:
-			res_obj = Tcl_NewIntObj(OCI_SERVER_NOT_CONNECTED);
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(OCI_SERVER_NOT_CONNECTED));
 			break;
 		default:
 			Oratcl_ErrorMsg(interp,
@@ -2388,9 +2331,6 @@ Oratcl_Info (clientData, interp, objc, objv)
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
-		Tcl_IncrRefCount(res_obj);
-		Tcl_SetObjResult(interp, res_obj);
-		Tcl_DecrRefCount(res_obj);
 	}
 
 	if (index == OPT_SERVER) {
@@ -2423,27 +2363,18 @@ Oratcl_Info (clientData, interp, objc, objv)
 				       ORA_MSG_SIZE,
 				       OCI_HTYPE_SVCCTX);
 
-		Oratcl_Checkerr(interp,
-				LogPtr->errhp,
-				rc,
-				0,
-				&LogPtr->ora_rc,
-				&LogPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
-			Oratcl_ErrorMsg(interp,
-					objv[0],
-					": server version request failed",
-					(Tcl_Obj *) NULL,
-					(char *) NULL);
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&LogPtr->ora_rc,
+					&LogPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
-
-		res_obj = Tcl_NewStringObj((char *) svr, -1);
-		Tcl_IncrRefCount(res_obj);
-		Tcl_SetObjResult(interp, res_obj);
-		Tcl_DecrRefCount(res_obj);
+		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) svr, -1));
 
 	}
 
@@ -2459,12 +2390,8 @@ Oratcl_Info (clientData, interp, objc, objv)
 				       &update_num,
 				       &patch_num,
 				       &port_update_num);
-
 		sprintf(svr, "%d.%d.%d.%d.%d", major_version, minor_version,update_num, patch_num, port_update_num);
-		res_obj = Tcl_NewStringObj((char *) svr, -1);
-		Tcl_IncrRefCount(res_obj);
-		Tcl_SetObjResult(interp, res_obj);
-		Tcl_DecrRefCount(res_obj);
+		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) svr, -1));
 
 	}
 
@@ -2492,18 +2419,10 @@ Oratcl_Info (clientData, interp, objc, objv)
 		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 		logHashKey = Tcl_GetHashKey(OratclStatePtr->logHash,
 					    StmPtr->logHashPtr);
-
-		res_obj = Tcl_NewStringObj((char *) logHashKey, -1);
-		Tcl_IncrRefCount(res_obj);
-		Tcl_SetObjResult(interp, res_obj);
-		Tcl_DecrRefCount(res_obj);
+		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) logHashKey, -1));
 	}
 
 common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -2701,12 +2620,7 @@ Oratcl_Message (clientData, interp, objc, objv)
 				  OPT_FCD,
 				  OPT_SQL};
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc == 1 || objc > 3 ) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle ?-option?");
@@ -2817,10 +2731,6 @@ common_exit:
 	if (oCols)
 		ckfree((char *) oCols);
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -2848,12 +2758,7 @@ Oratcl_Close (clientData, interp, objc, objv)
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle");
@@ -2880,10 +2785,6 @@ Oratcl_Close (clientData, interp, objc, objv)
 	Tcl_DeleteHashEntry(stmHashPtr);
 
 common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -2921,7 +2822,6 @@ Oratcl_Sql (clientData, interp, objc, objv)
 	char		*logHashKey;
 	Tcl_Obj		*res_obj;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
@@ -2930,10 +2830,6 @@ Oratcl_Sql (clientData, interp, objc, objv)
 				 objv,
 				 "stm_handle sql_str ?-parseonly? | ?-commit?");
 		return TCL_ERROR;
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	/* check for options and deprecated keywords */
@@ -2995,10 +2891,6 @@ common_exit:
 		ckfree ((char *) commitObjv);
 	}
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -3032,12 +2924,7 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 	int		i;
 	char		*p;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp,
@@ -3101,10 +2988,6 @@ common_exit:
 		ckfree ((char *) execObjv);
 	}
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -3157,12 +3040,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 				  OPT_SCALE,
 				  OPT_NULLOK};
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc == 1 || objc > 3 ) {
 		Tcl_WrongNumArgs(interp, objc, objv, "stm_handle ?-option?");
@@ -3246,10 +3124,6 @@ common_exit:
 	if (oCols)
 		ckfree((char *) oCols);
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -3279,8 +3153,6 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	Tcl_Obj		**bindObjv = NULL;
 
 	int		i;
-	
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
@@ -3289,10 +3161,6 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 				 objv,
 				 "stm_handle pl_block [ :varname value ] ...");
 		return TCL_ERROR;
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	tcl_return = Oratcl_Parse(clientData, interp, 3, objv);
@@ -3322,10 +3190,6 @@ common_exit:
 
 	if (bindObjv) {
 		ckfree ((char *) bindObjv);
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
 	}
 
 	return tcl_return;
@@ -3361,12 +3225,7 @@ Oratcl_Lda_List (clientData, interp, objc, objv)
 	int		oColslen = 0;
 	Tcl_Obj		**oColsv = NULL;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	/* Preallocate some list elements */
 	if (oColsv == NULL) {
@@ -3391,10 +3250,6 @@ Oratcl_Lda_List (clientData, interp, objc, objv)
 
 	if (oColsv)
 		ckfree((char *) oColsv);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -3432,12 +3287,7 @@ Oratcl_Stm_List (clientData, interp, objc, objv)
 	int		oColslen = 0;
 	Tcl_Obj		**oColsv = NULL;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -3466,6 +3316,7 @@ Oratcl_Stm_List (clientData, interp, objc, objv)
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
 
+	/* NOTE :: rebuild using Tcl_DString */
 	oColsc = 0;
 	stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &search);
 	while (stmHashPtr != NULL) {
@@ -3487,10 +3338,6 @@ common_exit:
 
 	if (oColsv)
 		ckfree((char *) oColsv);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -3724,7 +3571,6 @@ Oratcl_Describe (clientData, interp, objc, objv)
 
 	OratclDesc	column;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	Tcl_DStringInit(&tblStr);
@@ -3741,10 +3587,6 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	column.nullok = 0;
 	column.valuep = NULL;
 	column.valuesz	= 0;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
@@ -4111,10 +3953,6 @@ common_exit:
 	Tcl_DStringFree(&tblStr);
 	Tcl_DStringFree(&resStr);
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -4174,12 +4012,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 	Tcl_Obj		**infoObjv;
 	int		infoObjc;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if ((objc < 2) || (((objc % 2) == 1) && (objc != 3))) {
 		Tcl_WrongNumArgs(interp,
@@ -4207,6 +4040,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 
 	if (objc == 2) {
 		/* return list of alternating option names and values */
+		/* should use a Tcl_DString for this */
 		infoObjv = (Tcl_Obj **) ckalloc (optlength * sizeof(*infoObjv));
 		infoObjc = 0;
 		infoObjv[infoObjc++] = Tcl_NewStringObj(options[0], -1);
@@ -4415,10 +4249,6 @@ Oratcl_Config (clientData, interp, objc, objv)
 
 common_exit:
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -4478,7 +4308,6 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	Tcl_DString	resStr;
 	Tcl_Obj		*res_obj;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 5) {
@@ -4490,10 +4319,6 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	}
 
 	Tcl_DStringInit(&resStr);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
 				       Tcl_GetStringFromObj(objv[1], NULL));
@@ -4692,10 +4517,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		res_obj = Tcl_NewStringObj(Tcl_DStringValue(&resStr),
 					   Tcl_DStringLength(&resStr));
 	}
-
-	Tcl_IncrRefCount(res_obj);
 	Tcl_ObjSetVar2(interp, objv[3], NULL, res_obj, TCL_LEAVE_ERR_MSG);
-	Tcl_DecrRefCount(res_obj);
 
 	rowcnt = 0;
 	rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
@@ -4731,10 +4553,6 @@ common_exit:
 
 	if (piece_data != NULL) {
 		ckfree ((char *) piece_data);
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
 	}
 
 	return tcl_return;
@@ -4793,7 +4611,6 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 
 	ub2		bind_type = SQLT_LNG;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 5) {
@@ -4805,10 +4622,6 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	}
 
 	Tcl_DStringInit(&outStr);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
 				       Tcl_GetStringFromObj(objv[1], NULL));
@@ -5061,10 +4874,6 @@ common_exit:
 
 	Tcl_DStringFree(&outStr);
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
-
 	return tcl_return;
 }
 
@@ -5096,12 +4905,10 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	Tcl_DString	stmStr;
 	sword		rc;
 	int		cols;
-	Tcl_Obj		*res_obj;
 
 	char		*stmt;
 	ub4		stln;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
@@ -5110,10 +4917,6 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	}
 
 	Tcl_DStringInit(&stmStr);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
 				       Tcl_GetStringFromObj(objv[1], NULL));
@@ -5193,10 +4996,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 				     OCI_DESCRIBE_ONLY);
 
 		if (rc == OCI_STILL_EXECUTING) {
-			res_obj = Tcl_NewIntObj(rc);
-			Tcl_IncrRefCount(res_obj);
-			Tcl_SetObjResult(interp, res_obj);
-			Tcl_DecrRefCount(res_obj);
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 			StmPtr->ora_rc = rc;
 			if (LogPtr->async == 1) {
 				tcl_return = TCL_OK;
@@ -5243,18 +5043,11 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	}
 
 	StmPtr->ora_rc = 0;
-	res_obj = Tcl_NewIntObj(0);
-	Tcl_IncrRefCount(res_obj);
-	Tcl_SetObjResult(interp, res_obj);
-	Tcl_DecrRefCount(res_obj);
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 
 common_exit:
 
 	Tcl_DStringFree(&stmStr);
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -5296,12 +5089,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	Tcl_DString	argStr;
 	char		*arg_pcc, *arg_pcp;
 	int		arg_pcc_len, arg_pcp_len;
-	int		objix;
 	int		tcl_return = TCL_OK;
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp,
@@ -5598,13 +5386,9 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			parm_cnt += 2;
 		}
 	}
-	Tcl_SetObjResult(interp, OMV_zero);
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 
 common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -5643,9 +5427,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 	sword		rc;
 	int		ca = 0;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
-	Tcl_Obj		*rc_obj;
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp,
@@ -5653,10 +5435,6 @@ Oratcl_Exec (clientData, interp, objc, objv)
 				 objv,
 				 "stm_handle ?-commit?");
 		return TCL_ERROR;
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -5717,12 +5495,8 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 	StmPtr->ora_rc = rc;
 
-	rc_obj = Tcl_NewIntObj(rc);
-	Tcl_IncrRefCount(rc_obj);
-	Tcl_SetObjResult(interp, rc_obj);
-	Tcl_DecrRefCount(rc_obj);
-
 	if (rc == OCI_STILL_EXECUTING) {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 		if (LogPtr->async == 1) {
 			tcl_return = TCL_OK;
 		} else {
@@ -5865,14 +5639,14 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			StmPtr->fetch_cnt  = 1;
 			StmPtr->append_cnt = 0;
 			StmPtr->fetchidx   = 0;
+		} else {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 		}
+	} else {
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 	}
 
 common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -5904,9 +5678,7 @@ Oratcl_Break (clientData, interp, objc, objv)
 	OratclLogs	*LogPtr;
 
 	sword		rc;
-	Tcl_Obj		*rc_obj;
 
-	int		objix;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 2) {
@@ -5915,10 +5687,6 @@ Oratcl_Break (clientData, interp, objc, objv)
 				 objv,
 				 "stm_handle");
 		return TCL_ERROR;
-	}
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
 	}
 
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -5943,46 +5711,37 @@ Oratcl_Break (clientData, interp, objc, objv)
 	if (LogPtr->async == 1) {
 		rc = OCI_Break((dvoid *) LogPtr->srvhp,
 			       LogPtr->errhp);
-		rc_obj = Tcl_NewIntObj(rc);
-		Tcl_IncrRefCount(rc_obj);
-		Tcl_SetObjResult(interp, rc_obj);
-		Tcl_DecrRefCount(rc_obj);
-		Oratcl_Checkerr(interp,
-				LogPtr->errhp,
-				rc,
-				1,
-				&StmPtr->ora_rc,
-				&StmPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
 
 		rc = OCI_Reset((dvoid *) LogPtr->srvhp,
 			       LogPtr->errhp);
-		rc_obj = Tcl_NewIntObj(rc);
-		Tcl_IncrRefCount(rc_obj);
-		Tcl_SetObjResult(interp, rc_obj);
-		Tcl_DecrRefCount(rc_obj);
-		Oratcl_Checkerr(interp,
-				LogPtr->errhp,
-				rc,
-				1,
-				&StmPtr->ora_rc,
-				&StmPtr->ora_err);
 
 		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&StmPtr->ora_rc,
+					&StmPtr->ora_err);
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
+
 	}
+
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 
 common_exit:
-
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 
 	return tcl_return;
 }
@@ -6017,9 +5776,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
 	sword		rc;
-	Tcl_Obj		*rc_obj;
 	int		hashType = 1;	/* default use column name for array index */
-	Tcl_Obj		*oResult;
 
 	int		option;
 	CONST84 char *options[] = {"-datavariable",
@@ -6049,12 +5806,8 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		return TCL_ERROR;
 	}
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_IncrRefCount(objv[objix]);
-	}
-
 	stmHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
-				       Tcl_GetStringFromObj(objv[1], NULL));
+				       Tcl_GetString(objv[1]));
 
 	if (stmHashPtr == NULL) {
 		Oratcl_ErrorMsg(interp,
@@ -6133,10 +5886,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	if (StmPtr->fetch_end
 	    && StmPtr->append_cnt >= StmPtr->fetch_cnt
 	    && StmPtr->fetch_cnt >  0) {
-		rc_obj = Tcl_NewIntObj(NO_DATA_FOUND);
-		Tcl_IncrRefCount(rc_obj);
-		Tcl_SetObjResult(interp, rc_obj);
-		Tcl_DecrRefCount(rc_obj);
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(NO_DATA_FOUND));
 		StmPtr->ora_rc = NO_DATA_FOUND;
 		tcl_return = TCL_OK;
 		goto common_exit;
@@ -6175,10 +5925,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 		if (rc == OCI_NO_DATA) {
 			StmPtr->fetch_end = 1;
 			if (StmPtr->append_cnt >= StmPtr->fetch_cnt) {
-				rc_obj = Tcl_NewIntObj(NO_DATA_FOUND);
-				Tcl_IncrRefCount(rc_obj);
-				Tcl_SetObjResult(interp, rc_obj);
-				Tcl_DecrRefCount(rc_obj);
+				Tcl_SetObjResult(interp, Tcl_NewIntObj(NO_DATA_FOUND));
 				StmPtr->ora_rc = NO_DATA_FOUND;
 				tcl_return = TCL_OK;
 				goto common_exit;
@@ -6204,19 +5951,16 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	}
 
 	ca = Oratcl_ColAppend(interp, StmPtr, dvarObjPtr, avarObjPtr, hashType);
-	if (ca == -1) {
+	if (ca < 0) {
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
 
 	/* preserve the result we have set for this command */
-	oResult = Tcl_GetObjResult(interp);
 
 	if (evalObjPtr) {
 		tcl_return = Tcl_EvalObjEx(interp, evalObjPtr, 0);
 	}
-
-	Tcl_SetObjResult(interp, oResult);
 
 common_exit:
 
@@ -6230,9 +5974,6 @@ common_exit:
 		Tcl_DecrRefCount(evalObjPtr);
 	}
 
-	for (objix=0; objix<objc; objix++) {
-		Tcl_DecrRefCount(objv[objix]);
-	}
 	return tcl_return;
 }
 

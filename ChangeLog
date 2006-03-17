@@ -1,5 +1,9 @@
 2006-03-16  Todd Helfter <
-	* generic/oralob.c:	Fix error message format to use %zu for (size_t) and fix message typo.		
+	* generic/oratcl.c:	  Massive cleanup of oratcl.c concering Tcl_Objs and refCounts.
+	  generic/oratclInt.h:
+
+2006-03-16  Todd Helfter <
+	* generic/oralob.c:	Fix error message format to use %zu for (size_t) and fix message typo.
 	  generic/oralong.c:
 
 2006-03-16  Todd Helfter <
