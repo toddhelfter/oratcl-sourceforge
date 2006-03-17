@@ -12,7 +12,7 @@ if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::oralob::test {
+namespace eval ::oratest::oralob {
         namespace import ::tcltest::*
 
 	global ora_constr
@@ -415,5 +415,4 @@ puts $foo
 	cleanupTests
 }
 
-namespace delete ::oralob::test
-
+namespace delete ::oratest::oralob

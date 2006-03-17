@@ -12,7 +12,7 @@ if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::oracommit::test {
+namespace eval ::oratest::oracommit {
 	namespace import ::tcltest::*
 
 	global ora_constr
@@ -97,4 +97,4 @@ namespace eval ::oracommit::test {
 	cleanupTests
 }
 
-namespace delete ::oracommit::test
+namespace delete ::oratest::oracommit
