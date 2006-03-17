@@ -89,10 +89,8 @@ proc oraplexec_final {} {
 		oraexec $pl_stm
 		oraparse $pl_stm "drop package oratcl___test_pkg"
 		oraexec $pl_stm
-
 		oraclose $pl_stm
 		oralogoff $pl_lda
-
 		unset pl_stm
 		unset pl_lda
 	}
