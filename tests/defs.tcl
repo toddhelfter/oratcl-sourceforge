@@ -4,7 +4,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 # 
-# RCS: @(#) $Id: defs.tcl,v 1.3 2005-02-02 16:23:26 tmh Exp $
+# RCS: @(#) $Id: defs.tcl,v 1.4 2006-03-17 18:40:25 tmh Exp $
 
 
 if {[lsearch [namespace children] ::tcltest] == -1} {
@@ -21,12 +21,6 @@ if {![info exists env(ORACLE_HOME)]} {
     gets stdin env(ORACLE_HOME)
 }
 puts "\n\tUsing oracle home :: $env(ORACLE_HOME)"
-
-if {[info exists env(ORACLE_SID)]} {
-  set def_server $env(ORACLE_SID)
-} else {
-  set def_server <none>
-}
 
 # prompt for oracle user id, password, server, and dbname
 puts {}

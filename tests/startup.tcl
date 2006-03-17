@@ -81,6 +81,8 @@ if {$table_exists} {
     }
 }
 
+unset table_exists
+
 proc create_table {} {
     global ora_lda ora_cur
 
