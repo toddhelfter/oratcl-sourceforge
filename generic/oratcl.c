@@ -248,6 +248,7 @@ Oratcl_Clean (clientData)
 
 		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 		Oratcl_StmFree(StmPtr);
+		StmPtr = NULL;
 		Tcl_DeleteHashEntry(stmHashPtr);
 	}
 
@@ -974,31 +975,35 @@ Oratcl_ColFree (ColPtr)
 
 	while (ColPtr != NULL) {
 		next = ColPtr->next;
-		if (ColPtr->column.name != NULL) {
-			ckfree((char *) ColPtr->column.name);
-		}
+		
 
-		if (ColPtr->column.valuep != NULL) {
-
-			/* 
-			 * if column is a LOB, the LobLocator has been stored in valuep
-			 */
-			if( ( ColPtr->dty == SQLT_CLOB ) || ( ColPtr->dty == SQLT_BLOB ) ){
-				int    nRow;
-				for( nRow = 0; nRow < ColPtr->nFetchRows; nRow++) {
-					OCILobLocator  **pLocator;
-					pLocator = (OCILobLocator**)(ColPtr->column.valuep
-								   + ColPtr->column.valuesz * nRow);
-					OCI_DescriptorFree((dvoid*)*pLocator,
-							   (ub4) OCI_DTYPE_LOB);
-				}
+			if (ColPtr->column.name != NULL) {
+				ckfree((char *) ColPtr->column.name);
 			}
 
-			ckfree(ColPtr->column.valuep);
+			if (ColPtr->column.valuep != NULL) {
 
-		}
+				/* 
+				 * if column is a LOB, the LobLocator has been stored in valuep
+				 */
+				if( ( ColPtr->dty == SQLT_CLOB ) || ( ColPtr->dty == SQLT_BLOB ) ){
+					int    nRow;
+					for( nRow = 0; nRow < ColPtr->nFetchRows; nRow++) {
+						OCILobLocator  **pLocator;
+						pLocator = (OCILobLocator**)(ColPtr->column.valuep
+									   + ColPtr->column.valuesz * nRow);
+						if (pLocator) {
+							OCI_DescriptorFree((dvoid*)*pLocator,
+									   (ub4) OCI_DTYPE_LOB);
+						}
+					}
+				}
 
-		Tcl_DStringFree(&ColPtr->column.typename);
+				ckfree(ColPtr->column.valuep);
+
+			}
+
+			Tcl_DStringFree(&ColPtr->column.typename);
 		
 		if (ColPtr->indp) {
 			ckfree ((char *) ColPtr->indp);
@@ -1036,7 +1041,6 @@ Oratcl_StmFree (StmPtr)
 
 		Oratcl_ColFree(StmPtr->col_list);
 		Oratcl_ColFree(StmPtr->bind_list);
-
 		Tcl_DecrRefCount(StmPtr->nullvalue);
 		Tcl_DStringFree(&StmPtr->ora_err);
 		Tcl_DStringFree(&StmPtr->datavar);
@@ -1975,6 +1979,7 @@ Oratcl_Logoff (clientData, interp, objc, objv)
 		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 		if (StmPtr->logid == LogPtr->logid) {
 			Oratcl_StmFree(StmPtr);
+			StmPtr = NULL;
 			Tcl_DeleteHashEntry(stmHashPtr);
 			stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &search);
 		} else {
@@ -2527,6 +2532,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 
 	if (rc != OCI_SUCCESS) {
 		Oratcl_StmFree(StmPtr);
+		StmPtr = NULL;
 		Tcl_DeleteHashEntry(stmHashPtr);
 
 		Oratcl_ErrorMsg(interp,
@@ -2782,6 +2788,7 @@ Oratcl_Close (clientData, interp, objc, objv)
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 
 	Oratcl_StmFree(StmPtr);
+	StmPtr = NULL;
 	Tcl_DeleteHashEntry(stmHashPtr);
 
 common_exit:
