@@ -366,7 +366,12 @@ namespace eval ::oratest::oralob {
                         oraconfig $tst6_2(stm) lobpsize 1000000
                 }
                 -body {
-			oraparse $tst6_2(stm) {update oratcl_lob set lob_clob = :val where lob_key = :key}
+			set tst6_2(sql) { \
+				update oratcl_lob  \
+				set lob_clob = :val  \
+				where lob_key = :key \
+			}
+			oraparse $tst6_2(stm) $tst6_2(sql)
 			orabind $tst6_2(stm) :val TMH :key l1
 			set rc [oraexec $tst6_2(stm)]
 			oracommit $tst6_2(lda)
