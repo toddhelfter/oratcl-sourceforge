@@ -1,3 +1,8 @@
+2006-03-21  Todd Helfter <
+	* generic/oratcl.c:  New [orainfo client] command will return 0.0.0.0.0 if the client version
+	is not 10g or higher.  The OCI function does not exist in the 8i and 9i libraries.
+	* also added some Tcl_IsShared() tests to orasql and oraplexec.
+
 2006-03-16  Todd Helfter <
 	* generic/oratcl.c:	  Massive cleanup of oratcl.c concering Tcl_Objs and refCounts.
 	  generic/oratclInt.h:

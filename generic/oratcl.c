@@ -2384,18 +2384,26 @@ Oratcl_Info (clientData, interp, objc, objv)
 	}
 
 	if (index == OPT_CLIENT) {
-		sword	major_version;
-		sword	minor_version;
-		sword 	update_num;
-		sword	patch_num;
-		sword	port_update_num;
+		sword	major_version = 0;
+		sword	minor_version = 0;
+		sword 	update_num = 0;
+		sword	patch_num = 0;
+		sword	port_update_num = 0;
 
-		rc = OCI_ClientVersion(&major_version,
-				       &minor_version,
-				       &update_num,
-				       &patch_num,
-				       &port_update_num);
-		sprintf(svr, "%d.%d.%d.%d.%d", major_version, minor_version,update_num, patch_num, port_update_num);
+		if (OCI_ClientVersion != NULL) {
+			rc = OCI_ClientVersion(&major_version,
+					       &minor_version,
+					       &update_num,
+					       &patch_num,
+					       &port_update_num);
+		}
+		sprintf(svr,
+			"%d.%d.%d.%d.%d",
+			major_version,
+			minor_version,
+			update_num,
+			patch_num,
+			port_update_num);
 		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) svr, -1));
 
 	}
@@ -2962,19 +2970,40 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 	execObjv = (Tcl_Obj **) ckalloc(execObjc * sizeof(Tcl_Obj *));
 
 	bindObjv[0] = objv[0];
+	if (Tcl_IsShared(bindObjv[0])) {
+		bindObjv[0] = Tcl_DuplicateObj(bindObjv[0]);
+	}
 	execObjv[0] = objv[0];
+	if (Tcl_IsShared(execObjv[0])) {
+		execObjv[0] = Tcl_DuplicateObj(execObjv[0]);
+	}
 	bindObjv[1] = objv[1];
+	if (Tcl_IsShared(bindObjv[1])) {
+		bindObjv[1] = Tcl_DuplicateObj(bindObjv[1]);
+	}
 	execObjv[1] = objv[1];
+	if (Tcl_IsShared(execObjv[1])) {
+		execObjv[1] = Tcl_DuplicateObj(execObjv[1]);
+	}
 
 	/* pass commit along */
 	if (execObjc == 3) {
 		execObjv[2] = objv[2];
+		if (Tcl_IsShared(execObjv[2])) {
+			execObjv[2] = Tcl_DuplicateObj(execObjv[2]);
+		}
 		for (i = 3;  i < objc;  i++) {
 			bindObjv[i-1] = objv[i];
+			if (Tcl_IsShared(bindObjv[i-1])) {
+				bindObjv[i-1] = Tcl_DuplicateObj(bindObjv[i-1]);
+			}
 		}
 	} else {
 		for (i = 2;  i < objc;  i++) {
 			bindObjv[i] = objv[i];
+			if (Tcl_IsShared(bindObjv[i])) {
+				bindObjv[i] = Tcl_DuplicateObj(bindObjv[i]);
+			}
 		}
 	}
 
@@ -3180,10 +3209,19 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	bindObjv = (Tcl_Obj **) ckalloc(bindObjc * sizeof(Tcl_Obj *));
 
 	bindObjv[0] = objv[0];
+	if (Tcl_IsShared(bindObjv[0])) {
+		bindObjv[0] = Tcl_DuplicateObj(bindObjv[0]);
+	}
 	bindObjv[1] = objv[1];
+	if (Tcl_IsShared(bindObjv[1])) {
+		bindObjv[1] = Tcl_DuplicateObj(bindObjv[1]);
+	}
 
 	for (i = 3;  i < objc;  i++) {
 		bindObjv[i-1] = objv[i];
+		if (Tcl_IsShared(bindObjv[i-1])) {
+			bindObjv[i-1] = Tcl_DuplicateObj(bindObjv[i-1]);
+		}
 	}
 
 	tcl_return = Oratcl_Bind(clientData, interp, bindObjc, bindObjv);
