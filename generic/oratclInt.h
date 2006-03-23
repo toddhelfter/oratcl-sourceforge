@@ -37,7 +37,8 @@
 #define ORA_LONG_SIZE	40960
 #define MAX_LONG_SIZE	2147483647
 #define ORA_BIND_SIZE   2000
-#define MAX_BIND_SIZE	2147483647
+#define OLD_MAX_BIND_SIZE	2147483647
+#define MAX_BIND_SIZE	4294967294
 #define ORA_FETCH_ROWS	10
 #define ORA_LOBP_SIZE	1000000
 #define MAX_LOBP_SIZE	2147483647
@@ -114,7 +115,6 @@ typedef struct OratclStms {
 	ub2		sqltype;	/* the sql type attribute	*/
 	Tcl_HashEntry	*logHashPtr;
         int		logid;		/* login handle id		*/
-	Tcl_DString	datavar;	/* list for -datavariable 	*/
         int		stmid;		/* statement handle id		*/
 	int		utfmode;	/* utf conversion flag		*/
 	int		numbsize;	/* space to alloc for numbers	*/

@@ -1043,8 +1043,6 @@ Oratcl_StmFree (StmPtr)
 		Oratcl_ColFree(StmPtr->bind_list);
 		Tcl_DecrRefCount(StmPtr->nullvalue);
 		Tcl_DStringFree(&StmPtr->ora_err);
-		Tcl_DStringFree(&StmPtr->datavar);
-
 		ckfree((char *) StmPtr);
 
 	}
@@ -1143,7 +1141,9 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 
 	null_str = Tcl_GetStringFromObj(StmPtr->nullvalue, NULL);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
-	Tcl_DStringSetLength(&StmPtr->datavar, 0);
+	if (listvar) {
+		lst_obj = Tcl_NewListObj(0, NULL);
+	}
 
 	/* 
 	 * Check for a LOB column and allocate a buffer piece.
@@ -1152,7 +1152,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
 		if (( col->dty == SQLT_BLOB ) || ( col->dty == SQLT_CLOB )) {
 			pValue = ckalloc( StmPtr->lobpsize + 1 );
-			if( pValue == NULL ) {
+			if (pValue == NULL) {
 				fprintf(stderr, "error:: pValue is NULL return -1\n");
 				return -1;
 			}
@@ -1292,7 +1292,12 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 		}
 
 		if (listvar) {
-			Tcl_DStringAppendElement(&StmPtr->datavar, tmp);
+			tmp_obj = Tcl_NewStringObj(tmp,strlen(tmp));
+			Tcl_IncrRefCount(tmp_obj);
+			Tcl_ListObjAppendElement(interp,
+					 	 lst_obj,
+						 tmp_obj);
+			Tcl_DecrRefCount(tmp_obj);
 		}
 
 		Tcl_DStringFree(&uniStr);
@@ -1300,11 +1305,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	if (listvar) {
-		lst_obj = Tcl_NewStringObj(Tcl_DStringValue(&StmPtr->datavar),
-					   Tcl_DStringLength(&StmPtr->datavar));
-		Tcl_IncrRefCount(lst_obj);
 		Tcl_ObjSetVar2(interp, listvar, NULL, lst_obj, 0);
-		Tcl_DecrRefCount(lst_obj);
 	}
 
 	if (pValue) {
@@ -1459,6 +1460,10 @@ Oratcl_ColDescribe (interp, StmPtr)
 			int nRow;
 			char *pLocators;
 			pLocators = ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
+			if (pLocators == NULL) {
+				fprintf(stderr, "error:: pLocators is NULL return -1\n");
+				return -1;
+			}
 			for (nRow = 0; nRow < StmPtr->fetchrows; nRow++ ) {
 				OCILobLocator **pLocator;
 				pLocator = (OCILobLocator**)(pLocators + nRow * new_col->column.valuesz);
@@ -1500,6 +1505,10 @@ Oratcl_ColDescribe (interp, StmPtr)
 			new_col->column.valuesz = new_col->column.valuesz + 1;
 			new_col->column.valuep =
 				ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
+			if (new_col->column.valuep == NULL) {
+				fprintf(stderr, "error:: new_col->column.valuep is NULL return -1\n");
+				return -1;
+			}
 
 			rc = OCI_DefineByPos(StmPtr->stmhp,
 					     &new_col->defnp,
@@ -1614,6 +1623,11 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 	LogPtr = (OratclLogs *) ckalloc (sizeof (OratclLogs));
+	if (LogPtr == NULL) {
+		fprintf(stderr, "error:: new_col->column.valuep is NULL return -1\n");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 
 	/* generate an lda name and put it in the hash table. */
 	OratclStatePtr->logid++;
@@ -1636,6 +1650,11 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 	con_str = Tcl_GetStringFromObj(objv[1], &con_len);
 	cpy_str = ckalloc (con_len + 1);
+	if (cpy_str == NULL) {
+		fprintf(stderr, "error:: cpy_str is NULL return -1\n");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 	memcpy (cpy_str, con_str, con_len);
 	cpy_str[con_len] = '\0';
 
@@ -2572,7 +2591,6 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->sqltype		= 0;
 	StmPtr->logHashPtr	= logHashPtr;
 	StmPtr->logid		= LogPtr->logid;
-	Tcl_DStringInit(&StmPtr->datavar);
 	StmPtr->utfmode		= 0;
 
 	Tcl_SetObjResult(interp, Tcl_NewStringObj(buf, -1));
@@ -3679,6 +3697,11 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	}
 
 	tmp_str = Tcl_GetStringFromObj(objv[2], &tmp_len);
+	if (tmp_str == NULL) {
+		fprintf(stderr, "error:: tmp_str is NULL return -1\n");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
 	Tcl_DStringAppend(&tblStr, tmp_str, tmp_len);
 
 	rc = OCI_DescribeAny(LogPtr->svchp,
@@ -4192,7 +4215,10 @@ Oratcl_Config (clientData, interp, objc, objv)
 		if (option == OPT_BIND) {
 			tcl_rc = Tcl_GetIntFromObj(interp, objv[i], &value);
 			/* test for valid integer */
+			if (tcl_rc != TCL_OK || value < 0) {
+#if 0
 			if (tcl_rc != TCL_OK || value < 0 || value > MAX_BIND_SIZE) {
+#endif
 				Oratcl_ErrorMsg(interp,
 						objv[0],
 						": invalid value",
@@ -5564,6 +5590,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 
 	if (StmPtr->sqltype == OCI_STMT_UPDATE ||
 	    StmPtr->sqltype == OCI_STMT_DELETE ||
@@ -5684,11 +5711,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			StmPtr->fetch_cnt  = 1;
 			StmPtr->append_cnt = 0;
 			StmPtr->fetchidx   = 0;
-		} else {
-			Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 		}
-	} else {
-		Tcl_SetObjResult(interp, Tcl_NewIntObj(rc));
 	}
 
 common_exit:
