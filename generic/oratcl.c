@@ -1316,7 +1316,6 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	StmPtr->append_cnt += 1;
 	StmPtr->ora_rc = 0;
 	StmPtr->ora_row = StmPtr->append_cnt;
-	StmPtr->fetch_ok = 1;
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
 	return 0;
 }
@@ -5947,7 +5946,6 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 
 	StmPtr->ora_rc = 0;
 	Tcl_DStringInit(&StmPtr->ora_err);
-	StmPtr->fetch_ok = 0;
 
 	/* check if already exhausted */
 

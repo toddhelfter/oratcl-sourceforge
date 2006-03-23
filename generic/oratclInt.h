@@ -108,7 +108,6 @@ typedef struct OratclStms {
 	int		fetchmem;	/* save value at parse time 	*/
 	int		fetchidx;	/* row in cache to fetch	*/
 	int		fetch_end;	/* true when fetches exhausted	*/
-	int		fetch_ok;	/* true when fetches exhausted	*/
 	ub4		iters;		/* iteration count		*/
 	ub4		fetch_cnt;	/* total rows fetched so far	*/
 	ub4		append_cnt;	/* total rows appended so far	*/
