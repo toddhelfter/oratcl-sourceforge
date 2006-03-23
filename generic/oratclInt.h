@@ -132,10 +132,4 @@ typedef struct OratclState {
         int		stmid;		/* statement handle id		*/
 } OratclState;
 
-typedef struct OratclStateList {
-	OratclState		*state;
-	struct OratclStateList	*next;
-	struct OratclStateList	*prev;
-} OratclStateList;
-
 #endif

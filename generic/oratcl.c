@@ -101,8 +101,6 @@ LPVOID reserved;            /* Not used. */
 
 static char *OraHandlePrefix = "oratcl";
 
-OratclStateList	*OratclSLP = NULL;
-
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 extern int	  Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp	*interp));
 extern void    	  Oratcl_StmFree	_ANSI_ARGS_((OratclStms	*StmPtr));
@@ -213,32 +211,6 @@ Oratcl_Clean (clientData)
 	Tcl_HashEntry	*stmHashPtr;
 	Tcl_HashSearch  srch;
 
-	OratclStateList *StateListPtr;
-	int		found = 0;
-
-	for (StateListPtr = OratclSLP; StateListPtr != NULL; StateListPtr = StateListPtr->next) {
-		if (StateListPtr->state == OratclStatePtr) {
-			if (StateListPtr->prev == NULL) {
-				OratclSLP = StateListPtr->next;
-				if (StateListPtr->next) {
-					OratclSLP->prev = NULL;
-				}
-			} else if (StateListPtr->next == NULL) {
-				StateListPtr->prev->next = NULL;
-			} else {
-				StateListPtr->prev->next = StateListPtr->next;
-				StateListPtr->next->prev = StateListPtr->prev;
-			}
-			ckfree ((char *) StateListPtr);
-			found = 1;
-			break;
-		}
-	}
-
-	if (!found) {
-		return;
-	}
-
 	/*
 	 * Close all open statement handles.
 	 */
@@ -342,7 +314,6 @@ Oratcl_Init (interp)
 {
 	static int	OratclInitFlag = 0;    /* initialization flag */
 	OratclState	*OratclStatePtr;
-	OratclStateList *StateListPtr;
 
 	int		rc = 0;
 
@@ -554,20 +525,6 @@ Oratcl_Init (interp)
 	}
 
 	OratclStatePtr = (OratclState *) ckalloc (sizeof(OratclState));
-	StateListPtr = (OratclStateList *) ckalloc (sizeof(OratclStateList));
-
-	StateListPtr->state = OratclStatePtr;
-	StateListPtr->next = NULL;
-	StateListPtr->prev = NULL;
-
-	/* insert at head of list */
-	if (OratclSLP == NULL) {
-		OratclSLP = StateListPtr;
-	} else {
-		StateListPtr->next = OratclSLP;
-		OratclSLP->prev = StateListPtr;
-		OratclSLP = StateListPtr;
-	}
 
 	OratclStatePtr->logHash = (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
 	Tcl_InitHashTable(OratclStatePtr->logHash, TCL_STRING_KEYS);

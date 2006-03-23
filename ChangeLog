@@ -1,3 +1,9 @@
+2006-03-23  Todd Helfter <
+	* generic/oratcl.c: 
+	  generic/oratclInt.h: Found that the entire global linked list of Oratcl state pointers
+	OratclSLP was unnecessary, the interp delete callback is sufficient to clean up from
+	slave interps..
+
 2006-03-21  Todd Helfter <
 	* generic/oratcl.c:  New [orainfo client] command will return 0.0.0.0.0 if the client version
 	is not 10g or higher.  The OCI function does not exist in the 8i and 9i libraries.
