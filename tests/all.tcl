@@ -6,13 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.5 2006-03-17 18:39:46 tmh Exp $
-
-if {$tcl_platform(os) == "Win32s"} {
-    set files [glob ./*.tes]
-} else {
-    set files [glob tests/*.test]
-}
+# RCS: @(#) $Id: all.tcl,v 1.6 2006-03-23 05:06:38 tmh Exp $
 
 global ora_lda
 
@@ -75,5 +69,9 @@ unset test
 unset times
 unset testlist
 unset testtimes
+unset ora_server
+unset ora_pw
+unset ora_userid 
+unset ora_constr
 
 puts stderr "GLOBALS ([llength [info globals]]):: [lsort [info globals]]"

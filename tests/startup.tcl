@@ -67,6 +67,7 @@ puts $column
 if {[string compare $column ORATCL___TESTS] == 0} {
         set table_exists 1
 }
+unset column
 
 if {$table_exists} {
     puts {oratcl___tests exists,}
