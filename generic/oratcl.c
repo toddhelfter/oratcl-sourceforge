@@ -912,6 +912,7 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->rlenp[0] = 0;
 		ColPtr->rcodep[0] = 0;
 		ColPtr->bindPtr = NULL;
+		ColPtr->dty = SQLT_STR;
 	}
 	return ColPtr;
 }

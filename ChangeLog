@@ -1,3 +1,6 @@
+2006-04-13  Todd Helfter <
+	* generic/oratcl.c: initialize ColPtr->dty to SQLT_STR.
+
 2006-03-23  Todd Helfter <
 	* generic/oratcl.c: 
 	  generic/oratclInt.h: Found that the entire global linked list of Oratcl state pointers
