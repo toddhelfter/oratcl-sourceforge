@@ -1073,7 +1073,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	char		*pValue = NULL;
 	Tcl_Obj		*val_obj;
 	Tcl_Obj		*tmp_obj;
-	Tcl_Obj		*lst_obj;
+	Tcl_Obj		*lst_obj = NULL;
 	OratclLogs	*LogPtr;
 
 	/* quick sanity check */
