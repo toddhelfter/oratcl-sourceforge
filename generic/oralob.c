@@ -158,30 +158,6 @@ Oralob_Init (interp)
 	};
 
 
-	for (x = 0; x < (sizeof(tvars_list)/sizeof(struct tvars)); x++) {
-
-		if (debug) {
-			fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
-			fprintf(stderr, "name = %s\n", tvars_list[x].name);
-			fprintf(stderr, "value = %s\n", tvars_list[x].value);
-		}
-
-		rx = Tcl_SetVar2((Tcl_Interp *) interp,
-				 (CONST char *) tvars_list[x].ns,
-				 (CONST char *) tvars_list[x].name,
-				 (CONST char *) tvars_list[x].value,
-				 0);
-
-		if (rx == NULL) {
-			fprintf(stderr,
-				"%sset variable '%s'",
-				"Oralob_Init(): Failed to ",
-				(CONST char *) tvars_list[x].name);
-				return TCL_ERROR;
-		}
-	}
-
-
 	CONST84 char *script[] = {
 		"proc oralob {command handle args} { "
 		"	global errorInfo; "
@@ -826,6 +802,30 @@ Oralob_Init (interp)
 		"	return -code ok $oralob(oratcl_ok); "
 		"} "
 	};
+
+	for (x = 0; x < (sizeof(tvars_list)/sizeof(struct tvars)); x++) {
+
+		if (debug) {
+			fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
+			fprintf(stderr, "name = %s\n", tvars_list[x].name);
+			fprintf(stderr, "value = %s\n", tvars_list[x].value);
+		}
+
+		rx = Tcl_SetVar2((Tcl_Interp *) interp,
+				 (CONST char *) tvars_list[x].ns,
+				 (CONST char *) tvars_list[x].name,
+				 (CONST char *) tvars_list[x].value,
+				 0);
+
+		if (rx == NULL) {
+			fprintf(stderr,
+				"%sset variable '%s'",
+				"Oralob_Init(): Failed to ",
+				(CONST char *) tvars_list[x].name);
+				return TCL_ERROR;
+		}
+	}
+
 
 	for (x = 0; x < (sizeof(script)/sizeof(char const *)); x++) {
 		tmp1_obj=Tcl_NewStringObj(script[x], -1);
