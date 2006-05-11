@@ -1,3 +1,7 @@
+2006-05-11  Todd Helfter
+	* generic/oralob.c
+	  generic/oralong.c :  Reorganize so variable declarations come before for loops
+
 2006-04-13  Todd Helfter <
 	* generic/oratcl.c: initialize ColPtr->dty to SQLT_STR.
 
