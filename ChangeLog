@@ -1,4 +1,7 @@
 2006-05-11  Todd Helfter
+	*  changing version to 4.5 for cvs-head, development occurs here.
+
+2006-05-11  Todd Helfter
 	* generic/oralob.c
 	  generic/oralong.c :  Reorganize so variable declarations come before for loops
 

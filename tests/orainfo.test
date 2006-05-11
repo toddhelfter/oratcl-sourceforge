@@ -23,7 +23,7 @@ if {[info exists ora_lda] == 0} {
 	-cleanup {
 		unset res
 	}
-	-result 4.4
+	-result 4.5
 }
 
 ::tcltest::test orainfo-1.1 {orainfo: server} {
