@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<!-- $Id: FAQ.html,v 1.5 2001-07-24 14:23:40 bhlewis Exp $ -->
+<!-- $Id: FAQ.html,v 1.6 2006-06-30 15:19:43 tmh Exp $ -->
 <html>
   <head>
     <title>Oratcl Frequently Asked Questions</title>
@@ -97,11 +97,13 @@
 	  </p>
 	  
 	  <ul>
-	    <li><b>Solaris 2.6, 7, and 8</b> *
-	    <li><b>Windows 9x/NT4/2000</b> *
-	    <li><b>AIX 4.3</b> *
+	    <li>Solaris 2.6, 7, 8, 9 and 10</b> *
+	    <li>Windows 9x, NT4, 2000, XP, 2003</b> *
+	    <li>AIX 4.3</b> *
 	    <li>HP/UX
-	    <li>RedHat Linux 6.2
+	    <li>RedHat Linux x86: ES3, AS3, ES4, AS4 *
+	    <li>RedHat Linux x86-64: ES3, AS3, ES4, AS4 *
+            <li>Fedora core: 3, 4
 	  </ul>
 	  
 	  <p>
@@ -127,8 +129,10 @@
 	<dd>
 
 	  <p>
-	    The current versions of Oratcl (version 3.0 and up)
-	    support the Oracle 8 OCI API only (Oracle 8.0.4 and up).
+	    The current versions of Oratcl (version 4.4) supports Oracle
+	    8i, 9i, 10g (32 bit and 64 bit versions) and the 10g release 2
+            instant client.  Oratcl (version 3.3) supports older releases
+	    of Oracle that use the older OCI API.  (I.E. Oracle 8.0.x).
 	    Previous versions supported the Oracle 7 OCI API and
 	    remain available for Oracle 7 users.
 	  </p>
@@ -148,37 +152,70 @@
 	  <table border="1">
 	    <tr>
 	      <th colspan="2" rowspan="2">&nbsp;</th>
-	      <th colspan="3">Oracle Version</th>
+	      <th colspan="6">Oracle Version</th>
 	    </tr>
 	    <tr>
-	      <th>Oracle 7.x</th>
-	      <th>Oracle 8.0.x</th>
-	      <th>Oracle 8.1+</th>
+	      <th>7.x</th>
+	      <th>8.0.x</th>
+	      <th>8.1+</th>
+	      <th>8.1.7</th>
+	      <th>9i</th>
+	      <th>10g</th>
 	    </tr>
 	    <tr>
-	      <th rowspan="4">Tcl<br>Version</th>
+	      <th rowspan="6">Tcl<br>Version</th>
 	      <th align="left">Tcl 7.x</th>
 	      <td align="center">Oratcl 2.6</td>
 	      <td align="center">Oratcl 2.6</td>
 	      <td align="center">Oratcl 2.6</td>
+	      <td align="center">Unknown</td>
+	      <td align="center">Unknown</td>
+	      <td align="center">Unknown</td>
 	    </tr>
 	    <tr>
 	      <th align="left">Tcl 8.0x</th>
 	      <td align="center">Oratcl 2.6</td>
 	      <td align="center">Oratcl 2.6</td>
 	      <td align="center">Oratcl 2.6</td>
+	      <td align="center">Unknown</td>
+	      <td align="center">Unknown</td>
+	      <td align="center">Unknown</td>
 	    </tr>
 	    <tr>
 	      <th align="left">Tcl 8.1-8.2</th>
 	      <td align="center">Oratcl 2.7</td>
 	      <td align="center">Oratcl 3.0.1</td>
 	      <td align="center">Oratcl 3.0.1</td>
+	      <td align="center">Unknown</td>
+	      <td align="center">Unknown</td>
+	      <td align="center">Unknown</td>
 	    </tr>
 	    <tr>
-	      <th align="left">Tcl 8.3+</th>
-	      <td align="center">Oratcl 2.7</td>
-	    <td align="center">Oratcl 3.2</td>
-	      <td align="center">Oratcl 3.2</td>
+	      <th align="left">Tcl 8.3</th>
+	      <td align="center">Unknown</td>
+	      <td align="center">Oratcl 3.3</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	    </tr>
+	    <tr>
+	      <th align="left">Tcl 8.4</th>
+	      <td align="center">Unknown</td>
+	      <td align="center">Oratcl 3.3</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	    </tr>
+	    <tr>
+	      <th align="left">Tcl 8.5</th>
+	      <td align="center">Unknown</td>
+	      <td align="center">Oratcl 3.3</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
+	      <td align="center"><b>Oratcl 4.4</td>
 	    </tr>
 	  </table>
 	  
@@ -242,14 +279,14 @@
 	    system to create Makefiles appropriate for your Tcl and Oracle
 	    installations.  Building Oratcl is often as simple as:
 	  <pre>
-cd {oratcl source directory}/unix
-../configure --enable-stubs
+cd {oratcl source directory}
+./configure --prefix=/path_to_installed_tcl
 make && make install
 	  </pre>
 	</p>
 	  <p>
 	    More specific instructions can be found in the 
-	    <tt>oratcl/unix/README.unix</tt> file included
+	    <tt>oratcl/INSTALL</tt> file included
 	    with the source distribution.
 	  </p>
 	  
@@ -273,9 +310,7 @@ make && make install
 	  </p>
 	  <p>
 	    Instructions for building Oratcl in a Cygwin environment
-	    are available in the 
-	    <tt>oratcl/cygwin/README.cygwin</tt> 
-	    file included with the source distribution.
+	    are the same as for any other environment.
 	  </p>
 
 	<dt>
@@ -326,7 +361,7 @@ env CC="gcc" ../configure --prefix=/path/to/install
 	  <p>
 	    The manual pages are also available on-line.  The most current
 	    version is available as the
-	    <a href="http://oratcl.sourceforge.net/pub/oratcl_man.html">
+	    <a href="manpage.html">
 	      Oratcl Manual page
 	    </a>
 	    at <a href="http://sourceforge.net/">SourceForge</a>.
@@ -337,7 +372,6 @@ env CC="gcc" ../configure --prefix=/path/to/install
 	      Oratcl Main Page
 	    </a>
 	    also at <a href="http://sourceforge.net/">SourceForge</a>.
-	  </p>
 	<dt>
 	  <a name="Q4.2" href="#TOC">
 	    Q4.2 How do I configure SQL*NET for Oratcl?
@@ -345,18 +379,16 @@ env CC="gcc" ../configure --prefix=/path/to/install
 	<dd>
 	  <p>
 	    Oratcl requires no special configuration to connect with a
-	    database other than that required by the Oracle client tools
-	    (SQL*Plus, tnsping, etc.).  If you are having trouble
-	    connecting to an Oracle database, try using SQL*Plus
-	    with the same connect string.
+	    database other than a valid Oracle client install on the local
+	    server.
 	  </p>
 	  <p>
-	    Recent versions of Oratcl are built against recent Oracle
-	    libraries, and therefore require SQL*NETv2/Net8 style
-	    configuration files (tnsnames.ora).  If you are unfamiliar
-	    with configuring SQL*NET, the Oracle <tt>dbassist</tt>
-	    tool can generate the proper files, or you can ask your
-	    Oracle administrator.
+	    Recent versions of Oratcl are not linked with Oracle
+	    libraries at build time.  Oratcl will dynamically load
+	    the oracle client libraries found at $ORACLE_HOME/lib or
+	    using the ORATCL environment variable ORACLE_LIBRARY to 
+	    override the $ORACLE_HOME/lib.  This ORACLE_LIBRARY variable
+	    is most useful with the 10g instant client.
 	  </p>
 	<dt>
 	  <a name="Q4.3" href="#TOC">
@@ -374,7 +406,6 @@ mydb =
   (DESCRIPTION =
     (ADDRESS_LIST =
         (ADDRESS =
-          (COMMUNITY = MY_COMM)
           (PROTOCOL = TCP)
           (HOST = mydbhost.domain.com)
           (PORT = 1521)
@@ -428,13 +459,21 @@ mydb =
 	  </p>
 	  <pre>
 # oralogon, oraopen, etc. happen above
-orasql $cur {alter session set nls_date_format='DD-MON-YYYY'}
-orasql $cur {select sysdate from dual}
-orafetch $cur {puts @0}
+oraparse $cur {alter session set nls_date_format='DD-MON-YYYY'}
+oraexec $cur
+oraparse $cur {select sysdate from dual}
+oraexec $cur
+while [orafetch $cur -datavariable now] == 0] {
+	puts $now
+}
 
-orasql $cur {alter session set nls_date_format='DD-MON-YYYY HH:MI:SS'}
-orasql $cur {select sysdate from dual}
-orafetch $cur {puts @0}
+oraparse $cur {alter session set nls_date_format='DD-MON-YYYY HH:MI:SS'}
+oraexec $cur
+oraparse $cur {select sysdate from dual}
+oraexec $cur
+while [orafetch $cur -datavariable now] == 0] {
+	puts $now
+}
 	  </pre>
       </dl>
     </blockquote>
@@ -502,6 +541,7 @@ orafetch $cur {puts @0}
 
 
     <hr>
+    <address><a href="mailto:tmh@users.sourceforge.net">Todd Helfter</a></address>
     <address><a href="mailto:bhlewis@users.sourceforge.net">Benjamin Lewis</a></address>
 <!-- Created: Mon Nov  6 09:02:57 EST 2000 -->
 <!-- hhmts start -->
