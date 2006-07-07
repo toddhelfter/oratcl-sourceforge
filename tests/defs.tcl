@@ -4,7 +4,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 # 
-# RCS: @(#) $Id: defs.tcl,v 1.4 2006-03-17 18:40:25 tmh Exp $
+# RCS: @(#) $Id: defs.tcl,v 1.5 2006-07-07 17:04:54 tmh Exp $
 
 
 if {[lsearch [namespace children] ::tcltest] == -1} {
@@ -12,7 +12,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 	namespace import ::tcltest::*
 	}
 
-package require -exact Oratcl 4.4
+package require -exact Oratcl 4.5
 
 # check for ORACLE env var
 if {![info exists env(ORACLE_HOME)]} {
