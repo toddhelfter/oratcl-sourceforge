@@ -3489,6 +3489,12 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	case SQLT_NUM:					/* 2	*/
 		Tcl_DStringAppend(&column->typename, "NUMBER", -1);
 		break;
+	case SQLT_IBFLOAT:				/* 100	*/
+		Tcl_DStringAppend(&column->typename, "BINARY_FLOAT", -1);
+		break;
+	case SQLT_IBDOUBLE:				/* 101	*/
+		Tcl_DStringAppend(&column->typename, "BINARY_DOUBLE", -1);
+		break;
 	case SQLT_DAT:					/* 12	*/
 		Tcl_DStringAppend(&column->typename, "DATE", -1);
 		break;
@@ -5192,8 +5198,8 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 
-			refHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
-						       Tcl_GetStringFromObj(objv[parm_cnt+1], NULL));
+			refHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash, arg_pcp);
+
 			if (refHashPtr != NULL) {
 				RefPtr = (OratclStms *) Tcl_GetHashValue(refHashPtr);
 
@@ -5384,6 +5390,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	} else {
 		/* else, binds have been done, just copy in new data */
 		while (objc > parm_cnt + 1) {       /* always in pairs of two */
+			/* traverse the list looking for the required column */
 			tmp_col = StmPtr->bind_list;
 			while (tmp_col != NULL) {
 				if (strncmp((char *) tmp_col->column.name, Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), 255) == 0) {

@@ -1,3 +1,10 @@
+2007-02-01  Todd Helfter
+	*  generic/oradefs.h
+	   generic/oratcl.c : add code to correctly report new 10g types SQLT_IBFLOAT and
+	SQLT_IBDOUBLE as BINARY_FLOAT and BINARY_DOUBLE when describing columns or tables.
+	This change affects the 'oradesc' and 'oracols' functions.  Previously, these 
+	would have returned UNKNOWN as the type.
+
 2006-06-30  Todd Helfter
 	*  doc/FAQ.html : update FAQ
 

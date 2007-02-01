@@ -192,6 +192,8 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define SQLT_LVB		95
 #define SQLT_AFC		96
 #define SQLT_AVC		97
+#define SQLT_IBFLOAT		100
+#define SQLT_IBDOUBLE		101
 #define SQLT_CUR		102
 #define SQLT_RDD		104
 #define SQLT_LAB		105
