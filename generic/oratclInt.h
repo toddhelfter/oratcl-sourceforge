@@ -36,7 +36,7 @@
 #define MAX_DATE_SIZE	7500
 #define ORA_LONG_SIZE	40960
 #define MAX_LONG_SIZE	2147483647
-#define ORA_BIND_SIZE   2000
+#define ORA_BIND_SIZE   4000
 #define OLD_MAX_BIND_SIZE	2147483647
 #define MAX_BIND_SIZE	4294967294
 #define ORA_FETCH_ROWS	10
@@ -115,7 +115,7 @@ typedef struct OratclStms {
 	Tcl_HashEntry	*logHashPtr;
         int		logid;		/* login handle id		*/
         int		stmid;		/* statement handle id		*/
-	int		utfmode;	/* utf conversion flag		*/
+	int		unicode;	/* unicode flag			*/
 	int		numbsize;	/* space to alloc for numbers	*/
 	int		datesize;	/* space to alloc for dates	*/
 	int		ora_rc;		/* oracle return code		*/

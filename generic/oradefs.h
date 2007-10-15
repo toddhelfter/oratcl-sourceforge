@@ -691,4 +691,7 @@ OCIFocbkStruct;
 #define SQLCS_FLEXIBLE 4		/* for PL/SQL "flexible" parameters */
 #define SQLCS_LIT_NULL 5		/* for typecheck of NULL and empty_clob() lits */
 
+
+#define OCI_UTF16ID           1000                       /* UTF16 charset ID */
+#define OCI_UCS2ID            1000                       /* UTF16 charset ID */
 #endif  /* _ORADEFS_H */
