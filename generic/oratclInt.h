@@ -115,7 +115,7 @@ typedef struct OratclStms {
 	Tcl_HashEntry	*logHashPtr;
         int		logid;		/* login handle id		*/
         int		stmid;		/* statement handle id		*/
-	int		unicode;	/* unicode flag			*/
+	int		utfmode;	/* utfmode flag			*/
 	int		numbsize;	/* space to alloc for numbers	*/
 	int		datesize;	/* space to alloc for dates	*/
 	int		ora_rc;		/* oracle return code		*/
