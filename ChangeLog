@@ -2,9 +2,17 @@
 	*  generic/oratcl.c
 	*  generic/oratclInt.h
 	*  generic/oratcl.n
+	*  generic/oratcl.html : restoring the 'utfmode' configuration options.. Unicode will be added
+	as a separate feature.
+
+2007-10-15  Todd Helfter
+	*  generic/oratcl.c
+	*  generic/oratclInt.h
+	*  generic/oratcl.n
 	*  generic/oratcl.html : converted the 'utfmode' configuration option to 'unicode' for oraconfig.
 	OraTcl finally can read and write Unicode objects in to and out of the database.  So far tested
 	on RedHat EL 5, with Oracle 11g and Tcl 8.5b1.   Note that Unicode LOBS are not yet implemented. 
+
 2007-02-01  Todd Helfter
 	*  generic/oradefs.h
 	   generic/oratcl.c : add code to correctly report new 10g types SQLT_IBFLOAT and

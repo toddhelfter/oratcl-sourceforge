@@ -152,11 +152,14 @@
                     <I>Longpsize</I>  defaults  to 50,000 characters and
                     the maximum is 2,147,483,648 characters.
 
-          <I>unicode</I>   Sets or returns the UNICODE behavior.
+          <I>utfmode</I>   Sets or returns the UTF translation behavior.
                     Setting  this  value  to  true causes <I>orasql</I>,
                     <I>orabindexec</I>, <I>oraplexec</I>, <I>orafetch</I>, <I>oralong</I> and
-                    <I>oralob</I>  to  use UNICODE on values
-                    written to and read from  the  database.
+                    <I>oralob</I>  to  perform UTF translation on values
+                    written to and read from  the  database  with
+                    the  system  encoding.  It is not recommended
+                    that this function be enabled when reading or
+                    writting  long  raw type values with <I>oralong</I>.
                     The default is false.
 
           <I>numbsize</I>  Sets or returns the amount  of  of  data  (in
