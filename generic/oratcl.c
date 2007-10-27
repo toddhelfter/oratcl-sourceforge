@@ -5984,6 +5984,9 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 
 	if (evalObjPtr) {
 		tcl_return = Tcl_EvalObjEx(interp, evalObjPtr, 0);
+		if (tcl_return == TCL_OK) {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+		}
 	}
 
 common_exit:
