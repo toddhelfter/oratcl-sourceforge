@@ -2373,13 +2373,13 @@ Oratcl_Info (clientData, interp, objc, objv)
 					       &patch_num,
 					       &port_update_num);
 		}
-		sprintf(svr,
+		sprintf((char *) svr,
 			"%d.%d.%d.%d.%d",
-			major_version,
-			minor_version,
-			update_num,
-			patch_num,
-			port_update_num);
+			(int) major_version,
+			(int) minor_version,
+			(int) update_num,
+			(int) patch_num,
+			(int) port_update_num);
 		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) svr, -1));
 
 	}
@@ -5984,6 +5984,9 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 
 	if (evalObjPtr) {
 		tcl_return = Tcl_EvalObjEx(interp, evalObjPtr, 0);
+		if (tcl_return == TCL_OK) {
+			Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+		}
 	}
 
 common_exit:

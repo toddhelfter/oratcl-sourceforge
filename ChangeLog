@@ -1,3 +1,6 @@
+2007-10-27  Todd Helfter
+	* generic/oralob.c : fixed #1806291 regression: orafetch -command doesn't return rc code
+
 2006-06-20  Todd Helfter
 	* doc/FAQ.html : updated FAQ to be more current.
 
