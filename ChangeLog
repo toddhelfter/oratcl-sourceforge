@@ -1,4 +1,7 @@
 2007-10-27  Todd Helfter
+	* generic/oratcl.c : add BINARY_FLOAT and BINARY_DOUBLE to the list of known types
+
+2007-10-27  Todd Helfter
 	* generic/oradefs.h
 	* tests/all.tcl
 	* tests/merge.test

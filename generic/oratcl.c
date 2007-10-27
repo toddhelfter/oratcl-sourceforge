@@ -3489,6 +3489,12 @@ Oratcl_Attributes (interp, errhp, parmh, column, explicit)
 	case SQLT_NUM:					/* 2	*/
 		Tcl_DStringAppend(&column->typename, "NUMBER", -1);
 		break;
+	case SQLT_IBFLOAT:				/* 100	*/
+		Tcl_DStringAppend(&column->typename, "BINARY_FLOAT", -1);
+		break;
+	case SQLT_IBDOUBLE:				/* 101	*/
+		Tcl_DStringAppend(&column->typename, "BINARY_DOUBLE", -1);
+		break;
 	case SQLT_DAT:					/* 12	*/
 		Tcl_DStringAppend(&column->typename, "DATE", -1);
 		break;
