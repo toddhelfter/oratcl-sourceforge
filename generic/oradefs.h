@@ -46,6 +46,7 @@
 #define  OCI_STMT_ALTER   7   /* alter statement */
 #define  OCI_STMT_BEGIN   8   /* begin ... (pl/sql statement)*/
 #define  OCI_STMT_DECLARE 9   /* declare .. (pl/sql statement ) */
+#define  OCI_STMT_MERGE   16  /* merge statement (see Oracle bug #4879692) */
 
 
 /*-------------------------Credential Types----------------------------------*/

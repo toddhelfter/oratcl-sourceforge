@@ -5551,7 +5551,8 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 	if (StmPtr->sqltype == OCI_STMT_UPDATE ||
 	    StmPtr->sqltype == OCI_STMT_DELETE ||
-	    StmPtr->sqltype == OCI_STMT_INSERT) {
+	    StmPtr->sqltype == OCI_STMT_INSERT ||
+	    StmPtr->sqltype == OCI_STMT_MERGE) {
 
 		rowcnt = 0;
 		rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
