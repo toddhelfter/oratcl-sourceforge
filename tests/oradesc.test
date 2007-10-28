@@ -85,6 +85,12 @@ namespace eval ::oratest::oradesc {
 		create public synonym oratcl_public_syn_1 for oratcl_desc_tbl_1 \
 	}}
 
+	# create view_1
+	set view_sql { \
+		create view oratcl_desc_view_1 as select * from oratcl_desc_tbl_1 \
+	}
+	catch {orasql $desc_stm $view_sql}
+
 	#
 	# a simple function to compare two nested lists.
 	#
@@ -205,6 +211,13 @@ namespace eval ::oratest::oradesc {
 		set test_res
 	} {1}
 
+	test oradesc-5.0 {oradesc: describe view} {
+		set desc_res {}
+		catch {set desc_res [oradesc $desc_lda oratcl_desc_view_1]}
+		set test_res [test_list desc_res desc_tbl_1]
+		set test_res
+	} {1}
+
 
 	# cleanup after ourselves.
 	catch {orasql $desc_stm {drop public synonym oratcl_public_syn_1}}
@@ -213,6 +226,7 @@ namespace eval ::oratest::oradesc {
 	catch {orasql $desc_stm {drop synonym oratcl_desc_syn_2_2}}
 	catch {orasql $desc_stm {drop table oratcl_desc_tbl_1}}
 	catch {orasql $desc_stm {drop table oratcl_desc_tbl_2}}
+	catch {orasql $desc_stm {drop view oratcl_desc_view_1}}
 
 	oraclose $desc_stm
 	oralogoff $desc_lda

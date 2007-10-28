@@ -3683,6 +3683,26 @@ Oratcl_Describe (clientData, interp, objc, objv)
 			&LogPtr->ora_rc,
 			&LogPtr->ora_err);
 
+	/* check for a view */
+	if (LogPtr->ora_rc == 4043) {
+
+		rc = OCI_DescribeAny(LogPtr->svchp,
+				     LogPtr->errhp,
+				     (dvoid *) tblStr.string,
+				     (ub4) tblStr.length,
+				     OCI_OTYPE_NAME,
+				     (ub1)0,
+				     OCI_PTYPE_VIEW,
+				     dschp);
+
+		Oratcl_Checkerr(interp,
+				LogPtr->errhp,
+				rc,
+				1,
+				&LogPtr->ora_rc,
+				&LogPtr->ora_err);
+	}
+
 	/* check for a private synonym */
 	while (LogPtr->ora_rc == 4043) {
 
