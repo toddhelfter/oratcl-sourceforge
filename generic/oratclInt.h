@@ -116,6 +116,7 @@ typedef struct OratclStms {
         int		logid;		/* login handle id		*/
         int		stmid;		/* statement handle id		*/
 	int		utfmode;	/* utfmode flag			*/
+	int		unicode;	/* unicode flag			*/
 	int		numbsize;	/* space to alloc for numbers	*/
 	int		datesize;	/* space to alloc for dates	*/
 	int		ora_rc;		/* oracle return code		*/

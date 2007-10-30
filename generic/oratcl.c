@@ -1687,7 +1687,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			       (size_t) 0,
 			       (dvoid **) 0);
 
-	(void) OCI_HandleAlloc( (dvoid *) LogPtr->envhp,
+	(void) OCI_HandleAlloc( (CONST dvoid *) LogPtr->envhp,
 			       (dvoid **) (dvoid *) &LogPtr->svchp,
 			       OCI_HTYPE_SVCCTX,
 			       (size_t) 0,
@@ -2373,7 +2373,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 					       &patch_num,
 					       &port_update_num);
 		}
-		sprintf((char *) svr,
+		sprintf( (char *) svr,
 			"%d.%d.%d.%d.%d",
 			(int) major_version,
 			(int) minor_version,
@@ -2549,6 +2549,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->logHashPtr	= logHashPtr;
 	StmPtr->logid		= LogPtr->logid;
 	StmPtr->utfmode		= 0;
+	StmPtr->unicode		= 0;
 
 	Tcl_SetObjResult(interp, Tcl_NewStringObj(buf, -1));
 
@@ -4042,6 +4043,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 				   "utfmode",
 				   "numbsize",
 				   "datesize",
+				   "unicode",
 				   NULL};
 
 	enum		optindex {OPT_LONG,
@@ -4052,8 +4054,9 @@ Oratcl_Config (clientData, interp, objc, objv)
 				  OPT_LONGP,
 				  OPT_UTFMODE,
 				  OPT_NUMB,
-				  OPT_DATE};
-	int		optlength = 18;
+				  OPT_DATE,
+				  OPT_UNICODE};
+	int		optlength = 20;
 
 	int		option;
 	int		value;
@@ -4112,6 +4115,8 @@ Oratcl_Config (clientData, interp, objc, objv)
 		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->numbsize);
 		infoObjv[infoObjc++] = Tcl_NewStringObj(options[8], -1);
 		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->datesize);
+		infoObjv[infoObjc++] = Tcl_NewStringObj(options[9], -1);
+		infoObjv[infoObjc++] = Tcl_NewIntObj(StmPtr->unicode);
 		Tcl_SetObjResult(interp, Tcl_NewListObj(infoObjc, infoObjv));
 		ckfree((char *) infoObjv);
 		tcl_return = TCL_OK;
@@ -4165,6 +4170,10 @@ Oratcl_Config (clientData, interp, objc, objv)
 		if (option == OPT_DATE) {
 			Tcl_SetObjResult(interp,
 					 Tcl_NewIntObj(StmPtr->datesize));
+		}
+		if (option == OPT_UNICODE) {
+			Tcl_SetObjResult(interp,
+					 Tcl_NewBooleanObj(StmPtr->unicode));
 		}
 		tcl_return = TCL_OK;
 		goto common_exit;
@@ -4298,6 +4307,20 @@ Oratcl_Config (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 			StmPtr->datesize = value;
+		}
+		if (option == OPT_UNICODE) {
+			tcl_rc = Tcl_GetBooleanFromObj(interp, objv[i], &value);
+			/* test for valid integer */
+			if (tcl_rc != TCL_OK) {
+				Oratcl_ErrorMsg(interp,
+						objv[0],
+						": invalid value",
+						(Tcl_Obj *) NULL,
+						(char *) NULL);
+				tcl_return = TCL_ERROR;
+				goto common_exit;
+			}
+			StmPtr->unicode = value;
 		}
 	}
 

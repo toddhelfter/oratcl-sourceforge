@@ -1,3 +1,8 @@
+2007-10-29  Todd Helfter
+	* generic/oratclInt.h
+	  generic/oratcl.c : add a unicode flag to the Statement Handle structure.
+	allow oraconfig to set and get the unicode flag. 
+
 2007-10-27  Todd Helfter
 	* tests/oradesc.test
 	  generic/oratcl.c : implemented #876838 : oradesc on views
