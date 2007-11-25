@@ -1120,7 +1120,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	for (col = ColPtr, idx = 1; col != NULL; col = col->next, idx++) {
-      
+
 		Tcl_DStringInit(&uniStr);
 		Tcl_DStringInit(&lobStr);
 
