@@ -5196,7 +5196,8 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	OratclCols	*head_col = NULL;
 
 	Tcl_DString	argStr;
-	char		*arg_pcc, *arg_pcp;
+	char		*arg_pcc = NULL;
+	char		*arg_pcp = NULL;
 	Tcl_UniChar	*arg_upcp = NULL;
 	int		arg_pcc_len, arg_pcp_len;
 	int		tcl_return = TCL_OK;
