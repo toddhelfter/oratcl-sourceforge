@@ -1,3 +1,9 @@
+2007-11-24  Todd Helfter
+	* tests/all.tcl
+	  tests/unicode.tcl
+	  generic/oratcl.c : add new unicode processing to orabind and orafetch triggered by
+	the unicode flag which is set with oraconfig.
+
 2007-10-29  Todd Helfter
 	* generic/oratclInt.h
 	  generic/oratcl.c : add a unicode flag to the Statement Handle structure.

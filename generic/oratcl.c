@@ -1211,7 +1211,11 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 
 
 			} else {
-				tmp = col->column.valuep + (rn * col->column.valuesz);
+				if (StmPtr->unicode) {
+					tmp = (char *) col->column.valuep + (col->column.valuesz +1 ) * sizeof(utext) * rn;
+				} else {
+					tmp = col->column.valuep + (rn * col->column.valuesz);
+				}
 			}
 
 			if (StmPtr->utfmode) {
@@ -1228,7 +1232,11 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 
 		if (arrayvar) {
 
-			val_obj = Tcl_NewStringObj((char *) tmp, -1);
+			if (StmPtr->unicode) {
+				val_obj = Tcl_NewUnicodeObj((const Tcl_UniChar *) tmp, col->rlenp[rn]);
+			} else {
+				val_obj = Tcl_NewStringObj((char *) tmp, col->rlenp[rn]);
+			}
 			Tcl_IncrRefCount(val_obj);
 
 			if (hashType) {
@@ -1250,10 +1258,14 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 		}
 
 		if (listvar) {
-			tmp_obj = Tcl_NewStringObj(tmp,strlen(tmp));
+			if (StmPtr->unicode) {
+				tmp_obj = Tcl_NewUnicodeObj((const Tcl_UniChar *) tmp, col->rlenp[rn]);
+			} else {
+				tmp_obj = Tcl_NewStringObj(tmp,strlen(tmp));
+			}
 			Tcl_IncrRefCount(tmp_obj);
 			Tcl_ListObjAppendElement(interp,
-					 	 lst_obj,
+						 lst_obj,
 						 tmp_obj);
 			Tcl_DecrRefCount(tmp_obj);
 		}
@@ -1295,6 +1307,8 @@ Oratcl_ColDescribe (interp, StmPtr)
 	OratclLogs	*LogPtr;
 
 	sword		rc;
+	ub2		myucs2id = OCI_UCS2ID;
+	ub2		mybindmax = 0;
 
 	OratclCols	*new_col_head;
 	OratclCols	*new_col;
@@ -1459,9 +1473,14 @@ Oratcl_ColDescribe (interp, StmPtr)
 
 		} else {
 
-			new_col->column.valuesz = new_col->column.valuesz + 1;
-			new_col->column.valuep =
-				ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
+			if (StmPtr->unicode) {
+				mybindmax = (new_col->column.valuesz +1) * sizeof(utext);
+				new_col->column.valuep = ckalloc (mybindmax * StmPtr->fetchrows);
+			} else {
+				mybindmax = new_col->column.valuesz + 1;
+				new_col->column.valuep = ckalloc (mybindmax * StmPtr->fetchrows);
+			}
+
 			if (new_col->column.valuep == NULL) {
 				fprintf(stderr, "error:: new_col->column.valuep is NULL return -1\n");
 				return -1;
@@ -1472,12 +1491,23 @@ Oratcl_ColDescribe (interp, StmPtr)
 					     LogPtr->errhp,
 					     (ub4) parmix,
 					     (dvoid *) new_col->column.valuep,
-					     (sb4) new_col->column.valuesz,
+					     (sb4) mybindmax,
 					     new_col->dty,
 					     (sb2 *) new_col->indp,
 					     (ub2 *) new_col->rlenp,
 					     (ub2 *) new_col->rcodep,
 					     (ub4) OCI_DEFAULT);
+
+			/* if unicode, we must set the character set attribute */
+			if (rc == OCI_SUCCESS && StmPtr->unicode) {
+				OCI_AttrSet((dvoid *) new_col->defnp,
+					    OCI_HTYPE_DEFINE,
+					    &myucs2id,
+					    0,
+					    OCI_ATTR_CHARSET_ID,
+					    LogPtr->errhp);
+			}
+
 		}
 
 		Oratcl_Checkerr(interp,
@@ -5158,6 +5188,8 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 	int		parm_cnt;
 	sword		rc;
+	ub2		myucs2id = OCI_UCS2ID;
+	ub2		mybindmax = 0;
 
 	OratclCols	*tmp_col_head = NULL;
 	OratclCols	*tmp_col = NULL;
@@ -5165,6 +5197,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 	Tcl_DString	argStr;
 	char		*arg_pcc, *arg_pcp;
+	Tcl_UniChar	*arg_upcp = NULL;
 	int		arg_pcc_len, arg_pcp_len;
 	int		tcl_return = TCL_OK;
 
@@ -5224,7 +5257,6 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 			/* get two arg strings */
 			arg_pcc = Tcl_GetStringFromObj(objv[parm_cnt], &arg_pcc_len);
-			arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
 
 			/* make sure bind variable name has a leading ':' */
 			if (*arg_pcc != ':') {
@@ -5239,6 +5271,12 @@ Oratcl_Bind (clientData, interp, objc, objv)
 						"' does not begin with ':'");
 				tcl_return = TCL_ERROR;
 				goto common_exit;
+			}
+			
+			if (StmPtr->unicode) {
+				arg_upcp = Tcl_GetUnicodeFromObj(objv[parm_cnt + 1], &arg_pcp_len);
+			} else {
+				arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
 			}
 
 			refHashPtr = Tcl_FindHashEntry(OratclStatePtr->stmHash,
@@ -5300,7 +5338,12 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 			/* allocate adequate space for reuse */
 			tmp_col->column.valuesz = StmPtr->bindsize;
-			tmp_col->column.valuep   = ckalloc(tmp_col->column.valuesz + 1);
+			if (StmPtr->unicode) {
+				tmp_col->column.valuep   = ckalloc((tmp_col->column.valuesz +1) * sizeof(utext));
+			} else {
+				tmp_col->column.valuep   = ckalloc(tmp_col->column.valuesz + 1);
+			}
+
 			if (tmp_col->column.valuep == NULL) {
 				Oratcl_ColFree(tmp_col_head);
 				StmPtr->bind_list = NULL;
@@ -5324,6 +5367,11 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				       Tcl_DStringLength(&argStr));
 				tmp_col->column.valuep[argStr.length] = '\0';
 				Tcl_DStringFree(&argStr);
+			} else if (StmPtr->unicode) {
+				memcpy(tmp_col->column.valuep,
+				       arg_upcp,
+				       ((arg_pcp_len+1)*sizeof(utext)));
+				tmp_col->column.valuep[arg_pcp_len*sizeof(utext)] = L'\0';
 			} else {
 				memcpy(tmp_col->column.valuep,
 				       arg_pcp,
@@ -5357,20 +5405,65 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				/* string data type */
 				tmp_col->column.typecode = SQLT_STR;
 
-				rc = OCI_BindByName(StmPtr->stmhp,
-						    (OCIBind **) &tmp_col->bindp,
-						    LogPtr->errhp,
-						    (text *) tmp_col->column.name,
-						    (sb4) tmp_col->column.namesz,
-						    (dvoid *) tmp_col->column.valuep,
-						    (sb4) tmp_col->column.valuesz + 1,
-						    (ub2) SQLT_STR,
-						    (dvoid *) &tmp_col->indp[0],
-						    (ub2 *) 0,
-						    (ub2 *) 0,
-						    (ub4) 0,
-						    (ub4 *) 0,
-						    (ub4) OCI_DEFAULT);
+				if (StmPtr->unicode) {
+					mybindmax = (tmp_col->column.valuesz+1)*sizeof(utext);
+					rc = OCI_BindByName(StmPtr->stmhp,
+							    (OCIBind **) &tmp_col->bindp,
+							    LogPtr->errhp,
+							    (text *) tmp_col->column.name,
+							    (sb4) tmp_col->column.namesz,
+							    (dvoid *) tmp_col->column.valuep,
+							    (ub4) mybindmax,
+							    (ub2) SQLT_STR,
+							    (dvoid *) &tmp_col->indp[0],
+							    (ub2 *) 0,
+							    (ub2 *) 0,
+							    (ub4) 0,
+							    (ub4 *) 0,
+							    (ub4) OCI_DEFAULT);
+
+					if (rc != OCI_SUCCESS) {
+						Oratcl_Checkerr(interp,
+								LogPtr->errhp,
+								rc,
+								1,
+								&StmPtr->ora_rc,
+								&StmPtr->ora_err);
+						Oratcl_ColFree(tmp_col_head);
+						StmPtr->bind_list = NULL;
+						tcl_return = TCL_ERROR;
+						goto common_exit;
+					}
+
+					(void) OCI_AttrSet((dvoid *) tmp_col->bindp,
+							  OCI_HTYPE_BIND,
+							  &myucs2id,
+							  0,
+							  OCI_ATTR_CHARSET_ID,
+							  LogPtr->errhp);
+					(void) OCI_AttrSet((dvoid *) tmp_col->bindp,
+							  OCI_HTYPE_BIND,
+							  &mybindmax,
+							  0,
+							  OCI_ATTR_MAXDATA_SIZE,
+							  LogPtr->errhp);
+
+				} else {
+					rc = OCI_BindByName(StmPtr->stmhp,
+							    (OCIBind **) &tmp_col->bindp,
+							    LogPtr->errhp,
+							    (text *) tmp_col->column.name,
+							    (sb4) tmp_col->column.namesz,
+							    (dvoid *) tmp_col->column.valuep,
+							    (sb4) tmp_col->column.valuesz + 1,
+							    (ub2) SQLT_STR,
+							    (dvoid *) &tmp_col->indp[0],
+							    (ub2 *) 0,
+							    (ub2 *) 0,
+							    (ub4) 0,
+							    (ub4 *) 0,
+							    (ub4) OCI_DEFAULT);
+				}
 
 			} else {
 
@@ -5407,7 +5500,6 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				goto common_exit;
 			}
 
-
 			parm_cnt += 2;
 
 			if (objc > parm_cnt + 1) {       /* more args? alloc new colbufs */
@@ -5436,24 +5528,31 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			tmp_col = StmPtr->bind_list;
 			while (tmp_col != NULL) {
 				if (strncmp((char *) tmp_col->column.name, Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), 255) == 0) {
-					arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
-
-					if (StmPtr->utfmode) {
-						Tcl_DStringInit(&argStr);
-						Tcl_UtfToExternalDString(NULL,
-									 arg_pcp,
-									 arg_pcp_len,
-									 &argStr);
-						memcpy(tmp_col->column.valuep,
-						       Tcl_DStringValue(&argStr),
-						       Tcl_DStringLength(&argStr));
-						tmp_col->column.valuep[argStr.length] = '\0';
-						Tcl_DStringFree(&argStr);
+					if (StmPtr->unicode) {
+						arg_upcp = Tcl_GetUnicodeFromObj(objv[parm_cnt + 1], &arg_pcp_len);
+						memcpy(tmp_col->column.valuep, arg_upcp, ((arg_pcp_len+1)*sizeof(utext)));
+						tmp_col->column.valuep[arg_pcp_len*sizeof(utext)] = L'\0';
 					} else {
-						memcpy(tmp_col->column.valuep,
-						       arg_pcp,
-						       arg_pcp_len);
-						tmp_col->column.valuep[arg_pcp_len] = '\0';
+						arg_pcp = Tcl_GetStringFromObj(objv[parm_cnt + 1], &arg_pcp_len);
+
+						if (StmPtr->utfmode) {
+							Tcl_DStringInit(&argStr);
+							Tcl_UtfToExternalDString(NULL,
+										 arg_pcp,
+										 arg_pcp_len,
+										 &argStr);
+							memcpy(tmp_col->column.valuep,
+							       Tcl_DStringValue(&argStr),
+							       Tcl_DStringLength(&argStr));
+							tmp_col->column.valuep[argStr.length] = '\0';
+							Tcl_DStringFree(&argStr);
+						} else {
+							memcpy(tmp_col->column.valuep,
+							       arg_pcp,
+							       arg_pcp_len);
+							tmp_col->column.valuep[arg_pcp_len] = '\0';
+						}
+
 					}
 
 					break;
