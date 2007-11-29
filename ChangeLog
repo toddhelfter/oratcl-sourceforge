@@ -1,17 +1,21 @@
+2007-11-29  Todd Helfter
+	* doc/oratcl.n
+	* doc/oratcl.html : bump version number to 4.5 and unset release date.
+
 2007-11-24  Todd Helfter
 	* tests/all.tcl
-	  tests/unicode.tcl
-	  generic/oratcl.c : add new unicode processing to orabind and orafetch triggered by
+	* tests/unicode.tcl
+	* generic/oratcl.c : add new unicode processing to orabind and orafetch triggered by
 	the unicode flag which is set with oraconfig.
 
 2007-10-29  Todd Helfter
 	* generic/oratclInt.h
-	  generic/oratcl.c : add a unicode flag to the Statement Handle structure.
+	* generic/oratcl.c : add a unicode flag to the Statement Handle structure.
 	allow oraconfig to set and get the unicode flag. 
 
 2007-10-27  Todd Helfter
 	* tests/oradesc.test
-	  generic/oratcl.c : implemented #876838 : oradesc on views
+	* generic/oratcl.c : implemented #876838 : oradesc on views
 
 2007-10-27  Todd Helfter
 	* generic/oratcl.c : add BINARY_FLOAT and BINARY_DOUBLE to the list of known types
@@ -42,7 +46,7 @@
 
 2007-02-01  Todd Helfter
 	*  generic/oradefs.h
-	   generic/oratcl.c : add code to correctly report new 10g types SQLT_IBFLOAT and
+	*  generic/oratcl.c : add code to correctly report new 10g types SQLT_IBFLOAT and
 	SQLT_IBDOUBLE as BINARY_FLOAT and BINARY_DOUBLE when describing columns or tables.
 	This change affects the 'oradesc' and 'oracols' functions.  Previously, these 
 	would have returned UNKNOWN as the type.
@@ -55,14 +59,14 @@
 
 2006-05-11  Todd Helfter
 	* generic/oralob.c
-	  generic/oralong.c :  Reorganize so variable declarations come before for loops
+	* generic/oralong.c :  Reorganize so variable declarations come before for loops
 
 2006-04-13  Todd Helfter <
 	* generic/oratcl.c: initialize ColPtr->dty to SQLT_STR.
 
 2006-03-23  Todd Helfter <
 	* generic/oratcl.c: 
-	  generic/oratclInt.h: Found that the entire global linked list of Oratcl state pointers
+	* generic/oratclInt.h: Found that the entire global linked list of Oratcl state pointers
 	OratclSLP was unnecessary, the interp delete callback is sufficient to clean up from
 	slave interps..
 
@@ -73,11 +77,11 @@
 
 2006-03-16  Todd Helfter <
 	* generic/oratcl.c:	  Massive cleanup of oratcl.c concering Tcl_Objs and refCounts.
-	  generic/oratclInt.h:
+	* generic/oratclInt.h:
 
 2006-03-16  Todd Helfter <
 	* generic/oralob.c:	Fix error message format to use %zu for (size_t) and fix message typo.
-	  generic/oralong.c:
+	* generic/oralong.c:
 
 2006-03-16  Todd Helfter <
 	* Oratcl is now able to execute the test suite aka. 'make test' using Tcl 8.5.
