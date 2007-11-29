@@ -1,4 +1,10 @@
 2007-11-29  Todd Helfter
+	* generic/oradefs.h
+	* generic/oratcl.c
+	* doc/oratcl.n
+	* doc/oratcl.html : add 3 new options to 'oralogon'.  -sysdba, -sysoper and -sysasm
+
+2007-11-29  Todd Helfter
 	* doc/oratcl.n
 	* doc/oratcl.html : bump version number to 4.5 and unset release date.
 

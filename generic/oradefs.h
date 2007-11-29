@@ -304,6 +304,7 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define OCIP_ICACHE         0x0010 /* Private OCI cache mode to notify cache */
 #define OCI_AUTH_RESERVED_1 0x0020                               /* reserved */
 #define OCI_STMT_CACHE      0x0040                /* enable OCI Stmt Caching */
+#define OCI_SYSASM          0x00008000		 /* for SYSASM authorization */
 
 /*---------------------------------------------------------------------------*/
 

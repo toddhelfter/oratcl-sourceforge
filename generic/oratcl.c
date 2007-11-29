@@ -1672,9 +1672,32 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			oci_conn = OCI_SYSOPER;
 			ora_name = "";
 			ora_pass = "";
+		} else if (strcasecmp(cpy_str, "sysasm") == 0) {
+			oci_conn = OCI_SYSASM;
+			ora_name = "";
+			ora_pass = "";
 		} else {
 			ora_name = cpy_str;
 		}
+	}
+
+	/*
+	 * check for AS SYDBA | AS SYSOPER | AS SYSASM
+	*/
+	for (i = 2; i < objc; i++) {
+		
+		if (0 == strcasecmp(Tcl_GetString(objv[2]), "-sysdba")) {
+			oci_conn = OCI_SYSDBA;
+		}
+
+		if (0 == strcasecmp(Tcl_GetString(objv[2]), "-sysoper")) {
+			oci_conn = OCI_SYSOPER;
+		}
+
+		if (0 == strcasecmp(Tcl_GetString(objv[2]), "-sysasm")) {
+			oci_conn = OCI_SYSASM;
+		}
+
 	}
 
 	if (ora_name)
