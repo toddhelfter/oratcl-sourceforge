@@ -1,83 +1,87 @@
-2007-10-27  Todd Helfter
+2007-11-29  Todd Helfter <thelfter@gmail.com>
+	* doc/oratcl.n
+	* doc/oratcl.html : updated docs to refer to version 4.4 instead of 4.3
+
+2007-10-27  Todd Helfter <thelfter@gmail.com>
 	* generic/oradefs.h
 	* tests/all.tcl
 	* tests/merge.test
 	* generic/oralob.c : fixed #1815636 [oramsg rows] returns 0 after 'MERGE' statement
 
-2007-10-27  Todd Helfter
+2007-10-27  Todd Helfter <thelfter@gmail.com>
 	* generic/oralob.c : fixed #1806291 regression: orafetch -command doesn't return rc code
 
-2006-06-20  Todd Helfter
+2006-06-20  Todd Helfter <thelfter@gmail.com>
 	* doc/FAQ.html : updated FAQ to be more current.
 
-2006-05-11  Todd Helfter
+2006-05-11  Todd Helfter <thelfter@gmail.com>
 	* generic/oralob.c
 	  generic/oralong.c :  Reorganize so variable declarations come before for loops
 
-2006-04-13  Todd Helfter <
+2006-04-13  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: initialize ColPtr->dty to SQLT_STR.
 
-2006-03-23  Todd Helfter <
+2006-03-23  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 
 	  generic/oratclInt.h: Found that the entire global linked list of Oratcl state pointers
 	OratclSLP was unnecessary, the interp delete callback is sufficient to clean up from
 	slave interps..
 
-2006-03-21  Todd Helfter <
+2006-03-21  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c:  New [orainfo client] command will return 0.0.0.0.0 if the client version
 	is not 10g or higher.  The OCI function does not exist in the 8i and 9i libraries.
 	* also added some Tcl_IsShared() tests to orasql and oraplexec.
 
-2006-03-16  Todd Helfter <
+2006-03-16  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c:	  Massive cleanup of oratcl.c concering Tcl_Objs and refCounts.
 	  generic/oratclInt.h:
 
-2006-03-16  Todd Helfter <
+2006-03-16  Todd Helfter <thelfter@gmail.com>
 	* generic/oralob.c:	Fix error message format to use %zu for (size_t) and fix message typo.
 	  generic/oralong.c:
 
-2006-03-16  Todd Helfter <
+2006-03-16  Todd Helfter <thelfter@gmail.com>
 	* Oratcl is now able to execute the test suite aka. 'make test' using Tcl 8.5.
 	  The test suite works in both threaded and non-threaded 8.5a4 and 8.4.13
 
-2006-03-16  Todd Helfter <
+2006-03-16  Todd Helfter <thelfter@gmail.com>
 	* tests/oralong.test recode test so that write + read operations occur in the same test proc.
         simultaneous read and write of the same row will result in an Oracle error being returned and
 	the Tcl 8.5 test suite runs each test in a separate thread, concurrently.
 
-2006-03-15  Todd Helfter <
+2006-03-15  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 	Fix 3 castes for OCI parameters to correct compiler warnings.
 
-2006-03-15  Todd Helfter <
+2006-03-15  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 	Recode Oratcl_LongWrite() to work properly with 10g libraries.
 
-2006-03-15  Todd Helfter <
+2006-03-15  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 	     New functionality [orainfo client] returns the oracle client library
 	* generic/oratclTypes.h:     version information.  I.E. 9.2.0.7.0 or 10.2.0.1.0 
 	* doc/oratcl.n:
 	* doc/oratcl.html: 
 
-2006-03-15  Todd Helfter <
+2006-03-15  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 
 	* generic/oratclInt.h    remove member sub_len from OratclStms.
 
-2006-03-15  Todd Helfter <
+2006-03-15  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 
 	* generic/oratclInt.h    remove typedef OratclSubs and member sub_list from OratclStms.
 
-2006-03-14  Todd Helfter <
+2006-03-14  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c:  check for ckalloc() returning NULL.
 			     only call ckfree() if object is not NULL.
 
-2006-03-14  Todd Helfter <
+2006-03-14  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 
 	* generic/oratclInt.h    remove global Tcl_Obj OMV_null.
 
-2006-03-13  Todd Helfter <
+2006-03-13  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: 
 	* generic/oratclInt.h    remove unused tListObjType global variable
 
-2006-03-13  Todd Helfter <
+2006-03-13  Todd Helfter <thelfter@gmail.com>
 	* generic/oradefs.h Add string representations of some numbers to avoid code conversions
 	* generic/oratcl.c Use string rep. instead of number conversion to strings.
 	* generic/oratcl.c Oratcl_Checkerr() Use dynamic string buffer, eliminate static char buffer.
