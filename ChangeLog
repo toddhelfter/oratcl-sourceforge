@@ -1,4 +1,17 @@
 2007-11-29  Todd Helfter
+	* generic/oratcl.c
+	* generic/oralob.c
+	* generic/oralong.c
+	* doc/oratcl.html
+	* doc/oratcl.n
+	* tests/orainfo.test : standardize naming of a 'logonhandle'.  
+	Since the relevent function is 'oralogon' the item returned is a
+	logonhandle.  The 'orainfo' command inccorectly had an option for
+	the 'loginhandle' (misspelled).  'orainfo', now accepts 'logonhandle'
+	and a future version of OraTcl will deprecate the 'loginhandle' option.
+	** Future code incompatibility
+
+2007-11-29  Todd Helfter
 	* generic/oradefs.h
 	* generic/oratcl.c
 	* doc/oratcl.n

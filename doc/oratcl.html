@@ -713,7 +713,7 @@
 
      <B>orainfo</B> <I>option</I> ?<I>args</I>?
           Retrieves information  about  oratcl.   <I>Option</I>  may  be
-          either "version", "server", or "loginhandle".
+          either "version", "server", or "logonhandle".
 	  "<B>orainfo</B> version" returns the current oratcl version.   
 
 	  "<B>orainfo</B> server" requires a valid logon handle previously opened
@@ -738,7 +738,7 @@
                puts [orainfo server $lda]
 
                set sth [oraopen $lda]
-               set mylda [orainfo loginhandle $sth]
+               set mylda [orainfo logonhandle $sth]
 
 
      <B>NOTE</B>

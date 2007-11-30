@@ -744,7 +744,7 @@ Return a list of all opened statement-handles associated with the
 .B orainfo \fIoption ?args?\fR
 .br
 Retrieves information about oratcl.  \fIOption\fR may be either
-"version", "server", "client", "status", or "loginhandle".  
+"version", "server", "client", "status", or "logonhandle".  
 .sp
 "\fBorainfo\fR version" returns the current oratcl version.  
 .sp
@@ -771,7 +771,7 @@ login handle that the statement handle was opened under.
 	puts [orainfo server $lda]
 .sp
 	set sth [oraopen $lda]
-	set mylda [orainfo loginhandle $sth]
+	set mylda [orainfo logonhandle $sth]
 .fi
 .RE	
 

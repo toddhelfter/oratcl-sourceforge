@@ -132,7 +132,7 @@ Oralong_Init (interp)
 		"		set err_txt \"oralong $fn: invalid column value.\"; "
 		"		return -code error $err_txt; "
 		"	}; "
-		"	set tcl_rc [catch {orainfo loginhandle $handle} tcl_res]; "
+		"	set tcl_rc [catch {orainfo logonhandle $handle} tcl_res]; "
 		"	if {$tcl_rc} { "
 		"		set info $errorInfo; "
 		"		set err_txt \"oralong $fn: [oramsg $handle error] $info\"; "

@@ -61,14 +61,14 @@ if {[info exists ora_lda] == 0} {
 	-result 1
 }
 
-::tcltest::test orainfo-1.3 {orainfo: loginhandle} {
+::tcltest::test orainfo-1.3 {orainfo: logonhandle} {
 	-constraints testorainfo
 	-setup {
 		set info_lda [oralogon $ora_constr]
 		set info_stm [oraopen $info_lda]
 	}
 	-body {
-		catch {orainfo loginhandle $info_stm} res
+		catch {orainfo logonhandle $info_stm} res
 		string equal $res $info_lda
 	}
 	-cleanup {

@@ -2283,10 +2283,12 @@ Oratcl_Info (clientData, interp, objc, objv)
 	static text	svr[ORA_MSG_SIZE];
 	ub4		serverStatus = 0;
 
+	/* note that 'loginhandle' is a typo.  This will be deprecated in the next version */
 	CONST84 char *options[] = {"server",
 				   "client",
 				   "status",
 				   "version",
+				   "logonhandle",
 				   "loginhandle",
 				   NULL};
 
@@ -2294,6 +2296,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 				  OPT_CLIENT,
 				  OPT_STATUS,
 				  OPT_VERSION,
+				  OPT_LOGONHANDLE,
 				  OPT_LOGINHANDLE};
 
 	int		index = 0;
@@ -2437,7 +2440,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 	}
 
-	if (index == OPT_LOGINHANDLE) {
+	if (index == OPT_LOGONHANDLE || index == OPT_LOGINHANDLE) {
 		if (objc < 3) {
 			Tcl_WrongNumArgs(interp, objc, objv, "stm_handle");
 			tcl_return = TCL_ERROR;
