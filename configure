@@ -6122,7 +6122,7 @@ done
 #-----------------------------------------------------------------------
 
 
-    vars="oratcl.c oralob.c oralong.c"
+    vars="oratcl.c oralob.c oralong.c oracommit.c oraroll.c oraautocom.c orainfo.c oraopen.c oraclose.c oramsg.c"
     for i in $vars; do
 	case $i in
 	    \$*)

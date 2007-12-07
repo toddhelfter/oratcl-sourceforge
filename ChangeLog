@@ -1,3 +1,17 @@
+2007-12-07  Todd Helfter
+	* generic/oraautocom.c	 : new file
+	* generic/oraclose.c	 : new file
+	* generic/oracommit.c	 : new file
+	* generic/orainfo.c 	 : new file
+	* generic/oramsg.c	 : new file
+	* generic/oraopen.c	 : new file
+	* generic/oraroll.c	 : new file
+	* generic/oratclExtern.h : new file
+	* configure.in
+	* configure
+	* generic/oratcl.c	: Break up oratcl.c source file into smaller units for easier
+	management and revision control.
+
 2007-11-29  Todd Helfter
 	* generic/oratcl.c
 	* generic/oralob.c
