@@ -13,7 +13,6 @@
 #ifndef _ORATCL_EXTERN_H
 #define _ORATCL_EXTERN_H
 
-
 extern void Oratcl_ErrorMsg	_ANSI_ARGS_((Tcl_Interp 	*interp,
 					     Tcl_Obj    	*obj0,
 					     char       	*msg0,
@@ -26,5 +25,7 @@ extern void Oratcl_Checkerr	_ANSI_ARGS_((Tcl_Interp		*interp,
 					     int		*rcPtr,
 					     Tcl_DString	*errPtr));
 extern void Oratcl_StmFree	_ANSI_ARGS_((OratclStms		*StmPtr));
+extern void Oratcl_LogFree	_ANSI_ARGS_((OratclLogs		*LogPtr));
+
 
 #endif /* _ORATCL_H */
