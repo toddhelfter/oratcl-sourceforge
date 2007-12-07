@@ -1,4 +1,7 @@
 2007-12-07  Todd Helfter
+	* generic/oralogon.c	 : remove unneeded code that was ifdef'd out.
+
+2007-12-07  Todd Helfter
 	* generic/oralogon.c	 : new file
 	* generic/oralogoff.c	 : new file
 	* configure.in

@@ -10,20 +10,14 @@
  *
  */
 
+#include <string.h>
 
 #include "oratclInt.h"
 #include "oratclTypes.h"
 #include "oratclExtern.h"
-#include <string.h>
 
-#if 0
-sb4 callback_fn		__ANSI_ARGS_((dvoid svchp,
-				      dvoid envhp,
-				      dvoid fo_ctx,
-				      dvoid fo_type,
-				      ub4 fo_event));
-#endif
 sb4 callback_fn(dvoid *, dvoid *, dvoid *, ub4, ub4);
+
 
 /*
  *----------------------------------------------------------------------
