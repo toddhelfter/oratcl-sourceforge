@@ -235,3 +235,149 @@ common_exit:
 
 	return tcl_return;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * Oratcl_Lda_List --
+ *    Implements the oraldalist command:
+ *    usage: oraldalist
+ *
+ *    results:
+ *	null string
+ *      TCL_OK - list if built
+ *      TCL_ERROR - wrong # args
+ *----------------------------------------------------------------------
+ */
+
+int
+Oratcl_Lda_List (clientData, interp, objc, objv)
+	ClientData	clientData;
+	Tcl_Interp	*interp;
+	int		objc;
+	Tcl_Obj		*CONST objv[];
+{
+	OratclState	*OratclStatePtr = (OratclState *) clientData;
+	Tcl_HashEntry	*logHashPtr;
+	char		*logHashKey;
+	Tcl_HashSearch	search;
+
+	int		oColsc;
+	int		oColslen = 0;
+	Tcl_Obj		**oColsv = NULL;
+
+	int		tcl_return = TCL_OK;
+
+	/* Preallocate some list elements */
+	if (oColsv == NULL) {
+		oColslen = 10;
+		oColsv = (Tcl_Obj **) ckalloc (oColslen * sizeof(*oColsv));
+	}
+
+	oColsc = 0;
+
+	logHashPtr = Tcl_FirstHashEntry(OratclStatePtr->logHash, &search);
+	while (logHashPtr != NULL) {
+		logHashKey = Tcl_GetHashKey(OratclStatePtr->logHash, logHashPtr);
+		if (oColsc >= oColslen) {
+			oColslen += 10;
+			oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
+		}
+		oColsv[oColsc++] = Tcl_NewStringObj(logHashKey, -1);
+		logHashPtr = Tcl_NextHashEntry(&search);
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
+
+	if (oColsv)
+		ckfree((char *) oColsv);
+
+	return tcl_return;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * Oratcl_Stm_List --
+ *    Implements the orastmlist command:
+ *    usage: orastmlist lda_handle
+ *
+ *    results:
+ *	null string
+ *      TCL_OK - list if built
+ *      TCL_ERROR - wrong # args
+ *----------------------------------------------------------------------
+ */
+
+int
+Oratcl_Stm_List (clientData, interp, objc, objv)
+	ClientData	clientData;
+	Tcl_Interp	*interp;
+	int		objc;
+	Tcl_Obj		*CONST objv[];
+{
+	OratclState	*OratclStatePtr = (OratclState *) clientData;
+	OratclLogs	*LogPtr;
+	OratclStms	*StmPtr;
+	Tcl_HashEntry	*logHashPtr;
+	Tcl_HashEntry	*stmHashPtr;
+	char		*stmHashKey;
+	Tcl_HashSearch	search;
+
+	int		oColsc;
+	int		oColslen = 0;
+	Tcl_Obj		**oColsv = NULL;
+
+	int		tcl_return = TCL_OK;
+
+	if (objc < 2) {
+		Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+	/* Preallocate some list elements */
+	if (oColsv == NULL) {
+		oColslen = 10;
+		oColsv = (Tcl_Obj **) ckalloc (oColslen * sizeof(*oColsv));
+	}
+
+	logHashPtr = Tcl_FindHashEntry(OratclStatePtr->logHash,
+				       Tcl_GetStringFromObj(objv[1], NULL));
+
+	if (logHashPtr == NULL) {
+		Oratcl_ErrorMsg(interp,
+				objv[0],
+				": lda_handle ",
+				objv[1],
+				" not valid");
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
+	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+
+	/* NOTE :: rebuild using Tcl_DString */
+	oColsc = 0;
+	stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &search);
+	while (stmHashPtr != NULL) {
+		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
+		if (StmPtr->logid == LogPtr->logid) {
+			stmHashKey = Tcl_GetHashKey(OratclStatePtr->stmHash, stmHashPtr);
+			if (oColsc >= oColslen) {
+				oColslen += 10;
+				oColsv = (Tcl_Obj **) ckrealloc ((char *) oColsv, oColslen * sizeof(*oColsv));
+			}
+			oColsv[oColsc++] = Tcl_NewStringObj(stmHashKey, -1);
+		}
+		stmHashPtr = Tcl_NextHashEntry(&search);
+	}
+
+	Tcl_SetObjResult(interp, Tcl_NewListObj(oColsc, oColsv));
+
+common_exit:
+
+	if (oColsv)
+		ckfree((char *) oColsv);
+
+	return tcl_return;
+}
