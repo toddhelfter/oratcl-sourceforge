@@ -1,4 +1,8 @@
-2007-13-07  Todd Helfter
+2007-12-08  Todd Helfter
+	* configure.in
+	* configure		: reoganize .c modules build list for neatness
+
+2007-12-08  Todd Helfter
 	* generic/oraparse.c	 : new file
 	* generic/orasql.c	 : new file
 	* configure.in
