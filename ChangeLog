@@ -1,4 +1,33 @@
 2007-12-08  Todd Helfter
+	* generic/oradefs.h
+	* generic/oralob.c
+	* generic/oralong.c
+	* generic/oratcl.c
+	* generic/oratcl.h
+	* generic/oratclInt.h
+	* generic/oratypes.h
+	* tests/async.test
+	* tests/codes.test
+	* tests/orabind.test
+	* tests/orabindexec.test
+	* tests/oracols.test
+	* tests/oracommit.test
+	* tests/oradesc.test
+	* tests/oraexec.test
+	* tests/orafetch.test
+	* tests/orainfo.test
+	* tests/oralob.test
+	* tests/oralogin.test
+	* tests/oralogon.test
+	* tests/oralong.test
+	* tests/oraopen.test
+	* tests/oraparse.test
+	* tests/oraplexec.test
+	* tests/orasql.test
+	* tests/safe.test
+	* tests/usertype.test 	: update copyright date
+
+2007-12-08  Todd Helfter
 	* configure.in
 	* configure		: reoganize .c modules build list for neatness
 

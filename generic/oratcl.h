@@ -3,7 +3,7 @@
  *
  * Declarations of externally-visible parts of the Oratcl package.
  *
- * Copyright 2004 Todd M. Helfter
+ * Copyright 2007 Todd M. Helfter
  *
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
