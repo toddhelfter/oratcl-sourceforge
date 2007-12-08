@@ -1,3 +1,10 @@
+2007-13-07  Todd Helfter
+	* generic/oraparse.c	 : new file
+	* generic/orasql.c	 : new file
+	* configure.in
+	* configure
+	* generic/oratcl.c	: Break up oratcl.c source file into smaller units for easier
+
 2007-12-07  Todd Helfter
 	* generic/orabind.c	 : new file
 	* generic/orabindexec.c	 : new file
