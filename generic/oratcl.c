@@ -888,33 +888,33 @@ Oratcl_ColFree (ColPtr)
 		next = ColPtr->next;
 		
 
-			if (ColPtr->column.name != NULL) {
-				ckfree((char *) ColPtr->column.name);
-			}
+		if (ColPtr->column.name != NULL) {
+			ckfree((char *) ColPtr->column.name);
+		}
 
-			if (ColPtr->column.valuep != NULL) {
+		if (ColPtr->column.valuep != NULL) {
 
-				/* 
-				 * if column is a LOB, the LobLocator has been stored in valuep
-				 */
-				if( ( ColPtr->dty == SQLT_CLOB ) || ( ColPtr->dty == SQLT_BLOB ) ){
-					int    nRow;
-					for( nRow = 0; nRow < ColPtr->nFetchRows; nRow++) {
-						OCILobLocator  **pLocator;
-						pLocator = (OCILobLocator**)(ColPtr->column.valuep
-									   + ColPtr->column.valuesz * nRow);
-						if (pLocator) {
-							OCI_DescriptorFree((dvoid*)*pLocator,
-									   (ub4) OCI_DTYPE_LOB);
-						}
+			/* 
+			 * if column is a LOB, the LobLocator has been stored in valuep
+			 */
+			if( ( ColPtr->dty == SQLT_CLOB ) || ( ColPtr->dty == SQLT_BLOB ) ){
+				int    nRow;
+				for( nRow = 0; nRow < ColPtr->nFetchRows; nRow++) {
+					OCILobLocator  **pLocator;
+					pLocator = (OCILobLocator**)(ColPtr->column.valuep
+								   + ColPtr->column.valuesz * nRow);
+					if (pLocator) {
+						OCI_DescriptorFree((dvoid*)*pLocator,
+								   (ub4) OCI_DTYPE_LOB);
 					}
 				}
-
-				ckfree(ColPtr->column.valuep);
-
 			}
 
-			Tcl_DStringFree(&ColPtr->column.typename);
+			ckfree(ColPtr->column.valuep);
+
+		}
+
+		Tcl_DStringFree(&ColPtr->column.typename);
 		
 		if (ColPtr->indp) {
 			ckfree ((char *) ColPtr->indp);
