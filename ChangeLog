@@ -1,3 +1,7 @@
+2007-12-09  Todd Helfter
+	* doc/oratcl.n
+	* doc/oratcl.html : Correct a typo
+
 2007-12-08  Todd Helfter
 	* generic/oradefs.h
 	* generic/oralob.c

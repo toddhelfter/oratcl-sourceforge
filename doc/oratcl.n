@@ -266,7 +266,7 @@ pairs, but no binding will occur.
 error numbers and messages for other possible values.
 .sp
 \fBOrabind\fR raises a Tcl error if the \fIstatement\-handle\fR specified has
-not ben opened with \fBoraopen\fR.
+not been opened with \fBoraopen\fR.
 .sp
 .TP
 .B oraexec \fIstatement\-handle ?-commit?\fR
