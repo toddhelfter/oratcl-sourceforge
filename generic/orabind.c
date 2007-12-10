@@ -198,9 +198,9 @@ Oratcl_Bind (clientData, interp, objc, objv)
 			/* allocate adequate space for reuse */
 			tmp_col->column.valuesz = StmPtr->bindsize;
 			if (StmPtr->unicode) {
-				tmp_col->column.valuep   = ckalloc((tmp_col->column.valuesz +1) * sizeof(utext));
+				tmp_col->column.valuep = ckalloc((tmp_col->column.valuesz +1) * sizeof(utext));
 			} else {
-				tmp_col->column.valuep   = ckalloc(tmp_col->column.valuesz + 1);
+				tmp_col->column.valuep = ckalloc(tmp_col->column.valuesz + 1);
 			}
 
 			if (tmp_col->column.valuep == NULL) {
