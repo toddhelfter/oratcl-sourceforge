@@ -266,8 +266,8 @@ pairs, but no binding will occur.
 .sp
 When using the \fI-arraydml\fR option, each value should contain a list of
 values.  Each \fI:varname value\fR pair should have the same number of elements
-in their lists.  \fBOrabind\fR will raise an error if they are not.  Additionally
-the \fI-arraydml\fR option can only be used for updates and inserts.
+in their lists.  The \fBorabind\fR command will raise an error if they are not.
+The \fI-arraydml\fR option can only be used for updates and inserts.
 .sp
 \fBOrabind\fR will return "0" when bindings are successful; 
 "1003" if a previous SQL has not been parsed with \fBoraparse\fR;
@@ -785,12 +785,6 @@ login handle that the statement handle was opened under.
 .RE	
 
 .P
-.B NOTE
-.br
-The \fBoramsg\fR array ha been removed in \fBOratcl\fR version 4.0.  
-Equivalent functionality for this array is available via the
-\fBoramsg\fI command.
-.sp
 .SH NOTES
 .P
 Tcl errors can also be raised by any Oratcl command if a command's internal

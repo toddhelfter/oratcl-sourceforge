@@ -225,6 +225,11 @@
                     8 == BEGIN   corresponds to OCI_STMT_BEGIN
                     9 == DECLARE corresponds to OCI_STMT_DECLARE
 
+          <I>arraydml_errors</I>   returns a list of errors that occured
+	  during an array dml operation. Each element of the list
+	  will  contain  the  row the error  occured on,  the sql
+	  error code, and the sql error tesxt.
+
           <B>Oramsg</B> raises a Tcl  error  if  the  <I>handle</I>  cannot  be
           located  in  the set of open statement-handles and con-
           nected logon-handle.
@@ -245,7 +250,7 @@
           cally incorrect.
 
 
-     <B>orabind</B> <I>statement</I>-<I>handle</I> ?:<I>varname</I> <I>value</I> ...?
+     <B>orabind</B> <I>statement</I>-<I>handle</I> ?<I>-arraydml</I>? ?:<I>varname</I> <I>value</I> ...?
           Bind values SQL variables in a  previously  parsed  SQL
           statement. <I>Statement</I>-<I>handle</I> must be a valid handle pre-
           viously opened with <B>oraopen</B>.  An SQL or  PL/SQL  state-
@@ -263,6 +268,13 @@
           by a colon ":".  It is not an  error  to  call  <B>orabind</B>
           without  any  :<I>varname</I> <I>value</I> pairs, but no binding will
           occur.
+
+	  When  using  the <I>-arraydml</I>  option,  each value  should
+ 	  contain  a  list  of values.  Each :varname  value pair
+	  should have the same number of elements in their lists.
+	  The <B>orabind</B> command will raise an error if they are not.
+	  The  <I>-arraydml</I>  option can only be used for updates and
+	  inserts.
 
           <B>Orabind</B> will return "0" when bindings  are  successful;
           "1003"  if a previous SQL has not been parsed with <B>ora-</B>
@@ -739,12 +751,6 @@
 
                set sth [oraopen $lda]
                set mylda [orainfo logonhandle $sth]
-
-
-     <B>NOTE</B>
-     The <B>oramsg</B> array ha been  removed  in  <B>Oratcl</B>  version  4.0.
-     Equivalent functionality for this array is available via the
-     <B>oramsg</B> <I>command</I>.
 
 
 
