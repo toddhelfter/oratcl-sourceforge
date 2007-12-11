@@ -217,6 +217,10 @@ Valid values are:
 8 == BEGIN   corresponds to OCI_STMT_BEGIN
 .br
 9 == DECLARE corresponds to OCI_STMT_DECLARE
+.IP \fIarraydml_errors\fR
+returns a list of errors that occurred during an array dml operation.  Each
+element of the list will contain the row the error occured on, the sql
+error code, and the sql error text.
 .br
 .RE
 .sp
@@ -242,7 +246,7 @@ Oracle when parsing fails.
 not open, or if the \fIstatment-text\fR is syntactically incorrect.
 .sp
 .TP
-.B orabind \fIstatement\-handle  ?:varname  value ...?\fR
+.B orabind \fIstatement\-handle ?-arraydml? ?:varname  value ...?\fR
 .br
 Bind values SQL variables in a previously parsed SQL statement. 
 \fIStatement-handle\fR must be a valid handle previously opened with 
@@ -259,6 +263,11 @@ As many :varname value pairs should be specified as there are defined in the
 previously parsed SQL statement.  Varnames must be prefixed by a colon ":".
 It is not an error to call \fBorabind\fR without any \fI:varname value\fR
 pairs, but no binding will occur.
+.sp
+When using the \fI-arraydml\fR option, each value should contain a list of
+values.  Each \fI:varname value\fR pair should have the same number of elements
+in their lists.  \fBOrabind\fR will raise an error if they are not.  Additionally
+the \fI-arraydml\fR option can only be used for updates and inserts.
 .sp
 \fBOrabind\fR will return "0" when bindings are successful; 
 "1003" if a previous SQL has not been parsed with \fBoraparse\fR;
@@ -843,7 +852,7 @@ SQL statements.  Use a combination of oraparse / orabind / oraexec:
 .sp
 .RS
 .nf
-set sql "insert into name_tab(first_name) values(:firstname)" 
+set sql {insert into name_tab(first_name) values(:firstname)}
 oraparse $cur $sql
 foreach name [list Ted Alice John Sue] {
   orabind $cur :firstname $name
@@ -861,6 +870,19 @@ foreach name [list Ted Alice John Sue] {
   oraparse $cur $sql
   oraexec $cur
 }
+.RE
+.TP
+.B Array DML
+Using array dml for inserts and updates can greatly improve performance.  Oratcl
+will pass all information to be inserted or updated in a single execute.
+.sp
+.RS
+.nf
+set sql {insert into name_tab(first_name) values (:firstname)}
+set names [list Jack John Joe Jacob]
+oraparse $cur $sql
+orabind $cur -arraydml :firstname $names
+oraexec $cur
 .sp
 .fi
 .RE
