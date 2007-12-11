@@ -46,7 +46,7 @@ Oratcl_Message (clientData, interp, objc, objv)
 
 	int		oColsc;
 	Tcl_Obj		**oCols = NULL;
-	int		oColslen = 6;
+	int		oColslen = 7;
 	Tcl_Obj		*oResult;
 
 	CONST84 char *options[] = {"all",
@@ -56,6 +56,7 @@ Oratcl_Message (clientData, interp, objc, objv)
 				   "peo",
 				   "ocicode",
 				   "sqltype",
+				   "arraydml_errors",
 				   NULL};
 
 	enum		optindex {OPT_ALL,
@@ -64,7 +65,8 @@ Oratcl_Message (clientData, interp, objc, objv)
 				  OPT_ROW,
 				  OPT_PEO,
 				  OPT_FCD,
-				  OPT_SQL};
+				  OPT_SQL,
+				  OPT_ARRAY_DML};
 
 	int		tcl_return = TCL_OK;
 
@@ -161,6 +163,13 @@ Oratcl_Message (clientData, interp, objc, objv)
 	if (mode == OPT_ALL || mode == OPT_SQL) {
 		if (StmPtr) {
 			oCols[oColsc++] = Tcl_NewIntObj(StmPtr->sqltype);
+		} else {
+			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
+		}
+	}
+	if (mode == OPT_ALL || mode == OPT_ARRAY_DML) {
+		if (StmPtr) {
+			oCols[oColsc++] = StmPtr->array_dml_errors;
 		} else {
 			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}

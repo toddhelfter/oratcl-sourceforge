@@ -451,6 +451,7 @@ Oratcl_Init (interp)
 	DLSYM(handle, "OCIReset",	OCI_Reset,	     OCIRESET);
 	DLSYM(handle, "OCIDefineByPos",	OCI_DefineByPos,     OCIDEFINEBYPOS);
 	DLSYM(handle, "OCIBindByName",	OCI_BindByName,	     OCIBINDBYNAME);
+	DLSYM(handle, "OCIBindDynamic",	OCI_BindDynamic,     OCIBINDDYNAMIC);
 	DLSYM(handle, "OCIStmtPrepare",	OCI_StmtPrepare,     OCISTMTPREPARE);
 	DLSYM(handle, "OCIStmtExecute",	OCI_StmtExecute,     OCISTMTEXECUTE);
 	DLSYM(handle, "OCIStmtFetch",	OCI_StmtFetch,	     OCISTMTFETCH);
@@ -865,6 +866,8 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->rlenp[0] = 0;
 		ColPtr->rcodep[0] = 0;
 		ColPtr->bindPtr = NULL;
+		ColPtr->array_values = NULL;
+		ColPtr->array_count = 0;
 		ColPtr->dty = SQLT_STR;
 	}
 	return ColPtr;
@@ -887,6 +890,9 @@ Oratcl_ColFree (ColPtr)
 	while (ColPtr != NULL) {
 		next = ColPtr->next;
 		
+		if (ColPtr->array_values != NULL) {
+			Tcl_DecrRefCount(ColPtr->array_values);
+		}
 
 		if (ColPtr->column.name != NULL) {
 			ckfree((char *) ColPtr->column.name);
@@ -915,7 +921,7 @@ Oratcl_ColFree (ColPtr)
 		}
 
 		Tcl_DStringFree(&ColPtr->column.typename);
-		
+
 		if (ColPtr->indp) {
 			ckfree ((char *) ColPtr->indp);
 		}
@@ -953,6 +959,9 @@ Oratcl_StmFree (StmPtr)
 		Oratcl_ColFree(StmPtr->col_list);
 		Oratcl_ColFree(StmPtr->bind_list);
 		Tcl_DecrRefCount(StmPtr->nullvalue);
+		if (StmPtr->array_dml_errors != NULL) {
+			Tcl_DecrRefCount(StmPtr->array_dml_errors);
+		}
 		Tcl_DStringFree(&StmPtr->ora_err);
 		ckfree((char *) StmPtr);
 

@@ -87,7 +87,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 	if (StmPtr->sqltype == OCI_STMT_SELECT) {
 		StmPtr->iters = 0;
-	} else {
+	} else if (!StmPtr->array_dml) {
 		StmPtr->iters = 1;
 	}
 

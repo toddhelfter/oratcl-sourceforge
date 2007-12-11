@@ -142,6 +142,8 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->fetchidx		= 0;
 	StmPtr->fetch_end	= 1;
 	StmPtr->fetch_cnt	= 0;
+	StmPtr->array_dml	= 0;
+	StmPtr->array_dml_errors = NULL;
 	StmPtr->append_cnt	= 0;
 	StmPtr->sqltype		= 0;
 	StmPtr->logHashPtr	= logHashPtr;

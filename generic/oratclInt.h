@@ -73,6 +73,8 @@ struct OratclCols {
 	sb2		*indp;			/* null indicator pointer */
 	ub2		*rlenp;			/* actual column length */
 	ub2		*rcodep;		/* actual column code */
+	int		array_count;
+	Tcl_Obj		*array_values;
 };
 typedef struct OratclCols OratclCols;
 
@@ -124,6 +126,8 @@ typedef struct OratclStms {
 	ub4		ora_row;	/* oracle row number		*/
 	ub2		ora_peo;	/* oracle parse error offset	*/
 	ub2		ora_fcd;	/* oracle function code		*/
+	int		array_dml;
+	Tcl_Obj		*array_dml_errors;
 } OratclStms;
 
 typedef struct OratclState {
