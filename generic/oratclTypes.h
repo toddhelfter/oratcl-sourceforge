@@ -279,27 +279,10 @@ typedef sb4 (*OCICallbackOutBind)(void *octxp,
 				  void  **indp,
                                   ub2 **rcodep);
 
-typedef sword (*OCIBINDDYNAMIC) ( OCIBind     *bindp,
-				  OCIError    *errhp,
-				  void       *ictxp, 
-				  OCICallbackInBind         (icbfp)(
-						void            *ictxp,
-						OCIBind          *bindp,
-						ub4              iter, 
-						ub4              index, 
-						void            **bufpp,
-						ub4              *alenp,
-						ub1              *piecep, 
-						void            **indp ),
-				  void       *octxp,
-				  OCICallbackOutBind         (ocbfp)(
-						void            *octxp,
-						OCIBind          *bindp,
-						ub4              iter, 
-						ub4              index, 
-						void            **bufp, 
-						ub4              **alenpp,
-						ub1              *piecep,
-						void            **indpp, 
-						ub2              **rcodepp));
+typedef sword (*OCIBINDDYNAMIC) (OCIBind     *bindp,
+				 OCIError    *errhp,
+				 void       *ictxp, 
+				 OCICallbackInBind  icbfp,
+				 void       *octxp,
+				 OCICallbackOutBind ocbfp);
 OCIBINDDYNAMIC OCI_BindDynamic;

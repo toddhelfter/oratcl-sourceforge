@@ -1,3 +1,9 @@
+2007-12-11  Todd Helfter <thelfter@gmail.com>
+	* oratcl/generic/orabind.c
+	* oratcl/generic/oratclTypes.h : Slight correction of the OCIBindDynamic()
+	prototype and some (dvoid *) castes to eliminate compile warning about 
+	changin pointer types in the new arraydml code.
+
 2007-12-10  Todd Helfter <thelfter@gmail.com>
 	* oratcl/doc/oratcl.n
 	* oratcl/generic/orabind.c

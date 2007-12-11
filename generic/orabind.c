@@ -429,9 +429,9 @@ Oratcl_Bind (clientData, interp, objc, objv)
 					if (StmPtr->array_dml) {
 						rc = OCI_BindDynamic(tmp_col->bindp,
 								      LogPtr->errhp,
-								      tmp_col,
+								      (dvoid *) tmp_col,
 								      Oratcl_ArrayPutElement,
-								      NULL,
+								      (dvoid *) NULL,
 								      NULL);
 					}
 				}
