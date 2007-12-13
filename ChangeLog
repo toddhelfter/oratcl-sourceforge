@@ -1,3 +1,8 @@
+2007-12-12  Todd Helfter <thelfter@gmail.com>
+	* generic/oraplexec.c
+	* generic/orabindexec.c : #1725882 : memory leak in oralob alloc/free
+	This was really a leak of Tcl_Obj from the objv duplication methods in		oraplexec and orabindexec.  Corrected this leak.
+
 2007-12-11  Todd Helfter <thelfter@gmail.com>
 	* generic/orabind.c
 	* generic/oratclTypes.h : Slight correction of the OCIBindDynamic()

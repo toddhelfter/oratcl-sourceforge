@@ -44,7 +44,7 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 	int		execObjc = 0;
 	Tcl_Obj		**execObjv = NULL;
 
-	int		i;
+	register int	i;
 	char		*p;
 
 	int		tcl_return = TCL_OK;
@@ -56,6 +56,10 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 				 "stm_handle ?-commit? [ :varname value ] ...");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
+	}
+
+	for (i = 0; i < objc; i++) {
+		Tcl_IncrRefCount(objv[i]);
 	}
 
 	/* reorganise arguments for Oratcl_Bind and Oratcl_Exec */
@@ -78,40 +82,19 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 	execObjv = (Tcl_Obj **) ckalloc(execObjc * sizeof(Tcl_Obj *));
 
 	bindObjv[0] = objv[0];
-	if (Tcl_IsShared(bindObjv[0])) {
-		bindObjv[0] = Tcl_DuplicateObj(bindObjv[0]);
-	}
 	execObjv[0] = objv[0];
-	if (Tcl_IsShared(execObjv[0])) {
-		execObjv[0] = Tcl_DuplicateObj(execObjv[0]);
-	}
 	bindObjv[1] = objv[1];
-	if (Tcl_IsShared(bindObjv[1])) {
-		bindObjv[1] = Tcl_DuplicateObj(bindObjv[1]);
-	}
 	execObjv[1] = objv[1];
-	if (Tcl_IsShared(execObjv[1])) {
-		execObjv[1] = Tcl_DuplicateObj(execObjv[1]);
-	}
 
 	/* pass commit along */
 	if (execObjc == 3) {
 		execObjv[2] = objv[2];
-		if (Tcl_IsShared(execObjv[2])) {
-			execObjv[2] = Tcl_DuplicateObj(execObjv[2]);
-		}
 		for (i = 3;  i < objc;  i++) {
 			bindObjv[i-1] = objv[i];
-			if (Tcl_IsShared(bindObjv[i-1])) {
-				bindObjv[i-1] = Tcl_DuplicateObj(bindObjv[i-1]);
-			}
 		}
 	} else {
 		for (i = 2;  i < objc;  i++) {
 			bindObjv[i] = objv[i];
-			if (Tcl_IsShared(bindObjv[i])) {
-				bindObjv[i] = Tcl_DuplicateObj(bindObjv[i]);
-			}
 		}
 	}
 
@@ -123,6 +106,10 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 	tcl_return = Oratcl_Exec(clientData, interp, execObjc, execObjv);
 
 common_exit:
+
+	for (i = 0; i < objc; i++) {
+		Tcl_DecrRefCount(objv[i]);
+	}
 
 	if (bindObjv) {
 		ckfree ((char *) bindObjv);

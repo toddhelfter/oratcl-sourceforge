@@ -40,7 +40,7 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	int		bindObjc = 0;
 	Tcl_Obj		**bindObjv = NULL;
 
-	int		i;
+	register int	i;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
@@ -51,6 +51,10 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 		return TCL_ERROR;
 	}
 
+	for (i = 0; i < objc; i++) {
+		Tcl_IncrRefCount(objv[i]);
+	}
+
 	tcl_return = Oratcl_Parse(clientData, interp, 3, objv);
 	if (tcl_return != TCL_OK) {
 		goto common_exit;
@@ -59,21 +63,16 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	/* reorganise arguments for Oratcl_Bind */
 	bindObjc = objc - 1;
 	bindObjv = (Tcl_Obj **) ckalloc(bindObjc * sizeof(Tcl_Obj *));
+	if (bindObjv == NULL) {
+		goto common_exit;
+	}
+
 
 	bindObjv[0] = objv[0];
-	if (Tcl_IsShared(bindObjv[0])) {
-		bindObjv[0] = Tcl_DuplicateObj(bindObjv[0]);
-	}
 	bindObjv[1] = objv[1];
-	if (Tcl_IsShared(bindObjv[1])) {
-		bindObjv[1] = Tcl_DuplicateObj(bindObjv[1]);
-	}
 
 	for (i = 3;  i < objc;  i++) {
 		bindObjv[i-1] = objv[i];
-		if (Tcl_IsShared(bindObjv[i-1])) {
-			bindObjv[i-1] = Tcl_DuplicateObj(bindObjv[i-1]);
-		}
 	}
 
 	tcl_return = Oratcl_Bind(clientData, interp, bindObjc, bindObjv);
@@ -84,6 +83,10 @@ Oratcl_PLexec (clientData, interp, objc, objv)
 	tcl_return = Oratcl_Exec(clientData, interp, 3, objv);
 
 common_exit:
+
+	for (i = 0; i < objc; i++) {
+		Tcl_DecrRefCount(objv[i]);
+	}
 
 	if (bindObjv) {
 		ckfree ((char *) bindObjv);
