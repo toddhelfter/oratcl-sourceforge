@@ -1,6 +1,10 @@
 2007-12-12  Todd Helfter <thelfter@gmail.com>
-        * generic/oratcl.c : #1725882 : memory leak in oralob alloc/free
-        This was really a leak of Tcl_Obj from the objv duplication methods in          oraplexec and orabindexec.  Corrected this leak.
+	* generic/oratcl.c : hush compile warnings in oralogon and oraopen
+	with the proper cast.
+
+2007-12-12  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c : #1725882 : memory leak in oralob alloc/free
+	This was really a leak of Tcl_Obj from the objv duplication methods in
 
 2007-11-29  Todd Helfter <thelfter@gmail.com>
 	* doc/oratcl.n

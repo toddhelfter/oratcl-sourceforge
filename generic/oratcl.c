@@ -1675,20 +1675,20 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	}
 
 	(void) OCI_HandleAlloc( (dvoid *) LogPtr->envhp,
-			       (dvoid **) &LogPtr->errhp,
+			       (dvoid **) (dvoid *) &LogPtr->errhp,
 			       OCI_HTYPE_ERROR,
 			       (size_t) 0,
 			       (dvoid **) 0);
 
 	/* server contexts */
 	(void) OCI_HandleAlloc( (dvoid *) LogPtr->envhp,
-			       (dvoid **) &LogPtr->srvhp,
+			       (dvoid **) (dvoid *) &LogPtr->srvhp,
 			       OCI_HTYPE_SERVER,
 			       (size_t) 0,
 			       (dvoid **) 0);
 
 	(void) OCI_HandleAlloc( (dvoid *) LogPtr->envhp,
-			       (dvoid **) &LogPtr->svchp,
+			       (dvoid **) (dvoid *) &LogPtr->svchp,
 			       OCI_HTYPE_SVCCTX,
 			       (size_t) 0,
 			       (dvoid **) 0);
@@ -1733,7 +1733,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	 */
 
 	rc = OCI_HandleAlloc((dvoid *) LogPtr->envhp,
-			     (dvoid **)&LogPtr->usrhp,
+			     (dvoid **) (dvoid *) &LogPtr->usrhp,
 			     (ub4) OCI_HTYPE_SESSION,
 			     (size_t) 0,
 			     (dvoid **) 0);
@@ -2502,7 +2502,7 @@ Oratcl_Open (clientData, interp, objc, objv)
 	StmPtr->ora_fcd		= 0;
 
 	rc = OCI_HandleAlloc((dvoid *) LogPtr->envhp,
-			     (dvoid **) &StmPtr->stmhp,
+			     (dvoid **) (dvoid *) &StmPtr->stmhp,
 			     (ub4) OCI_HTYPE_STMT,
 			     (size_t) 0,
 			     (dvoid **) 0);
