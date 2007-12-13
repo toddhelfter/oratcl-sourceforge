@@ -153,7 +153,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			Tcl_Obj		*err;
 
 			(void) OCI_HandleAlloc((dvoid *) LogPtr->envhp,
-					       (dvoid **) &tmp_errhp,
+					       (dvoid **) (dvoid *) &tmp_errhp,
 					       OCI_HTYPE_ERROR,
 					       (size_t) 0,
 					       (dvoid **) 0);
