@@ -316,29 +316,30 @@ Oratcl_Bind (clientData, interp, objc, objv)
 					tcl_return = TCL_ERROR;
 					goto common_exit;
 				}
-			}
 
-			if (StmPtr->utfmode) {
-				Tcl_DStringInit(&argStr);
-				Tcl_UtfToExternalDString(NULL,
-							 arg_pcp,
-							 arg_pcp_len,
-							 &argStr);
-				memcpy(tmp_col->column.valuep,
-				       Tcl_DStringValue(&argStr),
-				       Tcl_DStringLength(&argStr));
-				tmp_col->column.valuep[argStr.length] = '\0';
-				Tcl_DStringFree(&argStr);
-			} else if (StmPtr->unicode) {
-				memcpy(tmp_col->column.valuep,
-				       arg_upcp,
-				       ((arg_pcp_len+1)*sizeof(utext)));
-				tmp_col->column.valuep[arg_pcp_len*sizeof(utext)] = L'\0';
-			} else {
-				memcpy(tmp_col->column.valuep,
-				       arg_pcp,
-				       arg_pcp_len);
-				tmp_col->column.valuep[arg_pcp_len] = '\0';
+				if (StmPtr->utfmode) {
+					Tcl_DStringInit(&argStr);
+					Tcl_UtfToExternalDString(NULL,
+								 arg_pcp,
+								 arg_pcp_len,
+								 &argStr);
+					memcpy(tmp_col->column.valuep,
+					       Tcl_DStringValue(&argStr),
+					       Tcl_DStringLength(&argStr));
+					tmp_col->column.valuep[argStr.length] = '\0';
+					Tcl_DStringFree(&argStr);
+				} else if (StmPtr->unicode) {
+					memcpy(tmp_col->column.valuep,
+					       arg_upcp,
+					       ((arg_pcp_len+1)*sizeof(utext)));
+					tmp_col->column.valuep[arg_pcp_len*sizeof(utext)] = L'\0';
+				} else {
+					memcpy(tmp_col->column.valuep,
+					       arg_pcp,
+					       arg_pcp_len);
+					tmp_col->column.valuep[arg_pcp_len] = '\0';
+				}
+
 			}
 
 			tmp_col->rlenp[0] = 0;

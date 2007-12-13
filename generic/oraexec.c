@@ -106,6 +106,10 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		oci_mode = OCI_COMMIT_ON_SUCCESS;
 	}
 
+	if (StmPtr->array_dml) {
+		oci_mode = OCI_BATCH_ERRORS;
+	}
+
 	rc = OCI_StmtExecute(LogPtr->svchp,
 			     StmPtr->stmhp,
 			     LogPtr->errhp,
@@ -114,7 +118,6 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			     (OCISnapshot *) NULL,
 			     (OCISnapshot *) NULL,
 			     oci_mode);
-
 
 	StmPtr->ora_rc = rc;
 
@@ -128,7 +131,87 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
-	if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
+	/* */
+
+	if (StmPtr->array_dml) {
+		int num_errs;
+
+		OCI_AttrGet (StmPtr->stmhp, 
+			     OCI_HTYPE_STMT, 
+			     (sb4 *) &num_errs, 
+			     0,
+			     OCI_ATTR_NUM_DML_ERRORS, 
+			     LogPtr->errhp);
+
+		if (num_errs) {
+			OCIError	*tmp_errhp;
+			int		row_offset;
+			static char	errbuf[ORA_MSG_SIZE];
+			ub4		i;
+			sb4		errcode = 0;
+			Tcl_Obj		*err_list;
+			Tcl_Obj		*err;
+
+			(void) OCI_HandleAlloc((dvoid *) LogPtr->envhp,
+					       (dvoid **) &tmp_errhp,
+					       OCI_HTYPE_ERROR,
+					       (size_t) 0,
+					       (dvoid **) 0);
+
+			err_list = Tcl_NewObj();
+			Tcl_IncrRefCount(err_list);
+		
+			for (i=0; i<num_errs; i++) {
+				err = Tcl_NewObj();
+
+				OCI_ParamGet(LogPtr->errhp, 
+					     OCI_HTYPE_ERROR, 
+					     LogPtr->errhp, 
+					     (dvoid *)&tmp_errhp, 
+					     i);
+
+				OCI_AttrGet (tmp_errhp, 
+					     OCI_HTYPE_ERROR, 
+					     &row_offset,
+					     0, 
+					     OCI_ATTR_DML_ROW_OFFSET, 
+					     LogPtr->errhp);
+						  
+				OCI_ErrorGet ((dvoid *) tmp_errhp,
+					      (ub4) 1,
+					      (text *) NULL,
+					      &errcode,
+					      (text *) errbuf,
+					      (ub4) sizeof(errbuf),
+					      (ub4) OCI_HTYPE_ERROR);
+
+				Tcl_ListObjAppendElement(interp, err, Tcl_NewIntObj(row_offset));
+				Tcl_ListObjAppendElement(interp, err, Tcl_NewIntObj(errcode));
+				Tcl_ListObjAppendElement(interp, err, Tcl_NewStringObj(errbuf, sizeof(errbuf)));
+				Tcl_ListObjAppendElement(interp, err_list, err);
+			}                      
+
+			Oratcl_ErrorMsg(interp,
+					objv[0],
+					": array dml encountered errors.",
+					(Tcl_Obj *) NULL,
+					(char *) NULL);
+			Oratcl_ColFree(StmPtr->col_list);
+			StmPtr->col_list = NULL;
+			Oratcl_ColFree(StmPtr->bind_list);
+			StmPtr->bind_list = NULL;
+			StmPtr->array_dml_errors = err_list;
+			StmPtr->ora_rc = 24381;
+
+			(void) OCI_HandleFree((dvoid *) tmp_errhp, 
+					      OCI_HTYPE_ERROR);
+
+
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+	} else if (rc != OCI_SUCCESS && rc != OCI_SUCCESS_WITH_INFO) {
 		Oratcl_Checkerr(interp,
 				LogPtr->errhp,
 				rc,

@@ -1,3 +1,9 @@
+2007-12-13  Todd Helfter <thelfter@gmail.com>
+	* generic/orabind.c
+	* generic/oraexec.c : correct issues with -arraydml flag to orabind.
+	Poor logic in orabind.c caused abort.  List error handling part from
+	original patch not applied to oraexec.c
+
 2007-12-12  Todd Helfter <thelfter@gmail.com>
 	* generic/oraplexec.c
 	* generic/orabindexec.c : #1725882 : memory leak in oralob alloc/free
