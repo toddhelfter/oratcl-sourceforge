@@ -1,4 +1,9 @@
 2007-12-13  Todd Helfter <thelfter@gmail.com>
+	* generic/oratclInt.h : BUG [1708729] set the default LOBPSIZE back to
+	10000, a value that works with the pl/sql wrappers in the oralob
+	command, but is too small for DML lob support performance.
+
+2007-12-13  Todd Helfter <thelfter@gmail.com>
 	* generic/orabind.c
 	* generic/oraexec.c : correct issues with -arraydml flag to orabind.
 	Poor logic in orabind.c caused abort.  List error handling part from
