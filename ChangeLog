@@ -1,17 +1,17 @@
 2007-12-11  Todd Helfter <thelfter@gmail.com>
-	* oratcl/generic/orabind.c
-	* oratcl/generic/oratclTypes.h : Slight correction of the OCIBindDynamic()
+	* generic/orabind.c
+	* generic/oratclTypes.h : Slight correction of the OCIBindDynamic()
 	prototype and some (dvoid *) castes to eliminate compile warning about 
 	changin pointer types in the new arraydml code.
 
 2007-12-10  Todd Helfter <thelfter@gmail.com>
-	* oratcl/doc/oratcl.n
-	* oratcl/generic/orabind.c
-	* oratcl/generic/oramsg.c
-	* oratcl/generic/oraopen.c
-	* oratcl/generic/oratcl.c
-	* oratcl/generic/oratclInt.h
-	* oratcl/generic/oratclTypes.h : Implement an array dml feature for bulk
+	* doc/oratcl.n
+	* generic/orabind.c
+	* generic/oramsg.c
+	* generic/oraopen.c
+	* generic/oratcl.c
+	* generic/oratclInt.h
+	* generic/oratclTypes.h : Implement an array dml feature for bulk
 	loading data (insert/update) using a patch submitted by Jeremy Collins
 	about four years ago.  1000 row inserts using array dml execute in about
 	5% of the time as a traditional loop, bind, exec.
