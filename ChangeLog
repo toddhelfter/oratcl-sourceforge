@@ -1,3 +1,10 @@
+2007-12-14  Todd Helfter <thelfter@gmail.com>
+	* library/oratcl_utils.tcl : new file
+	* configure.in
+	* configure
+	* Makefile.in : provide a new package 'Oratcl::utils' with additional
+	features including GUI login dialog boxes.
+
 2007-12-13  Todd Helfter <thelfter@gmail.com>
 	* generic/oratclInt.h : BUG [1708729] set the default LOBPSIZE back to
 	10000, a value that works with the pl/sql wrappers in the oralob
