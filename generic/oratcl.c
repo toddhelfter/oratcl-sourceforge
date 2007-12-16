@@ -1176,7 +1176,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 				if (StmPtr->unicode) {
 					tmp = (char *) col->column.valuep + (col->column.valuesz +1 ) * sizeof(utext) * rn;
 				} else {
-					tmp = col->column.valuep + (rn * col->column.valuesz);
+					tmp = col->column.valuep + (rn * (col->column.valuesz+1));
 				}
 			}
 
