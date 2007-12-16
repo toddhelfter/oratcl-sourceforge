@@ -1,3 +1,8 @@
+2007-12-17  Todd Helfter <thelfter@gmail.com>
+	* Makefile.in: 
+	* configure, configure.in:
+	* tclconfig/tcl.m4: update to TEA 3.6
+
 2007-12-16  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c : correct the offset computation in the ColAppend 
 	to account for the '\0' null byte.
