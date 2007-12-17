@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.8 2007-11-25 00:22:34 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.9 2007-12-17 12:37:54 tmh Exp $
 
 global ora_lda
 
@@ -35,6 +35,7 @@ set testlist [list \
 		usertype.test \
 		merge.test \
 		unicode.test \
+		arraydml.test \
 	]
 
 #	This test hasn't worked right in ages
