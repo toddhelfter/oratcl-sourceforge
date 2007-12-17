@@ -1,4 +1,9 @@
 2007-12-17  Todd Helfter <thelfter@gmail.com>
+	* tests/all.tcl, tests/arraydml.test: new test file for array dml
+	* generic/oraexec.c: oraexec now returns oracle API error message
+	for array dml operations instead of a pre-set value.  
+
+2007-12-16  Todd Helfter <thelfter@gmail.com>
 	* Makefile.in: 
 	* configure, configure.in:
 	* tclconfig/tcl.m4: update to TEA 3.6

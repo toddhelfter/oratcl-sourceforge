@@ -1,0 +1,93 @@
+# arraydml.test
+#
+# Copyright (c) 2007 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise various combinations of orabind -arraydml
+#
+
+package require tcltest
+::tcltest::configure -verbose ept
+::tcltest::testConstraint testoraparse [llength [info commands oraparse]]
+::tcltest::testConstraint testorabind [llength [info commands orabind]]
+::tcltest::testConstraint testoraexec [llength [info commands oraexec]]
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+test arraydml-1.0 {orabind arraydml OCI_STMT_INSERT code == 4} {
+	-constraints {testoraparse testorabind}
+	-setup {
+		set tst1_0(lda) [oralogon $ora_constr]
+		set tst1_0(stm) [oraopen $tst1_0(lda)]
+		set tst1_0(sql) { \
+			insert into oratcl___tests \
+				(v_number, v_char, v_varchar2) \
+			values \
+				(:vn, :vc, :v2) \
+		}
+		oraparse $tst1_0(stm) $tst1_0(sql)
+		set tst1_0(vnl) [list 100 101 102 103 104 105 106 107 108 109]
+		set tst1_0(vcl) [list aaa bbb ccc ddd eee fff ggg hhh iii jjj]
+		set tst1_0(v2l) [list AAA BBB CCC DDD EEE FFF GGG HHH III JJJ]
+	}
+	-body {
+		set tst1_0(res) [ \
+			orabind $tst1_0(stm) -arraydml \
+				:vn $tst1_0(vnl) \
+				:vc $tst1_0(vcl) \
+				:v2 $tst1_0(v2l) \
+		]
+	}
+	-cleanup {
+		oraclose $tst1_0(stm)
+		oralogoff $tst1_0(lda)
+		array unset tst1_0
+		array unset vn_list
+		array unset vc_list
+		array unset v2_list
+	}
+	-result {0}
+}
+
+test arraydml-1.2 {orabind arraydml OCI_STMT_INSERT code == 4} {
+	-constraints {testoraparse testorabind}
+	-setup {
+		set tst1_4(lda) [oralogon $ora_constr]
+		set tst1_4(stm) [oraopen $tst1_4(lda)]
+		set tst1_4(sql) { \
+			insert into oratcl___tests \
+				(v_number, v_char, v_varchar2) \
+			values \
+				(:vn, :vc, :v2) \
+		}
+		oraparse $tst1_4(stm) $tst1_4(sql)
+		set vn_list [list 100 101 102 103 104 105 106 107 108 109]
+		set vc_list [list aaa bbb ccc ddd eee fff ggg hhh iii jjj]
+		set v2_list [list AAA BBB CCC DDD EEE FFF GGG HHH III JJJ]
+	}
+	-body {
+		set tst1_4(res) [ \
+			orabind $tst1_4(stm) -arraydml \
+				:vn $vn_list \
+				:vc $vc_list \
+				:v2 $v2_list \
+		]
+		set tst1_4(res) [oraexec $tst1_4(stm)]
+	}
+	-cleanup {
+		oraclose $tst1_4(stm)
+		oralogoff $tst1_4(lda)
+		array unset tst1_4
+		array unset vn_list
+		array unset vc_list
+		array unset v2_list
+	}
+	-returnCodes { error }
+	-result {ORA-24381: error(s) in array DML}
+}
+
+::tcltest::configure -verbose b
+::tcltest::cleanupTests
+return
