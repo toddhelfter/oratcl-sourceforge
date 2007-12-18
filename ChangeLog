@@ -1,4 +1,8 @@
 2007-12-17  Todd Helfter <thelfter@gmail.com>
+	* library/oratcl_utils.tcl: allow caller to specify tile them as
+	a parameter
+
+2007-12-17  Todd Helfter <thelfter@gmail.com>
 	* tests/all.tcl, tests/arraydml.test: new test file for array dml
 	* generic/oraexec.c: oraexec now returns oracle API error message
 	for array dml operations instead of a pre-set value.  

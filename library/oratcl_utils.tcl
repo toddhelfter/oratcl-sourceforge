@@ -492,13 +492,17 @@ proc ::Oratcl::utils::parseArgs args {
 	set OraTcl(srvc) service
 	set OraTcl(cnas) Normal
 	set OraTcl(usetile) false
+	set OraTcl(theme) default
 	set OraTcl(option,url) false
 	set OraTcl(option,tns) true
 
 	foreach {opt arg} [lindex $args 0] {
 		switch -- $opt {
 			-tw -
-			-tilewidgets {set OraTcl(usetile) true}
+			-tilewidgets {
+				set OraTcl(usetile) true
+				set OraTcl(theme) $arg
+			}
 			-type {
 				if {[string equal $arg url]} {
 					set OraTcl(option,url) true
@@ -542,6 +546,7 @@ proc ::Oratcl::utils::parseArgs args {
 				rename ::style ::ttk::style
 			}
 		}
+		ttk::style theme use $OraTcl(theme)
 	}
 
 }
