@@ -1,4 +1,7 @@
 2007-12-17  Todd Helfter <thelfter@gmail.com>
+	* tests/arraydml.test: add additional tests for arraydml.
+
+2007-12-17  Todd Helfter <thelfter@gmail.com>
 	* library/oratcl_utils.tcl: allow caller to specify tile them as
 	a parameter
 
