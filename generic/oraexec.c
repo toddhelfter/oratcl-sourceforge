@@ -98,16 +98,16 @@ Oratcl_Exec (clientData, interp, objc, objv)
 			p++;
 		}
 		if (strcmp(p,"commit") == 0) {
-			oci_mode = OCI_COMMIT_ON_SUCCESS;
+			oci_mode = oci_mode | OCI_COMMIT_ON_SUCCESS;
 		}
 	}
 
 	if (LogPtr->autocom) {
-		oci_mode = OCI_COMMIT_ON_SUCCESS;
+		oci_mode = oci_mode | OCI_COMMIT_ON_SUCCESS;
 	}
 
 	if (StmPtr->array_dml) {
-		oci_mode = OCI_BATCH_ERRORS;
+		oci_mode = oci_mode | OCI_BATCH_ERRORS;
 	}
 
 	rc = OCI_StmtExecute(LogPtr->svchp,
