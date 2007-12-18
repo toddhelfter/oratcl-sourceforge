@@ -1,4 +1,9 @@
 2007-12-17  Todd Helfter <thelfter@gmail.com>
+	* generic/oraexec.c: XOR the various oci_mode options together;
+	such as OCI_COMMIT_ON_SUCCESS and OCI_BATCH_ERRORS.  This allows
+	arraydml and autocommit to work properly in the same oraexec.
+
+2007-12-17  Todd Helfter <thelfter@gmail.com>
 	* tests/arraydml.test: add additional tests for arraydml.
 
 2007-12-17  Todd Helfter <thelfter@gmail.com>
