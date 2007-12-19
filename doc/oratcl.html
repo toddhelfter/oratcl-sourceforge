@@ -11,11 +11,11 @@
 
 </PRE>
 <H2>INTRODUCTION</H2><PRE>
-     Oratcl is an extention to the Tcl language designed to  pro-
+     Oratcl is an extension to the Tcl language designed to  pro-
      vide  access to an Oracle Database Server.  Each Oratcl com-
      mand generally invokes several Oracle Call  Interface  (OCI)
      library functions.  Programmers using Oratcl should be fami-
-     lar with basic  concepts  of  OCI  programming.   Oratcl  is
+     liar with basic  concepts  of  OCI  programming.   Oratcl is
      loaded  into  the  Tcl interpreter with the tcl <B>package</B> com-
      mand.
 
@@ -65,8 +65,8 @@
           as <B>orasql</B>, <B>orabindexec</B> and <B>oraplexec</B>.   These  commands
           will  immediately  return a code of OCI_STILL_EXECUTING
           which is equal to the numeric value of  -3123.   Repeat
-          calls  to these commands with the same arguements until
-          a return value of OCI_SUCCESS, a 0, is  retuned.    See
+          calls  to these commands with the same arguments until
+          a return value of OCI_SUCCESS, a 0, is  returned.   See
           the section below on ASYNCHRONOUS TRANSACTION HANDLING.
 
           The optional -<I>failovercallback procname</I> arguments
@@ -132,7 +132,7 @@
                     fetch <I>fetchrows</I> rows from the  Oracle  server
                     at  once  and  then returns single rows until
                     the cache is exhausted  and  another  set  of
-                    rows  is retreived.  Setting the <I>fetchrows</I> to
+                    rows  is retrieved.  Setting the <I>fetchrows</I> to
                     larger numbers for queries that  return  many
                     rows may dramatically decrease the time spent
                     fetching the rows.  Changes to <I>fetchrows</I> only
@@ -159,7 +159,7 @@
                     written to and read from  the  database  with
                     the  system  encoding.  It is not recommended
                     that this function be enabled when reading or
-                    writting  long  raw type values with <I>oralong</I>.
+                    writing  long  raw type values with <I>oralong</I>.
                     The default is false.
 
           <I>numbsize</I>  Sets or returns the amount  of  of  data  (in
@@ -225,9 +225,9 @@
                     8 == BEGIN   corresponds to OCI_STMT_BEGIN
                     9 == DECLARE corresponds to OCI_STMT_DECLARE
 
-          <I>arraydml_errors</I>   returns a list of errors that occured
+          <I>arraydml_errors</I>   returns a list of errors that occurred
 	  during an array dml operation. Each element of the list
-	  will  contain  the  row the error  occured on,  the sql
+	  will  contain  the  row the error  occurred on,  the sql
 	  error code, and the sql error tesxt.
 
           <B>Oramsg</B> raises a Tcl  error  if  the  <I>handle</I>  cannot  be
@@ -305,7 +305,7 @@
           will  be represented in the datavariable list as a null
           string. <B>Orafetch</B> returns the code from the  OCIStmtExe-
           cute()  library  function.  Likely values include 0 for
-          success, 1403 for no more data, and -3123 for  asyncro-
+          success, 1403 for no more data, and -3123 for asynchro-
           nous still executing.
 
           -<I>datavariable</I>   Specifies the variable to be set with a
@@ -319,14 +319,14 @@
                           vidual  columns of data fetched will be
                           set.
 
-          -<I>indexbyname</I>    When  combinded  with  the   -<I>dataarray</I>
+          -<I>indexbyname</I>    When  combined  with  the   -<I>dataarray</I>
                           option,  <B>orafetch</B>  will  use the column
                           names  from  the  query  as  the  index
                           (hash) values of the array.
 
           -<I>indexbynumber</I>  When  combinded  with  the   -<I>dataarray</I>
                           option,  <B>orafetch</B>  will  use the column
-                          positon number from the  query  as  the
+                          position number from the  query  as  the
                           index (hash) values of the array.
 
           -<I>command</I>        Specifies  a  script   to   eval   when
@@ -402,7 +402,7 @@
           PL/SQL procedure or a call to a stored procedure  coded
           as  an anonymous PL/SQL block.  Optional :<I>varname</I> <I>value</I>
           pairs may follow the pl-block.  Varnames must  be  pre-
-          fixed  by  a  colon ":", and match the subsitution bind
+          fixed  by  a colon ":", and match the subtsitution bind
           names used in the procedure.  Any :varname that is  not
           matched with a value is ignored.  If a :varname is used
           for output, the value should be coded as a  null  list,
@@ -677,7 +677,7 @@
           sion scale nullok} for each column of the table.   <B>Ora-</B>
           <B>desc</B>  will  also describe the columns of a table refer-
           enced by a private or public  synonym  when  given  the
-          name of a synonym as the <I>table</I>-<I>name</I> arguement.  <B>Oradesc</B>
+          name of a synonym as the <I>table</I>-<I>name</I> argument.  <B>Oradesc</B>
           will describe an object in the connecting schema before
           describing  a  public  synonym  when  the names are the
           same.

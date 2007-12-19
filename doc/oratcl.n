@@ -10,11 +10,11 @@ Oratcl - Oracle Database Server access commands for Tcl
 .sp
 .SH "INTRODUCTION"
 .P
-Oratcl is an extention to the Tcl language designed to
+Oratcl is an extension to the Tcl language designed to
 provide access to an Oracle Database Server.
 Each Oratcl command generally invokes several 
 Oracle Call Interface (OCI) library functions.
-Programmers using Oratcl should be familar with basic concepts of
+Programmers using Oratcl should be familiar with basic concepts of
 OCI programming.  Oratcl is loaded into the Tcl interpreter with
 the tcl \fBpackage\fR command. 
 .RS .5i
@@ -63,8 +63,8 @@ affected are: \fBoraparse\fR, \fBoraexec\fR, \fBorafetch\fR and those
 that make use of these such as \fBorasql\fR, \fBorabindexec\fR and \fBoraplexec\fR.
 These commands will immediately return a code of OCI_STILL_EXECUTING which
 is equal to the numeric value of -3123.  Repeat calls to these commands
-with the same arguements until a return value of OCI_SUCCESS, a 0, is
-retuned.   See the section below on ASYNCHRONOUS TRANSACTION HANDLING.
+with the same arguments until a return value of OCI_SUCCESS, a 0, is
+returned.   See the section below on ASYNCHRONOUS TRANSACTION HANDLING.
 .sp
 The optional \fI-failovercallback <procname>\fR arguments provide a TAF
 failover functionality to Oratcl.  The given procedure is called on a TAF
@@ -127,7 +127,7 @@ default is "default".
 Sets or returns the number of rows pre-fetched by \fBorafetch\fR.  
 \fBOrafetch\fR attempts to fetch \fIfetchrows\fR rows from the Oracle
 server at once and then returns single rows until the cache is exhausted 
-and another set of rows is retreived.  Setting the \fIfetchrows\fR to 
+and another set of rows is retrieved.  Setting the \fIfetchrows\fR to 
 larger numbers for queries that return many rows may dramatically decrease
 the time spent fetching the rows.  Changes to \fIfetchrows\fR only affects
 subsequent \fBorasql\fR commands.  \fIFetchrows\fR defaults to 10 rows 
@@ -145,7 +145,7 @@ Sets or returns the UTF translation behavior.  Setting this value to true
 causes \fIorasql\fR, \fIorabindexec\fR, \fIoraplexec\fR, \fIorafetch\fR,
 \fIoralong\fR and \fIoralob\fR to perform UTF translation on values written to
 and read from the database with the system encoding.  It is not recommended that
-this function be enabled when reading or writting long raw type values
+this function be enabled when reading or writing long raw type values
 with \fIoralong\fR. The default is false. 
 .IP \fInumbsize\fR
 Sets or returns the amount of of data (in characters) used to store a number
@@ -219,7 +219,7 @@ Valid values are:
 9 == DECLARE corresponds to OCI_STMT_DECLARE
 .IP \fIarraydml_errors\fR
 returns a list of errors that occurred during an array dml operation.  Each
-element of the list will contain the row the error occured on, the sql
+element of the list will contain the row the error occurred on, the sql
 error code, and the sql error text.
 .br
 .RE
@@ -298,7 +298,7 @@ values are converted to character strings except ref_cursors which
 will be represented in the datavariable list as a null string.  
 \fBOrafetch\fR returns the code from the OCIStmtExecute() library
 function.  Likely values include 0 for success, 1403 for no more data,
-and -3123 for asyncronous still executing.
+and -3123 for asynchronous still executing.
 .RS .5i
 .IP \fI-datavariable\fR 1.6i
 Specifies the variable to be set with a list containing the row of data fetched. 
@@ -306,11 +306,11 @@ The list returned in the datavariable by \fBorafetch\fR contains the values of t
 .IP \fI-dataarray\fR
 Specifies the array in which the individual columns of data fetched will be set. 
 .IP \fI-indexbyname\fR
-When combinded with the \fI-dataarray\fR option, \fBorafetch\fR will use the
+When combined with the \fI-dataarray\fR option, \fBorafetch\fR will use the
 column names from the query as the index (hash) values of the array.
 .IP \fI-indexbynumber\fR
 When combinded with the \fI-dataarray\fR option, \fBorafetch\fR will use the
-column positon number from the query as the index (hash) values of the array.
+column position number from the query as the index (hash) values of the array.
 .IP \fI-command\fR
 Specifies a script to eval when \fBorafetch\fR retrieves a row of data.
 This script may reference the variable and array specified by other options.
@@ -384,7 +384,7 @@ Execute an anonymous PL block, optionally binding values to PL/SQL variables.
 \fIPl\-block\fR may either be a complete PL/SQL procedure or a call to
 a stored procedure coded as an anonymous PL/SQL block.  Optional
 \fI:varname value\fR pairs may follow the pl-block.  Varnames must be
-prefixed by a colon ":", and match the subsitution bind names used in
+prefixed by a colon ":", and match the substitution bind names used in
 the procedure.  Any :varname that is not matched with a value is
 ignored.  If a :varname is used for output, the value should be coded
 as a null list, {}.
@@ -699,7 +699,7 @@ Describes the columns of \fItable\-name\fR.  Returns a list containing lists
 in the format {name size type precision scale nullok} for each column of
 the table.  \fBOradesc\fR will also describe the columns of a table referenced
 by a private or public synonym when given the name of a synonym as the \fItable-name\fR
-arguement.  \fBOradesc\fR will describe an object in the connecting schema before
+argument.  \fBOradesc\fR will describe an object in the connecting schema before
 describing a public synonym when the names are the same.
 .sp
 .TP 
