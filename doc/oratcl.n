@@ -389,7 +389,7 @@ the procedure.  Any :varname that is not matched with a value is
 ignored.  If a :varname is used for output, the value should be coded
 as a null list, {}.
 .sp
-Ref-cursor variables may be returned from a PL/SQL block by specifing an
+Ref-cursor variables may be returned from a PL/SQL block by specifying an
 open \fIstatement\-handle\fR as the bind value for a :varname bind variable.  
 The handle must have previously been opened by \fBoraopen\fR using the 
 same \fIlogon\-handle\fR as the cursor used to execute the \fBoraplexec\fR
