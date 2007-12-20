@@ -92,6 +92,9 @@ proc ::Oratcl::utils::ttk_display {} {
 
 	variable OraTcl
 
+	#puts $OraTcl(theme)
+	#ttk::style theme use $OraTcl(theme)
+
 	$OraTcl(top) configure -bg \
 		[ttk::style lookup TFrame -background]
 
