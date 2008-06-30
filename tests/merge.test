@@ -22,7 +22,7 @@ proc oratcl_merge_begin {} {
 		catch {
 			oraparse $un_stm $un_sql
 			oraexec $un_stm
-			oracommit $un_stm
+			oracommit $un_lda
 		}
 		unset un_sql
 	}
