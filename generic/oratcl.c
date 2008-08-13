@@ -407,8 +407,6 @@ Oratcl_Init (interp)
 #elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
 		Tcl_DStringFree(&result);
 #endif
-	} else {
-		ckfree((char *) ora_lib);
 	}
 
 #else
