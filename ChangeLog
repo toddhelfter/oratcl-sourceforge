@@ -1,3 +1,6 @@
+2008-08-13  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c: BUG [2049761] remove an unneeded ckfree() call.
+
 2007-12-12  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c : hush compile warnings in oralogon and oraopen
 	with the proper cast.
