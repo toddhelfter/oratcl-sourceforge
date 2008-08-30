@@ -1,3 +1,7 @@
+2008-08-30  Todd Helfter <thelfter@gmail.com>
+	* tests/safe.test: BUG [2078194] Safe Interps can [package require]
+	since Tcl 8.5.3.  The safe test will fail on Tcl older than 8.5.3
+ 
 2008-08-13  Todd Helfter <thelfter@gmail.com>
 	* generic/oratcl.c: BUG [2049761] remove an unneeded ckfree() call.
 	
