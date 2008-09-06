@@ -58,15 +58,12 @@ oratcl_unicode_begin
 		set test1(val) OraTcl
         }
 	-body {
-
 		oraparse $test1(stm) $test1(sql1)
 		orabind $test1(stm) :u_id 1 :u_char $test1(val)
 		oraexec $test1(stm)
-
 		oraparse $test1(stm) $test1(sql2)
 		orabind $test1(stm) :u_id $test1(idx)
 		oraexec $test1(stm)
-
 		if {[orafetch $test1(stm) -datavariable test1(res)] == 0} {
 			#puts "src = [str2hex $test1(val)]"
 			#puts "res = [str2hex [lindex $test1(res) 1]]"
@@ -96,16 +93,13 @@ oratcl_unicode_begin
 		set test2(val) QuéPué
         }
 	-body {
-
 		oraparse $test2(stm) $test2(sql1)
 		oracols $test2(stm)
 		orabind $test2(stm) :u_id $test2(idx) :u_char $test2(val)
 		oraexec $test2(stm)
-
 		oraparse $test2(stm) $test2(sql2)
 		orabind $test2(stm) :u_id $test2(idx)
 		oraexec $test2(stm)
-
 		if {[orafetch $test2(stm) -datavariable test2(res)] == 0} {
 			#puts "src = [str2hex $test2(val)]"
 			#puts "res = [str2hex [lindex $test2(res) 1]]"
@@ -175,11 +169,9 @@ oratcl_unicode_begin
 		oracols $test4(stm)
 		orabind $test4(stm) :u_id $test4(idx) :u_char $test4(val)
 		oraexec $test4(stm)
-
 		oraparse $test4(stm) $test4(sql2)
 		orabind $test4(stm) :u_id $test4(idx)
 		oraexec $test4(stm)
-
 		if {[orafetch $test4(stm) -datavariable test4(res)] == 0} {
 			#puts "src = [str2hex $test4(val)]"
 			#puts "res = [str2hex [lindex $test4(res) 1]]"
