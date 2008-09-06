@@ -287,7 +287,7 @@ An SQL statement must have previously been parsed by executing \fBoraparse\fR.
 \fBOrabind\fR and \fBoraexec\fR commands may be repeatedly issued after a
 statement is parsed.
 .sp
-The optional \fI-commit\fR argument specifies the that SQL will be
+The optional \fI-commit\fR argument specifies that the SQL will be
 committed upon successful execution.
 .sp
 .TP
