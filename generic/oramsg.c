@@ -169,7 +169,11 @@ Oratcl_Message (clientData, interp, objc, objv)
 	}
 	if (mode == OPT_ALL || mode == OPT_ARRAY_DML) {
 		if (StmPtr) {
-			oCols[oColsc++] = StmPtr->array_dml_errors;
+			if (StmPtr->array_dml_errors) {
+				oCols[oColsc++] = StmPtr->array_dml_errors;
+			} else {
+				oCols[oColsc++] = Tcl_NewStringObj("", -1);;
+			}
 		} else {
 			oCols[oColsc++] = Tcl_NewStringObj("", -1);;
 		}
