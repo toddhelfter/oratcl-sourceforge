@@ -1,3 +1,7 @@
+2008-12-22  Todd Helfter <thelfter@gmail.com>
+	* generic/oraparse.c: Correct the [oramsg $stm ocicode] functionality.
+	* generic/oraexec.c: 
+
 2008-12-21  Todd Helfter <thelfter@gmail.com>
 	* generic/oramsg.c: The ARRAYDML patch, caused core dumps in oramsg.c.
 	This has been corrected.

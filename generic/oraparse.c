@@ -91,6 +91,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 		StmPtr->col_list   	= NULL;
 		Oratcl_ColFree(StmPtr->bind_list);
 		StmPtr->bind_list	= NULL;
+		StmPtr->ora_fcd = 0;
 
 		/* prepare the new statement */
 		rc = OCI_StmtPrepare((dvoid *) StmPtr->stmhp,
@@ -162,13 +163,6 @@ Oratcl_Parse (clientData, interp, objc, objv)
 			tcl_return = TCL_ERROR;
 			goto common_exit;
 		}
-
-		OCI_AttrGet( (dvoid *) StmPtr->stmhp,
-			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &StmPtr->ora_fcd,
-			    (ub4) 0,
-			    OCI_ATTR_SQLFNCODE,
-			    LogPtr->errhp);
 
 		cols = Oratcl_ColDescribe(interp, StmPtr);
 		if (cols < 0) {
