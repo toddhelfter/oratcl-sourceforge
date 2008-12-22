@@ -5035,13 +5035,6 @@ Oratcl_Parse (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
-		OCI_AttrGet( (dvoid *) StmPtr->stmhp,
-			    (ub4) OCI_HTYPE_STMT,
-			    (ub2 *) &StmPtr->ora_fcd,
-			    (ub4) 0,
-			    OCI_ATTR_SQLFNCODE,
-			    LogPtr->errhp);
-
 		cols = Oratcl_ColDescribe(interp, StmPtr);
 		if (cols < 0) {
 			tcl_return = TCL_ERROR;
@@ -5530,6 +5523,13 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+
+	OCI_AttrGet( (dvoid *) StmPtr->stmhp,
+		    (ub4) OCI_HTYPE_STMT,
+		    (ub2 *) &StmPtr->ora_fcd,
+		    (ub4) 0,
+		    OCI_ATTR_SQLFNCODE,
+		    LogPtr->errhp);
 
 	if (StmPtr->sqltype == OCI_STMT_UPDATE ||
 	    StmPtr->sqltype == OCI_STMT_DELETE ||

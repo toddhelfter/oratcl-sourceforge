@@ -1,3 +1,7 @@
+2008-12-22  Todd Helfter <thelfter@gmail.com>
+	* generic/oraparse.c: Correct the [oramsg $stm ocicode] functionality.
+	* generic/oraexec.c: 
+
 2008-08-30  Todd Helfter <thelfter@gmail.com>
 	* tests/safe.test: BUG [2078194] Safe Interps can [package require]
 	since Tcl 8.5.3.  The safe test will fail on Tcl older than 8.5.3
