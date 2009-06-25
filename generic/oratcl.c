@@ -1048,6 +1048,9 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 				     0);
 	}
 
+        /*
+         * If PL/SQL, use bind_list else use col_list.
+         */
 	if (StmPtr->sqltype == OCI_STMT_BEGIN ||
 	    StmPtr->sqltype == OCI_STMT_DECLARE) {
 		ColPtr = StmPtr->bind_list;
@@ -1525,6 +1528,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 
 	int		mode = 1;
 
+	OratclCols	*ColPtr;
 	OratclCols	*col;
 	int		oColsc;
 	Tcl_Obj		**oCols = NULL;
@@ -1585,7 +1589,18 @@ Oratcl_Cols (clientData, interp, objc, objv)
 
 	oResult = Tcl_GetObjResult(interp);
 	oCols = (Tcl_Obj **) ckalloc (oColslen * sizeof(*oCols));
-	for (col = StmPtr->col_list; col != NULL; col = col->next) {
+
+        /*
+         * If PL/SQL, use bind_list else use col_list.
+         */
+        if (StmPtr->sqltype == OCI_STMT_BEGIN ||
+            StmPtr->sqltype == OCI_STMT_DECLARE) {
+		ColPtr = StmPtr->bind_list;
+	} else {
+		ColPtr = StmPtr->col_list;
+	}
+
+	for (col = ColPtr; col != NULL; col = col->next) {
 
 		oColsc = 0;
 		if (mode == OPT_ALL || mode == OPT_NAME) {

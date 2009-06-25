@@ -1,3 +1,6 @@
+2009-06-24  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c: BUG 2811878] Correct the [oracols $stm name] functionality for pl/sql.
+
 2008-12-22  Todd Helfter <thelfter@gmail.com>
 	* generic/oraparse.c: Correct the [oramsg $stm ocicode] functionality.
 	* generic/oraexec.c: 
