@@ -1,4 +1,7 @@
 2009-09-22  Todd Helfter <thelfter@gmail.com>
+	* tests/oraopen.test : Apply constraints that require oraopen and oraclose procs.
+
+2009-09-22  Todd Helfter <thelfter@gmail.com>
 	* tests/oralogon.test : Apply constraints that require oralogon and oralogoff procs.
 
 2009-09-22  Todd Helfter <thelfter@gmail.com>

@@ -19,11 +19,12 @@ if {[info exists ora_lda] == 0} {
 namespace eval ::tcl::test::oralogon {
     namespace import ::tcltest::*
 
-    testConstraint oralogon      [llength [info commands oralogon]]
-    testConstraint oralogoff     [llength [info commands oralogoff]]
+    testConstraint testoralogon      [llength [info commands oralogon]]
+    testConstraint testoralogoff     [llength [info commands oralogoff]]
 
     # test oralogon with no arguments
     test oralogon-1.0 {oralogon: no arguments} {
+        -constraints testoralogon
         -body {
             catch {oralogon} res
             set res
@@ -33,7 +34,11 @@ namespace eval ::tcl::test::oralogon {
 
     # test database connection with credentials
     test oralogon-1.1 {oralogon: all arguments} {
-       -body {
+        -constraints {
+		testoralogon
+		testoralogoff
+	}
+        -body {
             catch {oralogon $ora_constr} res
             set res
         }
@@ -45,6 +50,7 @@ namespace eval ::tcl::test::oralogon {
 
     # test oralogon with bad credentials
     test oralogon-1.2 {oralogon: bad credentials} {
+        -constraints testoralogon
         -body {
             catch {oralogon foo/bar} res
             set res
@@ -54,6 +60,10 @@ namespace eval ::tcl::test::oralogon {
 
     # test oralogon with bad tnsnames
     test oralogon-1.3 {oralogon: bad tnsnames} {
+        -constraints {
+		testoralogon
+		testoralogoff
+	}
         -body {
             set tres 1
             catch {oralogon foo/bar@oratcl} res
@@ -68,52 +78,61 @@ namespace eval ::tcl::test::oralogon {
 
     # test oralogoff with no arguments
     test oralogon-2.0 {oralogoff: no arguments} {
-    -body {
-        catch {oralogoff} res
-        set res
-    }
-    -result {wrong # args: should be "oralogoff lda_handle"}
+        -constraints testoralogon
+        -body {
+            catch {oralogoff} res
+            set res
+        }
+        -result {wrong # args: should be "oralogoff lda_handle"}
     }
 
 
     # test oralogoff with valid login-handle
     test oralogon-2.1 {oralogoff: all arguments} {
-    -setup {
-        set lda [oralogon $ora_constr]
-    }
-    -body {
-        set rc [oralogoff $lda]
-    }
-    -result 0
+        -constraints {
+		testoralogon
+		testoralogoff
+	}
+        -setup {
+            set lda [oralogon $ora_constr]
+        }
+        -body {
+            set rc [oralogoff $lda]
+        }
+        -result 0
     }
 
 
     # excercise oralogon and oralogoff for many connections
-    ::tcltest::test oralogon-3.1 {oralogon: many connections} {
-    -setup {
-        set lda_list {}
-    }
-    -body {
-        for {set n 0} {$n < 35} {incr n} {
-            set cr [catch {set lda [oralogon $ora_constr]}]
-            if {$cr == 0} {
-                lappend lda_list $lda
-            } else {
-                break
+    test oralogon-3.1 {oralogon: many connections} {
+        -constraints {
+		testoralogon
+		testoralogoff
+	}
+        -setup {
+            set lda_list {}
+        }
+        -body {
+            for {set n 0} {$n < 35} {incr n} {
+                set cr [catch {set lda [oralogon $ora_constr]}]
+                if {$cr == 0} {
+                    lappend lda_list $lda
+                } else {
+                    break
+                }
             }
+            llength $lda_list
         }
-        llength $lda_list
-    }
-    -cleanup {
-        foreach lda $lda_list {
-            catch {oralogoff $lda}
+        -cleanup {
+            foreach lda $lda_list {
+                catch {oralogoff $lda}
+            }
+            unset lda
+            unset lda_list
+            unset cr
+            unset res
         }
-        unset lda
-        unset lda_list
-        unset cr
-        unset res
-    }
-    -result 35
+        -result 35
     }
 
     cleanupTests
