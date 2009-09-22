@@ -15,7 +15,7 @@ if {[info exists ora_lda] == 0} {
     source [file join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::tcl::test::oraopen {
+namespace eval ::tcl::test::oralogon {
     namespace import ::tcltest::*
 
     testConstraint testopen	[llength [info commands oraopen]]
@@ -41,7 +41,7 @@ namespace eval ::tcl::test::oraopen {
              catch {oraclose $cur}
              unset cur
         }
-        -result {oratcl0.3}
+        -result oratcl0.3
     }
 
 
@@ -55,7 +55,6 @@ namespace eval ::tcl::test::oraopen {
     } 
 
     # oraclose with valid login-handle
-    # 09/22/2009 : oraclose success should return 0 not null
     test oraopen-2.1 {oraclose: valid login-handle} {
         -setup {
              global ora_lda
@@ -68,7 +67,7 @@ namespace eval ::tcl::test::oraopen {
         -cleanup {
              unset stm
         }
-        -result {}
+        -result 0
     }
 
     # open and close 30 statement handles
@@ -102,5 +101,5 @@ namespace eval ::tcl::test::oraopen {
 
     cleanupTests
 }
-namespace delete ::tcl::test::oraopen
+namespace delete ::tcl::test::oralogon
 return

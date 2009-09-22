@@ -1,4 +1,8 @@
 2009-09-22  Todd Helfter <thelfter@gmail.com>
+	* generic/oraclose.test : update oraclose to return 0 instead of null on success.
+	* tests/oraopen.test :
+
+2009-09-22  Todd Helfter <thelfter@gmail.com>
 	* tests/oraopen.test : Improve error code testing and update to tcltest v2.
 
 2009-09-22  Todd Helfter <thelfter@gmail.com>

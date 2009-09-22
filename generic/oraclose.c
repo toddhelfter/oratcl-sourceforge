@@ -65,6 +65,8 @@ Oratcl_Close (clientData, interp, objc, objv)
 	StmPtr = NULL;
 	Tcl_DeleteHashEntry(stmHashPtr);
 
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+
 common_exit:
 
 	return tcl_return;
