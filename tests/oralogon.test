@@ -24,42 +24,48 @@ namespace eval ::tcl::test::oralogon {
 
     # test oralogon with no arguments
     test oralogon-1.0 {oralogon: no arguments} {
-    -body {
-        catch {oralogon} res
-        set res
-    }
-    -result {wrong # args: should be "oralogon connect_string ?-async?"}
+        -body {
+            catch {oralogon} res
+            set res
+        }
+        -result {wrong # args: should be "oralogon connect_string ?-async?"}
     }
 
     # test database connection with credentials
     test oralogon-1.1 {oralogon: all arguments} {
-    -body {
-        catch {oralogon $ora_constr} res
-        set res
-    }
-    -cleanup {
-        catch {oralogoff $lda}
-    }
-    -result oratcl1
+       -body {
+            catch {oralogon $ora_constr} res
+            set res
+        }
+        -cleanup {
+            catch {oralogoff $lda}
+        }
+        -result oratcl1
     }
 
     # test oralogon with bad credentials
     test oralogon-1.2 {oralogon: bad credentials} {
-    -body {
-        catch {oralogon foo/bar} res
-        set res
-    }
-    -result {ORA-01017: invalid username/password; logon denied}
+        -body {
+            catch {oralogon foo/bar} res
+            set res
+        }
+        -result {ORA-01017: invalid username/password; logon denied}
     }
 
     # test oralogon with bad tnsnames
     test oralogon-1.3 {oralogon: bad tnsnames} {
-    -body {
-        catch {oralogon foo/bar@oratcl} res
-        set res
+        -body {
+            set tres 1
+            catch {oralogon foo/bar@oratcl} res
+            if {[string equal $res {ORA-12154: TNS:could not resolve the connect identifier specified}]
+              || [string equal $res {ORA-12541: TNS:no listener}]} {
+                set tres 0
+            }
+            set tres
+        }
+        -result {0}
     }
-    -result {ORA-12541: TNS:no listener}
-    }
+
     # test oralogoff with no arguments
     test oralogon-2.0 {oralogoff: no arguments} {
     -body {
