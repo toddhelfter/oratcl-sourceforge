@@ -1,4 +1,7 @@
 2009-09-22  Todd Helfter <thelfter@gmail.com>
+	* tests/oraopen.test : Improve error code testing and update to tcltest v2.
+
+2009-09-22  Todd Helfter <thelfter@gmail.com>
 	* tests/oralogon.test : Improve error code testing and update to tcltest v2.
 
 2009-06-24  Todd Helfter <thelfter@gmail.com>
