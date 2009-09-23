@@ -23,7 +23,7 @@ namespace eval ::tcl::test::oralogon {
 
     # oraopen with wrong arg count
     test oraopen-1.0 {oraopen: no arguments} {
-        -constraint testoraopen
+        -constraints testoraopen
         -body {
             catch {oraopen} res
             set res
@@ -33,7 +33,7 @@ namespace eval ::tcl::test::oralogon {
 
     # oraopen with valid login-handle
     test oraopen-1.1 {oraopen: valid login-handle} {
-        -constraint {
+        -constraints {
             testoraopen
             testoraclose
         }
@@ -52,7 +52,7 @@ namespace eval ::tcl::test::oralogon {
 
     # oraclose with wrong arg count
     test oraopen-2.0 {oraclose: no arguments} {
-        -constraint testoraclose
+        -constraints testoraclose
         -body {
             catch {oraclose} res
             set res
@@ -62,7 +62,7 @@ namespace eval ::tcl::test::oralogon {
 
     # oraclose with valid login-handle
     test oraopen-2.1 {oraclose: valid login-handle} {
-        -constraint {
+        -constraints {
             testoraopen
             testoraclose
         }
@@ -82,7 +82,7 @@ namespace eval ::tcl::test::oralogon {
 
     # open and close 30 statement handles
     test oraopen-3.0 {oraopen: many statement handles} {
-        -constraint {
+        -constraints {
             testoraopen
             testoraclose
         }
