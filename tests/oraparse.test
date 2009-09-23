@@ -6,25 +6,32 @@
 # exercise various combinations of oraparse
 #
 
-package require tcltest
-::tcltest::configure -verbose ept
-::tcltest::testConstraint testoraparse [llength [info commands oraparse]]
+
+if {[catch {package require tcltest 2}]} {
+    puts stderr "Skipping tests in [info script].  tcltest 2 required."
+    return
+}
 
 if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-# OCI_STMT_SELECT  == 1
-# OCI_STMT_UPDATE  == 2
-# OCI_STMT_DELETE  == 3
-# OCI_STMT_INSERT  == 4
-# OCI_STMT_CREATE  == 5
-# OCI_STMT_DROP    == 6
-# OCI_STMT_ALTER   == 7
-# OCI_STMT_BEGIN   == 8
-# OCI_STMT_DECLARE == 9
+namespace eval ::tcl::test::oraparse {
+    namespace import ::tcltest::*
 
-::tcltest::test oraparse-1.1 {oraparse 9 sql types} {
+    testConstraint testoraparse  [llength [info commands oraparse]]
+
+    # OCI_STMT_SELECT  == 1
+    # OCI_STMT_UPDATE  == 2
+    # OCI_STMT_DELETE  == 3
+    # OCI_STMT_INSERT  == 4
+    # OCI_STMT_CREATE  == 5
+    # OCI_STMT_DROP    == 6
+    # OCI_STMT_ALTER   == 7
+    # OCI_STMT_BEGIN   == 8
+    # OCI_STMT_DECLARE == 9
+
+    test oraparse-1.1 {oraparse 9 sql types} {
 	-constraints testoraparse
 	-setup {
 		set tst(lda) [oralogon $ora_constr]
@@ -53,12 +60,12 @@ if {[info exists ora_lda] == 0} {
 		array unset tst
 	}
 	-result {1 2 3 4 5 6 7 8 9}
-}
+    }
 
-# ORA-00923: FROM keyword not found where expected
-# ORA-00933: SQL command not properly ended
-
-test oraparse-2.1 {oraparse bad sql} {
+    # ORA-00923: FROM keyword not found where expected
+    # ORA-00933: SQL command not properly ended
+    # TMH - should not have to CATCH the oraparse, it should provide a return code
+    test oraparse-2.1 {oraparse bad sql} {
 	-constraints testoraparse
 	-setup {
 		set tst(lda) [oralogon $ora_constr]
@@ -80,8 +87,9 @@ test oraparse-2.1 {oraparse bad sql} {
 		array unset tst
 	}
 	-result {923 933}
-}
+    }
 
-::tcltest::configure -verbose b
-::tcltest::cleanupTests
+    cleanupTests
+}
+namespace delete ::tcl::test::oraparse
 return
