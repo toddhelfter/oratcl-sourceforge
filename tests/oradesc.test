@@ -6,13 +6,16 @@
 # exercise oradesc
 #
 
-package require tcltest 2.2
+if {[catch {package require tcltest 2}]} {
+    puts stderr "Skipping tests in [info script].  tcltest 2 required."
+    return
+}
 
 if {[info exists ora_lda] == 0} {
         source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::oratest::oradesc {
+namespace eval ::tcl::test::oradesc {
         namespace import ::tcltest::*
 
 	global ora_constr
@@ -241,4 +244,4 @@ namespace eval ::oratest::oradesc {
         cleanupTests
 }
 
-namespace delete ::oratest::oradesc
+namespace delete ::tcl::test::oradesc
