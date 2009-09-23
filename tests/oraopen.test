@@ -18,8 +18,8 @@ if {[info exists ora_lda] == 0} {
 namespace eval ::tcl::test::oralogon {
     namespace import ::tcltest::*
 
-    testConstraint testopen	[llength [info commands oraopen]]
-    testConstraint testclose	[llength [info commands oraopen]]
+    testConstraint testoraopen	[llength [info commands oraopen]]
+    testConstraint testoraclose	[llength [info commands oraopen]]
 
     # oraopen with wrong arg count
     test oraopen-1.0 {oraopen: no arguments} {
