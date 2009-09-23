@@ -15,7 +15,7 @@ if {[info exists ora_lda] == 0} {
     source [file join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::tcl::test::oralogon {
+namespace eval ::tcl::test::oraopen {
     namespace import ::tcltest::*
 
     testConstraint testoraopen	[llength [info commands oraopen]]
@@ -115,5 +115,5 @@ namespace eval ::tcl::test::oralogon {
 
     cleanupTests
 }
-namespace delete ::tcl::test::oralogon
+namespace delete ::tcl::test::oraopen
 return
