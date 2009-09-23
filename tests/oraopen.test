@@ -19,7 +19,7 @@ namespace eval ::tcl::test::oraopen {
     namespace import ::tcltest::*
 
     testConstraint testoraopen	[llength [info commands oraopen]]
-    testConstraint testoraclose	[llength [info commands oraopen]]
+    testConstraint testoraclose	[llength [info commands oraclose]]
 
     # oraopen with wrong arg count
     test oraopen-1.0 {oraopen: no arguments} {
