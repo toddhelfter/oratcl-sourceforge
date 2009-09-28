@@ -6,13 +6,16 @@
 # exercise various combinations of orafetch
 #
 
-package require tcltest 2.2
+if {[catch {package require tcltest 2}]} {
+    puts stderr "Skipping tests in [info script].  tcltest 2 required."
+    return
+}
 
 if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::oratest::orafetch {
+namespace eval ::tcl::test::orafetch {
 	namespace import ::tcltest::*
 
 	test orafetch-1.1 {orafetch OCI_STMT_SELECT code == 1} {
@@ -37,3 +40,5 @@ namespace eval ::oratest::orafetch {
 
         cleanupTests
 }
+namespace delete ::tcl::test::orafetch
+return
