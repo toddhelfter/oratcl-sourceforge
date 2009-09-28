@@ -164,52 +164,62 @@ Oratcl_Clean (clientData)
 	Tcl_HashEntry	*stmHashPtr;
 	Tcl_HashSearch  srch;
 
+        if (OratclStatePtr != NULL) {
+
 	/*
 	 * Close all open statement handles.
 	 */
-	for (stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &srch);
-	     stmHashPtr != (Tcl_HashEntry *)NULL;
-	     stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &srch)) {
+          if (OratclStatePtr->stmHash != NULL) {
+	    for (stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &srch);
+	         stmHashPtr != (Tcl_HashEntry *)NULL;
+	         stmHashPtr = Tcl_FirstHashEntry(OratclStatePtr->stmHash, &srch)) {
 
-		StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
-		Oratcl_StmFree(StmPtr);
-		StmPtr = NULL;
-		Tcl_DeleteHashEntry(stmHashPtr);
-	}
+		    StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
+		    Oratcl_StmFree(StmPtr);
+		    StmPtr = NULL;
+		    Tcl_DeleteHashEntry(stmHashPtr);
+	    }
 
-	Tcl_DeleteHashTable(OratclStatePtr->stmHash);
-	ckfree((char *) OratclStatePtr->stmHash);
-	OratclStatePtr->stmHash = NULL;
+	    Tcl_DeleteHashTable(OratclStatePtr->stmHash);
+	    ckfree((char *) OratclStatePtr->stmHash);
+	    OratclStatePtr->stmHash = NULL;
+          }
 
 	/*
 	 * Close all open logon handles.
 	 */
-	for (logHashPtr = Tcl_FirstHashEntry(OratclStatePtr->logHash, &srch);
-	     logHashPtr != (Tcl_HashEntry *)NULL;
-	     logHashPtr = Tcl_FirstHashEntry(OratclStatePtr->logHash, &srch)) {
+        if (OratclStatePtr->logHash != NULL) {
+	  for (logHashPtr = Tcl_FirstHashEntry(OratclStatePtr->logHash, &srch);
+	       logHashPtr != (Tcl_HashEntry *)NULL;
+	       logHashPtr = Tcl_FirstHashEntry(OratclStatePtr->logHash, &srch)) {
 
-		LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
-		OCI_SessionEnd(LogPtr->svchp,
-			       LogPtr->errhp,
-			       LogPtr->usrhp,
-			       OCI_DEFAULT);
-		OCI_ServerDetach(LogPtr->srvhp,
-				 LogPtr->errhp,
-				 (ub4) OCI_DEFAULT);
-		Oratcl_LogFree(LogPtr);
-		Tcl_DeleteHashEntry(logHashPtr);
-	}
+		  LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+		  OCI_SessionEnd(LogPtr->svchp,
+			         LogPtr->errhp,
+			         LogPtr->usrhp,
+			         OCI_DEFAULT);
+		  OCI_ServerDetach(LogPtr->srvhp,
+				   LogPtr->errhp,
+				   (ub4) OCI_DEFAULT);
+		  Oratcl_LogFree(LogPtr);
+		  Tcl_DeleteHashEntry(logHashPtr);
+	  }
 
-	Tcl_DeleteHashTable(OratclStatePtr->logHash);
-	ckfree((char *) OratclStatePtr->logHash);
-	OratclStatePtr->logHash = NULL;
+	  Tcl_DeleteHashTable(OratclStatePtr->logHash);
+	  ckfree((char *) OratclStatePtr->logHash);
+	  OratclStatePtr->logHash = NULL;
+        }
 
-	/*
-	 *  Free the hash table.
-	 */
-	if (OratclStatePtr != NULL) {
-		ckfree((char *) OratclStatePtr);
-	}
+    }
+
+    /*
+     *  Free the hash table.
+     */
+    if (OratclStatePtr != NULL) {
+	ckfree((char *) OratclStatePtr);
+	OratclStatePtr = NULL;
+    }
+
 }
 
 

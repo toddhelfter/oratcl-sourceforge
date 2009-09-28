@@ -1,4 +1,7 @@
 2009-09-27  Todd Helfter <thelfter@gmail.com>
+	* tests/oratcl.c : improve null pointer detection in Oratcl_Clean
+
+2009-09-27  Todd Helfter <thelfter@gmail.com>
 	* tests/oratcl.c : remove unnecessary exit handler Oratcl_Exit
 
 2009-09-27  Todd Helfter <thelfter@gmail.com>
