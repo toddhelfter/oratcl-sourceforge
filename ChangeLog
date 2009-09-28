@@ -8,6 +8,7 @@
 	* tests/async.test : 
 	* tests/merge.test : 
 	* tests/oralob.test : 
+	* tests/unicode.test : 
 
 2009-09-30  Todd Helfter <thelfter@gmail.com>
 	* tests/orafetch.test : update for proper usage of ::tcltest
