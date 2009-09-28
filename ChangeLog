@@ -1,3 +1,9 @@
+2009-09-30  Todd Helfter <thelfter@gmail.com>
+	* tests/usertype.test : update usertype.test tests for proper usage of ::tcltest
+
+2009-09-30  Todd Helfter <thelfter@gmail.com>
+	* tests/codes.test : update codes.test tests for proper usage of ::tcltest
+
 2009-09-30 Todd Helfter <thelfter@gmail.com>
 	* tests/oratcl.c : remove Oratcl_SafeInit : Tcl no longer exposes the '::env' global
 	array to safe interps.  Oracle libraries require the env(ORACLE_HOME) to be set, so
