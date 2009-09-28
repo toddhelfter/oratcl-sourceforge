@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.9 2007-12-17 12:37:54 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.10 2009-09-28 11:08:26 tmh Exp $
 
 global ora_lda
 
@@ -26,7 +26,7 @@ set testlist [list \
 		oracommit.test \
 		oralob.test \
 		oralong.test \
-		safe.test \
+		slaveinterps.test \
 		orasql.test \
 		orabindexec.test \
 		oraplexec.test \

@@ -1,3 +1,12 @@
+2009-09-30 Todd Helfter <thelfter@gmail.com>
+	* tests/oratcl.c : remove Oratcl_SafeInit : Tcl no longer exposes the '::env' global
+	array to safe interps.  Oracle libraries require the env(ORACLE_HOME) to be set, so
+	there is no longer any reason to support trying to load Oratcl into a safe interp.
+	* tests/all.tcl: remove call to safe.test, add call to slaveinterps.test
+	* tests/safe.tcl : file removed
+	* tests/slaveinterps.test : file added
+
+	since there is now only a single cleanup function.
 2009-09-27  Todd Helfter <thelfter@gmail.com>
 	* tests/oratcl.c : [BUG 2817940] moved contents of Oratcl_Clean() into Oratcl_Delete
 	since there is now only a single cleanup function.

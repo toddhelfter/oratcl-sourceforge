@@ -41,7 +41,6 @@
 #define TCL_STORAGE_CLASS  DLLEXPORT
 
 EXTERN Oratcl_Init	_ANSI_ARGS_((Tcl_Interp *interp));
-EXTERN Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp *interp));
 
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
@@ -102,7 +101,6 @@ LPVOID reserved;            /* Not used. */
 #include "oratclExtern.h"
 
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
-extern int	  Oratcl_SafeInit	_ANSI_ARGS_((Tcl_Interp	*interp));
 extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 
@@ -694,24 +692,6 @@ Oratcl_Init (interp)
 	}
 
 	return TCL_OK;
-}
-
-
-/*
- *----------------------------------------------------------------------
- * Oratcl_SafeInit --
- *	call the standard init point.
- *----------------------------------------------------------------------
- */
-
-int
-Oratcl_SafeInit (interp)
-	Tcl_Interp *interp;
-{
-	int result;
-
-	result = Oratcl_Init(interp);
-	return (result);
 }
 
 
