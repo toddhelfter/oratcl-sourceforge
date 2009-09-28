@@ -1,5 +1,8 @@
 2009-09-27  Todd Helfter <thelfter@gmail.com>
-	* tests/ortcl.h : remove unused function header Oratcl_Kill
+	* tests/oratcl.c : remove unnecessary exit handler Oratcl_Exit
+
+2009-09-27  Todd Helfter <thelfter@gmail.com>
+	* tests/oratcl.h : remove unused function header Oratcl_Kill
 
 2009-09-22  Todd Helfter <thelfter@gmail.com>
 	* tests/oralogon.test : Apply constraints that require oralogon and oralogoff procs.

@@ -215,27 +215,6 @@ Oratcl_Clean (clientData)
 
 /*
  *----------------------------------------------------------------------
- * Oratcl_Exit --
- *   Oratcl exit handler
- *----------------------------------------------------------------------
- */
-
-void
-Oratcl_Exit (clientData)
-	ClientData clientData;
-{
-	Oratcl_Clean(clientData);
-
-#ifndef __WIN32__
-#ifdef TCL_MEM_DEBUG
-	Tcl_DumpActiveMemory("/tmp/oratcl_memdump");
-#endif
-#endif
-}
-
-
-/*
- *----------------------------------------------------------------------
  * Oratcl_Delete --
  *   close any handles left open when an interpreter is deleted
  *----------------------------------------------------------------------
@@ -265,7 +244,6 @@ int
 Oratcl_Init (interp)
 	Tcl_Interp	*interp;
 {
-	static int	OratclInitFlag = 0;    /* initialization flag */
 	OratclState	*OratclStatePtr;
 
 	int		rc = 0;
@@ -484,13 +462,6 @@ Oratcl_Init (interp)
 	Tcl_InitHashTable(OratclStatePtr->stmHash, TCL_STRING_KEYS);
 	OratclStatePtr->stmid = -1;
 
-	/* check if already initialized */
-	if (!OratclInitFlag) {
-
-		OratclInitFlag = 1;
-		Tcl_CreateExitHandler ((Tcl_ExitProc *) Oratcl_Exit,
-				       (ClientData) OratclStatePtr);
-	}
 
 	/*
 	 * Initialize the new Tcl commands
