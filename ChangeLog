@@ -2,6 +2,7 @@
 	* tests/orabind.test : update for proper usage of ::tcltest
 	* tests/oraexec.test : 
 	* tests/orabindexec.test : 
+	* tests/oraplexec.test : 
 
 2009-09-30  Todd Helfter <thelfter@gmail.com>
 	* tests/orafetch.test : update for proper usage of ::tcltest
