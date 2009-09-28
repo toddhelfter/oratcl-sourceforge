@@ -6,13 +6,18 @@
 # exercise oralob
 #
 
-package require tcltest 2.2
+if {[catch {package require tcltest 2}]} {
+    puts stderr "Skipping tests in [info script].  tcltest 2 required."
+    return
+}
 
 if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::oratest::oralob {
+namespace eval ::tcl::test::oralob {
+	namespace import ::tcltest::*
+
         namespace import ::tcltest::*
 
 	global ora_constr
@@ -359,32 +364,32 @@ namespace eval ::oratest::oralob {
 		list $read
 	} {1}
 
-        ::tcltest::test oralob-6.2 {oralob: insert clob with SQL} {
+        test oralob-6.2 {oralob: insert clob with SQL} {
                 -setup {
-                        set tst6_2(lda) [oralogon $ora_constr]
-                        set tst6_2(stm) [oraopen $tst6_2(lda)]
-                        oraconfig $tst6_2(stm) lobpsize 1000000
+                        set lda [oralogon $ora_constr]
+                        set stm [oraopen $lda]
+                        oraconfig $stm lobpsize 1000000
                 }
                 -body {
-			set tst6_2(sql) { \
+			set sql { \
 				update oratcl_lob  \
 				set lob_clob = :val  \
 				where lob_key = :key \
 			}
-			oraparse $tst6_2(stm) $tst6_2(sql)
-			orabind $tst6_2(stm) :val TMH :key l1
-			set tst6_2(res) [oraexec $tst6_2(stm)]
-			oracommit $tst6_2(lda)
-			set tst6_2(res)
+			oraparse $stm $sql
+			orabind $stm :val TMH :key l1
+			set res [oraexec $stm]
+			oracommit $lda
+			set res
                 }
                 -cleanup {
-                        oraclose $tst6_2(stm)
-                        oralogoff $tst6_2(lda)
-                        array unset tst6_2
+                        oraclose $stm
+                        oralogoff $lda
                 }
                 -result {0}
         }
 
+if 0 {
         ::tcltest::test oralob-6.3 {oralob: update clob with SQL} {
                 -setup {
                         set tst6_3(lda) [oralogon $ora_constr]
@@ -406,7 +411,6 @@ namespace eval ::oratest::oralob {
                 -result {0}
         }
 
-if 0 {
         ::tcltest::test oralob-6.4 {oralob: update clob with SQL} {
                 -setup {
 			set x [expr {214748364 * 2}]
@@ -495,5 +499,5 @@ if 0 {
 
 	cleanupTests
 }
-
-namespace delete ::oratest::oralob
+namespace delete ::tcl::test::oralob
+return
