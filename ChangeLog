@@ -6,6 +6,7 @@
 	* tests/oracols.test : 
 	* tests/oralong.test : 
 	* tests/async.test : 
+	* tests/merge.test : 
 
 2009-09-30  Todd Helfter <thelfter@gmail.com>
 	* tests/orafetch.test : update for proper usage of ::tcltest
