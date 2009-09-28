@@ -1,6 +1,6 @@
-# usertypes.test
+# usertype.test
 #
-# Copyright (c) 2007 by Todd M. Helfter
+# Copyright (c) 2009 by Todd M. Helfter
 # All rights reserved.
 #
 # exercise user defined types
@@ -15,11 +15,12 @@ if {[info exists ora_lda] == 0} {
 	source [file  join [pwd] [file dirname [info script]] defs.tcl]
 }
 
-namespace eval ::tcl::test::usertypes {
+namespace eval ::tcl::test::usertype {
         namespace import ::tcltest::*
 
-	::tcltest::cleanupTests
+	cleanupTests
 }
-namespace delete ::tcl::test::usertypes
+
+namespace delete ::tcl::test::usertype
 return
 
