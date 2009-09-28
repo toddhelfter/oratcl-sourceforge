@@ -146,16 +146,18 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
 	Tcl_SetObjResult(interp, newPtr);
 }
 
+
 /*
  *----------------------------------------------------------------------
- * Oratcl_Clean --
- *   utility function to close all handles.
+ * Oratcl_Delete --
+ *   close any handles left open when an interpreter is deleted
  *----------------------------------------------------------------------
  */
 
 void
-Oratcl_Clean (clientData)
-	ClientData clientData;
+Oratcl_Delete (clientData, interp)
+    ClientData clientData;
+    Tcl_Interp *interp;
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OratclLogs	*LogPtr;
@@ -220,22 +222,6 @@ Oratcl_Clean (clientData)
 	OratclStatePtr = NULL;
     }
 
-}
-
-
-/*
- *----------------------------------------------------------------------
- * Oratcl_Delete --
- *   close any handles left open when an interpreter is deleted
- *----------------------------------------------------------------------
- */
-
-void
-Oratcl_Delete (clientData, interp)
-    ClientData clientData;
-    Tcl_Interp *interp;
-{
-	Oratcl_Clean(clientData);
 }
 
 
