@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.10 2009-09-28 11:08:26 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.11 2009-09-28 11:13:59 tmh Exp $
 
 global ora_lda
 
@@ -47,7 +47,7 @@ foreach test $testlist {
 
 set testtimes {}
 foreach test $tests {
-	puts stdout \n$test
+	#puts stdout \n$test
 	flush stdout
 	set t0 [clock clicks -milliseconds]
 	if {[catch {source $test} msg]} {
@@ -55,7 +55,7 @@ foreach test $tests {
 	}
 	set tD [clock clicks -milliseconds]
 	set times "$test :: [expr {$tD - $t0}] ms"
-	puts stdout $times
+	#puts stdout $times
 	lappend testtimes $times
 }     
 
