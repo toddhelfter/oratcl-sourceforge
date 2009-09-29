@@ -136,7 +136,7 @@ namespace eval ::tcl::test::unicode {
 			oracols $stm
 			orabind $stm :u_id $idx :u_char $val
 			oraexec $stm
-			oraparse $sql2
+			oraparse $stm $sql2
 			orabind $stm :u_id $idx
 			oraexec $stm
 			if {[orafetch $stm -datavariable res] == 0} {
