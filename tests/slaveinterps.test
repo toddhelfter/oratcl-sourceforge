@@ -149,7 +149,7 @@ namespace eval ::tcl::test::slaveinterps {
 			oraexec $ora_sstm
 		}
 		# parse the statement
-		oraparse $ora_sstm {insert into oratcl_slave valuse (:ssid, :ssent)}
+		oraparse $ora_sstm {insert into oratcl_slave values (:ssid, :ssent)}
 		# insert empty string
 		orabind $ora_sstm :ssid 1 ::ssent {}
 		oraexec $ora_sstm
