@@ -130,7 +130,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
 		catch {oralob read $lob -datavar chr_out} res
 		set read [string equal $chr_data $chr_out]
-		unset chr_out
 		catch {oralob free $lob} free
 		list $lob $read $free
 	} {oralob.3 1 0}
@@ -192,8 +191,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob substr $lob -start 10 -stop 100 -datavar sub_out}
 		catch {oralob free $lob} free
 		set res [expr {$sub == $sub_out}]
-		unset sub
-		unset sub_out
 		list $lob $res $free
 	} {oralob.10 1 0}
 
@@ -203,8 +200,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob substr $lob -start 10 -stop 100 -datavar sub_out} 
 		catch {oralob free $lob} free
 		set res [expr {$sub == $sub_out}]
-		unset sub
-		unset sub_out
 		list $lob $res $free
 	} {oralob.11 1 0}
 
@@ -215,8 +210,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob substr $lob -start 10 -stop 16 -datavar erase_out}
 		catch {oralob free $lob} free
 		set res [string equal $source $erase_out]
-		unset source
-		unset erase_out
 		list $lob $res $free
 	} {oralob.12 1 0}
 
@@ -294,8 +287,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob read $lob -datavar one_out} res
 		set res [string equal $one_chr $one_out]
 		catch {oralob free $lob} free
-		unset one_chr
-		unset one_out
 		set res
 	} {1}
 
@@ -306,8 +297,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob read $lob -datavar one_out} res
 		set res [string equal $one_chr $one_out]
 		catch {oralob free $lob} free
-		unset one_chr
-		unset one_out
 		set res
 	} {1}
 
@@ -318,8 +307,6 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob read $lob -datavar one_out} res
 		set res [string equal $one_chr $one_out]
 		catch {oralob free $lob} free
-		unset one_chr
-		unset one_out
 		set res
 	} {1}
 
@@ -354,7 +341,6 @@ namespace eval ::tcl::test::oralob {
 		   oraexec $lob_stm
 		   if {[orafetch $lob_stm -datavariable sql_out] == 0} {
 			set read [string equal $chr_out $sql_out]
-			unset sql_out
 		   } else {
 			set read 0
 		   }
