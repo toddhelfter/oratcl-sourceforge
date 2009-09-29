@@ -55,8 +55,8 @@ namespace eval ::tcl::test::fullrun {
 		$s eval {oraexec $ora_sstm}
 		$s eval {oracommit $ora_slda}
 		catch {
-			oraparse $ora_sstm {drop table oratcl_slave (ssid number(1), ssent varchar2(4000))}}
-			oraexec $ora_sstm}
+			$s eval {oraparse $ora_sstm {drop table oratcl_slave (ssid number(1), ssent varchar2(4000))}}
+			$s eval {oraexec $ora_sstm}
 		}
 		$s eval "oraclose $ora_sstm"
 		$s eval "oralogoff $ora_slda"
