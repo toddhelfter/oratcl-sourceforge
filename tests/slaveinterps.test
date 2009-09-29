@@ -136,6 +136,41 @@ namespace eval ::tcl::test::slaveinterps {
 	    -result {}
 	}
 
+	test slaveinterp-3.1 {slaveinterp: } {
+		global ora_constr
+		global ora_slda
+		set s3 [interp create] 
+		$s3 eval {package require Oratcl}
+		set ora_slda [$s3 eval "oralogon $ora_constr"]
+		set ora_sstm [$s3 eval "oraopen $ora_slda"]
+		oraparse $ora_sstm {create table oratcl_slave (ssid number(1), ssent varchar2(4000))}
+		oraexec $ora_sstm
+		# parse the statement
+		oraparse $ora_sstm {insert into oratcl_slave valuse (:ssid, :ssent)}
+		# insert empty string
+		orabind :ssid 1 ::ssent {}
+		oraexec $ora_sstm
+		# insert single char
+		orabind :ssid 2 ::ssent c
+		oraexec $ora_sstm
+		# insert 128 char
+		orabind :ssid 3 ::ssent [string repeat c 128]
+		oraexec $ora_sstm
+		# insert 2000 char
+		orabind :ssid 4 ::ssent [string repeat c 2000]
+		oraexec $ora_sstm
+		# insert 3999 char
+		orabind :ssid 5 ::ssent [string repeat c 3999]
+		oraexec $ora_sstm
+		# insert 4000 char
+		orabind :ssid 5 ::ssent [string repeat c 4000]
+		oraexec $ora_sstm
+		$s3 eval "oraclose $ora_sstm"
+		$s3 eval "oralogoff $ora_slda"
+		interp delete $s3
+	}
+        -result {}
+
     cleanupTests
 }
 namespace delete ::tcl::test::slaveinterps
