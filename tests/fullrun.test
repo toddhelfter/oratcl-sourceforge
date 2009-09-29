@@ -32,6 +32,7 @@ namespace eval ::tcl::test::fullrun {
 			$s eval {oraparse $ora_sstm {create table oratcl_slave (ssid number(1), ssent varchar2(4000))}}
 			$s eval {oraexec $ora_sstm}
 		}
+	    }
 	    -body {
 		# parse the statement
 		$s eval {oraparse $ora_sstm {insert into oratcl_slave values (:ssid, :ssent)}}
