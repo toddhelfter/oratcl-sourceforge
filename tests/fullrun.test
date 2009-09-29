@@ -21,7 +21,7 @@ namespace eval ::tcl::test::fullrun {
     namespace import ::tcltest::*
 
 	test varchar2.1 {exercise varchar2} {
-	    -setup
+	    -setup {
 		global ora_constr
 		global ora_slda
 		set s [interp create] 
