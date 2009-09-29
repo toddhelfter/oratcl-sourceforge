@@ -160,62 +160,60 @@ namespace eval ::tcl::test::unicode {
 
 	::tcltest::test oratcl_unicode-1.4 {oratcl: :bind large unicode string} {
 		-setup {
-			set test4(lda) [oralogon $ora_constr]
-			set test4(stm) [oraopen $test4(lda)]
-			oraconfig $test4(stm) unicode true
-			oraconfig $test4(stm) fetchrows 1
-			set test4(sql1) {insert into oratcl___unicode values (:u_id, :u_char)}
-			set test4(sql2) {select * from oratcl___unicode where u_id = :u_id}
-			set test4(idx) 4
-			set test4(val) [string repeat Ç'ëéé 800]
+			set lda [oralogon $ora_constr]
+			set stm [oraopen $lda]
+			oraconfig $stm unicode true
+			oraconfig $stm fetchrows 1
+			set sql1 {insert into oratcl___unicode values (:u_id, :u_char)}
+			set sql2 {select * from oratcl___unicode where u_id = :u_id}
+			set idx 4
+			set val [string repeat Ç'ëéé 400]
 		}
 		-body {
-			oraparse $test4(stm) $test4(sql1)
-			oracols $test4(stm)
-			orabind $test4(stm) :u_id $test4(idx) :u_char $test4(val)
-			oraexec $test4(stm)
-			oraparse $test4(stm) $test4(sql2)
-			orabind $test4(stm) :u_id $test4(idx)
-			oraexec $test4(stm)
-			if {[orafetch $test4(stm) -datavariable test4(res)] == 0} {
-				#puts "src = [str2hex $test4(val)]"
-				#puts "res = [str2hex [lindex $test4(res) 1]]"
-				list [string equal [str2hex [lindex $test4(res) 1]] [str2hex $test4(val)]]
+			oraparse $stm $sql1
+			oracols $stm
+			orabind $stm :u_id $idx :u_char $val
+			oraexec $stm
+			oraparse $stm $sql2
+			orabind $stm :u_id $idx
+			oraexec $stm
+			if {[orafetch $stm -datavariable res] == 0} {
+				#puts "src = [str2hex $val]"
+				#puts "res = [str2hex [lindex $res 1]]"
+				list [string equal [str2hex [lindex $res 1]] [str2hex $val]]
 			} else {
 				list 0
 			}
 		}
 		-cleanup {
-			oraclose $test4(stm)
-			oracommit $test4(lda)
-			oralogoff $test4(lda)
-			array unset test4
+			oraclose $stm
+			oracommit $lda
+			oralogoff $lda
 		}
 		-result {1}
 	}
 
 	::tcltest::test oratcl_unicode-1.5 {oratcl: select unicode strings} {
 		-setup {
-			set test5(lda) [oralogon $ora_constr]
-			set test5(stm) [oraopen $test5(lda)]
-			oraconfig $test5(stm) unicode true
-			oraconfig $test5(stm) fetchrows 10
-			set test5(sql) {select * from oratcl___unicode}
+			set lda [oralogon $ora_constr]
+			set stm [oraopen $lda]
+			oraconfig $stm unicode true
+			oraconfig $stm fetchrows 10
+			set sql {select * from oratcl___unicode}
 		}
 		-body {
-			oraparse $test5(stm) $test5(sql)
-			puts [oracols $test5(stm) all]
-			oraexec $test5(stm)
-			while {[orafetch $test5(stm) -datavariable row] == 0} {
+			oraparse $stm $sql
+			puts [oracols $stm all]
+			oraexec $stm
+			while {[orafetch $stm -datavariable row] == 0} {
 				#puts $row
 				#puts [str2hex [lindex $row 0]]
 			}
 			list 1
 		}
 		-cleanup {
-			oraclose $test5(stm)
-			oralogoff $test5(lda)
-			array unset test5
+			oraclose $stm
+			oralogoff $lda
 		}
 		-result {1}
 	}
