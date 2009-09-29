@@ -18,8 +18,6 @@ if {[info exists ora_lda] == 0} {
 namespace eval ::tcl::test::oralob {
 	namespace import ::tcltest::*
 
-        namespace import ::tcltest::*
-
 	global ora_constr
 	set lob_lda [oralogon $ora_constr]
 	set lob_stm [oraopen $lob_lda]
