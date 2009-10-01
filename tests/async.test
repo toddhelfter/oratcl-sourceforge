@@ -464,5 +464,5 @@ namespace eval ::tcl::test::async {
 
 	cleanupTests
 }
-namespace delete ::tcl::test:async
+namespace delete ::tcl::test::async
 return
