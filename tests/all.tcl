@@ -6,7 +6,7 @@
 # Copyright (c) 2000 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.11 2009-09-28 11:13:59 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.12 2009-10-01 01:38:05 tmh Exp $
 
 global ora_lda
 
@@ -76,5 +76,3 @@ unset ora_server
 unset ora_pw
 unset ora_userid 
 unset ora_constr
-
-puts stderr "GLOBALS ([llength [info globals]]):: [lsort [info globals]]"

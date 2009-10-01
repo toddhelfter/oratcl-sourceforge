@@ -1,4 +1,8 @@
 2009-09-30  Todd Helfter <thelfter@gmail.com>
+	* tests/all.tcl :  remove printing of globals, using namespaces keeps
+	the main interp clean.
+
+2009-09-29  Todd Helfter <thelfter@gmail.com>
 	* tests/orabind.test : update for proper usage of ::tcltest
 	* tests/oraexec.test : 
 	* tests/orabindexec.test : 
@@ -10,16 +14,16 @@
 	* tests/oralob.test : 
 	* tests/unicode.test : 
 
-2009-09-30  Todd Helfter <thelfter@gmail.com>
+2009-09-29  Todd Helfter <thelfter@gmail.com>
 	* tests/orafetch.test : update for proper usage of ::tcltest
 
-2009-09-30  Todd Helfter <thelfter@gmail.com>
+2009-09-29  Todd Helfter <thelfter@gmail.com>
 	* tests/usertype.test : update usertype.test tests for proper usage of ::tcltest
 
-2009-09-30  Todd Helfter <thelfter@gmail.com>
+2009-09-29  Todd Helfter <thelfter@gmail.com>
 	* tests/codes.test : update codes.test tests for proper usage of ::tcltest
 
-2009-09-30 Todd Helfter <thelfter@gmail.com>
+2009-09-29 Todd Helfter <thelfter@gmail.com>
 	* tests/oratcl.c : remove Oratcl_SafeInit : Tcl no longer exposes the '::env' global
 	array to safe interps.  Oracle libraries require the env(ORACLE_HOME) to be set, so
 	there is no longer any reason to support trying to load Oratcl into a safe interp.
