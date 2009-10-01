@@ -329,6 +329,9 @@ namespace eval ::tcl::test::oralob {
 		list $write
 	} {0}
 
+	#
+	# 11gR2 - 64bit - AL32UTF8 - NLS_LANG=AMERICAN_AMERICA.AL32UTF8 :: Failure when NLS_LANG is NOT set 
+	#
 	test oralob-6.1 {oralob: read clob with SQL} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
 		catch {oralob read $lob -datavar chr_out} res
@@ -431,6 +434,9 @@ namespace eval ::tcl::test::oralob {
                 -result {1}
         }
 
+	#
+	# 11gR2 - 64bit - AL32UTF8 - NLS_LANG=AMERICAN_AMERICA.AL32UTF8 :: Failure when NLS_LANG is set 
+	#
         test oralob-6.5 {oralob: update clob with SQL} {
                 -setup {
 			set x [expr {214748364 * 2}]
