@@ -1,3 +1,5 @@
+Version 4.5, Production
+
 2009-10-02  Todd Helfter <thelfter@gmail.com>
 	*  all : branched the oratcl-4-5-branch
 	set the version to 4.6 in the CVS head for development
