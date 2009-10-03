@@ -1,3 +1,8 @@
+Version 4.5, Production
+
+2007-11-29  Todd Helfter <thelfter@gmail.com>
+	* CVS_TAG : tagged 4.5 for release
+
 2009-09-30  Todd Helfter <thelfter@gmail.com>
 	* tests/all.tcl :  remove printing of globals, using namespaces keeps
 	the main interp clean.
