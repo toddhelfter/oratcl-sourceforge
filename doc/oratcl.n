@@ -953,7 +953,7 @@ $HOME/.tnsnames.ora - definitions for Oracle servers.
 None known.
 .sp
 .SH AUTHOR
-Todd Helfter  Version 4.5 not yet released.
+Todd Helfter  Version 4.5
 .P
 thelfter@gmail.com
 .sp
