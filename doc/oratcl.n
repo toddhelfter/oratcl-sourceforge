@@ -1,4 +1,4 @@
-.de Ip
+6de Ip
 .br
 .ie \\n(.$>=3 .ne \\$3
 .el .ne 3
@@ -22,7 +22,7 @@ the tcl \fBpackage\fR command.
 .B Example
 .IP
 package require Oratcl
-package require -exact Oratcl 4.5
+package require -exact Oratcl 4.6
 .sp
 .SH "ORATCL COMMANDS"
 .TP
@@ -953,7 +953,7 @@ $HOME/.tnsnames.ora - definitions for Oracle servers.
 None known.
 .sp
 .SH AUTHOR
-Todd Helfter  Version 4.5 not yet released.
+Todd Helfter  Version 4.6 not yet released.
 .P
 thelfter@gmail.com
 .sp

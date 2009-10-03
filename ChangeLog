@@ -1,3 +1,7 @@
+2009-10-02  Todd Helfter <thelfter@gmail.com>
+	*  all : branched the oratcl-4-5-branch
+	set the version to 4.6 in the CVS head for development
+
 2009-09-30  Todd Helfter <thelfter@gmail.com>
 	* tests/all.tcl :  remove printing of globals, using namespaces keeps
 	the main interp clean.
