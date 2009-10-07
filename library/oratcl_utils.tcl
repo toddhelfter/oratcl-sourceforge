@@ -1,5 +1,5 @@
 package require Oratcl
-package provide Oratcl::utils 4.5
+package provide Oratcl::utils 4.6
 
 #
 # create a namespace
