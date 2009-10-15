@@ -25,7 +25,7 @@ namespace eval ::tcl::test::fullrun {
 		global ora_constr
 		global ora_slda
 		set s [interp create] 
-		$s eval {package require Oratcl}
+		$s eval {package require exact Oratcl 4.5}
 		#set ora_slda [$s eval "oralogon $ora_constr"]
 		#set ora_sstm [$s eval "oraopen $ora_slda"]
 		$s eval "set ora_slda [oralogon $ora_constr]"

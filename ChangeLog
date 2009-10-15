@@ -1,3 +1,6 @@
+2009-10-15  Todd Helfter <thelfter@gmail.com>
+	* fullrun.test : use package require -exact
+	* slaveinterps.test :
 Version 4.5, Production
 
 2009-10-02  Todd Helfter <thelfter@gmail.com>
