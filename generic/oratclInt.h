@@ -137,4 +137,15 @@ typedef struct OratclState {
         int		stmid;		/* statement handle id		*/
 } OratclState;
 
+
+/*
+ * Windows ... quirks. Handle globally, do not care where the actual
+ * use of the functions is moved to.
+ */
+
+#ifdef __WIN32__
+#define strncasecmp strnicmp
+#define strcasecmp stricmp
+#endif
+
 #endif

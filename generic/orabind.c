@@ -32,7 +32,7 @@ Oratcl_ArrayPutElement (ictxp, bindp, iter, index, bufpp, alenp, piecep, indpp)
 	Tcl_Obj	*element;
 	
 	if (Tcl_ListObjIndex(NULL, tmp_col->array_values, iter, &element) != TCL_OK) {
-		// handle invalid list element error
+	  /* handle invalid list element error */
 	}
 	*bufpp = Tcl_GetStringFromObj(element, (int *) alenp);
 	*piecep = OCI_ONE_PIECE;
