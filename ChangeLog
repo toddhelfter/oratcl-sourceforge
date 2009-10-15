@@ -1,6 +1,20 @@
+2009-10-15  Andreas Kupries
+        * generic/orabind.c
+        * generic/oratcl.c
+        * generic/oratclInt.h
+        * generic/oratclTypes.h   
+                : 1) remove c++ style comments // as AIX does not support them.
+                : 2) move function pointer declarations into oratcl.c and creat
+                  declarations in oratclTypes.h - this ensures the variables are
+                  defined only once and shared by all and allows OSX builds to 
+                  compile.
+                : 3). mv strcasecmp -> strnicmp definition to oratclInt.h so that
+                  oralogon.c (which now uses it) can acces it properly.
+
 2009-10-15  Todd Helfter <thelfter@gmail.com>
-	* fullrun.test : use package require -exact
-	* slaveinterps.test :
+	* tests/fullrun.test : use package require -exact
+	* tests/slaveinterps.test :
+
 Version 4.5, Production
 
 2009-10-02  Todd Helfter <thelfter@gmail.com>

@@ -51,9 +51,6 @@ LPVOID reserved;            /* Not used. */
     return TRUE;
 }
 
-#define strncasecmp strnicmp
-#define strcasecmp stricmp
-
 #define DLOPEN(libname, flags)	LoadLibrary(libname)
 #define DLCLOSE(path)		((void *) FreeLibrary((HMODULE) path))
 #define DLSYM(handle, symbol, proc, type) \
@@ -103,6 +100,47 @@ LPVOID reserved;            /* Not used. */
 extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
 extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
+
+/*
+ * Definitions of the Oracle function vectors. Taken from
+ * oratclTypes.h which now only declares the variables, avoiding
+ * multiple definitions.
+ */
+
+OCIENVCREATE	OCI_EnvCreate;
+OCIINITIALIZE	OCI_Initialize;
+OCIENVINIT	OCI_EnvInit;
+OCIHANDLEALLOC	OCI_HandleAlloc;
+OCIHANDLEFREE	OCI_HandleFree;
+OCIDESCRIPTORALLOC OCI_DescriptorAlloc;
+OCIDESCRIPTORFREE OCI_DescriptorFree;
+OCIATTRGET	OCI_AttrGet;
+OCIATTRSET	OCI_AttrSet;
+OCISERVERATTACH	OCI_ServerAttach;
+OCISERVERDETACH	OCI_ServerDetach;
+OCISESSIONBEGIN	OCI_SessionBegin;
+OCISESSIONEND	OCI_SessionEnd;
+OCIERRORGET	OCI_ErrorGet;
+OCITRANSCOMMIT OCI_TransCommit;
+OCITRANSROLLBACK OCI_TransRollback;
+OCITERMINATE	OCI_Terminate;
+OCISERVERVERSION OCI_ServerVersion;
+OCICLIENTVERSION OCI_ClientVersion;
+OCISTMTPREPARE	OCI_StmtPrepare;
+OCISTMTGETPIECEINFO	OCI_StmtGetPieceInfo;
+OCISTMTSETPIECEINFO	OCI_StmtSetPieceInfo;
+OCISTMTEXECUTE	OCI_StmtExecute;
+OCISTMTFETCH	OCI_StmtFetch;
+OCIDESCRIBEANY	OCI_DescribeAny;
+OCIPARAMGET	OCI_ParamGet;
+OCIPARAMSET	OCI_ParamSet;
+OCIBREAK	OCI_Break;
+OCIRESET	OCI_Reset;
+OCIDEFINEBYPOS	OCI_DefineByPos;
+OCIBINDBYNAME	OCI_BindByName;
+OCILOBREAD OCI_LobRead;
+OCILOBGETLENGTH OCI_LobGetLength;
+OCIBINDDYNAMIC OCI_BindDynamic;
 
 /*
  *----------------------------------------------------------------------

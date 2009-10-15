@@ -18,41 +18,41 @@ typedef sword (*OCIENVCREATE)	(OCIEnv **envp,
 				 void (*mfreefp)(dvoid *ctxp, dvoid *memptr),
 				 size_t xtramem_sz,
 				 dvoid **usrmempp);
-OCIENVCREATE	OCI_EnvCreate;
+extern OCIENVCREATE	OCI_EnvCreate;
 
 typedef	sword (*OCIINITIALIZE)	(ub4 mode,
 				 dvoid *ctxp,
 				 dvoid *(*malocfp) (dvoid *ctxp, size_t size),
 				 dvoid *(*ralocfp) (dvoid *ctxp, dvoid *memp, size_t newsize),
 				 void (*mfreefp) (dvoid *ctxp, dvoid *memptr));
-OCIINITIALIZE	OCI_Initialize;
+extern OCIINITIALIZE	OCI_Initialize;
 
 typedef sword (*OCIENVINIT)	(OCIEnv **envp,
 				 ub4 mode,
 				 size_t xtramemsz,
 				 dvoid **usrmempp);
-OCIENVINIT	OCI_EnvInit;
+extern OCIENVINIT	OCI_EnvInit;
 
 typedef sword (*OCIHANDLEALLOC)	(CONST dvoid *parenth,
 				 dvoid **hndlpp,
 				 CONST ub4 type,
 				 CONST size_t xtramem_sz,
 				 dvoid **usrmempp); 
-OCIHANDLEALLOC	OCI_HandleAlloc;
+extern OCIHANDLEALLOC	OCI_HandleAlloc;
 
 typedef sword (*OCIHANDLEFREE)	(dvoid *hndlp, CONST ub4 type); 
-OCIHANDLEFREE	OCI_HandleFree;
+extern OCIHANDLEFREE	OCI_HandleFree;
 
 typedef sword  (*OCIDESCRIPTORALLOC) (CONST dvoid *parenth,
 				      dvoid **descpp,
 				      CONST ub4 type,
 				      CONST size_t xtramem_sz,
 				      dvoid **usrmempp);
-OCIDESCRIPTORALLOC OCI_DescriptorAlloc;
+extern OCIDESCRIPTORALLOC OCI_DescriptorAlloc;
 
 typedef sword (*OCIDESCRIPTORFREE) (dvoid *descp,
 				    CONST ub4 type);
-OCIDESCRIPTORFREE OCI_DescriptorFree;
+extern OCIDESCRIPTORFREE OCI_DescriptorFree;
 
 typedef sword (*OCIATTRGET)	(dvoid *trgthndlp,
 				 ub4 trghndltyp,
@@ -60,7 +60,7 @@ typedef sword (*OCIATTRGET)	(dvoid *trgthndlp,
 				 ub4 *sizep,
 				 ub4 attrtype,
 				 OCIError *errhp);
-OCIATTRGET	OCI_AttrGet;
+extern OCIATTRGET	OCI_AttrGet;
 
 typedef sword (*OCIATTRSET)	(dvoid *trgthndlp,
 				 ub4 trghndltyp,
@@ -68,32 +68,32 @@ typedef sword (*OCIATTRSET)	(dvoid *trgthndlp,
 				 ub4 size,
 				 ub4 attrtype,
 				 OCIError *errhp ); 
-OCIATTRSET	OCI_AttrSet;
+extern OCIATTRSET	OCI_AttrSet;
 
 typedef sword (*OCISERVERATTACH) (OCIServer *srvhp,
 				  OCIError *errhp,
 				  CONST OraText *dblink,
 				  sb4 dblink_len,
 				  ub4 mode); 
-OCISERVERATTACH	OCI_ServerAttach;
+extern OCISERVERATTACH	OCI_ServerAttach;
 
 typedef sword (*OCISERVERDETACH) (OCIServer *srvhp,
 				  OCIError *errhp,
 				  ub4 mode); 
-OCISERVERDETACH	OCI_ServerDetach;
+extern OCISERVERDETACH	OCI_ServerDetach;
 
 typedef sword (*OCISESSIONBEGIN) (OCISvcCtx *svchp,
 				  OCIError *errhp,
 				  OCISession *usrhp,
 				  ub4 credt,
 				  ub4 mode); 
-OCISESSIONBEGIN	OCI_SessionBegin;
+extern OCISESSIONBEGIN	OCI_SessionBegin;
 
 typedef sword (*OCISESSIONEND)	(OCISvcCtx *svchp,
 				 OCIError *errhp,
 				 OCISession *usrhp,
 				 ub4 mode); 
-OCISESSIONEND	OCI_SessionEnd;
+extern OCISESSIONEND	OCI_SessionEnd;
 
 typedef sword (*OCIERRORGET)	(dvoid *hndlp,
 				 ub4 recordno,
@@ -102,35 +102,35 @@ typedef sword (*OCIERRORGET)	(dvoid *hndlp,
 				 OraText *bufp,
 				 ub4 bufsiz,
 				 ub4 type); 
-OCIERRORGET	OCI_ErrorGet;
+extern OCIERRORGET	OCI_ErrorGet;
 
 typedef sword (*OCITRANSCOMMIT) (OCISvcCtx *svchp,
 				 OCIError *errhp,
 				 ub4 flags);
-OCITRANSCOMMIT OCI_TransCommit;
+extern OCITRANSCOMMIT OCI_TransCommit;
 
 typedef sword (*OCITRANSROLLBACK) (dvoid *svchp,
 				  OCIError *errhp,
 				  ub4 flags);
 
-OCITRANSROLLBACK OCI_TransRollback;
+extern OCITRANSROLLBACK OCI_TransRollback;
 
 typedef sword (*OCITERMINATE)	(ub4 mode);
-OCITERMINATE	OCI_Terminate;
+extern OCITERMINATE	OCI_Terminate;
 
 typedef	sword (*OCISERVERVERSION) (dvoid *hndlp,
 				   OCIError *errhp,
 				   OraText *bufp,
 				   ub4 bufsz,
 				   ub1 hndltype);
-OCISERVERVERSION OCI_ServerVersion;
+extern OCISERVERVERSION OCI_ServerVersion;
 
 typedef	sword (*OCICLIENTVERSION) (sword *major_version,
 				   sword *minor_version,
 				   sword *update_num,
 				   sword *patch_num,
 				   sword *port_update_num);
-OCICLIENTVERSION OCI_ClientVersion;
+extern OCICLIENTVERSION OCI_ClientVersion;
 
 typedef sword (*OCISTMTPREPARE)	(OCIStmt *stmtp,
 				 OCIError *errhp,
@@ -138,7 +138,7 @@ typedef sword (*OCISTMTPREPARE)	(OCIStmt *stmtp,
 				 ub4 stmt_len,
 				 ub4 language,
 				 ub4 mode);
-OCISTMTPREPARE	OCI_StmtPrepare;
+extern OCISTMTPREPARE	OCI_StmtPrepare;
 
 typedef sword (*OCISTMTGETPIECEINFO) (OCIStmt *stmtp,
 				      OCIError *errhp,
@@ -148,7 +148,7 @@ typedef sword (*OCISTMTGETPIECEINFO) (OCIStmt *stmtp,
 				      ub4 *iterp,
 				      ub4 *idxp,
 				      ub1 *piecep);
-OCISTMTGETPIECEINFO	OCI_StmtGetPieceInfo;
+extern OCISTMTGETPIECEINFO	OCI_StmtGetPieceInfo;
 
 typedef sword (*OCISTMTSETPIECEINFO) (dvoid *hndlp,
 				      ub4 type, OCIError *errhp,
@@ -157,7 +157,7 @@ typedef sword (*OCISTMTSETPIECEINFO) (dvoid *hndlp,
 				      ub1 piece,
 				      CONST dvoid *indp,
 				      ub2 *rcodep);
-OCISTMTSETPIECEINFO	OCI_StmtSetPieceInfo;
+extern OCISTMTSETPIECEINFO	OCI_StmtSetPieceInfo;
 
 typedef sword (*OCISTMTEXECUTE)	(OCISvcCtx *svchp,
 				 OCIStmt *stmtp,
@@ -167,14 +167,14 @@ typedef sword (*OCISTMTEXECUTE)	(OCISvcCtx *svchp,
 				 CONST OCISnapshot *snap_in,
 				 OCISnapshot *snap_out,
 				 ub4 mode);
-OCISTMTEXECUTE	OCI_StmtExecute;
+extern OCISTMTEXECUTE	OCI_StmtExecute;
 
 typedef sword (*OCISTMTFETCH)	(OCIStmt *stmtp,
 				 OCIError *errhp,
 				 ub4 nrows,
 				 ub2 orientation,
 				 ub4 mode);
-OCISTMTFETCH	OCI_StmtFetch;
+extern OCISTMTFETCH	OCI_StmtFetch;
 
 
 typedef sword (*OCIDESCRIBEANY)	(OCISvcCtx *svchp,
@@ -185,7 +185,7 @@ typedef sword (*OCIDESCRIBEANY)	(OCISvcCtx *svchp,
 				 ub1 info_level,
 				 ub1 objtyp,
 				 OCIDescribe *dschp);
-OCIDESCRIBEANY	OCI_DescribeAny;
+extern OCIDESCRIBEANY	OCI_DescribeAny;
 
 
 typedef sword (*OCIPARAMGET)	(dvoid *hndlp,
@@ -193,7 +193,7 @@ typedef sword (*OCIPARAMGET)	(dvoid *hndlp,
 				 OCIError *errhp,
 				 dvoid **parmdpp,
 				 ub4 pos);
-OCIPARAMGET	OCI_ParamGet;
+extern OCIPARAMGET	OCI_ParamGet;
 
 typedef sword (*OCIPARAMSET)	(dvoid *hdlp,
 				 ub4 htyp,
@@ -201,13 +201,13 @@ typedef sword (*OCIPARAMSET)	(dvoid *hdlp,
 				 CONST dvoid *dscp,
 				 ub4 dtyp,
 				 ub4 pos);
-OCIPARAMSET	OCI_ParamSet;
+extern OCIPARAMSET	OCI_ParamSet;
 
 typedef sword (*OCIBREAK)	(dvoid *hndlp, OCIError *errhp);
-OCIBREAK	OCI_Break;
+extern OCIBREAK	OCI_Break;
 
 typedef sword (*OCIRESET)	(dvoid *hndlp, OCIError *errhp);
-OCIRESET	OCI_Reset;
+extern OCIRESET	OCI_Reset;
 
 typedef	sword (*OCIDEFINEBYPOS)	(OCIStmt *stmtp,
 				 OCIDefine **defnp,
@@ -220,7 +220,7 @@ typedef	sword (*OCIDEFINEBYPOS)	(OCIStmt *stmtp,
 				 ub2 *rlenp,
 				 ub2 *rcodep,
 				 ub4 mode);
-OCIDEFINEBYPOS	OCI_DefineByPos;
+extern OCIDEFINEBYPOS	OCI_DefineByPos;
 
 typedef sword (*OCIBINDBYNAME)	(OCIStmt *stmtp,
 				 OCIBind **bindp,
@@ -236,7 +236,7 @@ typedef sword (*OCIBINDBYNAME)	(OCIStmt *stmtp,
 				 ub4 maxarr_len,
 				 ub4 *curelep,
 				 ub4 mode);
-OCIBINDBYNAME	OCI_BindByName;
+extern OCIBINDBYNAME	OCI_BindByName;
 
 typedef sword (*OCILOBREAD) (OCISvcCtx *svchp,
 			     OCIError *errhp,
@@ -252,13 +252,13 @@ typedef sword (*OCILOBREAD) (OCISvcCtx *svchp,
 					 ub1 piece),
 			     ub2 csid,
 			     ub1 csfrm);
-OCILOBREAD OCI_LobRead;
+extern OCILOBREAD OCI_LobRead;
 
 typedef sword (*OCILOBGETLENGTH) (OCISvcCtx *svchp,
 				  OCIError *errhp,
 				  OCILobLocator *locp,
 				  ub4 *lenp);
-OCILOBGETLENGTH OCI_LobGetLength;
+extern OCILOBGETLENGTH OCI_LobGetLength;
 
 typedef sb4 (*OCICallbackInBind)(void *ictxp,
 				 OCIBind *bindp,
@@ -285,4 +285,4 @@ typedef sword (*OCIBINDDYNAMIC) (OCIBind     *bindp,
 				 OCICallbackInBind  icbfp,
 				 void       *octxp,
 				 OCICallbackOutBind ocbfp);
-OCIBINDDYNAMIC OCI_BindDynamic;
+extern OCIBINDDYNAMIC OCI_BindDynamic;
