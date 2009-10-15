@@ -1,3 +1,7 @@
+2009-10-15  Todd Helfter <thelfter@gmail.com>
+        * fullrun.test : use package require -exact
+        * slaveinterps.test :
+
 2009-10-14  Todd Helfter <thelfter@gmail.com>
 	* tests/defs.tcl : [BUG 2878142] increase version number to 4.6 in CVS head
 
