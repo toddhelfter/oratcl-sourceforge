@@ -5,7 +5,6 @@ Meta as::author      {Tom Poindexter}
 Meta as::origin      http://sourceforge.net/projects/oratcl
 Meta category        Database interface
 Meta description     Tcl interface to Oracle database, versions 8i, 9i, 10g, 11g
-Meta description     and 10g.
 Meta entryload       @PKG_LIB_FILE@
 Meta excluded        *.a *.tap *.lib oratcl_utils.tcl
 Meta license         BSD
