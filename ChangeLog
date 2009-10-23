@@ -1,3 +1,10 @@
+2009-10-22  Todd Helfter <thelfter@gmail.com>
+	* tests/oradesc.test : complete rewrite of the oradesc test script.
+	The test now determines if the object creation was successful and 
+	only attempts the test if the object to be described could be created.
+	This avoids a false error when the database user does not have a
+	particular permission such as 'CREATE PUBLICY SYNONYM'.
+
 2009-10-15  Andreas Kupries
 	* generic/orabind.c
 	* generic/oratcl.c
