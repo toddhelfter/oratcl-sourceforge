@@ -1,4 +1,7 @@
 2009-10-26  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
+	* .cvsignore : added teapot.txt
+
+2009-10-26  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
 	* teapot_oratcl.txt.in : removed file
 	* teapot.txt.in : added file
 	* configure.in : add code for teapot.txt build
