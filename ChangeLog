@@ -1,3 +1,15 @@
+2009-10-26  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
+	* teapot_oratcl.txt.in : removed file
+	* teapot.txt.in : added file
+	* configure.in : add code for teapot.txt build
+	* configure : regenerated
+	* makefile.in : add code to install teapot.txt in package lib dir.
+
+2009-10-22  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
+	* configure.in : generate teapot_oratcl.txt
+	* configure : regenerated
+	* teapot_oratcl.txt.in : added file
+
 2009-10-22  Todd Helfter <thelfter@gmail.com>
 	* tests/oradesc.test : complete rewrite of the oradesc test script.
 	The test now determines if the object creation was successful and 
