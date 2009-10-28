@@ -1,3 +1,13 @@
+2009-10-28  Todd Helfter <thelfter@gmail.com>
+	* tests/slaveinterps.test : use -exact instead of exact in 
+	package require.  Apparently newer versions of TCL are more
+	forgiving on the exact syntax.
+
+2009-10-27  Todd Helfter <thelfter@gmail.com>
+	* tests/oradesc.test : handle the case where OS authentication allows the 
+	username parameter in the test to be NULL.  If username is NULL, query the
+	CURRENT_SCHEMA from the database.
+
 2009-10-26  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
 	* .cvsignore : added teapot.txt
 
