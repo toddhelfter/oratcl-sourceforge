@@ -1,3 +1,8 @@
+2009-10-28  Todd Helfter <thelfter@gmail.com>
+        * tests/slaveinterps.test : use -exact instead of exact in
+        package require.  Apparently newer versions of TCL are more
+        forgiving on the exact syntax.
+
 2009-10-26  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
 	* configure.in : generate teapot.txt
 	* configure : regenerated
