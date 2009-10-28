@@ -3,6 +3,18 @@
         package require.  Apparently newer versions of TCL are more
         forgiving on the exact syntax.
 
+2009-10-27  Todd Helfter <thelfter@gmail.com> *** BACKPORT from 4.6 ***
+        * tests/oradesc.test : handle the case where OS authentication allows the
+        username parameter in the test to be NULL.  If username is NULL, query the
+        CURRENT_SCHEMA from the database.
+
+2009-10-22  Todd Helfter <thelfter@gmail.com> *** BACKPORT from 4.6 ***
+        * tests/oradesc.test : complete rewrite of the oradesc test script.
+        The test now determines if the object creation was successful and
+        only attempts the test if the object to be described could be created.
+        This avoids a false error when the database user does not have a
+        particular permission such as 'CREATE PUBLICY SYNONYM'.
+
 2009-10-26  Todd Helfter <thelfter@gmail.com> <Andreas Kupries>
 	* configure.in : generate teapot.txt
 	* configure : regenerated
