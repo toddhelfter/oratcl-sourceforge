@@ -30,12 +30,10 @@ namespace eval ::tcl::test::oradesc {
 	# it is possible to log into oracle with OS credentials
 	#
 	if {[string equal $desc_usr  {}]} {
-		catch {
-			oraparse $desc_stm {SELECT sys_context('USERENV', 'CURRENT_SCHEMA') FROM dual}
-			oraexec $desc_stm
-			if {[orafetch $desc_stm -datavariable current_schema] == 0} {
-				set desc_usr  $current_schema
-			}
+		oraparse $desc_stm {SELECT sys_context('USERENV', 'CURRENT_SCHEMA') FROM dual}
+		oraexec $desc_stm
+		if {[orafetch $desc_stm -datavariable current_schema] == 0} {
+			set desc_usr  $current_schema
 		}
 	}
 
