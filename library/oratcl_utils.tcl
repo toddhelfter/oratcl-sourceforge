@@ -732,3 +732,49 @@ proc ::Oratcl::utils::makeImage {} {
         image create photo picture -data [binary format H* $img]
 	set OraTcl(image) picture
 }
+
+
+proc ::Oratcl::utils::prettyDesc {lh tb} {
+	puts {}
+	set l [oradesc $lh $tb]
+	set namelen 41
+	set nulllen 8
+	set typelen 28
+	set namesep [string repeat {_} $namelen]
+	set nullsep [string repeat {_} $nulllen]
+	set typesep [string repeat {_} $typelen]
+	puts {}
+	puts [format " %-${namelen}s %-${nulllen}s %-${typelen}s" Name Null? Type]
+	puts [format " %-${namelen}s %-${nulllen}s %-${typelen}s" $namesep $nullsep $typesep]
+	foreach e $l {
+		set colname [lindex $e 0]
+		set colnull {}
+		if {! [lindex $e 5]} {
+			set colnull {NOT NULL}
+		}
+		set coltype {}
+		set t [lindex $e 2]
+		switch -exact $t {
+			CHAR -
+			NCHAR -
+			VARCHAR2 -
+			NVARCHAR2 {
+				set coltype ${t}([lindex $e 1])
+			}
+			NUMBER {
+				set pr [lindex $e 3]
+				set sc [lindex $e 4]
+				if {$sc} {
+					set coltype ${t}(${pr},${sc})
+				} else {
+					set coltype ${t}(${pr})
+				}
+			}
+			default	{
+				set coltype $t
+			}
+		}
+	
+		puts [format " %-${namelen}s %-${nulllen}s %-${typelen}s" $colname $colnull $coltype]
+	}
+}

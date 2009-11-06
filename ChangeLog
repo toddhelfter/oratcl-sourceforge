@@ -1,3 +1,6 @@
+2009-11-06  Todd Helfter <thelfter@gmail.com>
+	* library/oratcl_utils.tcl : back port prettyDesc{} from 4.6 codeline.
+
 2009-10-28  Todd Helfter <thelfter@gmail.com>
         * tests/slaveinterps.test : use -exact instead of exact in
         package require.  Apparently newer versions of TCL are more
