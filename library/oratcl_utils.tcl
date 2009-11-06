@@ -737,7 +737,6 @@ proc ::Oratcl::utils::makeImage {} {
 proc ::Oratcl::utils::prettyDesc {lh tb} {
 	puts {}
 	set l [oradesc $lh $tb]
-	puts $l
 	set namelen 41
 	set nulllen 8
 	set typelen 28
