@@ -1,4 +1,8 @@
 2009-11-06  Todd Helfter <thelfter@gmail.com>
+	* library/oratcl_utils.tcl : prettyDesc() - if number type has precision 0,
+	do not print the precision and scale.
+
+2009-11-06  Todd Helfter <thelfter@gmail.com>
 	* library/oratcl_utils.tcl : removed a debugging print
 
 2009-10-28  Todd Helfter <thelfter@gmail.com>

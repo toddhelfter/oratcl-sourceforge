@@ -762,12 +762,15 @@ proc ::Oratcl::utils::prettyDesc {lh tb} {
 				set coltype ${t}([lindex $e 1])
 			}
 			NUMBER {
+				set coltype $t
 				set pr [lindex $e 3]
-				set sc [lindex $e 4]
-				if {$sc} {
-					set coltype ${t}(${pr},${sc})
-				} else {
-					set coltype ${t}(${pr})
+				if {$pr != 0} {
+					set sc [lindex $e 4]
+					if {$sc} {
+						set coltype ${t}(${pr},${sc})
+					} else {
+						set coltype ${t}(${pr})
+					}
 				}
 			}
 			default	{
