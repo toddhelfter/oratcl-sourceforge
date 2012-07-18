@@ -49,7 +49,7 @@ Oratcl_Fetch (clientData, interp, objc, objv)
 	int		hashType = 1;	/* default use column name for array index */
 
 	int		option;
-	CONST84 char *options[] = {"-datavariable",
+	static CONST84 char *options[] = {"-datavariable",
 				   "-dataarray",
 				   "-command",
 				   "-indexbyname",

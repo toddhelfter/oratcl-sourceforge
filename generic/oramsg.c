@@ -49,7 +49,7 @@ Oratcl_Message (clientData, interp, objc, objv)
 	int		oColslen = 7;
 	Tcl_Obj		*oResult;
 
-	CONST84 char *options[] = {"all",
+	static CONST84 char *options[] = {"all",
 				   "rc",
 				   "error",
 				   "rows",

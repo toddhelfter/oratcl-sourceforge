@@ -1,3 +1,11 @@
+2012-07-18  Andreas Kupries <andreask@activestate.com>
+        * generic/oraconfig.c
+        * generic/orafetch.c
+        * generic/orainfo.c
+        * generic/oramsg.c
+        * generic/oratcl.c : add 'static' to declaration of elements in
+                             Tcl_GetIndexFromObj() calls;
+
 2009-11-06  Todd Helfter <thelfter@gmail.com>
 	* library/oratcl_utils.tcl : back port prettyDesc{} from 4.6 codeline.
 
