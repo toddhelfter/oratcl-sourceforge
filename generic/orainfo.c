@@ -48,7 +48,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 	ub4		serverStatus = 0;
 
 	/* note that 'loginhandle' is a typo.  This will be deprecated in the next version */
-	CONST84 char *options[] = {"server",
+	static CONST84 char *options[] = {"server",
 				   "client",
 				   "status",
 				   "version",

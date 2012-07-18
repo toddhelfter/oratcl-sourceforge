@@ -1520,7 +1520,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 	int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	CONST84 char *options[] = {"all",
+	static CONST84 char *options[] = {"all",
 				   "name",
 				   "size",
 				   "type",

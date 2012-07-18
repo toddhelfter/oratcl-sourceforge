@@ -40,7 +40,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 
-	CONST84 char *options[] = {"longsize",
+	static CONST84 char *options[] = {"longsize",
 				   "bindsize",
 				   "nullvalue",
 				   "fetchrows",
