@@ -161,9 +161,9 @@ namespace eval ::tcl::test::oralong {
 				-rowid $rowid1]
 		}
 		-body {
-			catch {oralong write $test1(lng) -datavar chr_data}
+			catch {oralong write $test1(lng) -datavariable chr_data}
 			oracommit $test1(lda)
-			catch {oralong read $test1(lng) -datavar test1(out)}
+			catch {oralong read $test1(lng) -datavariable test1(out)}
 			string equal $chr_data $test1(out)
 		}
 		-cleanup {
@@ -188,9 +188,9 @@ namespace eval ::tcl::test::oralong {
 				-rowid $rowid2]
 		}
 		-body {
-			catch {oralong write $test2(lng) -datavar chr_byte}
+			catch {oralong write $test2(lng) -datavariable chr_byte}
 			oracommit $test2(lda)
-			catch {oralong read $test2(lng) -datavar test2(out)}
+			catch {oralong read $test2(lng) -datavariable test2(out)}
 			string equal $chr_byte $test2(out)
 		}
 		-cleanup {
@@ -215,9 +215,9 @@ namespace eval ::tcl::test::oralong {
 				-rowid $rowid1]
 		}
 		-body {
-			catch {oralong write $test3(lng) -datavar chr_null}
+			catch {oralong write $test3(lng) -datavariable chr_null}
 			oracommit $test3(lda)
-			catch {oralong read $test3(lng) -datavar test3(out)}
+			catch {oralong read $test3(lng) -datavariable test3(out)}
 			string equal $chr_null $test3(out)
 		}
 		-cleanup {
@@ -263,9 +263,9 @@ namespace eval ::tcl::test::oralong {
 				-rowid $rowid3]
 		}
 		-body {
-			catch {oralong write $test1(lng) -datavar bin_data} test1(res)
+			catch {oralong write $test1(lng) -datavariable bin_data} test1(res)
 			oracommit $test1(lda)
-			catch {oralong read $test1(lng) -datavar test1(out)}
+			catch {oralong read $test1(lng) -datavariable test1(out)}
 			string equal $bin_data $test1(out)
 		}
 		-cleanup {

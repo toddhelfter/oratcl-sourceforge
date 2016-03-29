@@ -451,26 +451,26 @@
                     associated with it.
 
 
-               <B>read</B> <I>LOB</I>-<I>handle</I> -<I>datavar</I> <I>varname</I>
+               <B>read</B> <I>LOB</I>-<I>handle</I> -<I>datavariable</I> <I>varname</I>
                     Read the LOB specified by <I>LOB</I>-<I>handle</I> into the
                     variable identified by <I>varname</I>.
 
 
                     <I>varname</I>
 
-               <B>substr</B> <I>LOB</I>-<I>handle</I> -<I>start</I> $<I>start</I>  -<I>stop</I>  $<I>stop</I>  -<I>datavar</I>
+               <B>substr</B> <I>LOB</I>-<I>handle</I> -<I>start</I> $<I>start</I>  -<I>stop</I>  $<I>stop</I>  -<I>datavariable</I>
                     Reads  characters  of  the  LOB  specified by
                     <I>LOB</I>-<I>handle</I>, beginning at $<I>startpos</I> and ending
                     at  $<I>stoppos</I>,  into  <I>varname</I>.   $<I>startpos</I> and
                     $<I>stoppos</I> both default to 0.
 
 
-               <B>write</B> <I>LOB</I>-<I>handle</I> -<I>datavar</I> <I>varname</I>
+               <B>write</B> <I>LOB</I>-<I>handle</I> -<I>datavariable</I> <I>varname</I>
                     Write the data in the variable identified  by
                     <I>varname</I> into the LOB specified by <I>LOB</I>-<I>handle</I>.
 
 
-               <B>writeappend</B> <I>LOB</I>-<I>handle</I> -<I>datavar</I> <I>varname</I>
+               <B>writeappend</B> <I>LOB</I>-<I>handle</I> -<I>datavariable</I> <I>varname</I>
                     Append the data in the variable identified  by
                     <I>varname</I> to the end of the LOB specified by <I>LOB</I>-<I>handle</I>.
 
@@ -536,11 +536,11 @@
                set data "abcdeabcdeabcde"
                set lobid [oralob alloc $sth -table "my_table" \
                          -column "clob_col" -rowid $rowid]
-               oralob write $lobid -datavar data
+               oralob write $lobid -datavariable data
                set l [oralob length $lobid]
                # $l == 15
                set data ""
-               oralob read $lobid -datavar data
+               oralob read $lobid -datavariable data
                # $data contains "abcdeabcdeabcde"
                set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
                # $i == 9 -- TCL-like indexing, not Oracle indexing
@@ -608,12 +608,12 @@
                     resources associated with it.
 
 
-               <B>read</B> <I>LONG</I>-<I>handle</I> -<I>datavar</I> <I>varname</I>
+               <B>read</B> <I>LONG</I>-<I>handle</I> -<I>datavariable</I> <I>varname</I>
                     Read the LONG specified by  <I>LONG</I>-<I>handle</I>  into
                     the variable identified by <I>varname</I>.
 
 
-               <B>write</B> <I>LONG</I>-<I>handle</I> -<I>datavar</I> <I>varname</I>
+               <B>write</B> <I>LONG</I>-<I>handle</I> -<I>datavariable</I> <I>varname</I>
                     Write the data in the variable identified  by
                     <I>varname</I>    into   the   LONG   specified   by
                     <I>LONG</I>-<I>handle</I>.
@@ -631,9 +631,9 @@
                set longid [oralong alloc $sth -table oratcl_long \
                          -column mp3 -rowid $rowid]
 
-               oralong write $longid -datavar chr_data
+               oralong write $longid -datavariable chr_data
                oracommit $lda
-               oralong read $longid -datavar out_data
+               oralong read $longid -datavariable out_data
                oralong free $longid
 
                if {[string equal $chr_data $out_data]} {
@@ -857,7 +857,7 @@
      }
 
      #fetch one row
-     while {[orafetch $sth -datavar row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+     while {[orafetch $sth -datavariable row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
           ...
           process other events
           ...
@@ -867,7 +867,7 @@
 
           puts "row [oramsg $sth rows] == $row"
 
-          while {[orafetch $sth -datavar row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+          while {[orafetch $sth -datavariable row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
                ...
                process other events
                ...

@@ -1,4 +1,17 @@
 2016-03-29  Todd Helfter <thefter@gmail.com>
+	* doc/oratcl.html
+	* doc/oratcl.n
+	* generic/oralob.c
+	* generic/oralong.c
+	* library/oralob.tcl
+	* library/oralong.tcl
+	* tests/oralob.test
+	* tests/oralong.test : implement feature request #10  submitted by
+	Andrew Martin.  oralong, oralob and orafetch should use -datavariable parameter
+	consistently.  This change may not be backward compatible.
+
+
+2016-03-29  Todd Helfter <thefter@gmail.com>
 	* tests/oralogon.test : update error codes for 12c
 
 2012-07-18  Andreas Kupries <andreask@activestate.com>

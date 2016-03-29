@@ -121,14 +121,14 @@ namespace eval ::tcl::test::oralob {
 
 	test oralob-1.2 {oralob: write clob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
-		catch {oralob write $lob -datavar chr_data} write
+		catch {oralob write $lob -datavariable chr_data} write
 		catch {oralob free $lob} free
 		list $lob $write $free
 	} {oralob.2 0 0}
 
 	test oralob-1.3 {oralob: read clob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
-		catch {oralob read $lob -datavar chr_out} res
+		catch {oralob read $lob -datavariable chr_out} res
 		set read [string equal $chr_data $chr_out]
 		catch {oralob free $lob} free
 		list $lob $read $free
@@ -136,14 +136,14 @@ namespace eval ::tcl::test::oralob {
 
 	test oralob-1.4 {oralob: write blob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_blob -rowid $rowid1} lob
-		catch {oralob write $lob -datavar bin_data} write
+		catch {oralob write $lob -datavariable bin_data} write
 		catch {oralob free $lob} free
 		list $lob $write $free
 	} {oralob.4 0 0}
 
 	test oralob-1.5 {oralob: read blob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_blob -rowid $rowid1} lob
-		catch {oralob read $lob -datavar bin_out} write
+		catch {oralob read $lob -datavariable bin_out} write
 		catch {oralob free $lob} free
 		set read [string equal $bin_data $bin_out]
 		list $lob $read $free
@@ -188,7 +188,7 @@ namespace eval ::tcl::test::oralob {
 	test oralob-1.10 {oralob: substr clob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
 		set sub [string range $chr_data 10 100] 
-		catch {oralob substr $lob -start 10 -stop 100 -datavar sub_out}
+		catch {oralob substr $lob -start 10 -stop 100 -datavariable sub_out}
 		catch {oralob free $lob} free
 		set res [expr {$sub == $sub_out}]
 		list $lob $res $free
@@ -197,7 +197,7 @@ namespace eval ::tcl::test::oralob {
 	test oralob-1.11 {oralob: substr blob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_blob -rowid $rowid1} lob
 		set sub [string range $bin_data 10 100] 
-		catch {oralob substr $lob -start 10 -stop 100 -datavar sub_out} 
+		catch {oralob substr $lob -start 10 -stop 100 -datavariable sub_out} 
 		catch {oralob free $lob} free
 		set res [expr {$sub == $sub_out}]
 		list $lob $res $free
@@ -207,7 +207,7 @@ namespace eval ::tcl::test::oralob {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
 		set source "[string range $chr_data 10 11]   [string range $chr_data 15 16]" 
 		catch {oralob erase $lob -start 12 -stop 14} erase_res
-		catch {oralob substr $lob -start 10 -stop 16 -datavar erase_out}
+		catch {oralob substr $lob -start 10 -stop 16 -datavariable erase_out}
 		catch {oralob free $lob} free
 		set res [string equal $source $erase_out]
 		list $lob $res $free
@@ -222,7 +222,7 @@ namespace eval ::tcl::test::oralob {
 		binary scan $p2 H* p2h
 		set source [binary format H* ${p1h}000000${p2h}]
 		catch {oralob erase $lob -start 22 -stop 24} erase_res
-		catch {oralob substr $lob -start 20 -stop 26 -datavar erase_out}
+		catch {oralob substr $lob -start 20 -stop 26 -datavariable erase_out}
 		catch {oralob free $lob} free
 		set res [string equal $source $erase_out]
 		list $lob $res $free
@@ -283,8 +283,8 @@ namespace eval ::tcl::test::oralob {
 	test oralob-4.0 {oralob: write clob 'double character'} {
 		set one_chr zz
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
-		catch {oralob write $lob -datavar one_chr} write
-		catch {oralob read $lob -datavar one_out} res
+		catch {oralob write $lob -datavariable one_chr} write
+		catch {oralob read $lob -datavariable one_out} res
 		set res [string equal $one_chr $one_out]
 		catch {oralob free $lob} free
 		set res
@@ -293,8 +293,8 @@ namespace eval ::tcl::test::oralob {
 	test oralob-4.1 {oralob: write clob 'single character'} {
 		set one_chr z
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
-		catch {oralob write $lob -datavar one_chr} write
-		catch {oralob read $lob -datavar one_out} res
+		catch {oralob write $lob -datavariable one_chr} write
+		catch {oralob read $lob -datavariable one_out} res
 		set res [string equal $one_chr $one_out]
 		catch {oralob free $lob} free
 		set res
@@ -303,8 +303,8 @@ namespace eval ::tcl::test::oralob {
 	test oralob-4.2 {oralob: write clob 'null string'} {
 		set one_chr {}
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid1} lob
-		catch {oralob write $lob -datavar one_chr} write
-		catch {oralob read $lob -datavar one_out} res
+		catch {oralob write $lob -datavariable one_chr} write
+		catch {oralob read $lob -datavariable one_out} res
 		set res [string equal $one_chr $one_out]
 		catch {oralob free $lob} free
 		set res
@@ -313,10 +313,10 @@ namespace eval ::tcl::test::oralob {
 	test oralob-5.0 {oralob: writeappend clob 'double writeappend'} {
 		set in_str zz_xx
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid3} lob
-		catch {oralob writeappend $lob -datavar in_str} write
-		catch {oralob writeappend $lob -datavar in_str} write
+		catch {oralob writeappend $lob -datavariable in_str} write
+		catch {oralob writeappend $lob -datavariable in_str} write
 		oracommit $lob_lda
-		catch {oralob read $lob -datavar out_str} res
+		catch {oralob read $lob -datavariable out_str} res
 		set res [string equal ${in_str}${in_str} $out_str]
 		catch {oralob free $lob} free
 		set res
@@ -324,7 +324,7 @@ namespace eval ::tcl::test::oralob {
 
 	test oralob-6.0 {oralob: write clob} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
-		catch {oralob write $lob -datavar chr_data} write
+		catch {oralob write $lob -datavariable chr_data} write
 		catch {oralob free $lob} free
 		list $write
 	} {0}
@@ -334,7 +334,7 @@ namespace eval ::tcl::test::oralob {
 	#
 	test oralob-6.1 {oralob: read clob with SQL} {
 		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
-		catch {oralob read $lob -datavar chr_out} res
+		catch {oralob read $lob -datavariable chr_out} res
 		set read [string equal $chr_data $chr_out]
 		catch {oralob free $lob} free
 		catch {

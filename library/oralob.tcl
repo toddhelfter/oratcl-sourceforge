@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.13 2002-08-29 03:23:53 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.14 2016-03-29 16:54:23 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -213,7 +213,7 @@ proc oralob {command handle args} {
 
 	global errorInfo
 
-	foreach idx [list rowid table column pattern datavar] {
+	foreach idx [list rowid table column pattern datavariable] {
 		set ::oratcl::oralob($idx) {}
 	}
 	foreach idx [list start stop length start1 start2] {
@@ -398,7 +398,7 @@ proc ::oratcl::lob_read {handle args} {
 	set rowid [lindex $loblst($handle) 3]
 	set lobtype [lindex $loblst($handle) 4]
 
-	upvar 2 $oralob(datavar) read_res
+	upvar 2 $oralob(datavariable) read_res
 	set read_res {}
 
 	set tcl_rc [catch {::oratcl::lob_length $handle} tcl_res]
@@ -436,7 +436,7 @@ proc ::oratcl::lob_read {handle args} {
 			set err_txt "oralob $fn: [oramsg $handle error] $info"
 			::break
 		}
-		orafetch $stm -datavar tcl_res
+		orafetch $stm -datavariable tcl_res
 		set out [lindex $tcl_res 3]
 
 		if {[string equal $lobtype blob]} {
@@ -487,7 +487,7 @@ proc ::oratcl::lob_write {handle args} {
 	set rowid [lindex $loblst($handle) 3]
 	set lobtype [lindex $loblst($handle) 4]
 
-	upvar 2 $oralob(datavar) data
+	upvar 2 $oralob(datavariable) data
 	set tot [string length $data]
 
 	set siz [oraconfig $stm lobpsize]
@@ -715,7 +715,7 @@ proc ::oratcl::lob_substr {handle args} {
 	set rowid [lindex $loblst($handle) 3]
 	set lobtype [lindex $loblst($handle) 4]
 
-	upvar 2 $oralob(datavar) sub_res
+	upvar 2 $oralob(datavariable) sub_res
 	set sub_res {}
 
 	if {![string is integer $oralob(start)] || $oralob(start) < 0} {

@@ -433,26 +433,26 @@ operate on this LOB.
 Destroy the LOB handle and free any resources associated with it.
 .sp
 .TP
-.B read \fILOB\-handle \-datavar varname\fR
+.B read \fILOB\-handle \-datavariable varname\fR
 .br
 Read the LOB specified by \fILOB\-handle\fR into the variable identified by
 \fIvarname\fR.
 .sp
 .TP
-\fBsubstr \fILOB\-handle \-start $start \-stop $stop \-datavar varname\fR
+\fBsubstr \fILOB\-handle \-start $start \-stop $stop \-datavariable varname\fR
 .br
 Reads characters of the LOB specified by \fILOB\-handle\fR, beginning at
 \fI$startpos\fR and ending at \fI$stoppos\fR, into \fIvarname\fR.
 \fI$startpos\fR and \fI$stoppos\fR both default to 0.
 .sp
 .TP
-.B write \fILOB\-handle \-datavar varname\fR
+.B write \fILOB\-handle \-datavariable varname\fR
 .br
 Write the data in the variable identified by \fIvarname\fR into the
 LOB specified by \fILOB\-handle\fR.
 .sp
 .TP
-.B writeappend \fILOB\-handle \-datavar varname\fR
+.B writeappend \fILOB\-handle \-datavariable varname\fR
 .br
 Append the data in the variable identified by \fIvarname\fR to the
 end of the LOB specified by \fILOB\-handle\fR.
@@ -526,11 +526,11 @@ orafetch $sth -datavariable rowid
 set data "abcdeabcdeabcde"
 set lobid [oralob alloc $sth -table "my_table" \\
   	     -column "clob_col" -rowid $rowid]
-oralob write $lobid -datavar data
+oralob write $lobid -datavariable data
 set l [oralob length $lobid]
 # $l == 15
 set data ""
-oralob read $lobid -datavar data
+oralob read $lobid -datavariable data
 # $data contains "abcdeabcdeabcde"
 set i [oralob instr $lobid -pattern "eab" -start 3 -nth 2]
 # $i == 9 -- TCL-like indexing, not Oracle indexing
@@ -614,13 +614,13 @@ operate on this LONG.
 Destroy the LONG handle and free any resources associated with it.
 .sp
 .TP
-.B read \fILONG\-handle \-datavar varname\fR
+.B read \fILONG\-handle \-datavariable varname\fR
 .br
 Read the LONG specified by \fILONG\-handle\fR into the variable identified by
 \fIvarname\fR.
 .sp
 .TP
-.B write \fILONG\-handle \-datavar varname\fR
+.B write \fILONG\-handle \-datavariable varname\fR
 .br
 Write the data in the variable identified by \fIvarname\fR into the
 LONG specified by \fILONG\-handle\fR.
@@ -643,9 +643,9 @@ orafetch $sth -datavariable rowid
 set longid [oralong alloc $sth -table oratcl_long \\
 		-column mp3 -rowid $rowid]
 
-oralong write $longid -datavar chr_data
+oralong write $longid -datavariable chr_data
 oracommit $lda
-oralong read $longid -datavar out_data
+oralong read $longid -datavariable out_data
 oralong free $longid
 
 if {[string equal $chr_data $out_data]} {
@@ -905,7 +905,7 @@ while {[oraexec $sth] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
 }
 
 #fetch one row
-while {[orafetch $sth -datavar row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+while {[orafetch $sth -datavariable row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
 	...
 	process other events
 	...
@@ -915,7 +915,7 @@ while {[oramsg $sth rc] == 0} {
 
 	puts "row [oramsg $sth rows] == $row"
 
-	while {[orafetch $sth -datavar row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
+	while {[orafetch $sth -datavariable row] == $::oratcl::codes(OCI_STILL_EXECUTING)} {
 		...
 		process other events
 		...

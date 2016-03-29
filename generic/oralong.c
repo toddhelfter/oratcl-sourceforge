@@ -73,7 +73,7 @@ Oralong_Init (interp)
 	CONST84 char *script[] = {
 	        "proc oralong {command handle args} { "
 		"	global errorInfo; "
-		"	foreach idx [list rowid table column datavar] { "
+		"	foreach idx [list rowid table column datavariable] { "
 		"		set ::oratcl::oralong($idx) {}; "
 		"	}; "
 		"	set tcl_res {}; "
@@ -207,7 +207,7 @@ Oralong_Init (interp)
 		"	set column [lindex $longlst($handle) 2]; "
 		"	set rowid [lindex $longlst($handle) 3]; "
 		"	set longtype [lindex $longlst($handle) 4]; "
-		"	upvar 2 $oralong(datavar) read_res; "
+		"	upvar 2 $oralong(datavariable) read_res; "
 		"	set read_res {}; "
 		"	set sql [format $::oratcl::sql(${longtype}_read) $column $table $rowid]; "
 		"	set tcl_rc [catch {::oratcl::longread $stm  $sql  read_res  $longtype}  tcl_res]; "
@@ -239,8 +239,8 @@ Oralong_Init (interp)
 		"	set column [lindex $longlst($handle) 2]; "
 		"	set rowid [lindex $longlst($handle) 3]; "
 		"	set longtype [lindex $longlst($handle) 4]; "
-		"	upvar 2 $oralong(datavar) datavar; "
-		"	set writevar $datavar; "
+		"	upvar 2 $oralong(datavariable) datavariable; "
+		"	set writevar $datavariable; "
 		"	set sql [format $::oratcl::sql(${longtype}_write) $table $column $rowid]; "
 		"	set tcl_rc [catch {::oratcl::longwrite $stm  $sql  writevar  $longtype}  tcl_res]; "
 		"	if {$tcl_rc} { "
@@ -357,7 +357,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 		Tcl_WrongNumArgs(interp,
 				 objc,
 				 objv,
-				 "stm_handle sql_str datavar");
+				 "stm_handle sql_str datavariable");
 		return TCL_ERROR;
 	}
 
@@ -660,7 +660,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 		Tcl_WrongNumArgs(interp,
 				 objc,
 				 objv,
-				 "stm_handle sql_str datavar");
+				 "stm_handle sql_str datavariable");
 		return TCL_ERROR;
 	}
 

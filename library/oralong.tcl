@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.8 2002-08-29 03:23:53 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.9 2016-03-29 16:54:23 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
@@ -52,7 +52,7 @@ proc oralong {command handle args} {
 
 	global errorInfo
 
-	foreach idx [list rowid table column datavar] {
+	foreach idx [list rowid table column datavariable] {
 		set ::oratcl::oralong($idx) {}
 	}
 
@@ -211,7 +211,7 @@ proc ::oratcl::long_read {handle args} {
 	set rowid [lindex $longlst($handle) 3]
 	set longtype [lindex $longlst($handle) 4]
 
-	upvar 2 $oralong(datavar) read_res
+	upvar 2 $oralong(datavariable) read_res
 	set read_res {}
 
 	set sql [format $::oratcl::sql(${longtype}_read) $column $table $rowid]
@@ -262,8 +262,8 @@ proc ::oratcl::long_write {handle args} {
 	set rowid [lindex $longlst($handle) 3]
 	set longtype [lindex $longlst($handle) 4]
 
-	upvar 2 $oralong(datavar) datavar
-	set writevar $datavar
+	upvar 2 $oralong(datavariable) datavariable
+	set writevar $datavariable
 
 	set sql [format $::oratcl::sql(${longtype}_write) $table $column $rowid]
 	set tcl_rc [catch {::oratcl::longwrite $stm \
