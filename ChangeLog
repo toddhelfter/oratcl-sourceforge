@@ -1,3 +1,6 @@
+2016-03-29  Todd Helfter <thefter@gmail.com>
+	* tests/oralogon.test : update error codes for 12c
+
 2012-07-18  Andreas Kupries <andreask@activestate.com>
 	* generic/oraconfig.c
 	* generic/orafetch.c

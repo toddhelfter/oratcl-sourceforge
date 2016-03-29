@@ -52,10 +52,15 @@ namespace eval ::tcl::test::oralogon {
     test oralogon-1.2 {oralogon: bad credentials} {
         -constraints testoralogon
         -body {
+            set tres 1
             catch {oralogon foo/bar} res
-            set res
+            if {[string equal $res {ORA-01017: invalid username/password; logon denied}]
+              || [string equal $res {ORA-12162: TNS:net service name is incorrectly specified}]} {
+                set tres 0
+            }
+            set tres
         }
-        -result {ORA-01017: invalid username/password; logon denied}
+        -result {0}
     }
 
     # test oralogon with bad tnsnames
