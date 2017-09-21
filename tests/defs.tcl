@@ -1,10 +1,10 @@
 # defs.tcl --
 #
 #
-# Copyright (c) 2000 by Todd M. Helfter
+# Copyright (c) 2017 by Todd M. Helfter
 # All rights reserved.
 # 
-# RCS: @(#) $Id: defs.tcl,v 1.6 2009-10-14 14:44:47 tmh Exp $
+# RCS: @(#) $Id: defs.tcl,v 1.7 2017-09-21 17:37:11 tmh Exp $
 
 
 if {[lsearch [namespace children] ::tcltest] == -1} {

@@ -3,7 +3,7 @@
 #
 # Finalize the tests.
 #
-# Copyright (c) 2000 Todd M. Helfter
+# Copyright (c) 2017 Todd M. Helfter
 # All rights reserved.
 
 puts "\n\ncleaning up oratcl test objects"

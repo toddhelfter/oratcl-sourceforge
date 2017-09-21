@@ -3,10 +3,10 @@
 # This file is sourced by the 'make test' target to execute the
 # Oratcl test suite
 #
-# Copyright (c) 2000 by Todd M. Helfter
+# Copyright (c) 2017 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.12 2009-10-01 01:38:05 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.13 2017-09-21 17:37:11 tmh Exp $
 
 global ora_lda
 
