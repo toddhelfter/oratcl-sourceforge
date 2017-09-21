@@ -5,6 +5,7 @@
 #
 # exercise oralogon and oralogoff
 # 09/21/2009 - upgraded to tcltest 2.0
+# 09/21/2017 - update tests to regexp error codes
 #
 
 if {[catch {package require tcltest 2}]} {
@@ -54,8 +55,7 @@ namespace eval ::tcl::test::oralogon {
         -body {
             set tres 1
             catch {oralogon foo/bar} res
-            if {[string equal $res {ORA-01017: invalid username/password; logon denied}]
-              || [string equal $res {ORA-12162: TNS:net service name is incorrectly specified}]} {
+	    if {[regexp {^ORA-[0-9]*:} $res]} {
                 set tres 0
             }
             set tres
@@ -72,9 +72,7 @@ namespace eval ::tcl::test::oralogon {
         -body {
             set tres 1
             catch {oralogon foo/bar@oratcl} res
-            if {[string equal $res {ORA-12154: TNS:could not resolve the connect identifier specified}]
-              || [string equal $res {ORA-12541: TNS:no listener}]
-              || [string equal $res {ORA-12170: TNS:Connect timeout occurred}]} {
+	    if {[regexp {^ORA-[0-9]*:} $res]} {
                 set tres 0
             }
             set tres
