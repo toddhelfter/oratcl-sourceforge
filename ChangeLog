@@ -1,4 +1,7 @@
 2017-09-21  Todd Helfter <thefter@gmail.com>
+       * update copyright dates
+
+2017-09-21  Todd Helfter <thefter@gmail.com>
 	* tests/oralogon.test : use regexp to detect oracle error codes
 	instead of specific pattern matches.
 
