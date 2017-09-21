@@ -141,6 +141,7 @@ OCIBINDBYNAME	OCI_BindByName;
 OCILOBREAD OCI_LobRead;
 OCILOBGETLENGTH OCI_LobGetLength;
 OCIBINDDYNAMIC OCI_BindDynamic;
+OCINLSGETINFO	OCI_NlsGetInfo;
 
 /*
  *----------------------------------------------------------------------
@@ -458,6 +459,7 @@ Oratcl_Init (interp)
 	DLSYM(handle, "OCIDefineByPos",	OCI_DefineByPos,     OCIDEFINEBYPOS);
 	DLSYM(handle, "OCIBindByName",	OCI_BindByName,	     OCIBINDBYNAME);
 	DLSYM(handle, "OCIBindDynamic",	OCI_BindDynamic,     OCIBINDDYNAMIC);
+	DLSYM(handle, "OCINlsGetInfo",	OCI_NlsGetInfo,	     OCINLSGETINFO);
 	DLSYM(handle, "OCIStmtPrepare",	OCI_StmtPrepare,     OCISTMTPREPARE);
 	DLSYM(handle, "OCIStmtExecute",	OCI_StmtExecute,     OCISTMTEXECUTE);
 	DLSYM(handle, "OCIStmtFetch",	OCI_StmtFetch,	     OCISTMTFETCH);

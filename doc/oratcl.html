@@ -743,6 +743,10 @@
           returns the login handle that the statement handle was
           opened under.
 
+	  "<B>orainfo</B> nlsgetinfo " requires a valid
+          logon handle previously  opened  with  <B>oralogon</B>  and
+          an NLS_PARAMETER name.  The function returns the value associated with the NLS_PARAMETER.
+
           <B>EXAMPLES</B>
                puts [orainfo version]
 
@@ -752,6 +756,7 @@
                set sth [oraopen $lda]
                set mylda [orainfo logonhandle $sth]
 
+	       puts [orainfo nlsgetinfo $lda NLS_CHARACTER_SET]
 
 
 </PRE>

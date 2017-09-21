@@ -753,7 +753,7 @@ Return a list of all opened statement-handles associated with the
 .B orainfo \fIoption ?args?\fR
 .br
 Retrieves information about oratcl.  \fIOption\fR may be either
-"version", "server", "client", "status", or "logonhandle".  
+"version", "server", "client", "status", "logonhandle", or "nlsgetinfo".  
 .sp
 "\fBorainfo\fR version" returns the current oratcl version.  
 .sp
@@ -771,6 +771,10 @@ returns the oracle server connection status (1 connected, 0 not connected).
 a statement handle previously opened with \fBoraopen\fR and returns the 
 login handle that the statement handle was opened under.
 .sp
+"\fBorainfo\fR nlsgetinfo" requires a valid logon
+handle previously opened with \fBoralogon\fR and an NLS_PARAMETER
+namet.   The function returns the value associated with the NLS_PARAMETER.  
+.sp
 .RS .5i
 .B EXAMPLES
 .nf
@@ -781,6 +785,8 @@ login handle that the statement handle was opened under.
 .sp
 	set sth [oraopen $lda]
 	set mylda [orainfo logonhandle $sth]
+.sp
+	puts [orainfo nlsgetinfo $lda NLS_CHARACTER_SET]
 .fi
 .RE	
 

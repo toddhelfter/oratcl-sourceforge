@@ -1,12 +1,21 @@
 2017-09-21  Todd Helfter <thefter@gmail.com>
-       * update copyright dates
+	* doc/oratcl.html
+	* doc/oratcl.n
+	* generic/oratcl.c
+	* generic/orainfo.c
+	* generic/oradefs.h
+	* generic/oratclTypes.h : expand the 'orainfo' command with
+	'nlsgetinfo' to return NLS_PARAMETER values such as NLS_CHARACTER_SET
+
+2017-09-21  Todd Helfter <thefter@gmail.com>
+	* update copyright dates
 
 2017-09-21  Todd Helfter <thefter@gmail.com>
 	* tests/oralogon.test : use regexp to detect oracle error codes
 	instead of specific pattern matches.
 
 2017-09-21  Todd Helfter <thefter@gmail.com>
-        * update copyright dates
+	* update copyright dates
 
 2016-03-29  Todd Helfter <thefter@gmail.com>
 	* doc/oratcl.html
