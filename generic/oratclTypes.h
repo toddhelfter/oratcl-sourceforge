@@ -286,3 +286,10 @@ typedef sword (*OCIBINDDYNAMIC) (OCIBind     *bindp,
 				 void       *octxp,
 				 OCICallbackOutBind ocbfp);
 extern OCIBINDDYNAMIC OCI_BindDynamic;
+
+typedef sword (*OCINLSGETINFO)  (dvoid *hndlp,
+				 OCIError *errhp,
+				 OraText *buf,
+                    	         size_t buflen,
+				 ub2 item);
+extern OCINLSGETINFO	OCI_NlsGetInfo;
