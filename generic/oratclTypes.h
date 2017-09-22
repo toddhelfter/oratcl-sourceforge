@@ -125,6 +125,14 @@ typedef	sword (*OCISERVERVERSION) (dvoid *hndlp,
 				   ub1 hndltype);
 extern OCISERVERVERSION OCI_ServerVersion;
 
+typedef	sword (*OCISERVERRELEASE) (dvoid *hndlp,
+				   OCIError *errhp,
+				   OraText *bufp,
+				   ub4 bufsz,
+				   ub1 hndltype,
+				   ub4 *version);
+extern OCISERVERRELEASE OCI_ServerRelease;
+
 typedef	sword (*OCICLIENTVERSION) (sword *major_version,
 				   sword *minor_version,
 				   sword *update_num,

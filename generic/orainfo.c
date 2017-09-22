@@ -45,7 +45,6 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 	sword		rc;
 	static text	svr[ORA_MSG_SIZE];
-	ub4		serverStatus = 0;
 
 	/* note that 'loginhandle' is a typo.  This will be deprecated in the next version */
 
@@ -53,6 +52,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 				   "client",
 				   "status",
 				   "version",
+				   "release",
 				   "logonhandle",
 				   "loginhandle",
 				   "nlsgetinfo",
@@ -62,12 +62,12 @@ Oratcl_Info (clientData, interp, objc, objv)
 				  OPT_CLIENT,
 				  OPT_STATUS,
 				  OPT_VERSION,
+				  OPT_RELEASE,
 				  OPT_LOGONHANDLE,
 				  OPT_LOGINHANDLE,
 				  OPT_NLSGETINFO};
 
 	int		index = 0;
-
 
 	int		tcl_return = TCL_OK;
 
@@ -92,6 +92,8 @@ Oratcl_Info (clientData, interp, objc, objv)
 	}
 
 	if (index == OPT_STATUS) {
+		ub4		serverStatus = 0;
+
 		if (objc < 3) {
 			Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
 			tcl_return = TCL_ERROR;
@@ -183,6 +185,73 @@ Oratcl_Info (clientData, interp, objc, objv)
 		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) svr, -1));
 
 	}
+
+	if (index == OPT_RELEASE) {
+		OraText	rlsbuff[OCI_NLS_MAXBUFSZ];
+		ub4	*rlsnumb = 0;
+		sword	major_version = 0;
+		sword	minor_version = 0;
+		sword 	update_num = 0;
+		sword	patch_num = 0;
+		sword	port_update_num = 0;
+
+		if (objc < 3) {
+			Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		logHashPtr = Tcl_FindHashEntry(OratclStatePtr->logHash,
+					       Tcl_GetStringFromObj(objv[2],
+								    NULL));
+
+		if (logHashPtr == NULL) {
+			Oratcl_ErrorMsg(interp,
+					objv[0],
+					": lda_handle ",
+					objv[2],
+					" not valid");
+			tcl_return = TCL_ERROR;
+			goto common_exit;
+		}
+
+		LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
+		Tcl_DStringInit(&LogPtr->ora_err);
+
+		rc = OCI_ServerRelease(LogPtr->svchp,
+				       LogPtr->errhp,
+				       rlsbuff,
+				       (size_t) OCI_NLS_MAXBUFSZ,
+				       OCI_HTYPE_SVCCTX,
+				       (ub4 *) &rlsnumb);
+
+		if (rc != OCI_SUCCESS) {
+			Oratcl_Checkerr(interp,
+					LogPtr->errhp,
+					rc,
+					1,
+					&LogPtr->ora_rc,
+					&LogPtr->ora_err);
+			tcl_return = TCL_ERROR;
+			goto common_exit; }
+
+		major_version   = (((long) rlsnumb >> 24) & 0x000000FF);
+		minor_version   = (((long) rlsnumb >> 20) & 0x0000000F);
+		update_num      = (((long) rlsnumb >> 12) & 0x000000FF);
+		patch_num       = (((long) rlsnumb >>  8) & 0x0000000F);
+		port_update_num = (((long) rlsnumb >>  0) & 0x000000FF);
+
+		sprintf( (char *) svr,
+			"%d.%d.%d.%d.%d",
+			(int) major_version,
+			(int) minor_version,
+			(int) update_num,
+			(int) patch_num,
+			(int) port_update_num);
+		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) svr, -1));
+
+	}
+
 
 	if (index == OPT_CLIENT) {
 		sword	major_version = 0;

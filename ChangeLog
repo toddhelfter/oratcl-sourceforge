@@ -1,3 +1,11 @@
+2017-09-22  Todd Helfter <thefter@gmail.com>
+	* generic/oratcl.c
+	* generic/orainfo.c
+	* generic/oratclTypes.h : expand the 'orainfo' command with
+	'release' to return server release string in #.#.#.#.# format.
+	orainfo client and orainfo server now return the same format.
+	orainfo version still returns the full oracle banner text.
+
 2017-09-21  Todd Helfter <thefter@gmail.com>
 	* generic/orainfo.c : correct number conversion of wide int and code
 	beautification.

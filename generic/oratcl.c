@@ -125,6 +125,7 @@ OCITRANSCOMMIT OCI_TransCommit;
 OCITRANSROLLBACK OCI_TransRollback;
 OCITERMINATE	OCI_Terminate;
 OCISERVERVERSION OCI_ServerVersion;
+OCISERVERRELEASE OCI_ServerRelease;
 OCICLIENTVERSION OCI_ClientVersion;
 OCISTMTPREPARE	OCI_StmtPrepare;
 OCISTMTGETPIECEINFO	OCI_StmtGetPieceInfo;
@@ -450,6 +451,7 @@ Oratcl_Init (interp)
 	DLSYM(handle, "OCITransCommit",	OCI_TransCommit,     OCITRANSCOMMIT);
 	DLSYM(handle, "OCITransRollback", OCI_TransRollback, OCITRANSROLLBACK);
 	DLSYM(handle, "OCIServerVersion", OCI_ServerVersion, OCISERVERVERSION);
+	DLSYM(handle, "OCIServerRelease", OCI_ServerRelease, OCISERVERRELEASE);
 	DLSYM(handle, "OCIClientVersion", OCI_ClientVersion, OCICLIENTVERSION);
 	DLSYM(handle, "OCITerminate",	OCI_Terminate,	     OCITERMINATE);
 	DLSYM(handle, "OCIParamGet",	OCI_ParamGet,	     OCIPARAMGET);
