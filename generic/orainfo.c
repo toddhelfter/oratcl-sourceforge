@@ -46,7 +46,9 @@ Oratcl_Info (clientData, interp, objc, objv)
 	sword		rc;
 	static text	svr[ORA_MSG_SIZE];
 	OraText		nlsbuff[OCI_NLS_MAXBUFSZ];
+	sb4		*nlsnumb = NULL;
 	ub2		nlscode = 0;
+	ub2		nlsproc = 0;
 	ub4		serverStatus = 0;
 
 	/* note that 'loginhandle' is a typo.  This will be deprecated in the next version */
@@ -143,6 +145,8 @@ Oratcl_Info (clientData, interp, objc, objv)
 				"NLS_MONGROUP",
 				"NLS_MONGROUPING",
 				"NLS_INT_CURRENCYSEP",
+				"NLS_CHARSET_MAXBYTESZ",
+				"NLS_CHARSET_FIXEDWIDTH",
 				NULL
 			};
 
@@ -218,7 +222,9 @@ Oratcl_Info (clientData, interp, objc, objv)
 				OPT_NLS_MONDECIMAL,
 				OPT_NLS_MONGROUP,
 				OPT_NLS_MONGROUPING,
-				OPT_NLS_INT_CURRENCYSEP
+				OPT_NLS_INT_CURRENCYSEP,
+				OPT_NLS_CHARSET_MAXBYTESZ,
+				OPT_NLS_CHARSET_FIXEDWIDTH
 			};
 
 	int		nlsindex = 0;
@@ -424,6 +430,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 			goto common_exit;
 		}
 
+		nlsproc = 0;
 		switch (nlsindex) {
 			case OPT_NLS_DAYNAME1:
 				nlscode = OCI_NLS_DAYNAME1;
@@ -637,11 +644,20 @@ Oratcl_Info (clientData, interp, objc, objv)
 			case OPT_NLS_INT_CURRENCYSEP:
 				nlscode = OCI_NLS_INT_CURRENCYSEP;
 				break;
+			case OPT_NLS_CHARSET_MAXBYTESZ:
+				nlscode = OCI_NLS_CHARSET_MAXBYTESZ;
+				nlsproc = 1;
+				break;
+			case OPT_NLS_CHARSET_FIXEDWIDTH:
+				nlscode = OCI_NLS_CHARSET_FIXEDWIDTH;
+				nlsproc = 1;
+				break;
 			default:
-				nlscode=1;
+				nlsproc = -1;
+				break;
 		}
 
-		if (OCI_NlsGetInfo  != NULL) {
+		if (nlsproc == 0 && OCI_NlsGetInfo  != NULL) {
 			rc = OCI_NlsGetInfo(
 				(dvoid *) LogPtr->envhp,
 				(OCIError *) LogPtr->errhp,
@@ -649,10 +665,18 @@ Oratcl_Info (clientData, interp, objc, objv)
 				(size_t) OCI_NLS_MAXBUFSZ,
 				(ub2) nlscode
 			);
-
+			Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) nlsbuff, -1));
 		}
 
-		Tcl_SetObjResult(interp, Tcl_NewStringObj((char *) nlsbuff, -1));
+		if (nlsproc == 1 && OCI_NlsNumericInfoGet  != NULL) {
+			rc = OCI_NlsNumericInfoGet(
+				(dvoid *) LogPtr->envhp,
+				(OCIError *) LogPtr->errhp,
+				(sb4 *) &nlsnumb,
+				(ub2) nlscode
+			);
+			Tcl_SetObjResult(interp, Tcl_NewIntObj((int) nlsnumb));
+		}
 	}
 
 common_exit:

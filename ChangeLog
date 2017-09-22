@@ -1,4 +1,10 @@
 2017-09-21  Todd Helfter <thefter@gmail.com>
+	* generic/oratcl.c
+	* generic/orainfo.c
+	* generic/oratclTypes.h : expand the 'orainfo nlsgetinfo' command with additional
+	numberic NLS_PARAMETERS:  NLS_CHARSET_MAXBYTESZ, NLS_CHARSET_MAXBYTESZ
+
+2017-09-21  Todd Helfter <thefter@gmail.com>
 	* doc/oratcl.html
 	* doc/oratcl.n
 	* generic/oratcl.c

@@ -293,3 +293,9 @@ typedef sword (*OCINLSGETINFO)  (dvoid *hndlp,
                     	         size_t buflen,
 				 ub2 item);
 extern OCINLSGETINFO	OCI_NlsGetInfo;
+
+typedef sword (*OCINLSNUMERICINFOGET) (dvoid *hndl, 
+                                       OCIError *errhp, 
+                                       sb4 *val, 
+                                       ub2 item);
+extern OCINLSNUMERICINFOGET	OCI_NlsNumericInfoGet;
