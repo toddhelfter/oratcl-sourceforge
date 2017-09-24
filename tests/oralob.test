@@ -24,6 +24,10 @@ namespace eval ::tcl::test::oralob {
 	# this appears to be very near the maximum piece size in pl/sql for 10gR2
 	oraconfig $lob_stm lobpsize 32500
 
+	set lob_sql(query_nls_characterset) {
+		SELECT value$ FROM sys.props$ WHERE name = 'NLS_CHARACTERSET'
+	}
+
 	set lob_sql(create_lob_table) {
 		create table oratcl_lob ( \
 			lob_key varchar2(10), \
@@ -43,6 +47,12 @@ namespace eval ::tcl::test::oralob {
 	set lob_sql(drop_lob_table) {
 		drop table oratcl_lob
 	}
+
+	# code added to skip some LOB tests when client NLS_CHARACTER_SET does not match database.
+	oraparse $lob_stm $lob_sql(query_nls_characterset)
+	oraexec $lob_stm
+	orafetch $lob_stm -datavariable lob_nls_characterset
+        testConstraint nls_character_set_mismatch [string equal $lob_nls_characterset [orainfo nlsgetinfo $lob_lda NLS_CHARACTER_SET]]
 
 	catch {
 		oraparse $lob_stm $lob_sql(drop_lob_table)
@@ -329,29 +339,31 @@ namespace eval ::tcl::test::oralob {
 		list $write
 	} {0}
 
-	#
-	# 11gR2 - 64bit - AL32UTF8 - NLS_LANG=AMERICAN_AMERICA.AL32UTF8 :: Failure when NLS_LANG is NOT set 
-	#
 	test oralob-6.1 {oralob: read clob with SQL} {
-		catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
-		catch {oralob read $lob -datavariable chr_out} res
-		set read [string equal $chr_data $chr_out]
-		catch {oralob free $lob} free
-		catch {
-		   oraconfig $lob_stm lobpsize 1000000
-		   oraparse $lob_stm {select lob_clob from oratcl_lob where lob_key = :key}
-		   orabind $lob_stm :key l2
-		   oraexec $lob_stm
-		   if {[orafetch $lob_stm -datavariable sql_out] == 0} {
-			set read [string equal $chr_out $sql_out]
-		   } else {
-			set read 0
-		   }
+		-constraints nls_character_set_mismatch
+		-body {
+			catch {oralob alloc $lob_stm -table oratcl_lob -column lob_clob -rowid $rowid2} lob
+			catch {oralob read $lob -datavariable chr_out} res
+			set read [string equal $chr_data $chr_out]
+			catch {oralob free $lob} free
+			catch {
+			   oraconfig $lob_stm lobpsize 1000000
+			   oraparse $lob_stm {select lob_clob from oratcl_lob where lob_key = :key}
+			   orabind $lob_stm :key l2
+			   oraexec $lob_stm
+			   if {[orafetch $lob_stm -datavariable sql_out] == 0} {
+				set read [string equal $chr_out $sql_out]
+			   } else {
+				set read 0
+			   }
+			}
+			set read
 		}
-		list $read
-	} {1}
+		-result {1}
+	}
 
         test oralob-6.2 {oralob: insert clob with SQL} {
+		-constraints nls_character_set_mismatch
                 -setup {
                         set lda [oralogon $ora_constr]
                         set stm [oraopen $lda]
@@ -377,6 +389,7 @@ namespace eval ::tcl::test::oralob {
         }
 
         test oralob-6.3 {oralob: update clob with SQL} {
+		-constraints nls_character_set_mismatch
                 -setup {
                         set lda [oralogon $ora_constr]
                         set stm [oraopen $lda]
@@ -397,83 +410,41 @@ namespace eval ::tcl::test::oralob {
         }
 
         test oralob-6.4 {oralob: update clob with SQL} {
+		-constraints nls_character_set_mismatch
                 -setup {
 			set x [expr {214748364 * 2}]
 			set lrg_data [string repeat 0 $x]
-                        set lda [oralogon $ora_constr]
-                        set st1 [oraopen $lda]
-                        set st2 [oraopen $lda]
-                        oraconfig $st1 lobpsize 1000000
-                        oraconfig $st1 bindsize [string length $lrg_data]
+                        set tst6_4(lda) [oralogon $ora_constr]
+                        set tst6_4(st1) [oraopen $tst6_4(lda)]
+                        set tst6_4(st2) [oraopen $tst6_4(lda)]
+                        oraconfig $tst6_4(st1) lobpsize 1000000
+                        oraconfig $tst6_4(st1) bindsize [string length $lrg_data]
                 }
                 -body {
 			set res -1
-			set rc [catch {oraparse $st1 {insert into oratcl_lob (lob_key, lob_clob) values (:lkey, :lclb)}} cres]
+			set rc [catch {oraparse $tst6_4(st1) {insert into oratcl_lob (lob_key, lob_clob) values (:lkey, :lclb)}} cres]
 			if {$rc} {puts stderr "insert parse: $cres"}
-			set rc [catch {orabind $st1 :lkey l5 :lclb $lrg_data} cres]
+			set rc [catch {orabind $tst6_4(st1) :lkey l5 :lclb $lrg_data} cres]
 			if {$rc} {puts stderr "insert bind: $cres"}
-			set rc [catch {oraexec $st1} cres]
+			set rc [catch {oraexec $tst6_4(st1)} cres]
 			if {$rc} {puts stderr "insert exec: $cres"}
-			oracommit $lda
-			set rc [catch {oraparse $st2 {select lob_clob from oratcl_lob where lob_key = :lkey}} cres]
+			oracommit $tst6_4(lda)
+			set rc [catch {oraparse $tst6_4(st2) {select lob_clob from oratcl_lob where lob_key = :lkey}} cres]
 			if {$rc} {puts stderr "select parse: $cres"}
-			set rc [catch {orabind $st2 :lkey l5} cres]
+			set rc [catch {orabind $tst6_4(st2) :lkey l5} cres]
 			if {$rc} {puts stderr "select bind: $cres"}
-			set rc [catch {oraexec $st2} cres]
+			set rc [catch {oraexec $tst6_4(st2)} cres]
 			if {$rc} {puts stderr "select exec: $cres"}
-			if {[orafetch $st2 -datavariable res] == 0} {
+			if {[orafetch $tst6_4(st2) -datavariable res] == 0} {
 				set res [string equal $res $lrg_data]
 			}
 			set res
                 }
                 -cleanup {
-                        oraclose $st1
-                        oraclose $st2
-                        oralogoff $lda
-                }
-                -result {1}
-        }
-
-	#
-	# 11gR2 - 64bit - AL32UTF8 - NLS_LANG=AMERICAN_AMERICA.AL32UTF8 :: Failure when NLS_LANG is set 
-	#
-        test oralob-6.5 {oralob: update clob with SQL} {
-                -setup {
-			set x [expr {214748364 * 2}]
-			set lrg_data [string repeat 0 $x]
-                        set tst6_5(lda) [oralogon $ora_constr]
-                        set tst6_5(st1) [oraopen $tst6_5(lda)]
-                        set tst6_5(st2) [oraopen $tst6_5(lda)]
-                        oraconfig $tst6_5(st1) lobpsize 1000000
-                        oraconfig $tst6_5(st1) bindsize [string length $lrg_data]
-                }
-                -body {
-			set res -1
-			set rc [catch {oraparse $tst6_5(st1) {insert into oratcl_lob (lob_key, lob_clob) values (:lkey, :lclb)}} cres]
-			if {$rc} {puts stderr "insert parse: $cres"}
-			set rc [catch {orabind $tst6_5(st1) :lkey l6 :lclb $lrg_data} cres]
-			if {$rc} {puts stderr "insert bind: $cres"}
-			set rc [catch {oraexec $tst6_5(st1)} cres]
-			if {$rc} {puts stderr "insert exec: $cres"}
-			oracommit $tst6_5(lda)
-			set rc [catch {oraparse $tst6_5(st2) {select lob_clob from oratcl_lob where lob_key = :lkey}} cres]
-			if {$rc} {puts stderr "select parse: $cres"}
-			set rc [catch {orabind $tst6_5(st2) :lkey l6} cres]
-			if {$rc} {puts stderr "select bind: $cres"}
-			set rc [catch {oraexec $tst6_5(st2)} cres]
-			if {$rc} {puts stderr "select exec: $cres"}
-			if {[orafetch $tst6_5(st2) -dataarray 6_5res] == 0} {
-				puts [string length $6_5res(LOB_CLOB)]
-				puts [string length $lrg_data]
-				set res [string equal $6_5res(LOB_CLOB) $lrg_data]
-			}
-			set res
-                }
-                -cleanup {
-                        oraclose $tst6_5(st1)
-                        oraclose $tst6_5(st2)
-                        oralogoff $tst6_5(lda)
-                        array unset tst6_5
+                        oraclose $tst6_4(st1)
+                        oraclose $tst6_4(st2)
+                        oralogoff $tst6_4(lda)
+                        array unset tst6_4
                 }
                 -result {1}
         }

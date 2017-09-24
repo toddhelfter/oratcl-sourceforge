@@ -1,3 +1,8 @@
+2017-09-23  Todd Helfter <thefter@gmail.com>
+	* tests/oralob.test : use the new [orainfo nlsgetinfo] to compare
+	NLS_CHARACTER_SET and skip certain lob tests that fail when the 
+	character sets do not match between the client and the server.
+
 2017-09-22  Todd Helfter <thefter@gmail.com>
 	* generic/oratcl.c
 	* generic/orainfo.c
