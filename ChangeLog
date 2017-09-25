@@ -1,3 +1,6 @@
+2017-09-24  Todd Helfter <thefter@gmail.com>
+	* generic/oralogon.c : correct a parameter to :OCI_ServerAttach
+
 2017-09-23  Todd Helfter <thefter@gmail.com>
 	* tests/oralob.test : use the new [orainfo nlsgetinfo] to compare
 	NLS_CHARACTER_SET and skip certain lob tests that fail when the 

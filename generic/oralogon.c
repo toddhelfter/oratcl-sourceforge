@@ -235,7 +235,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 			      LogPtr->errhp,
 			      (text *) ora_conn,
 			      ora_connlen,
-			      0);
+			      OCI_DEFAULT);
 
 	if (rc != OCI_SUCCESS) {
 		attached = 1;
