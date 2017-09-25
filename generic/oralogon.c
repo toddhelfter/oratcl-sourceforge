@@ -309,6 +309,18 @@ Oratcl_Logon (clientData, interp, objc, objv)
 		goto common_exit;
 	}
 
+	rc = OCI_AttrSet((dvoid *) LogPtr->usrhp,
+			 (ub4) OCI_HTYPE_SESSION,
+			 (dvoid *) PACKAGE_NAME,
+			 (ub4) strlen(PACKAGE_NAME),
+			 (ub4) OCI_ATTR_DRIVER_NAME,
+			 LogPtr->errhp);
+
+	if (rc != OCI_SUCCESS) {
+		tcl_return = TCL_ERROR;
+		goto common_exit;
+	}
+
 	if ((ora_namelen + ora_passlen) == 0) {
 		oci_cred = OCI_CRED_EXT;
 	}

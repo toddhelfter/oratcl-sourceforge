@@ -1,4 +1,20 @@
 2017-09-24  Todd Helfter <thefter@gmail.com>
+	* generic/oralogon.c : set attribute for OCI_ATTR_DRIVER_NAME.
+	This will show 'Oratcl' as the CLIENT_DRIVER field in
+	v$session_connect_info view.
+	Example: select osuser, client_driver from v$session_connect_info;
+
+	OSUSER                         CLIENT_DRIVER
+	------------------------------ ------------------------------
+	thelfter                       Oratcl
+	thelfter                       Oratcl
+	thelfter                       Oratcl
+	oracle                         SQL*PLUS
+	oracle                         SQL*PLUS
+	oracle                         SQL*PLUS
+
+
+2017-09-24  Todd Helfter <thefter@gmail.com>
 	* generic/oralogon.c : correct a parameter to :OCI_ServerAttach
 
 2017-09-23  Todd Helfter <thefter@gmail.com>

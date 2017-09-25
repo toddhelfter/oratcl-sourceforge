@@ -495,6 +495,10 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define OCI_ATTR_SIGNATURE                  175                 /* signature */
 #define OCI_ATTR_STMTCACHESIZE              176     /* size of the stm cache */
 
+#define OCI_ATTR_CLIENT_IDENTIFIER          278  /* value of client id to set*/
+#define OCI_ATTR_MODULE                     366        /* module for tracing */
+#define OCI_ATTR_CLIENT_INFO                368               /* client info */
+#define OCI_ATTR_DRIVER_NAME                424               /* Driver Name */
 
 
 
