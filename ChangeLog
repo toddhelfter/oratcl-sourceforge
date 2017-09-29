@@ -1,4 +1,10 @@
+2017-09-29  Todd Helfter <thefter@gmail.com>
+	* configure
+	* configure.in
+	* tclconfig/tcl.m4: update to TEA 3.10
+
 2017-09-24  Todd Helfter <thefter@gmail.com>
+	* generic/oradefs.h
 	* generic/oralogon.c : set attribute for OCI_ATTR_DRIVER_NAME.
 	This will show 'Oratcl' as the CLIENT_DRIVER field in
 	v$session_connect_info view.

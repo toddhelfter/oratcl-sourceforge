@@ -4,7 +4,7 @@
 # Copyright (c) 2017 by Todd M. Helfter
 # All rights reserved.
 # 
-# RCS: @(#) $Id: defs.tcl,v 1.7 2017-09-21 17:37:11 tmh Exp $
+# RCS: @(#) $Id: defs.tcl,v 1.8 2017-09-29 02:06:03 tmh Exp $
 
 
 if {[lsearch [namespace children] ::tcltest] == -1} {
@@ -20,6 +20,7 @@ if {![info exists env(ORACLE_HOME)]} {
     puts "please enter the full pathname of your Oracle installation"
     gets stdin env(ORACLE_HOME)
 }
+puts "\n\tUsing tclsh binary :: [info nameofexecutable]"
 puts "\n\tUsing oracle home :: $env(ORACLE_HOME)"
 
 # prompt for oracle user id, password, server, and dbname
