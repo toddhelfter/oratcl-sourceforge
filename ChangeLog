@@ -1,3 +1,6 @@
+2017-10-02  Todd Helfter <thefter@gmail.com>
+	* Makefile.in: update to match the latest sampleextension
+
 2017-09-29  Todd Helfter <thefter@gmail.com>
 	* configure
 	* configure.in
