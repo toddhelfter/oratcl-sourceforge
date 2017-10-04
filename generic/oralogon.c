@@ -70,9 +70,9 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	char		*ora_pass = NULL;
 	char		*ora_conn = NULL;
 
-	int		ora_namelen = 0;
-	int		ora_passlen = 0;
-	int		ora_connlen = 0;
+	size_t		ora_namelen = 0;
+	size_t		ora_passlen = 0;
+	size_t		ora_connlen = 0;
 
 	ub4		oci_cred = OCI_CRED_RDBMS;
 	ub4		oci_conn = OCI_DEFAULT;
