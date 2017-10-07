@@ -1,3 +1,6 @@
+2017-10-04  Todd Helfter <thefter@gmail.com>
+	* oralogon.c: convert int to size_t
+
 2017-10-02  Todd Helfter <thefter@gmail.com>
 	* Makefile.in: update to match the latest sampleextension
 
