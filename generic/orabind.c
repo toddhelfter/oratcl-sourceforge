@@ -369,7 +369,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 				tmp_col->column.typecode = SQLT_STR;
 
 				if (StmPtr->unicode) {
-					mybindmax = (tmp_col->column.valuesz+1)*sizeof(utext);
+					mybindmax = (ub2) (tmp_col->column.valuesz+1)*sizeof(utext);
 					rc = OCI_BindByName(StmPtr->stmhp,
 							    (OCIBind **) &tmp_col->bindp,
 							    LogPtr->errhp,

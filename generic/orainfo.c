@@ -189,11 +189,11 @@ Oratcl_Info (clientData, interp, objc, objv)
 	if (index == OPT_RELEASE) {
 		OraText	rlsbuff[OCI_NLS_MAXBUFSZ];
 		ub4	*rlsnumb = 0;
-		sword	major_version = 0;
-		sword	minor_version = 0;
-		sword 	update_num = 0;
-		sword	patch_num = 0;
-		sword	port_update_num = 0;
+		long	major_version = 0;
+		long	minor_version = 0;
+		long 	update_num = 0;
+		long	patch_num = 0;
+		long	port_update_num = 0;
 
 		if (objc < 3) {
 			Tcl_WrongNumArgs(interp, objc, objv, "lda_handle");
