@@ -1187,7 +1187,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 			if (StmPtr->unicode) {
 				val_obj = Tcl_NewUnicodeObj((const Tcl_UniChar *) tmp, col->rlenp[rn]);
 			} else {
-				val_obj = Tcl_NewStringObj((char *) tmp, col->rlenp[rn]);
+				val_obj = Tcl_NewStringObj((char *) tmp, strlen(tmp));
 			}
 			Tcl_IncrRefCount(val_obj);
 
@@ -1260,7 +1260,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 
 	sword		rc;
 	ub2		myucs2id = OCI_UCS2ID;
-	ub2		mybindmax = 0;
+	sb4		mybindmax = 0;
 
 	OratclCols	*new_col_head;
 	OratclCols	*new_col;

@@ -1,3 +1,8 @@
+2017-10-12  Todd Helfter <thefter@gmail.com>
+	* generic/oratcl.c : sourceforge bug #71 - fix query results for
+	'long' column types that were not properly handling the 'oraconfig
+	longsize' values.
+
 2017-10-07  Todd Helfter <thefter@gmail.com>
 	* orabind.c: 
 	* oraexec.c: fix cast and type warnings
