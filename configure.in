@@ -84,7 +84,7 @@ TEA_ADD_HEADERS([])
 #--------------------------------------------------------------------
 
 AC_ARG_WITH(oracle-directory,
-    AC_HELP_STRING([--with-oracle-directory=DIR],
+    AS_HELP_STRING([--with-oracle-directory=DIR],
         [directory containing Oracle Instant Client]),
     [ORACLE_DIR=$withval],
     [ORACLE_DIR=$ORACLE_HOME])
@@ -226,4 +226,5 @@ AC_SUBST(PLATFORM)
 # which require substituting th AC variables in.  Include these here.
 #--------------------------------------------------------------------
 
-AC_OUTPUT([Makefile teapot.txt])
+AC_CONFIG_FILES([Makefile teapot.txt])
+AC_OUTPUT
