@@ -4,7 +4,7 @@
 # Copyright (c) 2017 by Todd M. Helfter
 # All rights reserved.
 # 
-# RCS: @(#) $Id: defs.tcl,v 1.8 2017-09-29 02:06:03 tmh Exp $
+# RCS: @(#) $Id: defs.tcl,v 1.8 2017/09/29 02:06:03 tmh Exp $
 
 
 if {[lsearch [namespace children] ::tcltest] == -1} {

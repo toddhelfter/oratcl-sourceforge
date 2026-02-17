@@ -37,21 +37,6 @@ proc ::Oratcl::utils::limitEntry {args} {
 
 
 #
-# getLogo : return Oratcl Logo for external uses.
-#
-proc ::Oratcl::utils::getLogo args {
-	variable OraTcl
-
-	package require Tk
-
-	if {! [info exists OraTcl(image)]} {
-		Oratcl::utils::makeImage
-	} 
-	return $OraTcl(image)
-}
-
-
-#
 # logonBox : display a GUI database connection window
 #
 proc ::Oratcl::utils::logonBox args {

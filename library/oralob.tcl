@@ -1,7 +1,7 @@
 # oralob:
 # Process lob commands.
 #
-# RCS: @(#) $Id: oralob.tcl,v 1.14 2016-03-29 16:54:23 tmh Exp $
+# RCS: @(#) $Id: oralob.tcl,v 1.14 2016/03/29 16:54:23 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #
