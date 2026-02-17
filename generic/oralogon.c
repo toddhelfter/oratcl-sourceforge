@@ -166,15 +166,15 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	*/
 	for (i = 2; i < objc; i++) {
 		
-		if (0 == strcasecmp(Tcl_GetString(objv[2]), "-sysdba")) {
+		if (0 == strcasecmp(Tcl_GetString(objv[i]), "-sysdba")) {
 			oci_conn = OCI_SYSDBA;
 		}
 
-		if (0 == strcasecmp(Tcl_GetString(objv[2]), "-sysoper")) {
+		if (0 == strcasecmp(Tcl_GetString(objv[i]), "-sysoper")) {
 			oci_conn = OCI_SYSOPER;
 		}
 
-		if (0 == strcasecmp(Tcl_GetString(objv[2]), "-sysasm")) {
+		if (0 == strcasecmp(Tcl_GetString(objv[i]), "-sysasm")) {
 			oci_conn = OCI_SYSASM;
 		}
 
