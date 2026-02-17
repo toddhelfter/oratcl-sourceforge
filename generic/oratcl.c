@@ -281,31 +281,21 @@ Oratcl_Init(Tcl_Interp *interp)
 	CONST char	*native;
 
 	Tcl_Obj		*env_obj;
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		*tmp_obj = NULL;
-#endif
 	Tcl_Obj		*pt1_obj = NULL;
 	Tcl_Obj		*pt2_obj = NULL;
 	Tcl_Obj		*pt3_obj = NULL;
 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		**pathObjv;
 	int		pathObjc;
 	Tcl_Obj		*pathList;
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-	char		**pathObjv;
-	int		pathObjc;
-	Tcl_DString	result;
-#endif
 	CONST char	*ora_lib = NULL;
 
 #endif							/* __WIN32__ */
 
-#ifdef USE_TCL_STUBS
-	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
+	if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
 		return TCL_ERROR;
 	}
-#endif
 
 #ifndef __WIN32__
 
@@ -320,12 +310,7 @@ Oratcl_Init(Tcl_Interp *interp)
 		native = ora_lib;
 	} else {
 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		pathObjv = (Tcl_Obj **) ckalloc (3 * sizeof(*pathObjv));
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		Tcl_DStringInit(&result);
-		pathObjv = (char **) ckalloc (3 * sizeof(char *));
-#endif
 		pathObjc = 0;
 
 		env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
@@ -345,7 +330,6 @@ Oratcl_Init(Tcl_Interp *interp)
 		Tcl_IncrRefCount(pt2_obj);
 		Tcl_IncrRefCount(pt3_obj);
 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		pathObjv[pathObjc++] = pt1_obj;
 		pathObjv[pathObjc++] = pt2_obj;
 		pathObjv[pathObjc++] = pt3_obj;
@@ -362,21 +346,6 @@ Oratcl_Init(Tcl_Interp *interp)
 		Tcl_IncrRefCount(tmp_obj);
 		Tcl_DecrRefCount(pathList);
 		native = Tcl_FSGetNativePath(tmp_obj);
-
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		pathObjv[pathObjc++] = Tcl_GetString(pt1_obj);
-		pathObjv[pathObjc++] = Tcl_GetString(pt2_obj);
-		pathObjv[pathObjc++] = Tcl_GetString(pt3_obj);
-
-		Tcl_JoinPath(pathObjc, pathObjv, &result);
-
-		ckfree((char *)pathObjv);
-		Tcl_DecrRefCount(pt1_obj);
-		Tcl_DecrRefCount(pt2_obj);
-		Tcl_DecrRefCount(pt3_obj);
-		Tcl_DecrRefCount(env_obj);
-		native = Tcl_DStringValue(&result);
-#endif
 
 	}
 
@@ -395,21 +364,13 @@ Oratcl_Init(Tcl_Interp *interp)
 		}
 
 		if (ora_lib == NULL) {
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 			Tcl_DecrRefCount(tmp_obj);
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-			Tcl_DStringFree(&result);
-#endif
 		}
 		return TCL_ERROR;
 	}
 
 	if (ora_lib == NULL) {
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		Tcl_DecrRefCount(tmp_obj);
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		Tcl_DStringFree(&result);
-#endif
 	}
 
 #else
