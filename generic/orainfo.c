@@ -675,7 +675,7 @@ Oratcl_Info(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 				break;
 # if 0
 			case OPT_NLS_WRITING_DIR:
-				nlscode = OCI_NLS_WRITING_DIR;
+				nlscode = OCI_NLS_WRITINGDIR;
 				break;
 # endif
 			case OPT_NLS_ABTERRITORY:
