@@ -1012,7 +1012,6 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	OratclCols	*col;
 	char		*null_str;
 	int		idx;
-	int		iTcl;
 
 	Tcl_DString	uniStr;
 	Tcl_DString	lobStr;
@@ -1031,7 +1030,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	if (arrayvar) {
-		iTcl = Tcl_UnsetVar2(interp,
+		(void) Tcl_UnsetVar2(interp,
 				     Tcl_GetStringFromObj(arrayvar, NULL),
 				     (char *) NULL,
 				     0);
