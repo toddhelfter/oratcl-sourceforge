@@ -73,9 +73,7 @@ LPVOID reserved;            /* Not used. */
 
 #else			/* __hpux */
 
-#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
-#endif
 #define HMODULE void *
 #define DLOPEN	dlopen
 #define DLCLOSE	dlclose
