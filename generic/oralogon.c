@@ -57,7 +57,7 @@ Oratcl_Logon(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	char		*cpy_str = NULL;
 	char		*cpy_pos1 = NULL;
 	char		*cpy_pos2 = NULL;
-	Tcl_Size	con_len;
+	Tcl_Size	con_len = 0;
 	sword		rc = 0;
 
 	int		attached = 0;
@@ -431,6 +431,7 @@ common_exit:
 
 	}
 
+	memset(cpy_str, 0, con_len);
 	ckfree(cpy_str);
 
 	return tcl_return;
