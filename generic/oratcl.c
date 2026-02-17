@@ -352,6 +352,7 @@ Oratcl_Init(Tcl_Interp *interp)
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
 	if (handle == NULL) {
+#ifdef ORATCL_DEBUG
 		fprintf(stderr, "%s(): Failed to load %s with error %s\n",
 			"Oratcl_Init",
 			native,
@@ -362,6 +363,7 @@ Oratcl_Init(Tcl_Interp *interp)
 				"Oratcl_Init",
 				native);
 		}
+#endif
 
 		if (ora_lib == NULL) {
 			Tcl_DecrRefCount(tmp_obj);
@@ -378,10 +380,12 @@ Oratcl_Init(Tcl_Interp *interp)
 	handle = LoadLibrary(TEXT("OCI.DLL"));
 	if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 		last_error = GetLastError();
+#ifdef ORATCL_DEBUG
 		fprintf(stderr, "%s(): %s with error %lu",
 			"Oratcl_Init",
 			"Failed loading oci.dll symbols",
 			(unsigned long) last_error);
+#endif
 		return TCL_ERROR;
 	}
 
@@ -785,13 +789,10 @@ Oratcl_ColAlloc(int fetchrows)
 		ColPtr->bindp = NULL;
 		ColPtr->nFetchRows = fetchrows;
 		if ((ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows)) == NULL) {
-			fprintf(stderr, "ColPtr->indp is NULL\n");
 		}
 		if ((ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows)) == NULL) {
-			fprintf(stderr, "ColPtr->rlenp is NULL\n");
 		}
 		if ((ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows)) == NULL) {
-			fprintf(stderr, "ColPtr->rcodep is NULL\n");
 		}
 		ColPtr->indp[0] = 0;
 		ColPtr->rlenp[0] = 0;
@@ -998,7 +999,6 @@ Oratcl_ColAppend(Tcl_Interp *interp, OratclStms *StmPtr, Tcl_Obj *listvar, Tcl_O
 		if (( col->dty == SQLT_BLOB ) || ( col->dty == SQLT_CLOB )) {
 			pValue = ckalloc( StmPtr->lobpsize + 1 );
 			if (pValue == NULL) {
-				fprintf(stderr, "error:: pValue is NULL return -1\n");
 				return -1;
 			}
 			pValue[0] = '\0';
@@ -1071,16 +1071,12 @@ Oratcl_ColAppend(Tcl_Interp *interp, OratclStms *StmPtr, Tcl_Obj *listvar, Tcl_O
 								      (ub1) SQLCS_IMPLICIT);
 
 						if( ( nStatus != OCI_SUCCESS ) && ( nStatus != OCI_NEED_DATA ) ) {
-							fprintf(stderr, "nStatus = %d\n", nStatus);
-							fprintf(stderr, "error:: return -3\n");
-							ckfree(pValue);
-							Tcl_DStringFree(&lobStr);
-							return -3;
-						}
+						ckfree(pValue);
+						Tcl_DStringFree(&lobStr);
+						return -3;
+					}
 
-						if( nAMTP == 0 ) {
-							fprintf(stderr, "error:: return -4\n");
-							ckfree(pValue);
+					if( nAMTP == 0 ) {
 							Tcl_DStringFree(&lobStr);
 							return -4;
 						}
@@ -1317,7 +1313,6 @@ Oratcl_ColDescribe(Tcl_Interp *interp, OratclStms *StmPtr)
 			char *pLocators;
 			pLocators = ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
 			if (pLocators == NULL) {
-				fprintf(stderr, "error:: pLocators is NULL return -1\n");
 				return -1;
 			}
 			for (nRow = 0; nRow < StmPtr->fetchrows; nRow++ ) {
@@ -1367,7 +1362,6 @@ Oratcl_ColDescribe(Tcl_Interp *interp, OratclStms *StmPtr)
 			}
 
 			if (new_col->column.valuep == NULL) {
-				fprintf(stderr, "error:: new_col->column.valuep is NULL return -1\n");
 				return -1;
 			}
 

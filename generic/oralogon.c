@@ -87,7 +87,6 @@ Oratcl_Logon(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 	LogPtr = (OratclLogs *) ckalloc (sizeof (OratclLogs));
 	if (LogPtr == NULL) {
-		fprintf(stderr, "error:: new_col->column.valuep is NULL return -1\n");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
@@ -114,7 +113,6 @@ Oratcl_Logon(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	con_str = Tcl_GetStringFromObj(objv[1], &con_len);
 	cpy_str = ckalloc (con_len + 1);
 	if (cpy_str == NULL) {
-		fprintf(stderr, "error:: cpy_str is NULL return -1\n");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}

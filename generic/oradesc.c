@@ -119,7 +119,6 @@ Oratcl_Describe(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
 	tmp_str = Tcl_GetStringFromObj(objv[2], &tmp_len);
 	if (tmp_str == NULL) {
-		fprintf(stderr, "error:: tmp_str is NULL return -1\n");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}
