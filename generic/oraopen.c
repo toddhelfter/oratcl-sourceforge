@@ -30,11 +30,7 @@
  */
 
 int
-Oratcl_Open (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Open(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 
 	OratclState	*OratclStatePtr = (OratclState *) clientData;

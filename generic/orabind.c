@@ -18,15 +18,7 @@
 #include "oratcl.h"
 
 static sb4
-Oratcl_ArrayPutElement (ictxp, bindp, iter, index, bufpp, alenp, piecep, indpp)
-	dvoid	*ictxp;
-	OCIBind *bindp;
-	ub4	iter;
-	ub4	index;
-	dvoid	**bufpp;
-	ub4	*alenp;
-	ub1	*piecep;
-	dvoid	**indpp;
+Oratcl_ArrayPutElement(dvoid *ictxp, OCIBind *bindp, ub4 iter, ub4 index, dvoid **bufpp, ub4 *alenp, ub1 *piecep, dvoid **indpp)
 {
 	OratclCols *tmp_col = ictxp;
 	Tcl_Obj	*element;
@@ -63,11 +55,7 @@ Oratcl_ArrayPutElement (ictxp, bindp, iter, index, bufpp, alenp, piecep, indpp)
  *----------------------------------------------------------------------
  */
 int
-Oratcl_Bind (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Bind(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;

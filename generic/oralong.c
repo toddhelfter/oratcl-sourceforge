@@ -17,8 +17,7 @@
 #include "oratclExtern.h"
 
 int
-Oralong_Init (interp)
-	Tcl_Interp	*interp;
+Oralong_Init(Tcl_Interp *interp)
 {
 	size_t		x;
 	int		debug = 0;
@@ -310,11 +309,7 @@ Oralong_Init (interp)
  */
 
 int
-Oratcl_LongRead (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_LongRead(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -618,11 +613,7 @@ common_exit:
  */
 
 int
-Oratcl_LongWrite (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_LongWrite(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;

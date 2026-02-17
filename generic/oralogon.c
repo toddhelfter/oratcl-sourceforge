@@ -40,11 +40,7 @@ sb4 callback_fn(dvoid *, dvoid *, dvoid *, ub4, ub4);
  */
 
 int
-Oratcl_Logon (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Logon(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OCIFocbkStruct	failover;
@@ -445,12 +441,7 @@ common_exit:
  * TAF Callback
  *----------------------------------------------------------------------
  */
-sb4 callback_fn(svchp, envhp, fo_ctx, fo_type, fo_event)
-	dvoid		*svchp;
-	dvoid		*envhp;
-	dvoid		*fo_ctx;
-	ub4		fo_type;
-	ub4		fo_event;
+sb4 callback_fn(dvoid *svchp, dvoid *envhp, dvoid *fo_ctx, ub4 fo_type, ub4 fo_event)
 {
 	int		res;
 

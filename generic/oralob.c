@@ -15,8 +15,7 @@
 #include <tcl.h>
 
 int
-Oralob_Init (interp)
-	Tcl_Interp	*interp;
+Oralob_Init(Tcl_Interp *interp)
 {
 	size_t		x;
 	int             debug = 0;

@@ -160,10 +160,7 @@ OCINLSNUMERICINFOGET	OCI_NlsNumericInfoGet;
  */
 
 void
-Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
-	Tcl_Interp	*interp;
-	Tcl_Obj 	*obj0, *obj1;
-	char		*msg0, *msg1;
+Oratcl_ErrorMsg(Tcl_Interp *interp, Tcl_Obj *obj0, char *msg0, Tcl_Obj *obj1, char *msg1)
 {
 	Tcl_Obj		*newPtr;
 
@@ -192,9 +189,7 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
  */
 
 void
-Oratcl_Delete (clientData, interp)
-    ClientData clientData;
-    Tcl_Interp *interp;
+Oratcl_Delete(ClientData clientData, Tcl_Interp *interp)
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OratclLogs	*LogPtr;
@@ -274,8 +269,7 @@ Oratcl_Delete (clientData, interp)
  */
 
 int
-Oratcl_Init (interp)
-	Tcl_Interp	*interp;
+Oratcl_Init(Tcl_Interp *interp)
 {
 	OratclState	*OratclStatePtr;
 
@@ -745,13 +739,7 @@ Oratcl_Init (interp)
  */
 
 void
-Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
-	Tcl_Interp	*interp;
-	OCIError	*errhp;
-	sword		rc;
-	int		flag;
-	int		*rcPtr;
-	Tcl_DString	*errPtr;
+Oratcl_Checkerr(Tcl_Interp *interp, OCIError *errhp, sword rc, int flag, int *rcPtr, Tcl_DString *errPtr)
 {
 
 	Tcl_DString	errStr;
@@ -818,8 +806,7 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
  */
 
 OratclCols *
-Oratcl_ColAlloc(fetchrows)
-	int	fetchrows;
+Oratcl_ColAlloc(int fetchrows)
 {
 	OratclCols *ColPtr;
 
@@ -867,8 +854,7 @@ Oratcl_ColAlloc(fetchrows)
  */
 
 void
-Oratcl_ColFree (ColPtr)
-	OratclCols  *ColPtr;
+Oratcl_ColFree(OratclCols *ColPtr)
 {
 	OratclCols  *next;
 
@@ -933,8 +919,7 @@ Oratcl_ColFree (ColPtr)
  */
 
 void
-Oratcl_StmFree (StmPtr)
-	OratclStms	*StmPtr;
+Oratcl_StmFree(OratclStms *StmPtr)
 {
 	if (StmPtr != NULL) {
 
@@ -962,8 +947,7 @@ Oratcl_StmFree (StmPtr)
  */
 
 void
-Oratcl_LogFree (LogPtr)
-	OratclLogs	*LogPtr;
+Oratcl_LogFree(OratclLogs *LogPtr)
 {
 	if (LogPtr != NULL) {
 
@@ -1000,12 +984,7 @@ Oratcl_LogFree (LogPtr)
  */
 
 int
-Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
-	Tcl_Interp	*interp;
-	OratclStms	*StmPtr;
-	Tcl_Obj		*listvar;
-	Tcl_Obj		*arrayvar;
-	int		hashType;
+Oratcl_ColAppend(Tcl_Interp *interp, OratclStms *StmPtr, Tcl_Obj *listvar, Tcl_Obj *arrayvar, int hashType)
 {
 	int		rn;
 	OratclCols 	*ColPtr;
@@ -1249,9 +1228,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
  */
 
 int
-Oratcl_ColDescribe (interp, StmPtr)
-	Tcl_Interp 	*interp;
-	OratclStms	*StmPtr;
+Oratcl_ColDescribe(Tcl_Interp *interp, OratclStms *StmPtr)
 {
 	OratclLogs	*LogPtr;
 
@@ -1504,11 +1481,7 @@ Oratcl_ColDescribe (interp, StmPtr)
  */
 
 int
-Oratcl_Cols (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Cols(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -1640,12 +1613,7 @@ common_exit:
 
 
 sword
-Oratcl_Attributes (interp, errhp, parmh, column, explicit)
-	Tcl_Interp	*interp;
-	OCIError	*errhp;
-	OCIParam	*parmh;
-	OratclDesc	*column;
-	int		explicit;
+Oratcl_Attributes(Tcl_Interp *interp, OCIError *errhp, OCIParam *parmh, OratclDesc *column, int explicit)
 {
 	text		*namep;
 	ub4		namesz;
