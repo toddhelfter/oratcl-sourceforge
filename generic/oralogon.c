@@ -61,7 +61,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	char		*cpy_str = NULL;
 	char		*cpy_pos1 = NULL;
 	char		*cpy_pos2 = NULL;
-	int		con_len;
+	Tcl_Size	con_len;
 	sword		rc = 0;
 
 	int		attached = 0;

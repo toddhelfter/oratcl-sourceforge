@@ -73,7 +73,7 @@ struct OratclCols {
 	sb2		*indp;			/* null indicator pointer */
 	ub2		*rlenp;			/* actual column length */
 	ub2		*rcodep;		/* actual column code */
-	int		array_count;
+	Tcl_Size	array_count;
 	Tcl_Obj		*array_values;
 };
 typedef struct OratclCols OratclCols;

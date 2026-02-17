@@ -34,7 +34,11 @@ Oratcl_ArrayPutElement (ictxp, bindp, iter, index, bufpp, alenp, piecep, indpp)
 	if (Tcl_ListObjIndex(NULL, tmp_col->array_values, iter, &element) != TCL_OK) {
 	  /* handle invalid list element error */
 	}
-	*bufpp = Tcl_GetStringFromObj(element, (int *) alenp);
+	{
+		Tcl_Size tlen;
+		*bufpp = Tcl_GetStringFromObj(element, &tlen);
+		*alenp = (ub4) tlen;
+	}
 	*piecep = OCI_ONE_PIECE;
 	*indpp = NULL;
 
@@ -85,7 +89,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	char		*arg_pcc = NULL;
 	char		*arg_pcp = NULL;
 	Tcl_UniChar	*arg_upcp = NULL;
-	int		arg_pcc_len, arg_pcp_len;
+	Tcl_Size	arg_pcc_len, arg_pcp_len;
 	int		array_max_length = 0;
 	int		tcl_return = TCL_OK;
 
@@ -118,7 +122,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 	parm_cnt = 2;
 	if (objc >= 3) {
 		char *p;
-		p = Tcl_GetStringFromObj(objv[2], (int *) NULL);
+		p = Tcl_GetStringFromObj(objv[2], NULL);
 		if (*p == '-') {
 			p++;
 		}
@@ -275,8 +279,8 @@ Oratcl_Bind (clientData, interp, objc, objv)
 
 			/* allocate adequate space for reuse */
 			if (StmPtr->array_dml) {
-				Tcl_Obj **list;
-				int list_size, j, len =0;
+					Tcl_Obj **list;
+				Tcl_Size list_size, j, len = 0;
 
 				if (Tcl_ListObjGetElements(interp, objv[parm_cnt+1], &list_size, &list) != TCL_OK) {
 					Oratcl_ColFree(StmPtr->col_list);
@@ -499,7 +503,7 @@ Oratcl_Bind (clientData, interp, objc, objv)
 		while (objc > parm_cnt + 1) {       /* always in pairs of two */
 			tmp_col = StmPtr->bind_list;
 			while (tmp_col != NULL) {
-				if (strncmp((char *) tmp_col->column.name, Tcl_GetStringFromObj(objv[parm_cnt], (int *) NULL), 255) == 0) {
+				if (strncmp((char *) tmp_col->column.name, Tcl_GetStringFromObj(objv[parm_cnt], NULL), 255) == 0) {
 					if (StmPtr->unicode) {
 						arg_upcp = Tcl_GetUnicodeFromObj(objv[parm_cnt + 1], &arg_pcp_len);
 						memcpy(tmp_col->column.valuep, arg_upcp, ((arg_pcp_len+1)*sizeof(utext)));

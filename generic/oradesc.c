@@ -45,7 +45,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	OCIDescribe	*dschp = (OCIDescribe *)0;
 
 	char		*tmp_str;
-	int		tmp_len;
+	Tcl_Size	tmp_len;
 
 	text		*syn_st1 = NULL, *syn_st2 = NULL, *syn_st3 = NULL;
 	ub4		syn_ln1, syn_ln2, syn_ln3;

@@ -324,10 +324,10 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	OCIDefine       *defnp;		/* define pointer */
 
 	char		*sql;
-	int		sql_len = 0;
+	Tcl_Size	sql_len = 0;
 
 	char		*btype;
-	int		btype_len = 0;
+	Tcl_Size	btype_len = 0;
 
 	int		rc, frc, prc;
 
@@ -634,14 +634,14 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	int		rc;
 
 	char		*sql;
-	int		sql_len = 0;
+	Tcl_Size	sql_len = 0;
 
 	Tcl_DString	outStr;
 	char		*pre_data;
-	int		pre_data_len = 0;
+	Tcl_Size	pre_data_len = 0;
 
 	char		*type;
-	int		type_len = 0;
+	Tcl_Size	type_len = 0;
 
 	int		offset, sofar;
 	char		*wherebuf;

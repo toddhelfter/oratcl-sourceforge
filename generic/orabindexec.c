@@ -68,7 +68,7 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 
 	/* check for option and deprecated keywords */
 	if (objc >= 3) {
-		p = Tcl_GetStringFromObj(objv[2], (int *) NULL);
+		p = Tcl_GetStringFromObj(objv[2], NULL);
 		if (*p == '-') {
 			p++;
 		}
