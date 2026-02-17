@@ -183,7 +183,7 @@ Oratcl_Fetch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 		OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			    (ub4) OCI_HTYPE_STMT,
 			    (ub4 *) &StmPtr->fetch_cnt,
-			    (ub4) 0,
+			    NULL,
 			    OCI_ATTR_ROW_COUNT,
 			    LogPtr->errhp);
 

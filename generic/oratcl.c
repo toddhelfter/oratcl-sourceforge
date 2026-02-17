@@ -273,8 +273,6 @@ Oratcl_Init(Tcl_Interp *interp)
 {
 	OratclState	*OratclStatePtr;
 
-	int		rc = 0;
-
 	HMODULE		handle;
 
 #ifdef __WIN32__
@@ -720,8 +718,8 @@ Oratcl_Init(Tcl_Interp *interp)
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
 
-	rc = Oralob_Init(interp);
-	rc = Oralong_Init(interp);
+	Oralob_Init(interp);
+	Oralong_Init(interp);
 
 	if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) != TCL_OK) {
 		return TCL_ERROR;
@@ -1251,7 +1249,7 @@ Oratcl_ColDescribe(Tcl_Interp *interp, OratclStms *StmPtr)
 	rc = OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			 (ub4) OCI_HTYPE_STMT,
 			 (ub4 *) &parmcnt,
-			 (ub4) 0,
+			 NULL,
 			 OCI_ATTR_PARAM_COUNT,
 			 LogPtr->errhp);
 

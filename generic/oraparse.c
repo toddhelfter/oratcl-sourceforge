@@ -113,7 +113,7 @@ Oratcl_Parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 		    (ub4) OCI_HTYPE_STMT,
 		    (ub2 *) &StmPtr->sqltype,
-		    (ub4) 0,
+		    NULL,
 		    OCI_ATTR_STMT_TYPE,
 		    LogPtr->errhp);
 
@@ -146,7 +146,7 @@ Oratcl_Parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 			OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 				    (ub4) OCI_HTYPE_STMT,
 				    (ub2 *) &StmPtr->ora_peo,
-				    (ub4) 0,
+				    NULL,
 				    OCI_ATTR_PARSE_ERROR_OFFSET,
 				    LogPtr->errhp);
 #endif

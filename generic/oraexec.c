@@ -223,7 +223,7 @@ Oratcl_Exec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 		    (ub4) OCI_HTYPE_STMT,
 		    (ub2 *) &StmPtr->ora_fcd,
-		    (ub4) 0,
+		    NULL,
 		    OCI_ATTR_SQLFNCODE,
 		    LogPtr->errhp);
 
@@ -236,7 +236,7 @@ Oratcl_Exec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 		rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 				  (ub4) OCI_HTYPE_STMT,
 				  (ub4 *) &rowcnt,
-				  (ub4) 0,
+				  NULL,
 				  OCI_ATTR_ROW_COUNT,
 				  LogPtr->errhp));
 
@@ -291,7 +291,7 @@ Oratcl_Exec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 							OCI_AttrGet( (dvoid *) RefPtr->stmhp,
 								    (ub4) OCI_HTYPE_STMT,
 								    (ub2 *) &RefPtr->ora_peo,
-								    (ub4) 0,
+							    NULL,
 								    OCI_ATTR_PARSE_ERROR_OFFSET,
 								    LogPtr->errhp);
 #endif
@@ -308,10 +308,7 @@ Oratcl_Exec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 						OCI_AttrGet( (dvoid *) RefPtr->stmhp,
 							    (ub4) OCI_HTYPE_STMT,
 							    (ub2 *) &RefPtr->ora_fcd,
-							    (ub4) 0,
-							    OCI_ATTR_SQLFNCODE,
-							    LogPtr->errhp);
-
+						    NULL,
 						if (Oratcl_ColDescribe(interp, RefPtr) == -1) {
 							Oratcl_ErrorMsg(interp,
 									objv[0],

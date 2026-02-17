@@ -561,7 +561,7 @@ Oratcl_LongRead(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 	rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			  (ub4) OCI_HTYPE_STMT,
 			  (ub4 *) &rowcnt,
-			  (ub4) 0,
+			  NULL,
 			  OCI_ATTR_ROW_COUNT,
 			  LogPtr->errhp));
 
@@ -880,7 +880,7 @@ Oratcl_LongWrite(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 	rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			  (ub4) OCI_HTYPE_STMT,
 			  (ub4 *) &rowcnt,
-			  (ub4) 0,
+			  NULL,
 			  OCI_ATTR_ROW_COUNT,
 			  LogPtr->errhp));
 

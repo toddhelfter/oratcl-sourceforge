@@ -23,7 +23,7 @@
 
 /* For pre-8.4 Tcl Support */
 #ifndef CONST84
-#   define CONST84
+#   define CONST84 const
 #endif
 
 /* various limits for arrays of structures, default buffer sizes */
