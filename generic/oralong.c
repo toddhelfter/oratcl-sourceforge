@@ -21,13 +21,13 @@ Oralong_Init(Tcl_Interp *interp)
 {
 	size_t		x;
 	int		debug = 0;
-	CONST84 char	*rx;
+	const char	*rx;
 	Tcl_Obj		*tmp1_obj;
 
 	struct tvars {
-		CONST84 char * ns;
-		CONST84 char * name;
-		CONST84 char * value;
+		const char * ns;
+		const char * name;
+		const char * value;
 	};
 
 	struct tvars tvars_list [] = {
@@ -69,7 +69,7 @@ Oralong_Init(Tcl_Interp *interp)
 	};
 
 
-	CONST84 char *script[] = {
+	const char *script[] = {
 	        "proc oralong {command handle args} { "
 		"	global errorInfo; "
 		"	foreach idx [list rowid table column datavariable] { "

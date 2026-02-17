@@ -308,7 +308,10 @@ Oratcl_Exec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 						OCI_AttrGet( (dvoid *) RefPtr->stmhp,
 							    (ub4) OCI_HTYPE_STMT,
 							    (ub2 *) &RefPtr->ora_fcd,
-						    NULL,
+							    NULL,
+							    OCI_ATTR_SQLFNCODE,
+							    LogPtr->errhp);
+
 						if (Oratcl_ColDescribe(interp, RefPtr) == -1) {
 							Oratcl_ErrorMsg(interp,
 									objv[0],

@@ -45,7 +45,7 @@ Oratcl_Fetch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	int		hashType = 1;	/* default use column name for array index */
 
 	int		option;
-	static CONST84 char *options[] = {"-datavariable",
+	static const char *options[] = {"-datavariable",
 				   "-dataarray",
 				   "-command",
 				   "-indexbyname",
@@ -91,7 +91,7 @@ Oratcl_Fetch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	for (objix=2; objix<objc; objix++) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[objix],
-					(CONST84 char **)options,
+					(const char **)options,
 					"option",
 					0,
 					&option)) {

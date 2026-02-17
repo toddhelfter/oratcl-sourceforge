@@ -1494,7 +1494,7 @@ Oratcl_Cols(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	static CONST84 char *options[] = {"all",
+	static const char *options[] = {"all",
 				   "name",
 				   "size",
 				   "type",
@@ -1522,7 +1522,7 @@ Oratcl_Cols(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 	if (objc == 3) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					(CONST84 char **)options,
+					(const char **)options,
 					"option",
 					0,
 					&mode)) {

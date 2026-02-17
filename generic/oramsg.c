@@ -45,7 +45,7 @@ Oratcl_Message(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	int		oColslen = 7;
 	Tcl_Obj		*oResult;
 
-	static CONST84 char *options[] = {"all",
+	static const char *options[] = {"all",
 				   "rc",
 				   "error",
 				   "rows",
@@ -75,7 +75,7 @@ Oratcl_Message(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	if (objc == 3) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					(CONST84 char **)options,
+					(const char **)options,
 					"option",
 					0,
 					&mode)) {
