@@ -40,7 +40,7 @@
 #undef  TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS  DLLEXPORT
 
-EXTERN Oratcl_Init	_ANSI_ARGS_((Tcl_Interp *interp));
+EXTERN Oratcl_Init(Tcl_Interp *interp);
 
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
@@ -95,9 +95,9 @@ LPVOID reserved;            /* Not used. */
 
 #include "oratclExtern.h"
 
-extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
-extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
-extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
+extern int	  Oratcl_Init(Tcl_Interp *interp);
+extern int	  Oralob_Init(Tcl_Interp *interp);
+extern int	  Oralong_Init(Tcl_Interp *interp);
 
 /*
  * Definitions of the Oracle function vectors. Taken from
