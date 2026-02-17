@@ -16,9 +16,9 @@
 #include "oradefs.h"
 #include <tcl.h>
 
-/* _ANSI_ARGS_ should be defined by tcl.h; ignore if not defined */
+/* _ANSI_ARGS_ should be defined by tcl.h; define for Tcl 9+ compatibility */
 #ifndef _ANSI_ARGS_
-#define _ANSI_ARGS_() ()
+#define _ANSI_ARGS_(x) x
 #endif
 
 /* For pre-8.4 Tcl Support */

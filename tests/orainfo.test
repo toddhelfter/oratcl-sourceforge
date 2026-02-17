@@ -30,7 +30,7 @@ namespace eval ::tcl::test::orainfo {
 	-cleanup {
 		unset res
 	}
-	-result 4.6
+	-result 5.0
     }
 
     test orainfo-1.1 {orainfo: server} {

@@ -19,7 +19,7 @@ dnl	to configure the system for the local environment.
 # so you can encode the package version directly into the source files.
 #-----------------------------------------------------------------------
 
-AC_INIT([Oratcl], [4.6])
+AC_INIT([Oratcl], [5.0])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -77,8 +77,29 @@ TEA_ADD_SOURCES([oratcl.c oralob.c oralong.c oralogon.c oralogoff.c
 	oraparse.c orabind.c oraexec.c orafetch.c
 	orasql.c oraplexec.c orabindexec.c])
 TEA_ADD_HEADERS([])
-TEA_ADD_INCLUDES([])
+
+#--------------------------------------------------------------------
+# Oracle Instant Client paths
+# Use --with-oracle-directory=DIR or ORACLE_HOME environment variable
+#--------------------------------------------------------------------
+
+AC_ARG_WITH(oracle-directory,
+    AC_HELP_STRING([--with-oracle-directory=DIR],
+        [directory containing Oracle Instant Client]),
+    [ORACLE_DIR=$withval],
+    [ORACLE_DIR=$ORACLE_HOME])
+
+if test "x$ORACLE_DIR" = "x" ; then
+    AC_MSG_ERROR([Oracle directory not found. Set ORACLE_HOME or use --with-oracle-directory=DIR])
+fi
+
+if test ! -d "$ORACLE_DIR/sdk/include" ; then
+    AC_MSG_ERROR([Oracle SDK include directory not found at $ORACLE_DIR/sdk/include])
+fi
+
+TEA_ADD_INCLUDES([-I${ORACLE_DIR}/sdk/include])
 TEA_ADD_LIBS([])
+
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([library/oratcl_utils.tcl])

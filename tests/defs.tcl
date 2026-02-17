@@ -12,7 +12,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 	namespace import ::tcltest::*
 	}
 
-package require -exact Oratcl 4.6
+package require -exact Oratcl 5.0
 
 # check for ORACLE env var
 if {![info exists env(ORACLE_HOME)]} {

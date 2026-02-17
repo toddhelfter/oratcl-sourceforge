@@ -23,8 +23,8 @@ namespace eval ::tcl::test::slaveinterps {
 
 	test slaveinterp-1.1 {slaveinterp: load package into slave interp} {
 		set s1 [interp create] 
-		$s1 eval {package require -exact Oratcl 4.6}
-	} {4.6}
+		$s1 eval {package require -exact Oratcl 5.0}
+	} {5.0}
 
 	testConstraint testinterp1 [interp exists $s1]
 	testConstraint testoralogon1 [llength [$s1 eval {info commands oralogon}]]
@@ -67,8 +67,8 @@ namespace eval ::tcl::test::slaveinterps {
 
 	test slaveinterp-2.1 {slaveinterp: load package into slave interp} {
 		set s2 [interp create] 
-		$s2 eval {package require -exact Oratcl 4.6}
-	} {4.6}
+		$s2 eval {package require -exact Oratcl 5.0}
+	} {5.0}
 
 	testConstraint testinterp2 [interp exists $s2]
 	testConstraint testoralogon2 [llength [$s2 eval {info commands oralogon}]]
