@@ -139,6 +139,8 @@ OCIDEFINEBYPOS	OCI_DefineByPos;
 OCIBINDBYNAME	OCI_BindByName;
 OCILOBREAD OCI_LobRead;
 OCILOBGETLENGTH OCI_LobGetLength;
+OCILOBREAD2 OCI_LobRead2;
+OCILOBGETLENGTH2 OCI_LobGetLength2;
 OCIBINDDYNAMIC OCI_BindDynamic;
 OCINLSGETINFO	OCI_NlsGetInfo;
 OCINLSNUMERICINFOGET	OCI_NlsNumericInfoGet;
@@ -435,6 +437,10 @@ Oratcl_Init(Tcl_Interp *interp)
 		OCILOBREAD);
 	DLSYM(handle, "OCILobGetLength",     OCI_LobGetLength, 
 		OCILOBGETLENGTH);
+	DLSYM(handle, "OCILobRead2",         OCI_LobRead2, 
+		OCILOBREAD2);
+	DLSYM(handle, "OCILobGetLength2",    OCI_LobGetLength2, 
+		OCILOBGETLENGTH2);
 
 	/* sanity check at least one symbol */
 	if (OCI_Initialize == NULL) {
@@ -685,6 +691,12 @@ Oratcl_Init(Tcl_Interp *interp)
 
 	Oralob_Init(interp);
 	Oralong_Init(interp);
+
+	Tcl_CreateObjCommand (interp,
+			      "oralob2",
+			      Oratcl_Lob2,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
 
 	if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) != TCL_OK) {
 		return TCL_ERROR;
