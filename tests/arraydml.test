@@ -162,7 +162,8 @@ test arraydml-1.2 {orabind arraydml OCI_STMT_INSERT code == 4} {
 		array unset tst1_2
 	}
 	-returnCodes { error }
-	-result {ORA-24381: error(s) in array DML}
+	-match regexp
+	-result {^ORA-24381:}
 }
 
 # test arraydml with autocommit

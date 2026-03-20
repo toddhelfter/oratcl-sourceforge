@@ -20,6 +20,9 @@ if {[info exists ora_lda] == 0} {
 namespace eval ::tcl::test::slaveinterps {
     namespace import ::tcltest::*
 
+    variable ora_slda {}
+    variable ora_sstm {}
+
 
 	test slaveinterp-1.1 {slaveinterp: load package into slave interp} {
 		set s1 [interp create] 
@@ -36,8 +39,7 @@ namespace eval ::tcl::test::slaveinterps {
 		testoralogon1
 	    }
 	    -body {
-		global ora_constr
-		global ora_slda
+		variable ora_slda
 		set ora_slda [$s1 eval "oralogon $::ora_constr"]
 	    } 
 	    -result oratcl0
@@ -49,8 +51,8 @@ namespace eval ::tcl::test::slaveinterps {
 		testoralogoff1
 	    }
 	    -body {
-		global ora_slda
-		$s1 eval "oralogoff $::ora_slda"
+		variable ora_slda
+		$s1 eval "oralogoff $ora_slda"
 	    } 
 	    -result 0
 	}
@@ -82,8 +84,7 @@ namespace eval ::tcl::test::slaveinterps {
 		testoralogon2
 	    }
 	    -body {
-		global ora_constr
-		global ora_slda
+		variable ora_slda
 		set ora_slda [$s2 eval "oralogon $::ora_constr"]
 	    } 
 	    -result oratcl0
@@ -95,9 +96,9 @@ namespace eval ::tcl::test::slaveinterps {
 		testoraopen2
 	    }
 	    -body {
-		global ora_sstm
-		global ora_slda
-		set ora_sstm [$s2 eval "oraopen $::ora_slda"]
+		variable ora_sstm
+		variable ora_slda
+		set ora_sstm [$s2 eval "oraopen $ora_slda"]
 	    } 
 	    -result oratcl0.0
 	}
@@ -108,7 +109,7 @@ namespace eval ::tcl::test::slaveinterps {
 		testoraclose2
 	    }
 	    -body {
-		global ora_sstm
+		variable ora_sstm
 		$s2 eval "oraclose $ora_sstm"
 	    } 
 	    -result 0
@@ -120,8 +121,8 @@ namespace eval ::tcl::test::slaveinterps {
 		testoralogoff2
 	    }
 	    -body {
-		global ora_slda
-		$s2 eval "oralogoff $::ora_slda"
+		variable ora_slda
+		$s2 eval "oralogoff $ora_slda"
 	    } 
 	    -result 0
 	}

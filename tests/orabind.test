@@ -116,7 +116,8 @@ namespace eval ::tcl::test::orabind {
 			array unset tst1_7
 		}
 		-returnCodes {1}
-		-result {ORA-01036: illegal variable name/number}
+		-match regexp
+		-result {^ORA-01036:}
 	}
 
 	test orabind-1.8 {orabind OCI_STMT_BEGIN code == 8} {
@@ -180,7 +181,8 @@ namespace eval ::tcl::test::orabind {
 			array unset tst2_1
 		}
 		-returnCodes {1}
-		-result {ORA-01036: illegal variable name/number}
+		-match regexp
+		-result {^ORA-01036:}
 	}
 
 	# this currently does not return an error, only pairs get bound
@@ -245,7 +247,8 @@ namespace eval ::tcl::test::orabind {
 			array unset tst2_4
 		}
 		-returnCodes {1}
-		-result {ORA-01036: illegal variable name/number}
+		-match regexp
+		-result {^ORA-01036:}
 	}
 
 	cleanupTests

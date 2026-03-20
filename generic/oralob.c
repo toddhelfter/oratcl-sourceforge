@@ -46,7 +46,7 @@ Oralob_Init(Tcl_Interp *interp)
 		{
 			"::oratcl::plsql",
 			"blob_read",
-			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+			"declare  lob_loc BLOB;  lob_raw RAW(16383);  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, lob_raw);  :lob_str := RAWTOHEX(lob_raw);  end;"
 		},
 		{
 			"::oratcl::plsql",
@@ -91,7 +91,7 @@ Oralob_Init(Tcl_Interp *interp)
 		{
 			"::oratcl::plsql",
 			"blob_write",
-			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, HEXTORAW(:lob_str));  end;"
 		},
 		{
 			"::oratcl::plsql",
@@ -136,7 +136,7 @@ Oralob_Init(Tcl_Interp *interp)
 		{
 			"::oratcl::plsql",
 			"blob_writeappend",
-			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, :lob_str); end;"
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, HEXTORAW(:lob_str)); end;"
 		},
 		{
 			"::oratcl::oralob",
@@ -325,6 +325,9 @@ Oralob_Init(Tcl_Interp *interp)
 		"	}; "
 		"	set len $tcl_res; "
 		"	set siz [oraconfig $stm lobpsize]; "
+		"	if {[string equal $lobtype blob] && $siz > 16383} { "
+		"		set siz 16383; "
+		"	}; "
 		"	set bsz [oraconfig $stm bindsize]; "
 		"	oraconfig $stm bindsize [expr {$siz * 2}]; "
 		"	set tcl_err 0; "
@@ -378,6 +381,9 @@ Oralob_Init(Tcl_Interp *interp)
 		"	upvar 2 $oralob(datavariable) data; "
 		"	set tot [string length $data]; "
 		"	set siz [oraconfig $stm lobpsize]; "
+		"	if {[string equal $lobtype blob] && $siz > 16383} { "
+		"		set siz 16383; "
+		"	}; "
 		"	set bsz [oraconfig $stm bindsize]; "
 		"	oraconfig $stm bindsize [expr {$siz * 2}]; "
 		"	set tcl_rc [catch {::oratcl::lob_trim $handle} tcl_res]; "
@@ -772,6 +778,9 @@ Oralob_Init(Tcl_Interp *interp)
 		"	upvar 2 $oralob(datavariable) data; "
 		"	set tot [string length $data]; "
 		"	set siz [oraconfig $stm lobpsize]; "
+		"	if {[string equal $lobtype blob] && $siz > 16383} { "
+		"		set siz 16383; "
+		"	}; "
 		"	set bsz [oraconfig $stm bindsize]; "
 		"	oraconfig $stm bindsize [expr {$siz * 2}]; "
 		"	set tcl_err 0; "

@@ -49,7 +49,7 @@ namespace eval oratcl {
 			lob_loc BLOB; \
 		begin \
 			select %s into lob_loc from %s where rowid = :rid for update; \
-			DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str); \
+			DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, HEXTORAW(:lob_str)); \
 		end; \
 	}
 
@@ -491,6 +491,11 @@ proc ::oratcl::lob_write {handle args} {
 	set tot [string length $data]
 
 	set siz [oraconfig $stm lobpsize]
+
+	# cap blob piece size so hex-encoded string fits in VARCHAR2(32767)
+	if {[string equal $lobtype blob] && $siz > 16383} {
+		set siz 16383
+	}
 
 	# save original bindsize setting.
 	set bsz [oraconfig $stm bindsize]

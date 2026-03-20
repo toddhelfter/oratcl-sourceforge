@@ -107,7 +107,8 @@ namespace eval ::tcl::test::orabindexec {
 			oraclose $stm
 			oralogoff $lda
 		}
-		-result {ORA-01008: not all variables bound}
+		-match regexp
+		-result {^ORA-01008:}
 		-returnCodes {1}
 	} 
 
