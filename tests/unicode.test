@@ -55,7 +55,6 @@ namespace eval ::tcl::test::unicode {
 		-setup {
 			set lda [oralogon $::ora_constr]
 			set stm [oraopen $lda]
-			oraconfig $stm unicode true
 			oraconfig $stm fetchrows 1
 			set sql1 {insert into oratcl___unicode values (:u_id, :u_char)}
 			set sql2 {select u_id, u_char from oratcl___unicode where u_id = :u_id}
@@ -89,7 +88,6 @@ namespace eval ::tcl::test::unicode {
 		-setup {
 			set lda [oralogon $::ora_constr]
 			set stm [oraopen $lda]
-			oraconfig $stm unicode true
 			oraconfig $stm fetchrows 1
 			set sql1 {insert into oratcl___unicode values (:u_id, :u_char)}
 			set sql2 {select * from oratcl___unicode where u_id = :u_id}
@@ -124,7 +122,6 @@ namespace eval ::tcl::test::unicode {
 		-setup {
 			set lda [oralogon $::ora_constr]
 			set stm [oraopen $lda]
-			oraconfig $stm unicode true
 			oraconfig $stm fetchrows 1
 			set sql1 {insert into oratcl___unicode values (:u_id, :u_char)}
 			set sql2 {select * from oratcl___unicode where u_id = :u_id}
@@ -159,7 +156,6 @@ namespace eval ::tcl::test::unicode {
 		-setup {
 			set lda [oralogon $::ora_constr]
 			set stm [oraopen $lda]
-			oraconfig $stm unicode true
 			oraconfig $stm fetchrows 1
 			set sql1 {insert into oratcl___unicode values (:u_id, :u_char)}
 			set sql2 {select * from oratcl___unicode where u_id = :u_id}
@@ -194,7 +190,6 @@ namespace eval ::tcl::test::unicode {
 		-setup {
 			set lda [oralogon $::ora_constr]
 			set stm [oraopen $lda]
-			oraconfig $stm unicode true
 			oraconfig $stm fetchrows 10
 			set sql {select * from oratcl___unicode}
 		}

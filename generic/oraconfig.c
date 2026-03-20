@@ -322,6 +322,10 @@ Oratcl_Config(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 				tcl_return = TCL_ERROR;
 				goto common_exit;
 			}
+			if (value) {
+				fprintf(stderr, "oraconfig: unicode option is deprecated in Oratcl 5.0+. "
+					"Use NLS_LANG=AL32UTF8 for UTF-8 support.\n");
+			}
 			StmPtr->unicode = value;
 		}
 	}

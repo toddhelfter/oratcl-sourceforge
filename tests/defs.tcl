@@ -14,6 +14,11 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 
 package require -exact Oratcl 5.0
 
+# ensure NLS_LANG is set for proper UTF-8 handling
+if {![info exists env(NLS_LANG)] || $env(NLS_LANG) eq ""} {
+    set env(NLS_LANG) AMERICAN_AMERICA.AL32UTF8
+}
+
 # check for ORACLE env var
 if {![info exists env(ORACLE_HOME)]} {
     puts "ORACLE_HOME environment variable not defined"
