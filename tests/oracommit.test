@@ -16,8 +16,8 @@ namespace eval ::oratest::oracommit {
 	namespace import ::tcltest::*
 
 	global ora_constr
-	set tst1_lda [oralogon $ora_constr]
-	set tst2_lda [oralogon $ora_constr]
+	set tst1_lda [oralogon $::ora_constr]
+	set tst2_lda [oralogon $::ora_constr]
 	set tst1_cur [oraopen $tst1_lda]
 	set tst2_cur [oraopen $tst2_lda]
 

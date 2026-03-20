@@ -21,7 +21,7 @@ namespace eval ::tcl::test::merge {
 	proc oratcl_merge_begin {} {
 		uplevel 1 {
 			global ora_constr
-			set un_lda [oralogon $ora_constr]
+			set un_lda [oralogon $::ora_constr]
 			set un_stm [oraopen $un_lda]
 			set un_sql {create table oratcl___merge (n varchar2(8), v number)}
 			catch {
@@ -48,7 +48,7 @@ namespace eval ::tcl::test::merge {
 
 	test oratcl_merge-1.1 {oratcl: merge oramsg rowcount test} {
 		-setup {
-			set test1(lda) [oralogon $ora_constr]
+			set test1(lda) [oralogon $::ora_constr]
 			set test1(stm) [oraopen $test1(lda)]
 			set test1(sql1) {insert into oratcl___merge values ('a', 10)}
 			set test1(sql2) { \

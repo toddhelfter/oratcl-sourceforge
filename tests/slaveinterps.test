@@ -38,7 +38,7 @@ namespace eval ::tcl::test::slaveinterps {
 	    -body {
 		global ora_constr
 		global ora_slda
-		set ora_slda [$s1 eval "oralogon $ora_constr"]
+		set ora_slda [$s1 eval "oralogon $::ora_constr"]
 	    } 
 	    -result oratcl0
 	}
@@ -50,7 +50,7 @@ namespace eval ::tcl::test::slaveinterps {
 	    }
 	    -body {
 		global ora_slda
-		$s1 eval "oralogoff $ora_slda"
+		$s1 eval "oralogoff $::ora_slda"
 	    } 
 	    -result 0
 	}
@@ -84,7 +84,7 @@ namespace eval ::tcl::test::slaveinterps {
 	    -body {
 		global ora_constr
 		global ora_slda
-		set ora_slda [$s2 eval "oralogon $ora_constr"]
+		set ora_slda [$s2 eval "oralogon $::ora_constr"]
 	    } 
 	    -result oratcl0
 	}
@@ -97,7 +97,7 @@ namespace eval ::tcl::test::slaveinterps {
 	    -body {
 		global ora_sstm
 		global ora_slda
-		set ora_sstm [$s2 eval "oraopen $ora_slda"]
+		set ora_sstm [$s2 eval "oraopen $::ora_slda"]
 	    } 
 	    -result oratcl0.0
 	}
@@ -121,7 +121,7 @@ namespace eval ::tcl::test::slaveinterps {
 	    }
 	    -body {
 		global ora_slda
-		$s2 eval "oralogoff $ora_slda"
+		$s2 eval "oralogoff $::ora_slda"
 	    } 
 	    -result 0
 	}

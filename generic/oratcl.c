@@ -293,7 +293,7 @@ Oratcl_Init(Tcl_Interp *interp)
 
 #endif							/* __WIN32__ */
 
-	if (Tcl_InitStubs(interp, "8.4", 0) == NULL) {
+	if (Tcl_InitStubs(interp, "9.0", 0) == NULL) {
 		return TCL_ERROR;
 	}
 

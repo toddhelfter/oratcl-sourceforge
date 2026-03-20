@@ -21,8 +21,8 @@ namespace eval ::tcl::test::oradesc {
 	global ora_constr
 	global ora_userid
 
-	set desc_usr $ora_userid
-	set desc_lda [oralogon $ora_constr]
+	set desc_usr $::ora_userid
+	set desc_lda [oralogon $::ora_constr]
 	set desc_stm [oraopen $desc_lda]
 
 	

@@ -19,7 +19,7 @@ if {[info exists ora_lda] == 0} {
 proc oratcl_arraydml_begin {} {
   uplevel 1 {
     global ora_constr
-    set ad_lda [oralogon $ora_constr]
+    set ad_lda [oralogon $::ora_constr]
     set ad_stm [oraopen $ad_lda]
     set ad_sql { \
       create table oratcl___arraydml ( \
@@ -56,7 +56,7 @@ oratcl_arraydml_begin
 test arraydml-1.0 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_0(lda) [oralogon $ora_constr]
+		set tst1_0(lda) [oralogon $::ora_constr]
 		set tst1_0(stm) [oraopen $tst1_0(lda)]
 		set tst1_0(sql) { \
 			insert into oratcl___arraydml \
@@ -90,7 +90,7 @@ test arraydml-1.0 {orabind arraydml OCI_STMT_INSERT code == 4} {
 test arraydml-1.1 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_1(lda) [oralogon $ora_constr]
+		set tst1_1(lda) [oralogon $::ora_constr]
 		set tst1_1(stm) [oraopen $tst1_1(lda)]
 		set tst1_1(sql) { \
 			insert into oratcl___arraydml \
@@ -134,7 +134,7 @@ test arraydml-1.1 {orabind arraydml OCI_STMT_INSERT code == 4} {
 test arraydml-1.2 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_2(lda) [oralogon $ora_constr]
+		set tst1_2(lda) [oralogon $::ora_constr]
 		set tst1_2(stm) [oraopen $tst1_2(lda)]
 		set tst1_2(sql) { \
 			insert into oratcl___arraydml \
@@ -169,8 +169,8 @@ test arraydml-1.2 {orabind arraydml OCI_STMT_INSERT code == 4} {
 test arraydml-1.4 {orabind arraydml and autocommit} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_4(lda1) [oralogon $ora_constr]
-		set tst1_4(lda2) [oralogon $ora_constr]
+		set tst1_4(lda1) [oralogon $::ora_constr]
+		set tst1_4(lda2) [oralogon $::ora_constr]
 		oraautocom $tst1_4(lda1) true
 		set tst1_4(stm1) [oraopen $tst1_4(lda1)]
 		set tst1_4(stm2) [oraopen $tst1_4(lda2)]
@@ -219,7 +219,7 @@ test arraydml-1.4 {orabind arraydml and autocommit} {
 test arraydml-1.5 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_5(lda) [oralogon $ora_constr]
+		set tst1_5(lda) [oralogon $::ora_constr]
 		set tst1_5(stm) [oraopen $tst1_5(lda)]
 		set tst1_5(sql) { \
 			insert into oratcl___arraydml \

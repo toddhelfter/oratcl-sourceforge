@@ -24,7 +24,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.1 {orabind OCI_STMT_SELECT code == 1} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_1(lda) [oralogon $ora_constr]
+			set tst1_1(lda) [oralogon $::ora_constr]
 			set tst1_1(stm) [oraopen $tst1_1(lda)]
 			set tst1_1(sql) {select * from oratcl___tests where v_number = :num}
 			oraparse $tst1_1(stm) $tst1_1(sql)
@@ -43,7 +43,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.2 {orabind OCI_STMT_UPDATE code == 2} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_2(lda) [oralogon $ora_constr]
+			set tst1_2(lda) [oralogon $::ora_constr]
 			set tst1_2(stm) [oraopen $tst1_2(lda)]
 			set tst1_2(sql) {update oratcl___tests set v_number = :sn where v_number = :wn}
 			oraparse $tst1_2(stm) $tst1_2(sql)
@@ -62,7 +62,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.3 {orabind OCI_STMT_DELETE code == 3} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_3(lda) [oralogon $ora_constr]
+			set tst1_3(lda) [oralogon $::ora_constr]
 			set tst1_3(stm) [oraopen $tst1_3(lda)]
 			set tst1_3(sql) {delete from oratcl___tests where v_number = :wn}
 			oraparse $tst1_3(stm) $tst1_3(sql)
@@ -81,7 +81,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.4 {orabind OCI_STMT_INSERT code == 4} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_4(lda) [oralogon $ora_constr]
+			set tst1_4(lda) [oralogon $::ora_constr]
 			set tst1_4(stm) [oraopen $tst1_4(lda)]
 			set tst1_4(sql) {insert into oratcl___tests (v_number) values (:vn)}
 			oraparse $tst1_4(stm) $tst1_4(sql)
@@ -101,7 +101,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.7 {orabind OCI_STMT_ALTER code == 7} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_7(lda) [oralogon $ora_constr]
+			set tst1_7(lda) [oralogon $::ora_constr]
 			set tst1_7(stm) [oraopen $tst1_7(lda)]
 			set tst1_7(sql) {insert into oratcl___tests (v_number) values (:vn)}
 			set tst1_7(sql) {alter session set nls_date_format = :dateformat}
@@ -122,7 +122,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.8 {orabind OCI_STMT_BEGIN code == 8} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_8(lda) [oralogon $ora_constr]
+			set tst1_8(lda) [oralogon $::ora_constr]
 			set tst1_8(stm) [oraopen $tst1_8(lda)]
 			set tst1_8(sql) {insert into oratcl___tsts (v_number) values (:vn)}
 			set tst1_8(sql) {begin bogus_package(:parm); end;}
@@ -143,7 +143,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-1.9 {orabind OCI_STMT_DECLARE code == 9} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst1_9(lda) [oralogon $ora_constr]
+			set tst1_9(lda) [oralogon $::ora_constr]
 			set tst1_9(stm) [oraopen $tst1_9(lda)]
 			set tst1_9(sql) {insert into oratcl___tsts (v_number) values (:vn)}
 			set tst1_9(sql) {declare x number(3); begin bogus_package(:parm); end;}
@@ -165,7 +165,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-2.1 {orabind too many binds} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst2_1(lda) [oralogon $ora_constr]
+			set tst2_1(lda) [oralogon $::ora_constr]
 			set tst2_1(stm) [oraopen $tst2_1(lda)]
 			set tst2_1(sql) {select * from oratcl___tests where v_number = :wn}
 			set tst2_1(sql) {alter session set nls_date_format = :dateformat}
@@ -187,7 +187,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-2.2 {orabind unbalanced binds} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst2_2(lda) [oralogon $ora_constr]
+			set tst2_2(lda) [oralogon $::ora_constr]
 			set tst2_2(stm) [oraopen $tst2_2(lda)]
 			set tst2_2(sql) {select * from oratcl___tests where v_number = :wn}
 			set tst2_2(sql) {alter session set nls_date_format = :dateformat}
@@ -208,7 +208,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-2.3 {orabind missing : delimiter} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst2_3(lda) [oralogon $ora_constr]
+			set tst2_3(lda) [oralogon $::ora_constr]
 			set tst2_3(stm) [oraopen $tst2_3(lda)]
 			set tst2_3(sql) {select * from oratcl___tests where v_number = :wn}
 			set tst2_3(sql) {alter session set nls_date_format = :dateformat}
@@ -230,7 +230,7 @@ namespace eval ::tcl::test::orabind {
 	test orabind-2.4 {orabind misnamed bind variable} {
 		-constraints {testoraparse testorabind}
 		-setup {
-			set tst2_4(lda) [oralogon $ora_constr]
+			set tst2_4(lda) [oralogon $::ora_constr]
 			set tst2_4(stm) [oraopen $tst2_4(lda)]
 			set tst2_4(sql) {select * from oratcl___tests where v_number = :wn}
 			set tst2_4(sql) {alter session set nls_date_format = :dateformat}
