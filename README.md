@@ -5,12 +5,9 @@ Database server via the Oracle Call Interface (OCI). It adds Tcl commands to log
 Oracle server, send SQL or PL/SQL, read results back as Tcl lists, manage transactions, and
 work with LOBs — without requiring any Oracle-side PL/SQL wrappers for the common cases.
 
-Oratcl predates Perl's DBI and was inspired by similar tools written for Perl (`sybperl`,
-`oraperl`), though it was written from scratch rather than ported from either. It was also
-influenced by Tom Poindexter's earlier `Sybtcl`.
-
 > **Status:** version 5.0, ported to Tcl 9 and verified against Oracle 23c, with the
 > Oracle 23c/Tcl 9 compatibility and security hardening work tracked in [TODO.md](TODO.md).
+> For the project's origin, ownership history, and related projects, see [WIKI.md](WIKI.md).
 
 ## Features
 
@@ -74,6 +71,12 @@ The full command reference (syntax, arguments, return values) is in
 [doc/oratcl.n](doc/oratcl.n)). See [doc/FAQ.html](doc/FAQ.html) for platform build notes,
 SQL*NET/`tnsnames.ora` configuration, and date-format troubleshooting.
 
+For a full tutorial-style walkthrough (installation on Windows/Solaris/Linux, connection
+management, transactions, PL/SQL, LOBs, array DML, multithreading, async processing, CGI
+usage, and more, with real worked examples), see
+[doc/ORATCL_GUIDE.md](doc/ORATCL_GUIDE.md) — a Markdown conversion of Todd Helfter's
+original 87-page "Oratcl User's Guide and Reference".
+
 ## Building
 
 ```sh
@@ -86,18 +89,12 @@ Oratcl is built against a working Tcl installation (uses `tclConfig.sh`) and an 
 client/SDK (OCI headers and libraries, e.g. Oracle Instant Client). See [INSTALL](INSTALL)
 for the full set of `configure` options and platform-specific notes.
 
-## Project history
+## Project links
 
-Oratcl's history goes back to 1999, first hosted on SourceForge under CVS as part of the
-Scriptics/Ajuba Tcl tooling, later converted to SourceForge SVN, and now migrated to Git.
-The full commit-by-commit history (1999–2017, versions 1.0 through 4.6) along with every
-historical release branch and tag is preserved at
-[toddhelfter/oratcl-sourceforge](https://github.com/toddhelfter/oratcl-sourceforge). The
-5.0 development line (Tcl 9 port, Oracle 23c compatibility, security fixes) is grafted
-directly onto that real history on the `oratcl-5-0-branch`.
-
-See [ChangeLog](ChangeLog) and [ChangeLog.2003](ChangeLog.2003) for the detailed history of
-changes, and [TODO.md](TODO.md) for current and planned work.
+- [WIKI.md](WIKI.md) — project origin, ownership history, and related/derivative projects
+- [ADOPTERS.md](ADOPTERS.md) — known projects/products built on Oratcl
+- [TODO.md](TODO.md) — current and planned work
+- [ChangeLog](ChangeLog) / [ChangeLog.2003](ChangeLog.2003) — detailed version-by-version changes
 
 ## Bug reports / contributing
 
@@ -113,5 +110,5 @@ Please open an issue or pull request on GitHub. When reporting a problem, please
 
 ## License
 
-Oratcl is Copyright (c) 2000-2017 Todd M. Helfter and is released under a permissive
+Oratcl is Copyright (c) 2000-2026 Todd M. Helfter and is released under a permissive
 BSD-style license — see [LICENSE](LICENSE) for the full text.
