@@ -97,6 +97,19 @@ Oratcl is indexed in **"Practical Programming in Tcl & Tk"** by Brent B. Welch (
 core, widely-used Tcl reference by one of the Tcl/Tk community's foremost authors — see
 [the index entry on Google Books](https://books.google.com/books?id=JkNGAQAAIAAJ&q=Oratcl&dq=Oratcl).
 
+Oratcl's role in Oracle Enterprise Manager (OEM) job/event scripting is documented across
+several Oracle-focused books:
+
+- **"Oracle Enterprise Manager 101"** by Lars Bo Vanting and Dirk Schepanek (2002), page
+  100 — using the `OraTcl` verb `ORAREPORTEVENT` from within a Tcl script for event
+  handling — see [page 100 on Google Books](https://books.google.com/books?id=VcdTaSqbxxoC&q=Oratcl&dq=Oratcl).
+- **"Everyday Oracle DBA"** by April Wells (2006), page 255 — OEM job scripts submitted
+  via the "Run TCL" job task use OraTcl — see
+  [page 255 on Google Books](https://books.google.com/books?id=fd5QAAAAMAAJ&q=Oratcl&dq=Oratcl).
+- **"Oracle9i Web Development"** by Bradley D. Brown (2001), page 914 — OEM job/event
+  scripts using OraTcl extensions for startups, shutdowns, and backups — see
+  [page 914 on Google Books](https://books.google.com/books?id=2odwtDYA-TwC&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
