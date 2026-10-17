@@ -55,7 +55,8 @@ Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`,
   - HP 3PAR System Reporter ([user's guide reference](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html), System Reporter 2.8, Nov 2010) — **confirmed**: page 3 of that manual reproduces the Oratcl copyright/license notice verbatim ("Copyright (c) 2000-2005 Todd M. Helfter... Permission to use, copy, modify, distribute, and sell this software..."), i.e. the exact `license.terms` text, though dated 2000-2005 vs. our `license.terms`'s 2000-2017 — worth noting as a data point on the license's copyright year history
   - HammerOra / HammerDB (Steve Shaw) — used Oratcl for many years; see Story 9 for the HammerDB fork
   - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
-- [ ] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes)
+- [x] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes) — captured in `WIKI.md`: Poindexter's original authorship (1.0-2.6), the Scriptics/Ajuba era, the 1999 ownership transfer, the "Tcl/Tk Tools" book publication, and the pre-1999 history gap
+- [x] Add `WIKI.md` holding the detailed historical narrative (origins, ownership transfer, publications, the CVS/SVN/Git migration story, related/derivative projects), with `README.md` trimmed to reflect only the current state (5.0) plus pointers to `WIKI.md`/`ADOPTERS.md`/`TODO.md` — same PR
 - [ ] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source`, depending on which repo remains canonical
 
 ## Story 6: Backport 5.0 security fixes (memory guards, buffer overruns) to 4.6
@@ -73,7 +74,7 @@ Two full diff passes (keyword + buffer-safety pattern scan) across all 25 commit
 
 SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt binaries for Windows and possibly macOS, matching the current 5.0 source. Historically these were cross-compiled; we don't currently have direct access to all target platforms, so this is broadly scoped pending investigation of what's actually feasible here.
 
-**Current state (as of this writing):** SourceForge's "latest version" default download is still `oratcl45.tar.gz` (293.0 kB, from the 4.5 line) — no `oratcl46.tar.gz` was ever published, even though 4.6 existed on trunk. (SourceForge note: the "Default Download" per-file checkbox under each file's settings controls which file is served from the `/files/latest/download` link; uncheck it on the old file / check it on the new one when a replacement is ready.)
+**Current state (as of this writing):** SourceForge's "latest version" default download is still `oratcl45.tar.gz` (293.0 kB, from the 4.5 line) — no 4.6 *source* `tar.gz` was ever published as the default download, even though 4.6 existed on trunk. However, a 4.6 **Windows x64 binary** *was* published and still exists: [`Oratcl46-MSWin32-x64.zip`](https://sourceforge.net/projects/oratcl/files/oratcl/4.6/Oratcl46-MSWin32-x64.zip/download) (95,478 bytes, confirmed live) — so Windows builds for 4.6 did happen, just not a corresponding source release or 32-bit/macOS build (per Todd's own recollection: "I did manage to create a 4.6 win32 download, but never a 64b one" — though the filename itself says x64; this may be a historical mislabeling worth double-checking against the archive's actual binary). (SourceForge note: the "Default Download" per-file checkbox under each file's settings controls which file is served from the `/files/latest/download` link; uncheck it on the old file / check it on the new one when a replacement is ready.)
 
 - [ ] Produce an updated source release tarball (`oratcl-5.0.tar.gz` or similar) from the final `main`/5.0 tree via `make dist` or equivalent
 - [ ] Investigate Windows cross-compilation options from macOS/Linux (e.g. mingw-w64 toolchain) against an Oracle Instant Client SDK for Windows, matching how prior Windows binaries were built
@@ -109,16 +110,17 @@ continuing to add parallel LOB commands.
 - [ ] This is a research/design story before implementation — scope out a concrete plan
   once the above is understood
 
-## Story 9: Reconcile fixes with the sm-shaw/Oratcl (HammerDB) fork
+## Story 9: Reconcile fixes with the HammerDBLtd/Oratcl (HammerDB) fork
 
 HammerDB (now at [TPC-Council/HammerDB](https://github.com/TPC-Council/HammerDB)) still
-uses Oratcl for Oracle connectivity, via a dedicated, actively-maintained fork by Steve
-Shaw: [sm-shaw/Oratcl](https://github.com/sm-shaw/Oratcl) (forked independently from an
-SVN export in 2022, last pushed 2025-02-24). That fork has done its own separate Tcl 9
-modernization work in parallel with ours, so there's likely useful fixes to pull in both
-directions.
+uses Oratcl for Oracle connectivity, via a dedicated, actively-maintained fork now under
+HammerDB's own GitHub organization: [HammerDBLtd/Oratcl](https://github.com/HammerDBLtd/Oratcl)
+(originally created by Steve Shaw as `sm-shaw/Oratcl` from an independent SVN export in
+2022, then transferred to the `HammerDBLtd` org — `sm-shaw/Oratcl` now 301-redirects
+there; last pushed 2025-02-24). That fork has done its own separate Tcl 9 modernization
+work in parallel with ours, so there's likely useful fixes to pull in both directions.
 
-- [ ] Compare `sm-shaw/Oratcl`'s Tcl 9 port approach against ours — notably commit
+- [ ] Compare `HammerDBLtd/Oratcl`'s Tcl 9 port approach against ours — notably commit
   `e4ec059` "Fix segfault in oraparse on Linux if utf8 not used in config", which
   redefines `ub4` as `Tcl_Size` in `oratypes.h`; check whether we're exposed to the same
   bug and whether our `e487666` (`Tcl_Size` type mismatch fix) already covers it
