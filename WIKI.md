@@ -208,4 +208,4 @@ see [ADOPTERS.md](ADOPTERS.md)):
 - [ADOPTERS.md](ADOPTERS.md) for known production users of Oratcl.
 - [TODO.md](TODO.md) for current and planned work.
 - [CHANGELOG.md](CHANGELOG.md) for detailed version-by-version changes (converted from the
-  original [ChangeLog](ChangeLog) and [ChangeLog.2003](ChangeLog.2003)).
+  original plain-text `ChangeLog`/`ChangeLog.2003`, now removed).
