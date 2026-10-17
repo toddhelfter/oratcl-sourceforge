@@ -50,8 +50,8 @@ Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`,
 
 - [x] Write a proper `README.md` (GitHub-flavored Markdown) synthesized from the existing `doc/oratcl.html`, `oratcl.man`, `oratcl.txt`, `README`, and `INSTALL`, across `oratcl-sourceforge` and its branches — see [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) (pending merge to `main`)
 - [x] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves — same PR; note GitHub's detector matches it as "Other" (not an exact SPDX template), since the original historical license text was preserved as-is
-- [ ] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub
-- [ ] Add `ADOPTERS.md` (linked from `README.md`, not inlined there) listing notable projects/products built on Oratcl:
+- [x] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub — done: "Tcl extension providing access to Oracle Database via OCI (Oracle Call Interface)", topics: tcl, oracle, oci, database, oracle-database, tcl-extension
+- [x] Add `ADOPTERS.md` (linked from `README.md`, not inlined there) listing notable projects/products built on Oratcl — see [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) (pending merge to `main`):
   - HP 3PAR System Reporter ([user's guide reference](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html), System Reporter 2.8, Nov 2010) — **confirmed**: page 3 of that manual reproduces the Oratcl copyright/license notice verbatim ("Copyright (c) 2000-2005 Todd M. Helfter... Permission to use, copy, modify, distribute, and sell this software..."), i.e. the exact `license.terms` text, though dated 2000-2005 vs. our `license.terms`'s 2000-2017 — worth noting as a data point on the license's copyright year history
   - HammerOra / HammerDB (Steve Shaw) — used Oratcl for many years; see Story 9 for the HammerDB fork
   - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
@@ -154,9 +154,45 @@ copyright year tracked the release it shipped with, not a single fixed range.
 Our current 5.0 line (`license.terms`, `COPYRIGHT`, and the new root `LICENSE` copy)
 inherited `2000-2017` unchanged from 4.6 — it was never bumped for 5.0.
 
-- [ ] Update `license.terms`, `COPYRIGHT`, and `LICENSE` (root, on `oratcl-5-0-branch`) to
-  `Copyright (c) 2000-2026 Todd M. Helfter` for the 5.0 release
-- [ ] Apply this on both `oratcl-source` and `oratcl-sourceforge`'s `oratcl-5-0-branch`
+- [x] Update `license.terms`, `COPYRIGHT`, and `LICENSE` (root, on `oratcl-5-0-branch`) to
+  `Copyright (c) 2000-2026 Todd M. Helfter` for the 5.0 release — done in both
+  `oratcl-source` (`main`) and `oratcl-sourceforge` (`oratcl-5-0-branch`); `COPYRIGHT`
+  itself doesn't carry a year, so only `license.terms`/`LICENSE` needed the bump
+- [x] Apply this on both `oratcl-source` and `oratcl-sourceforge`'s `oratcl-5-0-branch`
   (same files need updating in both places until/unless one repo is retired)
 - [ ] Going forward, bump the end-year again at each future release, matching the
   historical pattern
+
+## Story 11: Learn from bagnongithub/oratcl (ODPI-C reimplementation)
+
+Discovered [bagnongithub/oratcl](https://github.com/bagnongithub/oratcl) (doc site:
+https://bagnongithub.github.io/oratcl/), by Miguel Bañón — a full, independent, MIT-licensed
+reimplementation of the classic Oratcl API as "Oratcl 9.1", built on **ODPI-C 5.6.4**
+instead of raw OCI, targeting Tcl 9. Actively maintained (commits through Aug 2026). This
+isn't the HammerDB fork (Story 9) — a separate, unrelated derivative work — but it directly
+and substantially overlaps with two of our open stories:
+
+- **Solves Story 8 (inline LOB handling)** via an `inlineLobs` connection config option:
+  when enabled, `orafetch` returns raw LOB data instead of LOB handles, transparently.
+  Worth studying this design (and its `oralob size|read|write|trim|close` fallback API for
+  when `inlineLobs` is off) as a reference before designing our own approach.
+- **Solves a mature form of Story 9's thread-safety goal**: one global ODPI context per
+  process, per-interpreter isolated handle registries, cross-interpreter connection
+  "adoption" (sharing a physical `dpiConn*` via refcounted shared records + a per-connection
+  operation gate that serializes all access), a persistent async worker thread pool with
+  orphan-safe teardown, and behavioral-policy sync (autocommit, fetch sizes, failover
+  policy) across adopters.
+
+- [ ] Review the full `doc/oratcl.html`/`oratcl.n` reference and source at
+  `bagnongithub/oratcl` in depth, particularly the per-connection "gate" and connection
+  adoption mechanism, as prior art for Story 9
+- [ ] Review the `inlineLobs` implementation as prior art for Story 8
+- [ ] Note the architectural difference: this reimplementation drops raw OCI entirely in
+  favor of ODPI-C (Oracle's own open-source driver layer, also used under the hood by
+  `python-oracledb`/`node-oracledb`) — consider whether our codebase should ever consider
+  the same move, as a separate/future decision from the LOB and threading work specifically
+- [ ] Consider reaching out to Miguel Bañón, given the direct overlap in goals
+- [ ] Decide whether/how to reference this project in `ADOPTERS.md` or a "Related
+  projects" note in `README.md` (it's a derivative/alternative implementation, not a
+  known *user* of our codebase, so it may deserve its own section rather than living in
+  ADOPTERS.md)
