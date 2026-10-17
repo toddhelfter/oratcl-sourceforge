@@ -93,6 +93,10 @@ Gareth Hunt and Harry Edward Payne, 1997), page 64: "OraTcl... is used to create
 windows-based user interface" for an astronomical data system — see
 [page 64 on Google Books](https://books.google.com/books?id=xvsaAQAAIAAJ&q=Oratcl&dq=Oratcl).
 
+Oratcl is indexed in **"Practical Programming in Tcl & Tk"** by Brent B. Welch (2000) — a
+core, widely-used Tcl reference by one of the Tcl/Tk community's foremost authors — see
+[the index entry on Google Books](https://books.google.com/books?id=JkNGAQAAIAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
