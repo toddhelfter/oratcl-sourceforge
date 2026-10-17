@@ -95,7 +95,7 @@ for the full set of `configure` options and platform-specific notes.
 - [ADOPTERS.md](ADOPTERS.md) — known projects/products built on Oratcl
 - [TODO.md](TODO.md) — current and planned work
 - [CHANGELOG.md](CHANGELOG.md) — detailed version-by-version changes (Markdown, most recent
-  first; converted from the original [ChangeLog](ChangeLog) / [ChangeLog.2003](ChangeLog.2003))
+  first; converted from the original plain-text `ChangeLog`/`ChangeLog.2003`, now removed)
 
 ## Bug reports / contributing
 
