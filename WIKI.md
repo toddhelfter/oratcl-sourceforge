@@ -187,7 +187,11 @@ see [ADOPTERS.md](ADOPTERS.md)):
 - [bagnongithub/oratcl](https://github.com/bagnongithub/oratcl) — an independent,
   MIT-licensed reimplementation of the classic Oratcl API on top of ODPI-C 5.6.4, by Miguel
   Bañón, targeting Tcl 9 with built-in cross-interpreter thread safety and inline LOB
-  fetching. See [TODO.md](TODO.md) Story 11.
+  fetching. See [TODO.md](TODO.md) Story 11. Notably, this isn't his first contribution to
+  Oratcl: `CHANGELOG.md` credits a "Miguel Bagnon" with several classic Oratcl patches back
+  in 2002-2003 (compiler warning fixes, improved OCI error-info checking, an `oraparse`
+  async-parsing bugfix) — almost certainly the same person, decades before building his own
+  independent reimplementation.
 - [OCI\*ML](https://github.com/gaiustech/ociml) by Gaius Hammond — an **OCaml** (not Tcl)
   OCI binding whose own GitHub description reads "Oracle OCI binding for OCaml based on
   OraTcl", and whose README states it's "a higher level library patterned after OraTcl...
@@ -203,5 +207,5 @@ see [ADOPTERS.md](ADOPTERS.md)):
 
 - [ADOPTERS.md](ADOPTERS.md) for known production users of Oratcl.
 - [TODO.md](TODO.md) for current and planned work.
-- [ChangeLog](ChangeLog) and [ChangeLog.2003](ChangeLog.2003) for detailed version-by-version
-  changes.
+- [CHANGELOG.md](CHANGELOG.md) for detailed version-by-version changes (converted from the
+  original [ChangeLog](ChangeLog) and [ChangeLog.2003](ChangeLog.2003)).

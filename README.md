@@ -94,7 +94,8 @@ for the full set of `configure` options and platform-specific notes.
 - [WIKI.md](WIKI.md) — project origin, ownership history, and related/derivative projects
 - [ADOPTERS.md](ADOPTERS.md) — known projects/products built on Oratcl
 - [TODO.md](TODO.md) — current and planned work
-- [ChangeLog](ChangeLog) / [ChangeLog.2003](ChangeLog.2003) — detailed version-by-version changes
+- [CHANGELOG.md](CHANGELOG.md) — detailed version-by-version changes (Markdown, most recent
+  first; converted from the original [ChangeLog](ChangeLog) / [ChangeLog.2003](ChangeLog.2003))
 
 ## Bug reports / contributing
 
