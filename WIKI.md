@@ -24,9 +24,10 @@ state, 2017), and the current 5.0.
 ## Publications
 
 Oratcl is covered in **"Tcl/Tk Tools"**, edited by Mark Harrison, published by O'Reilly and
-Associates (1st Edition, September 1997, ISBN 1-56592-218-2). Tom Poindexter authored the
-book's chapters on both `Sybtcl` and Oratcl — see
-[his page](https://www.nyx.net/~tpoindex/tcl.html) for more on his own writing and software.
+Associates (1st Edition, September 1997, ISBN 1-56592-218-2), as the chapter "Oratcl: An
+Oracle Interface for Tcl" by Tom Poindexter, starting page 453 — see
+[the Google Books entry](https://books.google.com/books?id=SaxQAAAAMAAJ&q=Oratcl&dq=Oratcl)
+or [his page](https://www.nyx.net/~tpoindex/tcl.html) for more on his own writing and software.
 
 Oratcl is also covered in **"Oracle & Open Source"** by Andy Duncan and Sean Hull,
 published by O'Reilly (2001, ISBN 0596000189), chapter 4, including page 86's
