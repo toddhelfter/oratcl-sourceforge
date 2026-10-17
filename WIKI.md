@@ -54,8 +54,10 @@ walkthrough of downloading and installing Oratcl on Unix from
 or [borrow it on the Internet Archive](https://archive.org/details/oracleopensource0000dunc).
 
 Oratcl's full command set is also documented in **"Tcl/Tk in a Nutshell: A Desktop Quick
-Reference"** by Paul Raines and Jeff Tranter (O'Reilly, 1999) — see
-[the reference entries starting page 388](https://books.google.com/books?id=0PkWJs1UvJ8C&pg=PA435&dq=Oratcl)
+Reference"** by Paul Raines and Jeff Tranter (O'Reilly Media, Inc., March 25, 1999, 456
+pages) — its own publisher description lists "Oratcl, SybTcl, and Tclodbc" among the
+extensions covered, alongside core Tcl/Tk, Expect, [incr Tcl]/[incr Tk], Tix, TclX, and
+BLT — see [the reference entries starting page 388](https://books.google.com/books?id=0PkWJs1UvJ8C&pg=PA435&dq=Oratcl)
 on Google Books.
 
 Oratcl installation/usage is also covered in **"Tcl/Tk: A Developer's Guide"** by Clif Flynt
