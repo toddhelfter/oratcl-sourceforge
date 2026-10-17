@@ -33,6 +33,15 @@ Oratcl is also covered in **"Oracle & Open Source"** by Andy Duncan, published b
 [publisher's chapter page](https://www.oreilly.com/library/view/oracle-and-open/0596000189/ch04.html)
 or [borrow it on the Internet Archive](https://archive.org/details/oracleopensource0000dunc).
 
+Oratcl's full command set is also documented in **"Tcl/Tk in a Nutshell: A Desktop Quick
+Reference"** by Paul Raines and Jeff Tranter (O'Reilly, 1999) — see
+[the reference entries starting page 388](https://books.google.com/books?id=0PkWJs1UvJ8C&pg=PA435&dq=Oratcl)
+on Google Books.
+
+Oratcl installation/usage is also covered in **"Tcl/Tk: A Developer's Guide"** by Clif Flynt
+(2003) — see [page 704 on Google Books](https://books.google.com/books?id=LS0z-FeoEDUC&pg=PA704&dq=Oratcl),
+which walks through installing the 2.5 Oratcl extension on UNIX.
+
 ## Pre-1999 history isn't in the commit history
 
 The CVS/SVN-derived Git history begins at version 2.5 (1999-07-27, "initial check-in of
