@@ -72,6 +72,11 @@ Oratcl is mentioned in a book by **Richard Petersen** (2001), page 232, noting t
 "Oratcl implement[s] database interfaces to the Sybase and Oracle databases" — see
 [page 232 on Google Books](https://books.google.com/books?id=3LNQAAAAMAAJ&q=Oratcl&dq=Oratcl).
 
+Oratcl (as "OraTCL") is described in a book by **Carol McCullough-Dieter, Jatinder Prem,
+and Ramesh Chandak** (1998), page 57, in the context of Oracle Enterprise Manager batch
+jobs generating Tcl scripts — see
+[page 57 on Google Books](https://books.google.com/books?id=mc9QAAAAMAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
