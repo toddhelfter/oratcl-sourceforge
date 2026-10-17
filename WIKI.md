@@ -174,6 +174,10 @@ disturbed.
 
 ## Related/derivative projects
 
+Forks and reimplementations of Oratcl's own codebase/API (as distinct from projects that
+merely depend on Oratcl as a library — those are "adopters", see
+[ADOPTERS.md](ADOPTERS.md)):
+
 - [HammerDBLtd/Oratcl](https://github.com/HammerDBLtd/Oratcl) — HammerDB's own
   actively-maintained fork (originally `sm-shaw/Oratcl` by Steve Shaw, later transferred to
   the HammerDB GitHub organization), with its own independent Tcl 9 modernization work. See

@@ -19,5 +19,18 @@ A non-exhaustive list of notable projects and products built on Oratcl.
   [a walkthrough of running TPC-C against Oracle with HammerDB in Docker](https://rammpeter.blogspot.com/2025/11/oracle-db-run-tpc-benchmark-with.html),
   which shows HammerDB's `Oratcl_Init()` loading the Oracle Instant Client directly.
 - Steve Shaw, together with Intel, sponsored a bounty to make Oratcl thread-safe.
+- **[tdbc_oratcl](https://fossil.sowaswie.de/tdbc_oratcl/home)**, by Joerg Mehring
+  (Copyright 2018 SESAM GmbH / 2023 MehrDV) — a BSD-3-licensed TDBC driver (Tcl's standard
+  `tdbc` database API, the Tcl analog of ODBC/JDBC/DBI) built on top of classic Oratcl
+  4.5/4.6, letting Oracle be accessed through the uniform TDBC interface. Versions 0.1
+  through 0.8, actively developed on a self-hosted Fossil instance. Three TclOO classes
+  (`connection`/`statement`/`resultset`) delegate to `oralogon`/`oraopen`/`oraparse`/
+  `orabind`/`oraexec`/`orafetch`/`oracols`/`oramsg`/`oracommit`/`oraroll`/`oraclose`/
+  `oralogoff`/`oraconfig`. A possible bug was spotted while reviewing it: in `columns`,
+  `nullable` is derived from `DATA_SCALE` rather than the actual `NULLABLE` column.
+- **[Neatware MyrmecoX Studio](http://www.neatware.com/studio/language/tcl/tcl_oratcl.html)**
+  — a commercial Tcl IDE that bundles Oratcl as its built-in "Oracle database connector",
+  alongside SQLite and ODBC connectors, per
+  [Neatware's own product documentation](http://www.neatware.com/studio/language/tcl/).
 
 Know of another project using Oratcl? Open a pull request adding it here.
