@@ -71,6 +71,12 @@ The full command reference (syntax, arguments, return values) is in
 [doc/oratcl.n](doc/oratcl.n)). See [doc/FAQ.html](doc/FAQ.html) for platform build notes,
 SQL*NET/`tnsnames.ora` configuration, and date-format troubleshooting.
 
+For a full tutorial-style walkthrough (installation on Windows/Solaris/Linux, connection
+management, transactions, PL/SQL, LOBs, array DML, multithreading, async processing, CGI
+usage, and more, with real worked examples), see
+[doc/ORATCL_GUIDE.md](doc/ORATCL_GUIDE.md) — a Markdown conversion of Todd Helfter's
+original 87-page "Oratcl User's Guide and Reference".
+
 ## Building
 
 ```sh
