@@ -34,7 +34,7 @@ The `unicode` config option now prints a deprecation warning if set to true. Tes
 
 Wire up SourceForge's GitHub release integration so new GitHub releases are automatically mirrored to SourceForge downloads.
 
-- [ ] Pick the target GitHub repo for the sync (`oratcl-sourceforge` vs `oratcl-source`)
+- [x] Pick the target GitHub repo for the sync — **`oratcl-sourceforge` is canonical** going forward
 - [ ] Automatic import: enter the GitHub username/repo at https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/
 - [ ] Add a SourceForge download button into GitHub release notes (checkbox in the same SourceForge integration page)
 - [ ] Manual webhook (if automatic setup needs it / as a fallback), on the target GitHub repo under Settings -> Webhooks:
@@ -57,7 +57,10 @@ Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`,
   - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
 - [x] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes) — captured in `WIKI.md`: Poindexter's original authorship (1.0-2.6), the Scriptics/Ajuba era, the 1999 ownership transfer, the "Tcl/Tk Tools" book publication, and the pre-1999 history gap
 - [x] Add `WIKI.md` holding the detailed historical narrative (origins, ownership transfer, publications, the CVS/SVN/Git migration story, related/derivative projects), with `README.md` trimmed to reflect only the current state (5.0) plus pointers to `WIKI.md`/`ADOPTERS.md`/`TODO.md` — same PR
-- [ ] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source`, depending on which repo remains canonical
+- [x] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source` — **`oratcl-sourceforge` is canonical** going forward (see Story 12)
+- [x] Convert the original 87-page "Oratcl User's Guide and Reference" PDF to `doc/ORATCL_GUIDE.md` (redacting a home address found on the title page), linked from `README.md` — same PR
+
+**Status: COMPLETE.** [PR #1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) and a follow-up [PR #2](https://github.com/toddhelfter/oratcl-sourceforge/pull/2) (PR #1 was merged early by GitHub/the UI before all the work above was pushed, so PR #2 synced the remainder) are both merged into `main`. `README.md`, `LICENSE`, `ADOPTERS.md`, `WIKI.md`, `doc/ORATCL_GUIDE.md`, repo description/topics are all live on the `oratcl-sourceforge` repo homepage.
 
 ## Story 6: Backport 5.0 security fixes (memory guards, buffer overruns) to 4.6
 
@@ -198,3 +201,21 @@ and substantially overlaps with two of our open stories:
   projects" note in `README.md` (it's a derivative/alternative implementation, not a
   known *user* of our codebase, so it may deserve its own section rather than living in
   ADOPTERS.md)
+
+## Story 12: Retire `oratcl-source` now that `oratcl-sourceforge` is canonical
+
+`oratcl-sourceforge` (with the real CVS/SVN history grafted to the 5.0 work) is now the
+canonical repo going forward. `oratcl-source` was the staging repo used before the graft
+existed and has been dual-maintained (mirroring `TODO.md`/doc changes) throughout this
+process for convenience.
+
+- [x] Merge [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1)
+  so `main` reflects the full grafted history + docs — plus a follow-up
+  [#2](https://github.com/toddhelfter/oratcl-sourceforge/pull/2) since #1 merged early,
+  before later commits (`ADOPTERS.md`, `WIKI.md`, the guide conversion) were pushed
+- [ ] Stop dual-mirroring `TODO.md`/doc commits between `oratcl-source` and
+  `oratcl-sourceforge` — `oratcl-sourceforge` is the sole source of truth from here on
+- [ ] Decide what to do with `oratcl-source` itself: archive it on GitHub, add a notice in
+  its README pointing to `oratcl-sourceforge`, or something else
+- [ ] Check for anything referencing `oratcl-source` externally (e.g. clone URLs, CI,
+  local checkouts) that would need to be repointed
