@@ -43,3 +43,13 @@ Wire up SourceForge's GitHub release integration so new GitHub releases are auto
   - Secret: `REDACTED-ROTATE-THIS-SECRET`
   - Events: only `Release`
 - [ ] Verify: refresh the SourceForge admin page for "Integration configured", and confirm the GitHub webhook's `ping` event delivered successfully
+
+## Story 5: GitHub-compatible documentation
+
+Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`, `doc/oratcl.man`, `doc/oratcl.txt`, plain-text `README`/`INSTALL`/`CHANGES`/`ChangeLog`, `COPYRIGHT`/`license.terms`), so `oratcl-sourceforge`'s GitHub "About" panel currently shows no description, no recognized README/License, no topics, 0 stars/watchers.
+
+- [ ] Write a proper `README.md` (GitHub-flavored Markdown) synthesized from the existing `doc/oratcl.html`, `oratcl.man`, `oratcl.txt`, `README`, and `INSTALL`, across `oratcl-sourceforge` and its branches
+- [ ] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves
+- [ ] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub
+- [ ] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes)
+- [ ] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source`, depending on which repo remains canonical
