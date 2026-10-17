@@ -45,6 +45,11 @@ Oratcl installation/usage is also covered in **"Tcl/Tk: A Developer's Guide"** b
 (2003) — see [page 704 on Google Books](https://books.google.com/books?id=LS0z-FeoEDUC&pg=PA704&dq=Oratcl),
 which walks through installing the 2.5 Oratcl extension on UNIX.
 
+Oratcl is also referenced in **"High-Performance Oracle: Proven Methods for Achieving
+Optimum Performance and Availability"** by Geoff Ingram (2002), page 590, in the context of
+Oracle Intelligent Agent (OIA) scripting with the "OraTcl Scripting Language" — see
+[page 590 on Google Books](https://books.google.com/books?id=mK6fRiVrZpoC&q=Oratcl&dq=Oratcl).
+
 ## Pre-1999 history isn't in the commit history
 
 The CVS/SVN-derived Git history begins at version 2.5 (1999-07-27, "initial check-in of
