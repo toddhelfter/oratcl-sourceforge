@@ -28,8 +28,10 @@ Associates (1st Edition, September 1997, ISBN 1-56592-218-2). Tom Poindexter aut
 book's chapters on both `Sybtcl` and Oratcl — see
 [his page](https://www.nyx.net/~tpoindex/tcl.html) for more on his own writing and software.
 
-Oratcl is also covered in **"Oracle & Open Source"** by Andy Duncan, published by O'Reilly
-(ISBN 0596000189), chapter 4 — see the
+Oratcl is also covered in **"Oracle & Open Source"** by Andy Duncan and Sean Hull,
+published by O'Reilly (2001, ISBN 0596000189), chapter 4, including page 86's
+walkthrough of downloading and installing Oratcl on Unix from
+`http://download.sourceforge.net/oratcl/` (e.g. `oratcl31.tar.gz`) — see the
 [publisher's chapter page](https://www.oreilly.com/library/view/oracle-and-open/0596000189/ch04.html)
 or [borrow it on the Internet Archive](https://archive.org/details/oracleopensource0000dunc).
 
