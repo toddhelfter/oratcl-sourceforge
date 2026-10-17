@@ -53,3 +53,14 @@ Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`,
 - [ ] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub
 - [ ] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes)
 - [ ] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source`, depending on which repo remains canonical
+
+## Story 6: Backport 5.0 bug/security fixes to 4.6
+
+Several fixes made during 5.0 development aren't tied to the Tcl 9 port and are candidates to backport onto `oratcl-4-6-branch` (last real SVN release line). Identified by reviewing the actual diffs (not just commit titles) of all 25 commits between `a2281e4` and `91e9d74`:
+
+- [ ] `5389c9b` — scrub password from memory (`memset` before `ckfree`) before freeing the connect string, so credentials don't linger in freed heap memory
+- [ ] `42b4053` — fix script injection and stack buffer overflow in the TAF failover callback (replace `sprintf`+`Tcl_Eval` with `Tcl_EvalObjv`)
+- [ ] `afa57a3` — add an upper bound (`MAX_FETCH_ROWS`) on `fetchrows` to prevent integer overflow in `ckalloc` size calculations
+- [ ] `c45cfba` — fix a truncated `OCI_AttrGet` call in `oraexec.c` (missing `OCI_ATTR_SQLFNCODE`/`errhp` args) — cherry-pick only this bug fix, not the same commit's unrelated `CONST84`→`const` Tcl 9 cleanup
+
+Note: a full diff scan didn't turn up a distinct missing-`free()` memory leak — the closest match is the password-scrub hygiene fix above. Re-check against your own notes/memory of the 5.0 work in case something was missed here, and add any other specific commits you have in mind.
