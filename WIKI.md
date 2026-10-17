@@ -50,6 +50,12 @@ Optimum Performance and Availability"** by Geoff Ingram (2002), page 590, in the
 Oracle Intelligent Agent (OIA) scripting with the "OraTcl Scripting Language" — see
 [page 590 on Google Books](https://books.google.com/books?id=mK6fRiVrZpoC&q=Oratcl&dq=Oratcl).
 
+A 2003 book (title unclear from the Google Books snippet, possibly on system
+administration) lists `oratcl.sourceforge.net` in its bibliography — see
+[page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
+This is a bibliography/URL mention rather than substantive coverage, unlike the citations
+above.
+
 ## Pre-1999 history isn't in the commit history
 
 The CVS/SVN-derived Git history begins at version 2.5 (1999-07-27, "initial check-in of
