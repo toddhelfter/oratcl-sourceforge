@@ -63,6 +63,11 @@ Oratcl is indexed in **"Oracle9i for Windows Handbook"** by Anand Adkoli and Ram
 (2002) — the index (page 522) points to "OraTcl" on page 319 and "OraTcl language" on page
 322 — see [the index entry on Google Books](https://books.google.com/books?id=L8K5BAt7kzcC&q=Oratcl&dq=Oratcl).
 
+Oratcl is discussed in **"The Fifth Annual Tcl/Tk Workshop '97 Proceedings"** (edited by
+Joseph A. Konstan and Brent Welch, 1997), page 165, which describes OraTcl as "a well known
+Tcl extension from T. Poindexter that provides access to a Oracle Database server" — see
+[page 165 on Google Books](https://books.google.com/books?id=8wYJAQAAMAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
