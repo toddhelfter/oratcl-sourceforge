@@ -110,6 +110,11 @@ several Oracle-focused books:
   scripts using OraTcl extensions for startups, shutdowns, and backups — see
   [page 914 on Google Books](https://books.google.com/books?id=2odwtDYA-TwC&q=Oratcl&dq=Oratcl).
 
+Oratcl is mentioned alongside `sybtcl` and `odbctcl` in a (likely network/SNMP management)
+book by **Dave Zeltserman and Gerard Puoplo** (1998), page 406, as a database-scripting
+option in a broader network tooling context — see
+[page 406 on Google Books](https://books.google.com/books?id=V4Y_AQAAIAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
