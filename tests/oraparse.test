@@ -34,7 +34,7 @@ namespace eval ::tcl::test::oraparse {
     test oraparse-1.1 {oraparse 9 sql types} {
 	-constraints testoraparse
 	-setup {
-		set tst(lda) [oralogon $ora_constr]
+		set tst(lda) [oralogon $::ora_constr]
 		set tst(stm) [oraopen $tst(lda)]
 		set tst(res) {}
 		set tst(1) {select * from oratcl___tests where v_number = 0}
@@ -68,7 +68,7 @@ namespace eval ::tcl::test::oraparse {
     test oraparse-2.1 {oraparse bad sql} {
 	-constraints testoraparse
 	-setup {
-		set tst(lda) [oralogon $ora_constr]
+		set tst(lda) [oralogon $::ora_constr]
 		set tst(stm) [oraopen $tst(lda)]
 		set tst(res) {}
 		set tst(1) {select * oratcl___tests where v_number = 0}

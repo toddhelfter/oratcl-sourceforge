@@ -30,17 +30,13 @@
  */
 
 int
-Oratcl_Config (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Config(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
 	OratclStms	*StmPtr;
 
-	static CONST84 char *options[] = {"longsize",
+	static const char *options[] = {"longsize",
 				   "bindsize",
 				   "nullvalue",
 				   "fetchrows",
@@ -133,7 +129,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 		/* return current value of given option */
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					(CONST84 char **)options,
+					(const char **)options,
 					"optionName",
 					0,
 					&option)) {
@@ -188,7 +184,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 	for (i = 3; i < objc; i += 2) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[i-1],
-					(CONST84 char **)options,
+					(const char **)options,
 					"optionName",
 					0,
 					&option)) {
@@ -233,7 +229,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 		if (option == OPT_CACHE) {
 			tcl_rc = Tcl_GetIntFromObj(interp, objv[i], &value);
 			/* test for valid integer */
-			if (tcl_rc != TCL_OK || value < 0) {
+			if (tcl_rc != TCL_OK || value < 1 || value > MAX_FETCH_ROWS) {
 				Oratcl_ErrorMsg(interp,
 						objv[0],
 						": invalid value",
@@ -325,6 +321,10 @@ Oratcl_Config (clientData, interp, objc, objv)
 						(char *) NULL);
 				tcl_return = TCL_ERROR;
 				goto common_exit;
+			}
+			if (value) {
+				fprintf(stderr, "oraconfig: unicode option is deprecated in Oratcl 5.0+. "
+					"Use NLS_LANG=AL32UTF8 for UTF-8 support.\n");
 			}
 			StmPtr->unicode = value;
 		}

@@ -30,11 +30,7 @@
  */
 
 int
-Oratcl_Info (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Info(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -48,7 +44,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 	/* note that 'loginhandle' is a typo.  This will be deprecated in the next version */
 
-	static CONST84 char *options[] = {"server",
+	static const char *options[] = {"server",
 				   "client",
 				   "status",
 				   "version",
@@ -79,7 +75,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 	if (Tcl_GetIndexFromObj(interp,
 				objv[1],
-				(CONST84 char **)options,
+				(const char **)options,
 				"option",
 				0,
 				&index)) {
@@ -390,7 +386,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 			OPT_NLS_CHARSET_FIXEDWIDTH
 		};
 
-		static CONST84 char *nlsoptions[] = {
+		static const char *nlsoptions[] = {
 			"NLS_DAYNAME1",
 			"NLS_DAYNAME2",
 			"NLS_DAYNAME3",
@@ -493,7 +489,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 
 		if (Tcl_GetIndexFromObj(interp,
 					objv[3],
-					(CONST84 char **)nlsoptions,
+					(const char **)nlsoptions,
 					"nlsdata",
 					0,
 					&nlsindex)) {
@@ -679,7 +675,7 @@ Oratcl_Info (clientData, interp, objc, objv)
 				break;
 # if 0
 			case OPT_NLS_WRITING_DIR:
-				nlscode = OCI_NLS_WRITING_DIR;
+				nlscode = OCI_NLS_WRITINGDIR;
 				break;
 # endif
 			case OPT_NLS_ABTERRITORY:
@@ -769,11 +765,7 @@ common_exit:
  */
 
 int
-Oratcl_Lda_List (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Lda_List(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -828,11 +820,7 @@ Oratcl_Lda_List (clientData, interp, objc, objv)
  */
 
 int
-Oratcl_Stm_List (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Stm_List(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OratclLogs	*LogPtr;

@@ -15,18 +15,16 @@
 #include <tcl.h>
 
 int
-Oralob_Init (interp)
-	Tcl_Interp	*interp;
+Oralob_Init(Tcl_Interp *interp)
 {
 	size_t		x;
-	int             debug = 0;
-	CONST84 char    *rx;
+	const char    *rx;
 	Tcl_Obj         *tmp1_obj;
 
 	struct tvars {
-		CONST84 char * ns;
-		CONST84 char * name;
-		CONST84 char * value;
+		const char * ns;
+		const char * name;
+		const char * value;
 	};
 
 	struct tvars tvars_list [] = {
@@ -48,7 +46,7 @@ Oralob_Init (interp)
 		{
 			"::oratcl::plsql",
 			"blob_read",
-			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+			"declare  lob_loc BLOB;  lob_raw RAW(16383);  begin  select %s into lob_loc from %s where rowid = :rid;  DBMS_LOB.READ(lob_loc, :lob_amt, :lob_pos, lob_raw);  :lob_str := RAWTOHEX(lob_raw);  end;"
 		},
 		{
 			"::oratcl::plsql",
@@ -93,7 +91,7 @@ Oralob_Init (interp)
 		{
 			"::oratcl::plsql",
 			"blob_write",
-			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, :lob_str);  end;"
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update;  DBMS_LOB.WRITE(lob_loc, :lob_amt, :lob_pos, HEXTORAW(:lob_str));  end;"
 		},
 		{
 			"::oratcl::plsql",
@@ -138,7 +136,7 @@ Oralob_Init (interp)
 		{
 			"::oratcl::plsql",
 			"blob_writeappend",
-			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, :lob_str); end;"
+			"declare  lob_loc BLOB;  begin  select %s into lob_loc from %s where rowid = :rid for update; DBMS_LOB.WRITEAPPEND(lob_loc, :lob_amt, HEXTORAW(:lob_str)); end;"
 		},
 		{
 			"::oratcl::oralob",
@@ -158,7 +156,7 @@ Oralob_Init (interp)
 	};
 
 
-	CONST84 char *script[] = {
+	const char *script[] = {
 		"proc oralob {command handle args} { "
 		"	global errorInfo; "
 		"	foreach idx [list rowid table column pattern datavariable] { "
@@ -327,6 +325,9 @@ Oralob_Init (interp)
 		"	}; "
 		"	set len $tcl_res; "
 		"	set siz [oraconfig $stm lobpsize]; "
+		"	if {[string equal $lobtype blob] && $siz > 16383} { "
+		"		set siz 16383; "
+		"	}; "
 		"	set bsz [oraconfig $stm bindsize]; "
 		"	oraconfig $stm bindsize [expr {$siz * 2}]; "
 		"	set tcl_err 0; "
@@ -380,6 +381,9 @@ Oralob_Init (interp)
 		"	upvar 2 $oralob(datavariable) data; "
 		"	set tot [string length $data]; "
 		"	set siz [oraconfig $stm lobpsize]; "
+		"	if {[string equal $lobtype blob] && $siz > 16383} { "
+		"		set siz 16383; "
+		"	}; "
 		"	set bsz [oraconfig $stm bindsize]; "
 		"	oraconfig $stm bindsize [expr {$siz * 2}]; "
 		"	set tcl_rc [catch {::oratcl::lob_trim $handle} tcl_res]; "
@@ -774,6 +778,9 @@ Oralob_Init (interp)
 		"	upvar 2 $oralob(datavariable) data; "
 		"	set tot [string length $data]; "
 		"	set siz [oraconfig $stm lobpsize]; "
+		"	if {[string equal $lobtype blob] && $siz > 16383} { "
+		"		set siz 16383; "
+		"	}; "
 		"	set bsz [oraconfig $stm bindsize]; "
 		"	oraconfig $stm bindsize [expr {$siz * 2}]; "
 		"	set tcl_err 0; "
@@ -805,11 +812,11 @@ Oralob_Init (interp)
 
 	for (x = 0; x < (sizeof(tvars_list)/sizeof(struct tvars)); x++) {
 
-		if (debug) {
-			fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
-			fprintf(stderr, "name = %s\n", tvars_list[x].name);
-			fprintf(stderr, "value = %s\n", tvars_list[x].value);
-		}
+#ifdef ORATCL_DEBUG
+		fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
+		fprintf(stderr, "name = %s\n", tvars_list[x].name);
+		fprintf(stderr, "value = %s\n", tvars_list[x].value);
+#endif
 
 		rx = Tcl_SetVar2((Tcl_Interp *) interp,
 				 (CONST char *) tvars_list[x].ns,
@@ -818,11 +825,7 @@ Oralob_Init (interp)
 				 0);
 
 		if (rx == NULL) {
-			fprintf(stderr,
-				"%sset variable '%s'",
-				"Oralob_Init(): Failed to ",
-				(CONST char *) tvars_list[x].name);
-				return TCL_ERROR;
+			return TCL_ERROR;
 		}
 	}
 
@@ -831,10 +834,6 @@ Oralob_Init (interp)
 		tmp1_obj=Tcl_NewStringObj(script[x], -1);
 		Tcl_IncrRefCount(tmp1_obj);
 		if (Tcl_EvalObjEx(interp, tmp1_obj, 0) != TCL_OK) {
-			fprintf(stderr,
-				"%sevaluate internal script at index %zu",
-				"Oralob_Init(): Failed to ",
-				(size_t) x);
 			Tcl_DecrRefCount(tmp1_obj);
 			return TCL_ERROR;
 		}

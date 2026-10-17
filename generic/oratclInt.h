@@ -16,16 +16,6 @@
 #include "oradefs.h"
 #include <tcl.h>
 
-/* _ANSI_ARGS_ should be defined by tcl.h; ignore if not defined */
-#ifndef _ANSI_ARGS_
-#define _ANSI_ARGS_() ()
-#endif
-
-/* For pre-8.4 Tcl Support */
-#ifndef CONST84
-#   define CONST84
-#endif
-
 /* various limits for arrays of structures, default buffer sizes */
 #define ORA_MSG_SIZE    1000    /* oracle error message max size*/
 #define NO_DATA_FOUND   1403    /* oracle error # no data for this fetch */
@@ -40,6 +30,7 @@
 #define OLD_MAX_BIND_SIZE	2147483647
 #define MAX_BIND_SIZE	4294967294
 #define ORA_FETCH_ROWS	10
+#define MAX_FETCH_ROWS	100000
 #define ORA_LOBP_SIZE	10000
 #define MAX_LOBP_SIZE	2147483647
 #define ORA_LONGP_SIZE  50000
@@ -73,7 +64,7 @@ struct OratclCols {
 	sb2		*indp;			/* null indicator pointer */
 	ub2		*rlenp;			/* actual column length */
 	ub2		*rcodep;		/* actual column code */
-	int		array_count;
+	Tcl_Size	array_count;
 	Tcl_Obj		*array_values;
 };
 typedef struct OratclCols OratclCols;

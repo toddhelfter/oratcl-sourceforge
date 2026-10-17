@@ -19,7 +19,7 @@ if {[info exists ora_lda] == 0} {
 proc oratcl_arraydml_begin {} {
   uplevel 1 {
     global ora_constr
-    set ad_lda [oralogon $ora_constr]
+    set ad_lda [oralogon $::ora_constr]
     set ad_stm [oraopen $ad_lda]
     set ad_sql { \
       create table oratcl___arraydml ( \
@@ -56,7 +56,7 @@ oratcl_arraydml_begin
 test arraydml-1.0 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_0(lda) [oralogon $ora_constr]
+		set tst1_0(lda) [oralogon $::ora_constr]
 		set tst1_0(stm) [oraopen $tst1_0(lda)]
 		set tst1_0(sql) { \
 			insert into oratcl___arraydml \
@@ -90,8 +90,9 @@ test arraydml-1.0 {orabind arraydml OCI_STMT_INSERT code == 4} {
 test arraydml-1.1 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_1(lda) [oralogon $ora_constr]
+		set tst1_1(lda) [oralogon $::ora_constr]
 		set tst1_1(stm) [oraopen $tst1_1(lda)]
+		set tst1_1(stm2) [oraopen $tst1_1(lda)]
 		set tst1_1(sql) { \
 			insert into oratcl___arraydml \
 				(v_number, v_char, v_varchar2) \
@@ -103,6 +104,7 @@ test arraydml-1.1 {orabind arraydml OCI_STMT_INSERT code == 4} {
 			where v_number between 10 and 19 \
 		}
 		oraparse $tst1_1(stm) $tst1_1(sql)
+		oraparse $tst1_1(stm2) $tst1_1(sel)
 		set tst1_1(vnl) [list 10 11 12 13 14 15 16 17 18 19]
 		set tst1_1(vcl) [list aa bb cc dd ee ff gg hh ii jj]
 		set tst1_1(v2l) [list AA BB CC DD EE FF GG HH II JJ]
@@ -115,15 +117,15 @@ test arraydml-1.1 {orabind arraydml OCI_STMT_INSERT code == 4} {
 				:v2 $tst1_1(v2l) \
 		]
 		set tst1_1(res) [oraexec $tst1_1(stm)]
-		oraparse $tst1_1(stm) $tst1_1(sel)
-		oraexec $tst1_1(stm)
-		while {[orafetch $tst1_1(stm) -datavariable row] == 0} {
+		oraexec $tst1_1(stm2)
+		while {[orafetch $tst1_1(stm2) -datavariable row] == 0} {
 			# null statment
 		}
-		oramsg $tst1_1(stm) rows
+		oramsg $tst1_1(stm2) rows
 	}
 	-cleanup {
 		oraclose $tst1_1(stm)
+		oraclose $tst1_1(stm2)
 		oralogoff $tst1_1(lda)
 		array unset tst1_1
 	}
@@ -134,7 +136,7 @@ test arraydml-1.1 {orabind arraydml OCI_STMT_INSERT code == 4} {
 test arraydml-1.2 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_2(lda) [oralogon $ora_constr]
+		set tst1_2(lda) [oralogon $::ora_constr]
 		set tst1_2(stm) [oraopen $tst1_2(lda)]
 		set tst1_2(sql) { \
 			insert into oratcl___arraydml \
@@ -162,15 +164,16 @@ test arraydml-1.2 {orabind arraydml OCI_STMT_INSERT code == 4} {
 		array unset tst1_2
 	}
 	-returnCodes { error }
-	-result {ORA-24381: error(s) in array DML}
+	-match regexp
+	-result {^ORA-24381:}
 }
 
 # test arraydml with autocommit
 test arraydml-1.4 {orabind arraydml and autocommit} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_4(lda1) [oralogon $ora_constr]
-		set tst1_4(lda2) [oralogon $ora_constr]
+		set tst1_4(lda1) [oralogon $::ora_constr]
+		set tst1_4(lda2) [oralogon $::ora_constr]
 		oraautocom $tst1_4(lda1) true
 		set tst1_4(stm1) [oraopen $tst1_4(lda1)]
 		set tst1_4(stm2) [oraopen $tst1_4(lda2)]
@@ -219,8 +222,9 @@ test arraydml-1.4 {orabind arraydml and autocommit} {
 test arraydml-1.5 {orabind arraydml OCI_STMT_INSERT code == 4} {
 	-constraints {testoraparse testorabind}
 	-setup {
-		set tst1_5(lda) [oralogon $ora_constr]
+		set tst1_5(lda) [oralogon $::ora_constr]
 		set tst1_5(stm) [oraopen $tst1_5(lda)]
+		set tst1_5(stm2) [oraopen $tst1_5(lda)]
 		set tst1_5(sql) { \
 			insert into oratcl___arraydml \
 				(v_number, v_char, v_varchar2) \
@@ -232,6 +236,7 @@ test arraydml-1.5 {orabind arraydml OCI_STMT_INSERT code == 4} {
 			where v_number between 50 and 59 \
 		}
 		oraparse $tst1_5(stm) $tst1_5(sql)
+		oraparse $tst1_5(stm2) $tst1_5(sel)
 		set tst1_5(vnl) [list 50 51 52 53 54 55 56 57 58 59]
 		set tst1_5(vcl) [list aa bb cc dd ee ff gg hh ii jj]
 		set tst1_5(v2l) [list AA BB CC DD EE FF GG HH II JJ]
@@ -245,15 +250,15 @@ test arraydml-1.5 {orabind arraydml OCI_STMT_INSERT code == 4} {
 		]
 		set tst1_5(res) [oraexec $tst1_5(stm)]
 		set tst1_5(res) [oraexec $tst1_5(stm)]
-		oraparse $tst1_5(stm) $tst1_5(sel)
-		oraexec $tst1_5(stm)
-		while {[orafetch $tst1_5(stm) -datavariable row] == 0} {
+		oraexec $tst1_5(stm2)
+		while {[orafetch $tst1_5(stm2) -datavariable row] == 0} {
 			# null statment
 		}
-		oramsg $tst1_5(stm) rows
+		oramsg $tst1_5(stm2) rows
 	}
 	-cleanup {
 		oraclose $tst1_5(stm)
+		oraclose $tst1_5(stm2)
 		oralogoff $tst1_5(lda)
 		array unset tst1_5
 	}

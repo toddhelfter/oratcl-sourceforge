@@ -1,5 +1,5 @@
 package require Oratcl
-package provide Oratcl::utils 4.6
+package provide Oratcl::utils 5.0
 
 #
 # create a namespace
@@ -33,21 +33,6 @@ proc ::Oratcl::utils::limitEntry {args} {
 			}
 		}
 	}
-}
-
-
-#
-# getLogo : return Oratcl Logo for external uses.
-#
-proc ::Oratcl::utils::getLogo args {
-	variable OraTcl
-
-	package require Tk
-
-	if {! [info exists OraTcl(image)]} {
-		Oratcl::utils::makeImage
-	} 
-	return $OraTcl(image)
 }
 
 

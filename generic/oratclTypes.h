@@ -268,6 +268,32 @@ typedef sword (*OCILOBGETLENGTH) (OCISvcCtx *svchp,
 				  ub4 *lenp);
 extern OCILOBGETLENGTH OCI_LobGetLength;
 
+typedef sword (*OCILOBREAD2) (OCISvcCtx *svchp,
+			      OCIError *errhp,
+			      OCILobLocator *locp,
+			      oraub8 *byte_amtp,
+			      oraub8 *char_amtp,
+			      oraub8 offset,
+			      dvoid *bufp,
+			      oraub8 bufl,
+			      ub1 piece,
+			      dvoid *ctxp,
+			      sb4 (*cbfp)(dvoid *ctxp,
+					  CONST dvoid *bufp,
+					  oraub8 len,
+					  ub1 piece,
+					  dvoid **changed_bufpp,
+					  oraub8 *changed_lenp),
+			      ub2 csid,
+			      ub1 csfrm);
+extern OCILOBREAD2 OCI_LobRead2;
+
+typedef sword (*OCILOBGETLENGTH2) (OCISvcCtx *svchp,
+				   OCIError *errhp,
+				   OCILobLocator *locp,
+				   oraub8 *lenp);
+extern OCILOBGETLENGTH2 OCI_LobGetLength2;
+
 typedef sb4 (*OCICallbackInBind)(void *ictxp,
 				 OCIBind *bindp,
 				 ub4 iter,

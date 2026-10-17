@@ -17,18 +17,16 @@
 #include "oratclExtern.h"
 
 int
-Oralong_Init (interp)
-	Tcl_Interp	*interp;
+Oralong_Init(Tcl_Interp *interp)
 {
 	size_t		x;
-	int		debug = 0;
-	CONST84 char	*rx;
+	const char	*rx;
 	Tcl_Obj		*tmp1_obj;
 
 	struct tvars {
-		CONST84 char * ns;
-		CONST84 char * name;
-		CONST84 char * value;
+		const char * ns;
+		const char * name;
+		const char * value;
 	};
 
 	struct tvars tvars_list [] = {
@@ -70,7 +68,7 @@ Oralong_Init (interp)
 	};
 
 
-	CONST84 char *script[] = {
+	const char *script[] = {
 	        "proc oralong {command handle args} { "
 		"	global errorInfo; "
 		"	foreach idx [list rowid table column datavariable] { "
@@ -255,11 +253,11 @@ Oralong_Init (interp)
 
 	for (x = 0; x < (sizeof(tvars_list)/sizeof(struct tvars)); x++) {
 
-		if (debug) {
-			fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
-			fprintf(stderr, "name = %s\n", tvars_list[x].name);
-			fprintf(stderr, "value = %s\n", tvars_list[x].value);
-		}
+#ifdef ORATCL_DEBUG
+		fprintf(stderr, "ns = %s\n", tvars_list[x].ns);
+		fprintf(stderr, "name = %s\n", tvars_list[x].name);
+		fprintf(stderr, "value = %s\n", tvars_list[x].value);
+#endif
 					
 		rx = Tcl_SetVar2((Tcl_Interp *) interp,
 				 (CONST char *) tvars_list[x].ns,
@@ -268,11 +266,7 @@ Oralong_Init (interp)
 				 0); 
 
 		if (rx == NULL) {
-			fprintf(stderr,
-				"%sset variable '%s'",
-				"Oralong_Init(): Failed to ",
-				(CONST char *) tvars_list[x].name);
-				return TCL_ERROR;
+			return TCL_ERROR;
 		}
 
 	}
@@ -281,10 +275,6 @@ Oralong_Init (interp)
 		tmp1_obj=Tcl_NewStringObj(script[x], -1);
 		Tcl_IncrRefCount(tmp1_obj);
 		if (Tcl_EvalObjEx(interp, tmp1_obj, 0) != TCL_OK) {
-			fprintf(stderr,
-				"%sevaluate internal script at index %zu",
-				"Oralong_Init(): Failed to ",
-				(size_t) x);
 			Tcl_DecrRefCount(tmp1_obj);
 			return TCL_ERROR;
 		}
@@ -310,11 +300,7 @@ Oralong_Init (interp)
  */
 
 int
-Oratcl_LongRead (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_LongRead(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -324,10 +310,10 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	OCIDefine       *defnp;		/* define pointer */
 
 	char		*sql;
-	int		sql_len = 0;
+	Tcl_Size	sql_len = 0;
 
 	char		*btype;
-	int		btype_len = 0;
+	Tcl_Size	btype_len = 0;
 
 	int		rc, frc, prc;
 
@@ -566,7 +552,7 @@ Oratcl_LongRead (clientData, interp, objc, objv)
 	rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			  (ub4) OCI_HTYPE_STMT,
 			  (ub4 *) &rowcnt,
-			  (ub4) 0,
+			  NULL,
 			  OCI_ATTR_ROW_COUNT,
 			  LogPtr->errhp));
 
@@ -618,11 +604,7 @@ common_exit:
  */
 
 int
-Oratcl_LongWrite (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_LongWrite(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -634,14 +616,14 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	int		rc;
 
 	char		*sql;
-	int		sql_len = 0;
+	Tcl_Size	sql_len = 0;
 
 	Tcl_DString	outStr;
 	char		*pre_data;
-	int		pre_data_len = 0;
+	Tcl_Size	pre_data_len = 0;
 
 	char		*type;
-	int		type_len = 0;
+	Tcl_Size	type_len = 0;
 
 	int		offset, sofar;
 	char		*wherebuf;
@@ -889,7 +871,7 @@ Oratcl_LongWrite (clientData, interp, objc, objv)
 	rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			  (ub4) OCI_HTYPE_STMT,
 			  (ub4 *) &rowcnt,
-			  (ub4) 0,
+			  NULL,
 			  OCI_ATTR_ROW_COUNT,
 			  LogPtr->errhp));
 

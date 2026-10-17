@@ -1,7 +1,7 @@
 # oralong:
 # Process long commands.
 #
-# RCS: @(#) $Id: oralong.tcl,v 1.9 2016-03-29 16:54:23 tmh Exp $
+# RCS: @(#) $Id: oralong.tcl,v 1.9 2016/03/29 16:54:23 tmh Exp $
 #
 # Copyright (c) 2000 Todd M. Helfter
 #

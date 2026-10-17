@@ -129,6 +129,31 @@
 #define MAXEB4MINVAL ((eb4)          0)
 
 
+/*
+ * Signed/Unsigned eight-byte scalar (orasb8/oraub8)
+ */
+
+#ifndef lint
+#if defined(__LP64__) || defined(_LP64)
+  typedef unsigned long oraub8;
+  typedef   signed long orasb8;
+#else
+  typedef unsigned long long oraub8;
+  typedef   signed long long orasb8;
+#endif
+#else
+# define oraub8 unsigned long long
+# define orasb8 signed long long
+#endif
+
+#ifndef ub8
+  typedef oraub8 ub8;
+#endif
+#ifndef sb8
+  typedef orasb8 sb8;
+#endif
+
+
 /* 
  * Signed/Unsigned work data types (ework/uword/sword)
  */

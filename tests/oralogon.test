@@ -40,7 +40,7 @@ namespace eval ::tcl::test::oralogon {
             testoralogoff
         }
         -body {
-            catch {oralogon $ora_constr} res
+            catch {oralogon $::ora_constr} res
             set res
         }
         -cleanup {
@@ -98,7 +98,7 @@ namespace eval ::tcl::test::oralogon {
             testoralogoff
         }
         -setup {
-            set lda [oralogon $ora_constr]
+            set lda [oralogon $::ora_constr]
         }
         -body {
             set rc [oralogoff $lda]
@@ -118,7 +118,7 @@ namespace eval ::tcl::test::oralogon {
         }
         -body {
             for {set n 0} {$n < 35} {incr n} {
-                set cr [catch {set lda [oralogon $ora_constr]}]
+                set cr [catch {set lda [oralogon $::ora_constr]}]
                 if {$cr == 0} {
                     lappend lda_list $lda
                 } else {

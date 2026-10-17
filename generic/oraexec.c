@@ -31,11 +31,7 @@
  */
 
 int
-Oratcl_Exec (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Exec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -93,7 +89,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 
 	/* check for option and deprecated keywords */
 	if (objc >= 3) {
-		p = Tcl_GetStringFromObj(objv[2], (int *) NULL);
+		p = Tcl_GetStringFromObj(objv[2], NULL);
 		if (*p == '-') {
 			p++;
 		}
@@ -227,7 +223,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 	OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 		    (ub4) OCI_HTYPE_STMT,
 		    (ub2 *) &StmPtr->ora_fcd,
-		    (ub4) 0,
+		    NULL,
 		    OCI_ATTR_SQLFNCODE,
 		    LogPtr->errhp);
 
@@ -240,7 +236,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 		rc = (OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 				  (ub4) OCI_HTYPE_STMT,
 				  (ub4 *) &rowcnt,
-				  (ub4) 0,
+				  NULL,
 				  OCI_ATTR_ROW_COUNT,
 				  LogPtr->errhp));
 
@@ -295,7 +291,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 							OCI_AttrGet( (dvoid *) RefPtr->stmhp,
 								    (ub4) OCI_HTYPE_STMT,
 								    (ub2 *) &RefPtr->ora_peo,
-								    (ub4) 0,
+							    NULL,
 								    OCI_ATTR_PARSE_ERROR_OFFSET,
 								    LogPtr->errhp);
 #endif
@@ -312,7 +308,7 @@ Oratcl_Exec (clientData, interp, objc, objv)
 						OCI_AttrGet( (dvoid *) RefPtr->stmhp,
 							    (ub4) OCI_HTYPE_STMT,
 							    (ub2 *) &RefPtr->ora_fcd,
-							    (ub4) 0,
+							    NULL,
 							    OCI_ATTR_SQLFNCODE,
 							    LogPtr->errhp);
 

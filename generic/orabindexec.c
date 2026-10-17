@@ -32,11 +32,7 @@
  */
 
 int
-Oratcl_Bindexec (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Bindexec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 
 	int		bindObjc = 0;
@@ -68,7 +64,7 @@ Oratcl_Bindexec (clientData, interp, objc, objv)
 
 	/* check for option and deprecated keywords */
 	if (objc >= 3) {
-		p = Tcl_GetStringFromObj(objv[2], (int *) NULL);
+		p = Tcl_GetStringFromObj(objv[2], NULL);
 		if (*p == '-') {
 			p++;
 		}

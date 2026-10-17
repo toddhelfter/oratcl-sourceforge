@@ -24,7 +24,7 @@ namespace eval ::tcl::test::oralong {
 
 	proc long_begin {} {
 		uplevel 1 {
-			set long_lda [oralogon $ora_constr]
+			set long_lda [oralogon $::ora_constr]
 			set long_stm [oraopen $long_lda]
 
 			set long_sql(create_long_table) {
@@ -129,7 +129,7 @@ namespace eval ::tcl::test::oralong {
 	::tcltest::test oralong-1.0 {oralong: alloc and free long} {
 		-constraints testoralong
 		-setup {
-			set test0(lda) [oralogon $ora_constr]
+			set test0(lda) [oralogon $::ora_constr]
 			set test0(stm) [oraopen $test0(lda)]
 		}
 		-body {
@@ -152,7 +152,7 @@ namespace eval ::tcl::test::oralong {
 	::tcltest::test oralong-1.1 {oralong: write long; read long} {
 		-constraints testoralong
 		-setup {
-			set test1(lda) [oralogon $ora_constr]
+			set test1(lda) [oralogon $::ora_constr]
 			set test1(stm) [oraopen $test1(lda)]
 			oraconfig $test1(stm) longsize [string length $chr_data]
 			set test1(lng) [oralong alloc $test1(stm) \
@@ -178,7 +178,7 @@ namespace eval ::tcl::test::oralong {
 	::tcltest::test oralong-1.2 {oralong: write long BYTE ; read long BYTE} {
 		-constraints testoralong
 		-setup {
-			set test2(lda) [oralogon $ora_constr]
+			set test2(lda) [oralogon $::ora_constr]
 			set test2(stm) [oraopen $test2(lda)]
 			oraconfig $test2(stm) longsize 1000
 			oraconfig $test2(stm) longpsize 10
@@ -205,7 +205,7 @@ namespace eval ::tcl::test::oralong {
 	::tcltest::test oralong-1.3 {oralong: write long NULL ; read long NULL} {
 		-constraints testoralong
 		-setup {
-			set test3(lda) [oralogon $ora_constr]
+			set test3(lda) [oralogon $::ora_constr]
 			set test3(stm) [oraopen $test3(lda)]
 			oraconfig $test3(stm) longsize 1000
 			oraconfig $test3(stm) longpsize 10
@@ -232,7 +232,7 @@ namespace eval ::tcl::test::oralong {
 	::tcltest::test oralong-2.0 {oralong: alloc and free long raw} {
 		-constraints testoralong
 		-setup {
-			set test0(lda) [oralogon $ora_constr]
+			set test0(lda) [oralogon $::ora_constr]
 			set test0(stm) [oraopen $test0(lda)]
 		}
 		-body {
@@ -254,7 +254,7 @@ namespace eval ::tcl::test::oralong {
 	::tcltest::test oralong-2.1 {oralong: write long raw ; read long raw} {
 		-constraints testoralong
 		-setup {
-			set test1(lda) [oralogon $ora_constr]
+			set test1(lda) [oralogon $::ora_constr]
 			set test1(stm) [oraopen $test1(lda)]
 			oraconfig $test1(stm) longsize [string length $bin_data]
 			set test1(lng) [oralong alloc $test1(stm) \

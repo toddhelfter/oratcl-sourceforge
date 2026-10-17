@@ -6,7 +6,7 @@
 # Copyright (c) 2017 by Todd M. Helfter
 # All rights reserved.
 #
-# RCS: @(#) $Id: all.tcl,v 1.13 2017-09-21 17:37:11 tmh Exp $
+# RCS: @(#) $Id: all.tcl,v 1.13 2017/09/21 17:37:11 tmh Exp $
 
 global ora_lda
 
