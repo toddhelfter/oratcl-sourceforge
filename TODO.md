@@ -128,5 +128,9 @@ directions.
 - [ ] Track down where/how the historical Intel-sponsored thread-safety work (bounty via
   Steve Shaw) actually landed — confirm whether it's already reflected in the mainline
   4.x branches we imported from SourceForge, or only exists in Shaw's fork history
+  - Note: Tcl threading support (`--enable-threads`) is a compile-time option, not a
+    given — any thread-safety work needs to account for Oratcl being built against both
+    threaded and non-threaded Tcl, and the corresponding OCI environment initialization
+    mode (`OCI_THREADED` vs. not) needs to match how Tcl itself was built
 - [ ] Consider reaching out to Steve Shaw directly, given the shared lineage and
   HammerDB's real-world dependency on Oratcl, to coordinate/share fixes going forward
