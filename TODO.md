@@ -82,3 +82,29 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
 - [ ] Decide packaging/distribution format per platform (zip vs tar.gz, directory layout) consistent with prior SourceForge releases
 - [ ] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz`
 - [ ] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built
+
+## Story 8: Seamless/inline LOB handling (replace the PL/SQL-wrapper mindset)
+
+`oralob` (original) wraps `DBMS_LOB` PL/SQL procedures via `oraplexec`, and `oralob2`
+(added in 5.0) reads LOBs directly via `OCILobRead2` — but both are still separate,
+explicit commands the caller must invoke *in addition to* the normal fetch path. Other
+OCI-based language bindings have figured out how to make LOB columns "just work" inline
+as part of a normal query result, the same as any `VARCHAR2`/`NUMBER` column, with no
+special-case API. This has always felt like a weak point in Oratcl's design (simple to
+build at the time, but not the right model) and is worth properly solving rather than
+continuing to add parallel LOB commands.
+
+- [ ] Research how other OCI consumers handle LOB columns inline during normal fetch (e.g.
+  `cx_Oracle`/`python-oracledb`, Perl `DBD::Oracle`, PHP `oci8`, Oracle's own OCCI/Pro*C
+  patterns) — likely centered on `OCIDefineByPos` with `SQLT_CLOB`/`SQLT_BLOB` and a LOB
+  locator descriptor (`OCI_DTYPE_LOB`), read via `OCILobRead2` at/after fetch time
+- [ ] Design how a LOB locator would flow through Oratcl's existing column/row pipeline
+  (`Oratcl_ColAlloc`/`Oratcl_ColAppend`/`orafetch`) so LOB values appear directly in the
+  fetched row like any other column
+- [ ] Decide the read strategy for large LOBs within a row-oriented fetch loop (full read
+  vs. size-capped vs. streaming/piecewise), and how that interacts with `oraconfig`
+  options (e.g. existing `lobpsize`)
+- [ ] Decide what happens to `oralob`/`oralob2` once inline fetching exists — likely kept
+  for explicit/manual control, with inline fetching as the new default/opt-in behavior
+- [ ] This is a research/design story before implementation — scope out a concrete plan
+  once the above is understood
