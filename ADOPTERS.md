@@ -8,8 +8,10 @@ A non-exhaustive list of notable projects and products built on Oratcl.
 - **[HammerDB](https://github.com/TPC-Council/HammerDB)** (formerly HammerOra), by Steve
   Shaw — has used Oratcl for Oracle load-testing/benchmarking workloads for many years.
   HammerDB maintains its own actively-updated fork,
-  [sm-shaw/Oratcl](https://github.com/sm-shaw/Oratcl), with independent Tcl 9
-  modernization work.
+  [HammerDBLtd/Oratcl](https://github.com/HammerDBLtd/Oratcl), with independent Tcl 9
+  modernization work. Real-world usage documented in
+  [a walkthrough of running TPC-C against Oracle with HammerDB in Docker](https://rammpeter.blogspot.com/2025/11/oracle-db-run-tpc-benchmark-with.html),
+  which shows HammerDB's `Oratcl_Init()` loading the Oracle Instant Client directly.
 - Steve Shaw, together with Intel, sponsored a bounty to make Oratcl thread-safe.
 
 Know of another project using Oratcl? Open a pull request adding it here.

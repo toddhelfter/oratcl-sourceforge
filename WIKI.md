@@ -28,6 +28,11 @@ Associates (1st Edition, September 1997, ISBN 1-56592-218-2). Tom Poindexter aut
 book's chapters on both `Sybtcl` and Oratcl — see
 [his page](https://www.nyx.net/~tpoindex/tcl.html) for more on his own writing and software.
 
+Oratcl is also covered in **"Oracle & Open Source"** by Andy Duncan, published by O'Reilly
+(ISBN 0596000189), chapter 4 — see the
+[publisher's chapter page](https://www.oreilly.com/library/view/oracle-and-open/0596000189/ch04.html)
+or [borrow it on the Internet Archive](https://archive.org/details/oracleopensource0000dunc).
+
 ## Pre-1999 history isn't in the commit history
 
 The CVS/SVN-derived Git history begins at version 2.5 (1999-07-27, "initial check-in of
