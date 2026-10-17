@@ -48,9 +48,13 @@ Wire up SourceForge's GitHub release integration so new GitHub releases are auto
 
 Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`, `doc/oratcl.man`, `doc/oratcl.txt`, plain-text `README`/`INSTALL`/`CHANGES`/`ChangeLog`, `COPYRIGHT`/`license.terms`), so `oratcl-sourceforge`'s GitHub "About" panel currently shows no description, no recognized README/License, no topics, 0 stars/watchers.
 
-- [ ] Write a proper `README.md` (GitHub-flavored Markdown) synthesized from the existing `doc/oratcl.html`, `oratcl.man`, `oratcl.txt`, `README`, and `INSTALL`, across `oratcl-sourceforge` and its branches
-- [ ] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves
+- [x] Write a proper `README.md` (GitHub-flavored Markdown) synthesized from the existing `doc/oratcl.html`, `oratcl.man`, `oratcl.txt`, `README`, and `INSTALL`, across `oratcl-sourceforge` and its branches — see [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) (pending merge to `main`)
+- [x] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves — same PR; note GitHub's detector matches it as "Other" (not an exact SPDX template), since the original historical license text was preserved as-is
 - [ ] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub
+- [ ] Add a "Known uses" section to `README.md` referencing notable projects/products built on Oratcl:
+  - HP 3PAR System Reporter
+  - HammerOra / HammerDB (Steve Shaw) — used Oratcl for many years
+  - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
 - [ ] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes)
 - [ ] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source`, depending on which repo remains canonical
 
