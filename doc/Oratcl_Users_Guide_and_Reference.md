@@ -114,11 +114,17 @@ software, The ActiveTcl installer will add menu items to the Windows ‘Start Me
 
 *Figure 1 the ActiveTcl installation*
 
+![Figure 1 the ActiveTcl installation](images/guide-activetcl-install.png)
+
 *Figure 2 the Oratcl installation*
+
+![Figure 2 the Oratcl installation](images/guide-oratcl-install.png)
 
 Since Oratcl is a dynamically loaded library, on windows it will have two required files; the Oratcl44.dll file and the pkgIndex..tcl file which provides the package loading instructions to Tcl’s package loading mechanism. By convention, these files are located in their own directory inside the Tcl\lib folder. Using the tclsh84.exe shell program we can attempt to load the Oratcl package into Tcl with the package require syntax..
 
 *Figure 3 tclsh84.exe window with error message*
+
+![Figure 3 tclsh84.exe window with error message](images/guide-tclsh84-error.png)
 
 This error is entirely expected, since we have not yet installed the oracle client software. If your server already has an Oracle client and you still have this error, skip past the instant client install to the trouble shooting section.
 
@@ -136,17 +142,25 @@ Before unzipping the instantclient-basic, I first created a C:\Oracle directory 
 
 *Figure 4 Oracle instant client install*
 
+![Figure 4 Oracle instant client install](images/guide-instant-client-install.png)
+
 So let’s try the tclsh84.exe and package require commands again.
 
 *Figure 5 tclsh84.exe with Oratcl installed and without oci.dll in the search path*
+
+![Figure 5 tclsh84.exe with Oratcl installed and without oci.dll in the search path](images/guide-tclsh84-error.png)
 
 Again it has failed to load the Oracle library. I have forgotten one little detail specific to the MS windows environment. Windows will only load a dll that it can find in it’s search path. The default search path is the current working directory and locations defined in the system PATH environment variable. So simply changing to the oracle instant client directory allows windows to locate the oci.dll file. This of course is not a viable option in your programming scripts.
 
 *Figure 6 tclsh84.exe with Oratcl installed after changing directory to oracle instant client location.*
 
+![Figure 6 tclsh84.exe with Oratcl installed after changing directory to oracle instant client location.](images/guide-tclsh84-after-cd.png)
+
 If you are planning to deploy applications to a windows environment with the Oracle instant client, there are a few options available. The easiest is to add the instant client location (in this case c:\oracle\instantclient_10_2) to the windows PATH environment variable. I have done so and the examples from this book will operate on the assumption that you have too. If your windows administrator will not let you adjust the system PATH variable, you can update the path variable in your Tcl script using a variety of variable commands (set, append) before loading the package. The following example demonstrates the append method.
 
 *Figure 7 altering the env(PATH) variable so Windows will load oci.dll*
+
+![Figure 7 altering the env(PATH) variable so Windows will load oci.dll](images/guide-env-path-fix.png)
 
 Success! From now on, we will be able to load Oratcl into our Tcl shells and start to make use of it’s features.
 
@@ -191,6 +205,8 @@ gcc version 3.4.2
 
 Note: for make install to work, /usr/ccs/bin needs to be in your $PATH
 
+![Raw CVS pserver login commands](images/guide-cvs-raw-login.png)
+
 And as you can see from the previous example, the command line syntax can get very tedious. To assist with this, I use a little shell script that was written given to me by a Tcl developer many years ago. I call it ‘sfacvs’ (source forge anonymous cvs). And this greatly simplifies the whole CVS process for me. Here is the script. I place this script in my personal bin directory which I’ve added to my path.
 
 ```
@@ -203,6 +219,8 @@ cvs -d:pserver:anonymous@${rdir}.cvs.sourceforge.net:/cvsroot/$rdir $*
 
 So here is the first example over again, using the script, much easier to perform, and much less likely to be frustrated with long command lines and mistyped arguments.
 
+![Logging in with the sfacvs script](images/guide-cvs-sfacvs-login.png)
+
 Now lets obtain the source code. For this operation it is useful to know some of the CVS tags, so that we can obtain specific versions. A tag is a way for source code developers to assign a consistent public label to a group of source files, so that when we check out that tag we get all the right files. Tcl tags follow this name scheme: core-MAJOR-MINOR-branch. So if, for instance, we want the Tcl 8.4 branch, the tag is core-8-4-branch.
 
 ```
@@ -210,6 +228,8 @@ core-8-3-branch
 core-8-4-branch
 core-8-5-branch
 ```
+
+![Checking out Tcl 8.4 with sfacvs](images/guide-cvs-checkout-tcl.png)
 
 Oratcl uses a similar tag naming scheme: These are all the tags available in the CVS repository. Although all these versions are available via CVS. Each version has additional features and bug fixes available. The current version is 4.4, and that is the one we will use in this example. In a later chapter that covers the history and feature improvement of the various versions, there will be a compatibility matrix to assist with determining which versions are right for you. If you are just starting with a project, then the current production releases are Tcl 8.4.17 and Oratcl 4.4. These versions are fully compatible with the modern Oracle database versions 8i, 9i, 10g and 11g. If an older version of Oracle or legacy Oratcl code is being maintained, then the chapter on upgrading will be a good place to start.
 
@@ -229,6 +249,8 @@ oratcl-4-5-branch (not yet created)
 ```
 
 Utilizing the sfacvs script listed above, we must check out the Oratcl version we want to build.
+
+![Checking out Oratcl 4.4 with sfacvs](images/guide-cvs-checkout-oratcl.png)
 
 ### Tcl Building and Installing
 
@@ -289,6 +311,8 @@ jumpgate: [40] > make install
 
 When installed with this method, the Oratcl library files are placed in a directory located inside the Tcl lib directory. To be on the safe side lets compare the ELF versions for all the relevant files.
 
+![Comparing ELF versions of the 32-bit and 64-bit instant client libraries](images/guide-elf-version-check.png)
+
 Ok we are good to go, all files have the same ELF version. We are ready for Oratcl scripting.
 
 Success!
@@ -316,6 +340,8 @@ Well that clearly did not work. When Tcl is 32 bit and Oracle is 64 we have comp
 4.4
 ```
 
+![Successful oralogon after setting ORACLE_LIBRARY](images/guide-oralogon-success.png)
+
 ### Oracle Instant Client for Solaris Installation
 
 It is often practical to use the Oracle Instant client for Solaris.: Oracle provides an instant download for the Solaris operating environment as well as many others. There are two versions to choose from: a 32-bit and 64-bit version. I downloaded both versions for this chapter. I began by creating an oracle32 and an oracle64 directory. I
@@ -330,19 +356,29 @@ oracle64/instantclient-basic-solaris64-10.2.0.3-20070101.zip
 
 These are the files I have:
 
+![Confirming ELF versions for the Solaris instant client libraries](images/guide-elf-version-check-2.png)
+
 So we are all set to use both 32-bit and 64-bit Tcl binaries.
 
 **NOTE** with Oracle instant client for Solaris, Oratcl always requires the ORACLE_LIBRARY environment variable to be set. And the instant client location has to be appended to the LD_LIBRARY_PATH environment variable before tclsh is started.
 
 Figure 1 Solaris with 32 bit Oracle instant client (csh/tcsh) example
 
+![Figure 1 Solaris with 32 bit Oracle instant client (csh/tcsh) example](images/guide-solaris-32bit-csh.png)
+
 Figure 2 Solaris with 64 bit Oracle instant client (csh/tcsh) example
+
+![Figure 2 Solaris with 64 bit Oracle instant client (csh/tcsh) example](images/guide-solaris-64bit-shell.png)
 
 Once the package is able to load, then the Tcl interpreter is ready for the rest of the examples in this book. Before we depart the Solaris section, I think a few error conditions should be covered.
 
 Figure 3 Solaris with 32 bit Oracle instant client (sh/bash) example
 
+![Figure 3 Solaris with 32 bit Oracle instant client (sh/bash) example](images/guide-solaris-32bit-sh.png)
+
 Figure 4 Solaris with 64 bit Oracle instant client (sh/bash) example
+
+![Figure 4 Solaris with 64 bit Oracle instant client (sh/bash) example](images/guide-solaris-64bit-shell.png)
 
 ## RedHat Enterprise Linux 3, 4, 5
 
