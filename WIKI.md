@@ -114,8 +114,12 @@ Oratcl is indexed in **"Practical Programming in Tcl & Tk"** by Brent B. Welch (
 core, widely-used Tcl reference by one of the Tcl/Tk community's foremost authors — see
 [the index entry on Google Books](https://books.google.com/books?id=JkNGAQAAIAAJ&q=Oratcl&dq=Oratcl).
 
-Oratcl's role in Oracle Enterprise Manager (OEM) job/event scripting is documented across
-several Oracle-focused books:
+Oratcl's role in Oracle Enterprise Manager (OEM) job/event scripting is confirmed by
+**official Oracle documentation itself**: the Oracle8 OEM 1.3.5 manual's "Jobs and Events
+Scripts" chapter states plainly, *"The Tcl Language with OraTcl extensions is used to write
+the job and events scripts"* — see
+[the chapter, mirrored at UMBC](https://portal.cs.umbc.edu/help/oracle8.bak/oem135/A53701_01/scripts.htm#54069).
+This is also documented across several Oracle-focused books:
 
 - **"Oracle Enterprise Manager 101"** by Lars Bo Vanting and Dirk Schepanek (2002), page
   100 — using the `OraTcl` verb `ORAREPORTEVENT` from within a Tcl script for event
