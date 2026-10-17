@@ -134,3 +134,29 @@ directions.
     mode (`OCI_THREADED` vs. not) needs to match how Tcl itself was built
 - [ ] Consider reaching out to Steve Shaw directly, given the shared lineage and
   HammerDB's real-world dependency on Oratcl, to coordinate/share fixes going forward
+
+## Story 10: Copyright year was bumped per-release — update it for 5.0
+
+The copyright end-year in `license.terms`/`COPYRIGHT` was updated at each release over
+the project's history, not left static:
+
+| Branch | Copyright notice |
+|---|---|
+| `scriptics-sc-1-0-branch` / `oratcl-3-0-branch` | `Copyright 1993 Tom Poindexter and U S WEST Advanced Technologies, Inc.` (no Helfter year range yet) |
+| `oratcl-4-3-branch` | `Copyright (c) 2000-2004 Todd M. Helfter` |
+| `oratcl-4-5-branch` | `Copyright (c) 2000-2005 Todd M. Helfter` |
+| `oratcl-4-6-branch` | `Copyright (c) 2000-2017 Todd M. Helfter` |
+
+The HP 3PAR System Reporter manual (Story 5) reproduces the `2000-2005` notice, matching
+whatever Oratcl version it was bundled with at the time — confirming the pattern that the
+copyright year tracked the release it shipped with, not a single fixed range.
+
+Our current 5.0 line (`license.terms`, `COPYRIGHT`, and the new root `LICENSE` copy)
+inherited `2000-2017` unchanged from 4.6 — it was never bumped for 5.0.
+
+- [ ] Update `license.terms`, `COPYRIGHT`, and `LICENSE` (root, on `oratcl-5-0-branch`) to
+  `Copyright (c) 2000-2026 Todd M. Helfter` for the 5.0 release
+- [ ] Apply this on both `oratcl-source` and `oratcl-sourceforge`'s `oratcl-5-0-branch`
+  (same files need updating in both places until/unless one repo is retired)
+- [ ] Going forward, bump the end-year again at each future release, matching the
+  historical pattern
