@@ -192,7 +192,10 @@ see [ADOPTERS.md](ADOPTERS.md)):
   as much as possible the commands do the same things". Command names mirror Oratcl's
   almost exactly (`oralogon`, `oralogoff`, `oraopen`, `oraclose`, `oraparse`, `orabind`,
   `oraexec`, `oracommit`, `oraroll`, `orafetch`/`orafetchall`), adapted to OCaml's type
-  system — a cross-language tribute rather than a fork. Last active 2016.
+  system — a cross-language tribute rather than a fork. Its
+  [manpage](https://gaiustech.github.io/ociml/manpage.html) includes a formal
+  acknowledgement: *"With thanks to the [OraTcl project](http://oratcl.sourceforge.net/)"*.
+  Last active 2016.
 
 ## See also
 
