@@ -23,10 +23,13 @@ It's extracted here as an actual image asset:
 ![OraTcl POWERED logo](doc/images/oratcl-powered-logo.gif)
 
 Separately, Tcl conferences in the 1990s had their own promotional merchandise — Poindexter's
-site includes a photo of a ["Sybtcl/Oratcl: Digging Data for Tcl/Tk" fanny pack](https://www.nyx.net/~tpoindex/tcl-wear/sybtcl-oratcl-pack.html),
-branded with "Talus Technologies, Inc.", distinct from the logo above but a fun artifact of
-the same era (see [his Tcl-Wear page](https://www.nyx.net/~tpoindex/tcl.html) generally for
-more Tcl conference swag history).
+site includes photos of a ["Sybtcl/Oratcl: Digging Data for Tcl/Tk" fanny pack](https://www.nyx.net/~tpoindex/tcl-wear/sybtcl-oratcl-pack.html)
+and a matching ["Sybtcl/Oratcl: Digging Data" logo hat](https://www.nyx.net/~tpoindex/tcl-wear/sybtcl-oratcl-hat.html)
+(reusing "Sammy the Steam Shovel" line art from a tee shirt and watch), both branded with
+"Talus Technologies, Inc.", distinct from the logo above but a fun artifact of the same era
+(see [his Tcl-Wear page](https://www.nyx.net/~tpoindex/tcl.html) generally for more Tcl
+conference swag history). Poindexter sent Helfter one of these hats personally — Helfter
+still has it.
 
 ## Ownership transfer (1999): Todd Helfter
 
