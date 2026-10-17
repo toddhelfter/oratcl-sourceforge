@@ -172,11 +172,11 @@ single unbroken 669-commit history from 1999 through 5.0, with content verified
 byte-identical at the graft seam (matching tree hashes) and no unrelated branch/tag history
 disturbed.
 
-## Related/derivative projects
+## Forks and alternative implementations
 
-Forks and reimplementations of Oratcl's own codebase/API (as distinct from projects that
-merely depend on Oratcl as a library — those are "adopters", see
-[ADOPTERS.md](ADOPTERS.md)):
+Forks of Oratcl's own codebase and independent reimplementations of its command API (as
+distinct from projects that merely depend on Oratcl as a library — those are "adopters",
+see [ADOPTERS.md](ADOPTERS.md)):
 
 - [HammerDBLtd/Oratcl](https://github.com/HammerDBLtd/Oratcl) — HammerDB's own
   actively-maintained fork (originally `sm-shaw/Oratcl` by Steve Shaw, later transferred to
@@ -186,6 +186,13 @@ merely depend on Oratcl as a library — those are "adopters", see
   MIT-licensed reimplementation of the classic Oratcl API on top of ODPI-C 5.6.4, by Miguel
   Bañón, targeting Tcl 9 with built-in cross-interpreter thread safety and inline LOB
   fetching. See [TODO.md](TODO.md) Story 11.
+- [OCI\*ML](https://github.com/gaiustech/ociml) by Gaius Hammond — an **OCaml** (not Tcl)
+  OCI binding whose own GitHub description reads "Oracle OCI binding for OCaml based on
+  OraTcl", and whose README states it's "a higher level library patterned after OraTcl...
+  as much as possible the commands do the same things". Command names mirror Oratcl's
+  almost exactly (`oralogon`, `oralogoff`, `oraopen`, `oraclose`, `oraparse`, `orabind`,
+  `oraexec`, `oracommit`, `oraroll`, `orafetch`/`orafetchall`), adapted to OCaml's type
+  system — a cross-language tribute rather than a fork. Last active 2016.
 
 ## See also
 
