@@ -52,7 +52,7 @@ Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`,
 - [x] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves — same PR; note GitHub's detector matches it as "Other" (not an exact SPDX template), since the original historical license text was preserved as-is
 - [ ] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub
 - [ ] Add `ADOPTERS.md` (linked from `README.md`, not inlined there) listing notable projects/products built on Oratcl:
-  - HP 3PAR System Reporter ([user's guide reference](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html), System Reporter 2.8, Nov 2010)
+  - HP 3PAR System Reporter ([user's guide reference](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html), System Reporter 2.8, Nov 2010) — **confirmed**: page 3 of that manual reproduces the Oratcl copyright/license notice verbatim ("Copyright (c) 2000-2005 Todd M. Helfter... Permission to use, copy, modify, distribute, and sell this software..."), i.e. the exact `license.terms` text, though dated 2000-2005 vs. our `license.terms`'s 2000-2017 — worth noting as a data point on the license's copyright year history
   - HammerOra / HammerDB (Steve Shaw) — used Oratcl for many years; see Story 9 for the HammerDB fork
   - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
 - [ ] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes)
