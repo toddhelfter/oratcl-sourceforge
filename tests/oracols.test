@@ -23,7 +23,7 @@ namespace eval ::tcl::test::oracols {
 	test oracols-1.1 {oracols: all options after oraparse} {
 		-constraints testoracols
 		-setup {
-			set tst(lda) [oralogon $ora_constr]
+			set tst(lda) [oralogon $::ora_constr]
 			set tst(stm) [oraopen $tst(lda)]
 			set tst(sql) {select v_number, v_date, v_char, v_varchar2 from oratcl___tests}
 			set tst(res) {}

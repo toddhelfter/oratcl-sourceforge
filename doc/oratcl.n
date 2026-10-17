@@ -22,7 +22,7 @@ the tcl \fBpackage\fR command.
 .B Example
 .IP
 package require Oratcl
-package require -exact Oratcl 4.6
+package require -exact Oratcl 5.0
 .sp
 .SH "ORATCL COMMANDS"
 .TP
@@ -959,7 +959,7 @@ $HOME/.tnsnames.ora - definitions for Oracle servers.
 None known.
 .sp
 .SH AUTHOR
-Todd Helfter  Version 4.6 not yet released.
+Todd Helfter  Version 5.0 not yet released.
 .P
 thelfter@gmail.com
 .sp

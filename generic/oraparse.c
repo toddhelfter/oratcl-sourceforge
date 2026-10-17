@@ -29,11 +29,7 @@
  */
 
 int
-Oratcl_Parse (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -45,7 +41,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	int		cols;
 
 	char		*stmt;
-	ub4		stln;
+	Tcl_Size	stln;
 
 	int		tcl_return = TCL_OK;
 
@@ -72,7 +68,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	StmPtr = (OratclStms *) Tcl_GetHashValue(stmHashPtr);
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(StmPtr->logHashPtr);
 
-	stmt = Tcl_GetStringFromObj(objv[2], (int *) &stln);
+	stmt = Tcl_GetStringFromObj(objv[2], &stln);
 	if (StmPtr->utfmode) {
 		Tcl_UtfToExternalDString(NULL, stmt, stln, &stmStr);
 	} else {
@@ -117,7 +113,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 	OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 		    (ub4) OCI_HTYPE_STMT,
 		    (ub2 *) &StmPtr->sqltype,
-		    (ub4) 0,
+		    NULL,
 		    OCI_ATTR_STMT_TYPE,
 		    LogPtr->errhp);
 
@@ -150,7 +146,7 @@ Oratcl_Parse (clientData, interp, objc, objv)
 			OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 				    (ub4) OCI_HTYPE_STMT,
 				    (ub2 *) &StmPtr->ora_peo,
-				    (ub4) 0,
+				    NULL,
 				    OCI_ATTR_PARSE_ERROR_OFFSET,
 				    LogPtr->errhp);
 #endif

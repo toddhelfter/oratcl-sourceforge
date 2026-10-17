@@ -40,7 +40,7 @@
 #undef  TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS  DLLEXPORT
 
-EXTERN Oratcl_Init	_ANSI_ARGS_((Tcl_Interp *interp));
+EXTERN Oratcl_Init(Tcl_Interp *interp);
 
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
@@ -73,9 +73,7 @@ LPVOID reserved;            /* Not used. */
 
 #else			/* __hpux */
 
-#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
-#endif
 #define HMODULE void *
 #define DLOPEN	dlopen
 #define DLCLOSE	dlclose
@@ -97,9 +95,9 @@ LPVOID reserved;            /* Not used. */
 
 #include "oratclExtern.h"
 
-extern int	  Oratcl_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
-extern int	  Oralob_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
-extern int	  Oralong_Init		_ANSI_ARGS_((Tcl_Interp	*interp));
+extern int	  Oratcl_Init(Tcl_Interp *interp);
+extern int	  Oralob_Init(Tcl_Interp *interp);
+extern int	  Oralong_Init(Tcl_Interp *interp);
 
 /*
  * Definitions of the Oracle function vectors. Taken from
@@ -141,6 +139,8 @@ OCIDEFINEBYPOS	OCI_DefineByPos;
 OCIBINDBYNAME	OCI_BindByName;
 OCILOBREAD OCI_LobRead;
 OCILOBGETLENGTH OCI_LobGetLength;
+OCILOBREAD2 OCI_LobRead2;
+OCILOBGETLENGTH2 OCI_LobGetLength2;
 OCIBINDDYNAMIC OCI_BindDynamic;
 OCINLSGETINFO	OCI_NlsGetInfo;
 OCINLSNUMERICINFOGET	OCI_NlsNumericInfoGet;
@@ -162,10 +162,7 @@ OCINLSNUMERICINFOGET	OCI_NlsNumericInfoGet;
  */
 
 void
-Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
-	Tcl_Interp	*interp;
-	Tcl_Obj 	*obj0, *obj1;
-	char		*msg0, *msg1;
+Oratcl_ErrorMsg(Tcl_Interp *interp, Tcl_Obj *obj0, char *msg0, Tcl_Obj *obj1, char *msg1)
 {
 	Tcl_Obj		*newPtr;
 
@@ -194,9 +191,7 @@ Oratcl_ErrorMsg(interp, obj0, msg0, obj1, msg1)
  */
 
 void
-Oratcl_Delete (clientData, interp)
-    ClientData clientData;
-    Tcl_Interp *interp;
+Oratcl_Delete(ClientData clientData, Tcl_Interp *interp)
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	OratclLogs	*LogPtr;
@@ -276,12 +271,9 @@ Oratcl_Delete (clientData, interp)
  */
 
 int
-Oratcl_Init (interp)
-	Tcl_Interp	*interp;
+Oratcl_Init(Tcl_Interp *interp)
 {
 	OratclState	*OratclStatePtr;
-
-	int		rc = 0;
 
 	HMODULE		handle;
 
@@ -291,31 +283,21 @@ Oratcl_Init (interp)
 	CONST char	*native;
 
 	Tcl_Obj		*env_obj;
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		*tmp_obj = NULL;
-#endif
 	Tcl_Obj		*pt1_obj = NULL;
 	Tcl_Obj		*pt2_obj = NULL;
 	Tcl_Obj		*pt3_obj = NULL;
 
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Obj		**pathObjv;
 	int		pathObjc;
 	Tcl_Obj		*pathList;
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-	char		**pathObjv;
-	int		pathObjc;
-	Tcl_DString	result;
-#endif
 	CONST char	*ora_lib = NULL;
 
 #endif							/* __WIN32__ */
 
-#ifdef USE_TCL_STUBS
-	if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
+	if (Tcl_InitStubs(interp, "9.0", 0) == NULL) {
 		return TCL_ERROR;
 	}
-#endif
 
 #ifndef __WIN32__
 
@@ -330,12 +312,7 @@ Oratcl_Init (interp)
 		native = ora_lib;
 	} else {
 
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		pathObjv = (Tcl_Obj **) ckalloc (3 * sizeof(*pathObjv));
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		Tcl_DStringInit(&result);
-		pathObjv = (char **) ckalloc (3 * sizeof(char *));
-#endif
 		pathObjc = 0;
 
 		env_obj = Tcl_NewStringObj("env(ORACLE_HOME)", -1);
@@ -355,7 +332,6 @@ Oratcl_Init (interp)
 		Tcl_IncrRefCount(pt2_obj);
 		Tcl_IncrRefCount(pt3_obj);
 
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		pathObjv[pathObjc++] = pt1_obj;
 		pathObjv[pathObjc++] = pt2_obj;
 		pathObjv[pathObjc++] = pt3_obj;
@@ -373,26 +349,12 @@ Oratcl_Init (interp)
 		Tcl_DecrRefCount(pathList);
 		native = Tcl_FSGetNativePath(tmp_obj);
 
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		pathObjv[pathObjc++] = Tcl_GetString(pt1_obj);
-		pathObjv[pathObjc++] = Tcl_GetString(pt2_obj);
-		pathObjv[pathObjc++] = Tcl_GetString(pt3_obj);
-
-		Tcl_JoinPath(pathObjc, pathObjv, &result);
-
-		ckfree((char *)pathObjv);
-		Tcl_DecrRefCount(pt1_obj);
-		Tcl_DecrRefCount(pt2_obj);
-		Tcl_DecrRefCount(pt3_obj);
-		Tcl_DecrRefCount(env_obj);
-		native = Tcl_DStringValue(&result);
-#endif
-
 	}
 
 	handle = DLOPEN(native, RTLD_NOW | RTLD_GLOBAL);
 
 	if (handle == NULL) {
+#ifdef ORATCL_DEBUG
 		fprintf(stderr, "%s(): Failed to load %s with error %s\n",
 			"Oratcl_Init",
 			native,
@@ -403,23 +365,16 @@ Oratcl_Init (interp)
 				"Oratcl_Init",
 				native);
 		}
+#endif
 
 		if (ora_lib == NULL) {
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 			Tcl_DecrRefCount(tmp_obj);
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-			Tcl_DStringFree(&result);
-#endif
 		}
 		return TCL_ERROR;
 	}
 
 	if (ora_lib == NULL) {
-#if ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION > 3))
 		Tcl_DecrRefCount(tmp_obj);
-#elif ((TCL_MAJOR_VERSION == 8) && (TCL_MINOR_VERSION == 3))
-		Tcl_DStringFree(&result);
-#endif
 	}
 
 #else
@@ -427,10 +382,12 @@ Oratcl_Init (interp)
 	handle = LoadLibrary(TEXT("OCI.DLL"));
 	if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 		last_error = GetLastError();
+#ifdef ORATCL_DEBUG
 		fprintf(stderr, "%s(): %s with error %lu",
 			"Oratcl_Init",
 			"Failed loading oci.dll symbols",
 			(unsigned long) last_error);
+#endif
 		return TCL_ERROR;
 	}
 
@@ -480,6 +437,10 @@ Oratcl_Init (interp)
 		OCILOBREAD);
 	DLSYM(handle, "OCILobGetLength",     OCI_LobGetLength, 
 		OCILOBGETLENGTH);
+	DLSYM(handle, "OCILobRead2",         OCI_LobRead2, 
+		OCILOBREAD2);
+	DLSYM(handle, "OCILobGetLength2",    OCI_LobGetLength2, 
+		OCILOBGETLENGTH2);
 
 	/* sanity check at least one symbol */
 	if (OCI_Initialize == NULL) {
@@ -728,8 +689,14 @@ Oratcl_Init (interp)
 			    (Tcl_InterpDeleteProc *) Oratcl_Delete,
 			    (ClientData) OratclStatePtr);
 
-	rc = Oralob_Init(interp);
-	rc = Oralong_Init(interp);
+	Oralob_Init(interp);
+	Oralong_Init(interp);
+
+	Tcl_CreateObjCommand (interp,
+			      "oralob2",
+			      Oratcl_Lob2,
+			      (ClientData) OratclStatePtr,
+			      (Tcl_CmdDeleteProc *) NULL);
 
 	if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) != TCL_OK) {
 		return TCL_ERROR;
@@ -747,13 +714,7 @@ Oratcl_Init (interp)
  */
 
 void
-Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
-	Tcl_Interp	*interp;
-	OCIError	*errhp;
-	sword		rc;
-	int		flag;
-	int		*rcPtr;
-	Tcl_DString	*errPtr;
+Oratcl_Checkerr(Tcl_Interp *interp, OCIError *errhp, sword rc, int flag, int *rcPtr, Tcl_DString *errPtr)
 {
 
 	Tcl_DString	errStr;
@@ -820,8 +781,7 @@ Oratcl_Checkerr (interp, errhp, rc, flag, rcPtr, errPtr)
  */
 
 OratclCols *
-Oratcl_ColAlloc(fetchrows)
-	int	fetchrows;
+Oratcl_ColAlloc(int fetchrows)
 {
 	OratclCols *ColPtr;
 
@@ -841,13 +801,10 @@ Oratcl_ColAlloc(fetchrows)
 		ColPtr->bindp = NULL;
 		ColPtr->nFetchRows = fetchrows;
 		if ((ColPtr->indp = (sb2 *) ckalloc (sizeof(ColPtr->indp) * fetchrows)) == NULL) {
-			fprintf(stderr, "ColPtr->indp is NULL\n");
 		}
 		if ((ColPtr->rlenp = (ub2 *) ckalloc (sizeof(ColPtr->rlenp) * fetchrows)) == NULL) {
-			fprintf(stderr, "ColPtr->rlenp is NULL\n");
 		}
 		if ((ColPtr->rcodep = (ub2 *) ckalloc (sizeof(ColPtr->rcodep) * fetchrows)) == NULL) {
-			fprintf(stderr, "ColPtr->rcodep is NULL\n");
 		}
 		ColPtr->indp[0] = 0;
 		ColPtr->rlenp[0] = 0;
@@ -869,8 +826,7 @@ Oratcl_ColAlloc(fetchrows)
  */
 
 void
-Oratcl_ColFree (ColPtr)
-	OratclCols  *ColPtr;
+Oratcl_ColFree(OratclCols *ColPtr)
 {
 	OratclCols  *next;
 
@@ -935,8 +891,7 @@ Oratcl_ColFree (ColPtr)
  */
 
 void
-Oratcl_StmFree (StmPtr)
-	OratclStms	*StmPtr;
+Oratcl_StmFree(OratclStms *StmPtr)
 {
 	if (StmPtr != NULL) {
 
@@ -964,8 +919,7 @@ Oratcl_StmFree (StmPtr)
  */
 
 void
-Oratcl_LogFree (LogPtr)
-	OratclLogs	*LogPtr;
+Oratcl_LogFree(OratclLogs *LogPtr)
 {
 	if (LogPtr != NULL) {
 
@@ -1002,19 +956,13 @@ Oratcl_LogFree (LogPtr)
  */
 
 int
-Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
-	Tcl_Interp	*interp;
-	OratclStms	*StmPtr;
-	Tcl_Obj		*listvar;
-	Tcl_Obj		*arrayvar;
-	int		hashType;
+Oratcl_ColAppend(Tcl_Interp *interp, OratclStms *StmPtr, Tcl_Obj *listvar, Tcl_Obj *arrayvar, int hashType)
 {
 	int		rn;
 	OratclCols 	*ColPtr;
 	OratclCols	*col;
 	char		*null_str;
 	int		idx;
-	int		iTcl;
 
 	Tcl_DString	uniStr;
 	Tcl_DString	lobStr;
@@ -1033,7 +981,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 	}
 
 	if (arrayvar) {
-		iTcl = Tcl_UnsetVar2(interp,
+		(void) Tcl_UnsetVar2(interp,
 				     Tcl_GetStringFromObj(arrayvar, NULL),
 				     (char *) NULL,
 				     0);
@@ -1063,7 +1011,6 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 		if (( col->dty == SQLT_BLOB ) || ( col->dty == SQLT_CLOB )) {
 			pValue = ckalloc( StmPtr->lobpsize + 1 );
 			if (pValue == NULL) {
-				fprintf(stderr, "error:: pValue is NULL return -1\n");
 				return -1;
 			}
 			pValue[0] = '\0';
@@ -1136,16 +1083,12 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
 								      (ub1) SQLCS_IMPLICIT);
 
 						if( ( nStatus != OCI_SUCCESS ) && ( nStatus != OCI_NEED_DATA ) ) {
-							fprintf(stderr, "nStatus = %d\n", nStatus);
-							fprintf(stderr, "error:: return -3\n");
-							ckfree(pValue);
-							Tcl_DStringFree(&lobStr);
-							return -3;
-						}
+						ckfree(pValue);
+						Tcl_DStringFree(&lobStr);
+						return -3;
+					}
 
-						if( nAMTP == 0 ) {
-							fprintf(stderr, "error:: return -4\n");
-							ckfree(pValue);
+					if( nAMTP == 0 ) {
 							Tcl_DStringFree(&lobStr);
 							return -4;
 						}
@@ -1252,9 +1195,7 @@ Oratcl_ColAppend (interp, StmPtr, listvar, arrayvar, hashType)
  */
 
 int
-Oratcl_ColDescribe (interp, StmPtr)
-	Tcl_Interp 	*interp;
-	OratclStms	*StmPtr;
+Oratcl_ColDescribe(Tcl_Interp *interp, OratclStms *StmPtr)
 {
 	OratclLogs	*LogPtr;
 
@@ -1277,7 +1218,7 @@ Oratcl_ColDescribe (interp, StmPtr)
 	rc = OCI_AttrGet( (dvoid *) StmPtr->stmhp,
 			 (ub4) OCI_HTYPE_STMT,
 			 (ub4 *) &parmcnt,
-			 (ub4) 0,
+			 NULL,
 			 OCI_ATTR_PARAM_COUNT,
 			 LogPtr->errhp);
 
@@ -1384,7 +1325,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 			char *pLocators;
 			pLocators = ckalloc (new_col->column.valuesz * StmPtr->fetchrows);
 			if (pLocators == NULL) {
-				fprintf(stderr, "error:: pLocators is NULL return -1\n");
 				return -1;
 			}
 			for (nRow = 0; nRow < StmPtr->fetchrows; nRow++ ) {
@@ -1434,7 +1374,6 @@ Oratcl_ColDescribe (interp, StmPtr)
 			}
 
 			if (new_col->column.valuep == NULL) {
-				fprintf(stderr, "error:: new_col->column.valuep is NULL return -1\n");
 				return -1;
 			}
 
@@ -1507,11 +1446,7 @@ Oratcl_ColDescribe (interp, StmPtr)
  */
 
 int
-Oratcl_Cols (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Cols(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*stmHashPtr;
@@ -1526,7 +1461,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 	int		oColslen = 6;
 	Tcl_Obj		*oResult;
 
-	static CONST84 char *options[] = {"all",
+	static const char *options[] = {"all",
 				   "name",
 				   "size",
 				   "type",
@@ -1554,7 +1489,7 @@ Oratcl_Cols (clientData, interp, objc, objv)
 	if (objc == 3) {
 		if (Tcl_GetIndexFromObj(interp,
 					objv[2],
-					(CONST84 char **)options,
+					(const char **)options,
 					"option",
 					0,
 					&mode)) {
@@ -1643,12 +1578,7 @@ common_exit:
 
 
 sword
-Oratcl_Attributes (interp, errhp, parmh, column, explicit)
-	Tcl_Interp	*interp;
-	OCIError	*errhp;
-	OCIParam	*parmh;
-	OratclDesc	*column;
-	int		explicit;
+Oratcl_Attributes(Tcl_Interp *interp, OCIError *errhp, OCIParam *parmh, OratclDesc *column, int explicit)
 {
 	text		*namep;
 	ub4		namesz;

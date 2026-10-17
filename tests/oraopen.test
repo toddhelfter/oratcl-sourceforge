@@ -39,7 +39,7 @@ namespace eval ::tcl::test::oraopen {
         }
         -body {
              #global ora_lda
-             catch {set cur [oraopen $ora_lda]} res
+             catch {set cur [oraopen $::ora_lda]} res
              set res
         }
         -cleanup {
@@ -68,7 +68,7 @@ namespace eval ::tcl::test::oraopen {
         }
         -setup {
              global ora_lda
-             set stm [oraopen $ora_lda]
+             set stm [oraopen $::ora_lda]
         }
         -body {
              catch {set rc [oraclose $stm]} res
@@ -87,7 +87,7 @@ namespace eval ::tcl::test::oraopen {
             testoraclose
         }
         -setup {
-            set tst(lda) [oralogon $ora_constr]
+            set tst(lda) [oralogon $::ora_constr]
             set cur_list {}
         }
         -body {

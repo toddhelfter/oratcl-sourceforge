@@ -30,11 +30,7 @@
  */
 
 int
-Oratcl_Describe (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Describe(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	OratclState	*OratclStatePtr = (OratclState *) clientData;
 	Tcl_HashEntry	*logHashPtr;
@@ -45,7 +41,7 @@ Oratcl_Describe (clientData, interp, objc, objv)
 	OCIDescribe	*dschp = (OCIDescribe *)0;
 
 	char		*tmp_str;
-	int		tmp_len;
+	Tcl_Size	tmp_len;
 
 	text		*syn_st1 = NULL, *syn_st2 = NULL, *syn_st3 = NULL;
 	ub4		syn_ln1, syn_ln2, syn_ln3;
@@ -123,7 +119,6 @@ Oratcl_Describe (clientData, interp, objc, objv)
 
 	tmp_str = Tcl_GetStringFromObj(objv[2], &tmp_len);
 	if (tmp_str == NULL) {
-		fprintf(stderr, "error:: tmp_str is NULL return -1\n");
 		tcl_return = TCL_ERROR;
 		goto common_exit;
 	}

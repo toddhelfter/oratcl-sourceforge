@@ -99,7 +99,9 @@
 #define OCI_HTYPE_XADIO			25
 #define OCI_HTYPE_CPOOL			26
 #define OCI_HTYPE_SPOOL			27
-#define OCI_HTYPE_LAST			27
+#define OCI_HTYPE_ADMIN			28
+#define OCI_HTYPE_EVENT			29
+#define OCI_HTYPE_LAST			29
 
 
 /* Handle Definitions */
@@ -148,7 +150,19 @@ typedef struct OCIAuthInfo      OCIAuthInfo;
 #define OCI_DTYPE_SRVDN			72
 #define OCI_DTYPE_SIGNATURE		73
 #define OCI_DTYPE_RESERVED_1		74
-#define OCI_DTYPE_LAST			74
+#define OCI_DTYPE_AQLIS_OPTIONS		75
+#define OCI_DTYPE_AQLIS_MSG_PROPERTIES	76
+#define OCI_DTYPE_CHDES			77
+#define OCI_DTYPE_TABLE_CHDES		78
+#define OCI_DTYPE_ROW_CHDES		79
+#define OCI_DTYPE_CQDES			80
+#define OCI_DTYPE_LOB_REGION		81
+#define OCI_DTYPE_AQJMS_PROPERTIES	82
+#define OCI_DTYPE_SHARDING_KEY		83
+#define OCI_DTYPE_SHARD_INST		84
+#define OCI_DTYPE_JSON			85
+#define OCI_DTYPE_DDL_EVENT		86
+#define OCI_DTYPE_LAST			86
 
 
 /* Descriptor Definitions */
@@ -220,6 +234,10 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define SQLT_INTERVAL_DS	190
 #define SQLT_TIMESTAMP_LTZ	232
 #define SQLT_PNTY		241
+#define SQLT_REC		250		/* pl/sql 'record' (or %rowtype) */
+#define SQLT_TAB		251		/* pl/sql 'indexed table' */
+#define SQLT_BOL		252		/* pl/sql 'boolean' */
+#define SQLT_JSON		119		/* native JSON type (21c+) */
 
 
 /* Parsing Syntax Types */
@@ -305,6 +323,10 @@ typedef struct OCIServerDNs     	OCIServerDNs;
 #define OCI_AUTH_RESERVED_1 0x0020                               /* reserved */
 #define OCI_STMT_CACHE      0x0040                /* enable OCI Stmt Caching */
 #define OCI_SYSASM          0x00008000		 /* for SYSASM authorization */
+#define OCI_SYSBKP          0x00020000           /* for SYSBACKUP authorization */
+#define OCI_SYSDGD          0x00040000              /* for SYSDG authorization */
+#define OCI_SYSKMT          0x00080000              /* for SYSKM authorization */
+#define OCI_SYSRAC          0x00100000             /* for SYSRAC authorization */
 
 /*---------------------------------------------------------------------------*/
 

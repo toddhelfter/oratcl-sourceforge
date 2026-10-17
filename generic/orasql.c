@@ -31,11 +31,7 @@
  */
 
 int
-Oratcl_Sql (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_Sql(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	int		parseonly = 0;
 	char		*p;

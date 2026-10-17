@@ -19,7 +19,7 @@ namespace eval ::tcl::test::oralob {
 	namespace import ::tcltest::*
 
 	global ora_constr
-	set lob_lda [oralogon $ora_constr]
+	set lob_lda [oralogon $::ora_constr]
 	set lob_stm [oraopen $lob_lda]
 	# this appears to be very near the maximum piece size in pl/sql for 10gR2
 	oraconfig $lob_stm lobpsize 32500
@@ -365,7 +365,7 @@ namespace eval ::tcl::test::oralob {
         test oralob-6.2 {oralob: insert clob with SQL} {
 		-constraints nls_character_set_mismatch
                 -setup {
-                        set lda [oralogon $ora_constr]
+                        set lda [oralogon $::ora_constr]
                         set stm [oraopen $lda]
                         oraconfig $stm lobpsize 1000000
                 }
@@ -391,7 +391,7 @@ namespace eval ::tcl::test::oralob {
         test oralob-6.3 {oralob: update clob with SQL} {
 		-constraints nls_character_set_mismatch
                 -setup {
-                        set lda [oralogon $ora_constr]
+                        set lda [oralogon $::ora_constr]
                         set stm [oraopen $lda]
                         oraconfig $stm lobpsize 1000000
                 }
@@ -414,7 +414,7 @@ namespace eval ::tcl::test::oralob {
                 -setup {
 			set x [expr {214748364 * 2}]
 			set lrg_data [string repeat 0 $x]
-                        set tst6_4(lda) [oralogon $ora_constr]
+                        set tst6_4(lda) [oralogon $::ora_constr]
                         set tst6_4(st1) [oraopen $tst6_4(lda)]
                         set tst6_4(st2) [oraopen $tst6_4(lda)]
                         oraconfig $tst6_4(st1) lobpsize 1000000

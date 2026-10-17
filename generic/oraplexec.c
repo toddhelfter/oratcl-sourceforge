@@ -30,11 +30,7 @@
  */
 
 int
-Oratcl_PLexec (clientData, interp, objc, objv)
-	ClientData	clientData;
-	Tcl_Interp	*interp;
-	int		objc;
-	Tcl_Obj		*CONST objv[];
+Oratcl_PLexec(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 
 	int		bindObjc = 0;

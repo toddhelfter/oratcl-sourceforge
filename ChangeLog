@@ -1,6 +1,69 @@
-2017-11-22  Todd Helfter <thefter@gmail.com>
-	* converted from Sourceforge CVS to Sourceforge SVN for project
-	management.
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* generic/oratclInt.h : define CONST84 fallback as 'const' for
+	Tcl 9 compatibility.
+	* generic/oratcl.c
+	* generic/oraexec.c
+	* generic/orafetch.c
+	* generic/oralong.c
+	* generic/oraparse.c : replace (ub4) 0 with NULL in OCI_AttrGet
+	calls to fix -Wnon-literal-null-conversion warnings.
+	* generic/oratcl.c : remove unused variable rc in Oratcl_Init.
+
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* generic/oraautocom.c
+	* generic/orabind.c
+	* generic/orabindexec.c
+	* generic/orabreak.c
+	* generic/oraclose.c
+	* generic/oracommit.c
+	* generic/oraconfig.c
+	* generic/oradesc.c
+	* generic/oraexec.c
+	* generic/orafetch.c
+	* generic/orainfo.c
+	* generic/oralob.c
+	* generic/oralogoff.c
+	* generic/oralogon.c
+	* generic/oralong.c
+	* generic/oramsg.c
+	* generic/oraopen.c
+	* generic/oraparse.c
+	* generic/oraplexec.c
+	* generic/oraroll.c
+	* generic/orasql.c
+	* generic/oratcl.c : convert all K&R style function definitions
+	to ANSI C prototypes for C23 compatibility.
+
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* generic/oratcl.c : remove unused variable iTcl in
+	Oratcl_ColAppend.
+
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* generic/orabind.c
+	* generic/orabindexec.c
+	* generic/oradesc.c
+	* generic/oraexec.c
+	* generic/oralogon.c
+	* generic/oralong.c
+	* generic/oraparse.c
+	* generic/oratcl.c : fix Tcl_Size type mismatches for Tcl 9 where
+	Tcl_Size changed from int to ptrdiff_t.
+
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* tclconfig/tcl.m4
+	* tclconfig/install-sh : update TEA from 3.6 to 3.13.
+
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* generic/oratclInt.h : fix _ANSI_ARGS_ macro for Tcl 9.
+	* generic/oratcl.c : fix TCL_MAJOR_VERSION conditionals for Tcl 9,
+	include dlfcn.h unconditionally on POSIX.
+	* configure.in : bump version to 5.0, update TEA_INIT to 3.13,
+	add --with-oracle-directory option for Oracle SDK include path.
+
+2026-02-17  Todd Helfter <thelfter@gmail.com>
+	* generic/oralogon.c : fix arg processing loop for -sysdba,
+	-sysoper, -sysasm options. Was incorrectly using objv[2] instead
+	of objv[i] causing only the first option to be checked repeatedly.
 
 2017-10-12  Todd Helfter <thefter@gmail.com>
 	* generic/oratcl.c : sourceforge bug #71 - fix query results for

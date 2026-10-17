@@ -20,23 +20,23 @@ namespace eval ::tcl::test::orafetch {
 
 	test orafetch-1.1 {orafetch OCI_STMT_SELECT code == 1} {
 		set sql {select * from oratcl___tests where v_number = :num}
-		oraparse $ora_cur $sql
-		orabind $ora_cur :num 0
-		oraexec $ora_cur
-		orafetch $ora_cur
-		oramsg $ora_cur rc
+		oraparse $::ora_cur $sql
+		orabind $::ora_cur :num 0
+		oraexec $::ora_cur
+		orafetch $::ora_cur
+		oramsg $::ora_cur rc
 	} {0}
 
 	test orafetch-1.2 {orafetch OCI_STMT_SELECT code == 1} {
 		set sql {select * from oratcl___tests where v_number = :num}
-		oraparse $ora_cur $sql
-		orabind $ora_cur :num 0
-		oraexec $ora_cur
-		set rc [orafetch $ora_cur]
+		oraparse $::ora_cur $sql
+		orabind $::ora_cur :num 0
+		oraexec $::ora_cur
+		set rc [orafetch $::ora_cur]
 		set rc
 	} {0}
 
-	oraroll $ora_lda
+	oraroll $::ora_lda
 
         cleanupTests
 }
