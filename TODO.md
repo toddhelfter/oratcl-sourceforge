@@ -108,3 +108,25 @@ continuing to add parallel LOB commands.
   for explicit/manual control, with inline fetching as the new default/opt-in behavior
 - [ ] This is a research/design story before implementation — scope out a concrete plan
   once the above is understood
+
+## Story 9: Reconcile fixes with the sm-shaw/Oratcl (HammerDB) fork
+
+HammerDB (now at [TPC-Council/HammerDB](https://github.com/TPC-Council/HammerDB)) still
+uses Oratcl for Oracle connectivity, via a dedicated, actively-maintained fork by Steve
+Shaw: [sm-shaw/Oratcl](https://github.com/sm-shaw/Oratcl) (forked independently from an
+SVN export in 2022, last pushed 2025-02-24). That fork has done its own separate Tcl 9
+modernization work in parallel with ours, so there's likely useful fixes to pull in both
+directions.
+
+- [ ] Compare `sm-shaw/Oratcl`'s Tcl 9 port approach against ours — notably commit
+  `e4ec059` "Fix segfault in oraparse on Linux if utf8 not used in config", which
+  redefines `ub4` as `Tcl_Size` in `oratypes.h`; check whether we're exposed to the same
+  bug and whether our `e487666` (`Tcl_Size` type mismatch fix) already covers it
+  differently
+- [ ] Review their other Tcl 9 commits (`7fc9de3` Windows build, `4a19fc0` compiler
+  warnings, `73f2726` initial Tcl 9 update) for anything worth adopting
+- [ ] Track down where/how the historical Intel-sponsored thread-safety work (bounty via
+  Steve Shaw) actually landed — confirm whether it's already reflected in the mainline
+  4.x branches we imported from SourceForge, or only exists in Shaw's fork history
+- [ ] Consider reaching out to Steve Shaw directly, given the shared lineage and
+  HammerDB's real-world dependency on Oratcl, to coordinate/share fixes going forward
