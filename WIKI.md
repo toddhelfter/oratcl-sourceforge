@@ -59,6 +59,10 @@ Oratcl is used in a CGI example in **"Web Tcl Complete"** by Steven/Steve Ball (
 86, showing a `tclsh` CGI script using `package require Oratcl` to query Oracle from a web
 page — see [page 86 on Google Books](https://books.google.com/books?id=2YNQAAAAMAAJ&q=Oratcl&dq=Oratcl).
 
+Oratcl is indexed in **"Oracle9i for Windows Handbook"** by Anand Adkoli and Rama Velpuri
+(2002) — the index (page 522) points to "OraTcl" on page 319 and "OraTcl language" on page
+322 — see [the index entry on Google Books](https://books.google.com/books?id=L8K5BAt7kzcC&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
