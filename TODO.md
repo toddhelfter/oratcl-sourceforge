@@ -51,7 +51,7 @@ Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`,
 - [x] Write a proper `README.md` (GitHub-flavored Markdown) synthesized from the existing `doc/oratcl.html`, `oratcl.man`, `oratcl.txt`, `README`, and `INSTALL`, across `oratcl-sourceforge` and its branches — see [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) (pending merge to `main`)
 - [x] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves — same PR; note GitHub's detector matches it as "Other" (not an exact SPDX template), since the original historical license text was preserved as-is
 - [ ] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub
-- [ ] Add a "Known uses" section to `README.md` referencing notable projects/products built on Oratcl:
+- [ ] Add `ADOPTERS.md` (linked from `README.md`, not inlined there) listing notable projects/products built on Oratcl:
   - HP 3PAR System Reporter
   - HammerOra / HammerDB (Steve Shaw) — used Oratcl for many years
   - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
