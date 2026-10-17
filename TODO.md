@@ -29,3 +29,17 @@ A native C implementation using OCI LOB functions (`OCILobRead2`, `OCILobWrite2`
 - No `oraconfig unicode true` needed
 
 The `unicode` config option now prints a deprecation warning if set to true. Tests updated to use the default path.
+
+## Story 4: GitHub ↔ SourceForge release integration
+
+Wire up SourceForge's GitHub release integration so new GitHub releases are automatically mirrored to SourceForge downloads.
+
+- [ ] Pick the target GitHub repo for the sync (`oratcl-sourceforge` vs `oratcl-source`)
+- [ ] Automatic import: enter the GitHub username/repo at https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/
+- [ ] Add a SourceForge download button into GitHub release notes (checkbox in the same SourceForge integration page)
+- [ ] Manual webhook (if automatic setup needs it / as a fallback), on the target GitHub repo under Settings -> Webhooks:
+  - Payload URL: `https://sourceforge.net/p/oratcl/files/github_webhook`
+  - Content type: `application/x-www-form-urlencoded`
+  - Secret: `6178f31bd3fd27aac850a08f4e5e8b8ed3dd964d`
+  - Events: only `Release`
+- [ ] Verify: refresh the SourceForge admin page for "Integration configured", and confirm the GitHub webhook's `ping` event delivered successfully
