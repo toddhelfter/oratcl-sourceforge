@@ -68,6 +68,10 @@ Joseph A. Konstan and Brent Welch, 1997), page 165, which describes OraTcl as "a
 Tcl extension from T. Poindexter that provides access to a Oracle Database server" — see
 [page 165 on Google Books](https://books.google.com/books?id=8wYJAQAAMAAJ&q=Oratcl&dq=Oratcl).
 
+Oratcl is mentioned in a book by **Richard Petersen** (2001), page 232, noting that
+"Oratcl implement[s] database interfaces to the Sybase and Oracle databases" — see
+[page 232 on Google Books](https://books.google.com/books?id=3LNQAAAAMAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
