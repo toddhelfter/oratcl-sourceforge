@@ -97,7 +97,8 @@ historical release branch and tag is preserved at
 directly onto that real history on the `oratcl-5-0-branch`.
 
 See [ChangeLog](ChangeLog) and [ChangeLog.2003](ChangeLog.2003) for the detailed history of
-changes, and [TODO.md](TODO.md) for current and planned work.
+changes, and [TODO.md](TODO.md) for current and planned work. See [ADOPTERS.md](ADOPTERS.md)
+for known projects/products built on Oratcl.
 
 ## Bug reports / contributing
 
