@@ -19,7 +19,7 @@ A non-exhaustive list of notable projects and products built on Oratcl.
   [a walkthrough of running TPC-C against Oracle with HammerDB in Docker](https://rammpeter.blogspot.com/2025/11/oracle-db-run-tpc-benchmark-with.html),
   which shows HammerDB's `Oratcl_Init()` loading the Oracle Instant Client directly. In
   Todd Helfter's own "Oratcl User's Guide and Reference" (see
-  [doc/ORATCL_GUIDE.md](doc/ORATCL_GUIDE.md)), Steve Shaw is quoted directly: *"when I
+  [doc/Oratcl_Users_Guide_and_Reference.md](doc/Oratcl_Users_Guide_and_Reference.md)), Steve Shaw is quoted directly: *"when I
   looked for the best language to write a load test tool the main requirements were a
   scripted Oracle interface (thread safe) with a multi-threaded capability and only TCL
   and Oratcl met this requirement and as far as I know still do."*

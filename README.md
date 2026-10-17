@@ -74,7 +74,7 @@ SQL*NET/`tnsnames.ora` configuration, and date-format troubleshooting.
 For a full tutorial-style walkthrough (installation on Windows/Solaris/Linux, connection
 management, transactions, PL/SQL, LOBs, array DML, multithreading, async processing, CGI
 usage, and more, with real worked examples), see
-[doc/ORATCL_GUIDE.md](doc/ORATCL_GUIDE.md) — a Markdown conversion of Todd Helfter's
+[doc/Oratcl_Users_Guide_and_Reference.md](doc/Oratcl_Users_Guide_and_Reference.md) — a Markdown conversion of Todd Helfter's
 original 87-page "Oratcl User's Guide and Reference".
 
 ## Building
