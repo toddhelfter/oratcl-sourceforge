@@ -209,13 +209,16 @@ canonical repo going forward. `oratcl-source` was the staging repo used before t
 existed and has been dual-maintained (mirroring `TODO.md`/doc changes) throughout this
 process for convenience.
 
+**Status: COMPLETE.** `oratcl-sourceforge` is the sole source of truth; dual-mirroring has
+stopped (this repo's `TODO.md` no longer gets copied to/from `oratcl-source`). `oratcl-source`
+was a private repo and Todd is removing it directly — no external references to worry about.
+
 - [x] Merge [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1)
   so `main` reflects the full grafted history + docs — plus a follow-up
   [#2](https://github.com/toddhelfter/oratcl-sourceforge/pull/2) since #1 merged early,
   before later commits (`ADOPTERS.md`, `WIKI.md`, the guide conversion) were pushed
-- [ ] Stop dual-mirroring `TODO.md`/doc commits between `oratcl-source` and
+- [x] Stop dual-mirroring `TODO.md`/doc commits between `oratcl-source` and
   `oratcl-sourceforge` — `oratcl-sourceforge` is the sole source of truth from here on
-- [ ] Decide what to do with `oratcl-source` itself: archive it on GitHub, add a notice in
-  its README pointing to `oratcl-sourceforge`, or something else
-- [ ] Check for anything referencing `oratcl-source` externally (e.g. clone URLs, CI,
-  local checkouts) that would need to be repointed
+- [x] Decide what to do with `oratcl-source` itself — it was private; Todd is removing it
+  directly
+- [x] Check for anything referencing `oratcl-source` externally — n/a, it was private
