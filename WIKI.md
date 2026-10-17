@@ -50,6 +50,15 @@ Optimum Performance and Availability"** by Geoff Ingram (2002), page 590, in the
 Oracle Intelligent Agent (OIA) scripting with the "OraTcl Scripting Language" — see
 [page 590 on Google Books](https://books.google.com/books?id=mK6fRiVrZpoC&q=Oratcl&dq=Oratcl).
 
+Oratcl is also described in **"Implementing and Managing Oracle Databases"** by Steve
+Lemme and John R. Colby (2000), page 79, in the context of Oracle Enterprise Manager
+integration — see
+[page 79 on Google Books](https://books.google.com/books?id=wWZGAAAAYAAJ&q=Oratcl&dq=Oratcl).
+
+Oratcl is used in a CGI example in **"Web Tcl Complete"** by Steven/Steve Ball (1999), page
+86, showing a `tclsh` CGI script using `package require Oratcl` to query Oracle from a web
+page — see [page 86 on Google Books](https://books.google.com/books?id=2YNQAAAAMAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
