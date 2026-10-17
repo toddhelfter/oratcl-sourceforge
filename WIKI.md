@@ -77,6 +77,22 @@ and Ramesh Chandak** (1998), page 57, in the context of Oracle Enterprise Manage
 jobs generating Tcl scripts — see
 [page 57 on Google Books](https://books.google.com/books?id=mc9QAAAAMAAJ&q=Oratcl&dq=Oratcl).
 
+Oratcl is indexed in **"Effective Tcl/Tk Programming"** by Mark Harrison and Michael
+McLennan (1998) — the index (page 401) points to "Oratcl" on page 315 — see
+[the index entry on Google Books](https://books.google.com/books?id=tI4t3lWeQmkC&q=Oratcl&dq=Oratcl).
+(Harrison also edited "Tcl/Tk Tools", cited above.)
+
+A CERN publication (Issue 7, 1999), page 99, mentions "oratcl scripts" alongside what
+appears to be OCR-garbled content about Oracle Forms and hardware/power-supply
+descriptions — see [page 99 on Google Books](https://books.google.com/books?id=tPsWAQAAMAAJ&q=Oratcl&dq=Oratcl).
+Low-confidence citation (snippet is largely OCR noise), but notable as a potential sign of
+Oratcl use at CERN.
+
+Oratcl is described in **"Astronomical Data Analysis Software and Systems VI"** (edited by
+Gareth Hunt and Harry Edward Payne, 1997), page 64: "OraTcl... is used to create the
+windows-based user interface" for an astronomical data system — see
+[page 64 on Google Books](https://books.google.com/books?id=xvsaAQAAIAAJ&q=Oratcl&dq=Oratcl).
+
 A 2003 book (title unclear from the Google Books snippet, possibly on system
 administration) lists `oratcl.sourceforge.net` in its bibliography — see
 [page 13 on Google Books](https://books.google.com/books?id=aU5VAAAAMAAJ&q=Oratcl&dq=Oratcl).
