@@ -211,7 +211,7 @@ process for convenience.
 
 **Status: COMPLETE.** `oratcl-sourceforge` is the sole source of truth; dual-mirroring has
 stopped (this repo's `TODO.md` no longer gets copied to/from `oratcl-source`). `oratcl-source`
-was a private repo and Todd is removing it directly — no external references to worry about.
+was a private repo and has been deleted from GitHub (confirmed).
 
 - [x] Merge [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1)
   so `main` reflects the full grafted history + docs — plus a follow-up
