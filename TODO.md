@@ -139,6 +139,31 @@ work in parallel with ours, so there's likely useful fixes to pull in both direc
   (see Story 7) and whether the `OCIStmtExecute` Windows threading issue they diagnosed
   in 2017 (an Oracle client bug, not Oratcl's) is relevant to the current 5.0 line.
 
+## Story 13: Decide the fate of legacy Unix platform support (HP-UX, Solaris/SPARC, AIX)
+
+While investigating dead code from the old Windows/MSVC build era (see Story 7), found
+that `generic/oratcl.c` still has a dedicated `#if defined(__hpux)` dynamic-loading
+branch (`shl_load`/`shl_unload`, HP-UX's pre-`dlopen` API) alongside the standard
+`dlopen`/`dlsym` path used everywhere else. No equivalent dedicated code path exists for
+AIX or Solaris/SPARC specifically — those use the standard `dlopen` branch — but all
+three are platforms the project historically supported and that Todd no longer has
+access to test or verify:
+
+- HP-UX: no build attempted since before 2005
+- Solaris/SPARC: no access to hardware anymore
+- AIX: no build attempted in 20+ years
+
+- [ ] Decide whether to keep the HP-UX `shl_load` branch as-is (low cost to leave,
+  untested but also unlikely to be exercised by anyone), or remove it and let HP-UX fall
+  back to the standard `dlopen` path (uncertain whether modern HP-UX even still needs
+  `shl_load`, or has long since supported plain `dlopen` too — would need someone with
+  actual HP-UX access to confirm either way)
+- [ ] Decide whether Solaris/SPARC and AIX remain officially "supported" platforms for
+  5.0 given no ability to test them, and if so, how to message that (e.g. "best effort,
+  untested" in README/Users Guide) vs. formally dropping them
+- [ ] If any of these are dropped, update the Users Guide's Solaris chapter accordingly
+  (currently untouched, written for Solaris 8/9/10 circa mid-2000s)
+
 ## Story 11: Learn from bagnongithub/oratcl (ODPI-C reimplementation)
 
 Discovered [bagnongithub/oratcl](https://github.com/bagnongithub/oratcl) (doc site:
