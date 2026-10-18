@@ -2,24 +2,6 @@
 
 **Current test status**: 189 passed, 0 failed, 4 skipped (NLS mismatch)
 
-## Story 4: GitHub ↔ SourceForge release integration
-
-Wire up SourceForge's GitHub release integration so new GitHub releases are automatically mirrored to SourceForge downloads.
-
-- [x] Pick the target GitHub repo for the sync — **`oratcl-sourceforge` is canonical** going forward
-- [x] Automatic import: one-time import run via https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/ with `toddhelfter`/`oratcl-sourceforge` — backfilled all historical branch folders into SourceForge Files
-- [x] Add a SourceForge download button into GitHub release notes — checkbox enabled on the GitHub Integration page
-- [x] Manual webhook, on the target GitHub repo under Settings -> Webhooks — created via the GitHub API (hook id `700014680`):
-  - Payload URL: `https://sourceforge.net/p/oratcl/files/github_webhook`
-  - Content type: `application/x-www-form-urlencoded`
-  - Secret: `REDACTED-ROTATE-THIS-SECRET`
-  - Events: only `Release`
-- [x] Enter the GitHub username/repo (`toddhelfter/oratcl-sourceforge`) in the "Set up integration automatically" field on the GitHub Integration page — this is what actually associates incoming webhook pings with the `oratcl` SourceForge project
-- [x] Verify (GitHub side): the webhook's `ping` event delivered successfully — `status_code: 200`, `status: OK`
-- [x] Verify (SourceForge side): the GitHub Integration admin page now shows **"Integration configured"**
-
-**Status: COMPLETE.** New GitHub releases on `oratcl-sourceforge` will now automatically mirror to SourceForge downloads.
-
 ## Story 7: Build release packages for multiple platforms
 
 SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt binaries for Windows and possibly macOS, matching the current 5.0 source. Historically these were cross-compiled; we don't currently have direct access to all target platforms, so this is broadly scoped pending investigation of what's actually feasible here.
