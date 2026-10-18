@@ -70,16 +70,50 @@ HammerDB's own GitHub organization: [HammerDBLtd/Oratcl](https://github.com/Hamm
 there; last pushed 2025-02-24). That fork has done its own separate Tcl 9 modernization
 work in parallel with ours, so there's likely useful fixes to pull in both directions.
 
-- [ ] Compare `HammerDBLtd/Oratcl`'s Tcl 9 port approach against ours — notably commit
+- [x] Compare `HammerDBLtd/Oratcl`'s Tcl 9 port approach against ours — notably commit
   `e4ec059` "Fix segfault in oraparse on Linux if utf8 not used in config", which
   redefines `ub4` as `Tcl_Size` in `oratypes.h`; check whether we're exposed to the same
-  bug and whether our `e487666` (`Tcl_Size` type mismatch fix) already covers it
-  differently
-- [ ] Review their other Tcl 9 commits (`7fc9de3` Windows build, `4a19fc0` compiler
-  warnings, `73f2726` initial Tcl 9 update) for anything worth adopting
-- [ ] Track down where/how the historical Intel-sponsored thread-safety work (bounty via
-  Steve Shaw) actually landed — confirm whether it's already reflected in the mainline
-  4.x branches we imported from SourceForge, or only exists in Shaw's fork history
+  bug and whether our `5a30fb7` (`Tcl_Size` type mismatch fix) already covers it
+  differently — **done, do not adopt `e4ec059`**:
+  - Both projects hit the exact same bug: `generic/oraparse.c`'s `stln` variable, passed
+    to `Tcl_GetStringFromObj()`, needs to be `Tcl_Size` under Tcl 9.
+  - Ours (`5a30fb7`) retypes just that one local variable at its declaration site —
+    surgical, leaves Oracle's real `ub4` OCI type (`unsigned int`, 4 bytes) untouched
+    everywhere else.
+  - Theirs (`e4ec059`) globally `#define ub4 Tcl_Size` in `oratypes.h`. This incidentally
+    "fixes" `stln` too (it's declared `ub4`), but also silently changes `ub4`'s type
+    across dozens of real OCI function-pointer parameters (`OCIHANDLEFREE`,
+    `OCIINITIALIZE`, `OCITERMINATE`, etc. in `oratclTypes.h`). Oracle's actual
+    `libclntsh` library is compiled independently with a true 4-byte `unsigned int ub4`
+    baked into its ABI — on 64-bit Linux under Tcl 9, `Tcl_Size` is an 8-byte
+    `ptrdiff_t`, so this risks passing wrong-sized arguments to real OCI calls across
+    the whole codebase, not just the one case it was meant to fix.
+  - Root cause trace: their earlier `4a19fc0` (Oct 2024) cast pointers to
+    `(Tcl_Size *)` without resizing the underlying storage (`ub4 *alenp`, `ub4 stln`) —
+    itself a latent buffer-overflow; `e4ec059` (Feb 2025) papered over the resulting
+    segfault 4+ months later with the blanket macro redefinition instead of fixing the
+    specific declarations.
+- [x] Review their other Tcl 9 commits (`7fc9de3` Windows build, `4a19fc0` compiler
+  warnings, `73f2726` initial Tcl 9 update) for anything worth adopting — **done**:
+  - `73f2726` and `4a19fc0` mostly duplicate ground we've already covered (`CONST84`→
+    `const`, `Tcl_Obj *CONST`→`*const`, per-variable `Tcl_Size` retyping) — nothing new
+    to adopt.
+  - `7fc9de3` updates `win/makefile.vc` for Tcl 9 (`tclstub86.lib` → `tclstub.lib`,
+    since Tcl 9's stub lib dropped the Tcl-version suffix) — **this exposed a real
+    gap**: `oratcl-sourceforge` has no `win/` directory at all, on `main` or on
+    `oratcl-4-6-branch`. We currently have zero Windows build support; see Story 7
+    (multi-platform release packages) for the follow-up.
+- [x] Track down where/how the historical Intel-sponsored thread-safety work (bounty via
+  Steve Shaw) actually landed — **done, and corrected**: Oratcl's thread-safety shipped
+  in version 4.0 (December 2001), funded by Dionisios Pothos and Grid Intelligent
+  Systems Ltd, UK (directly sourced in `CHANGELOG.md`) — Shaw and HammerOra (HammerDB's
+  original name) were already using Oratcl at the time and needed that thread safety to
+  drive TPC-C/TPC-H benchmark workloads with threaded Tcl, so he was a direct
+  beneficiary/motivated user, not the funder of its creation. The "Intel bounty" framing
+  in `ADOPTERS.md` was unsubstantiated (no corroborating source found) and has been
+  corrected: Intel's real connection was conducting chipset performance testing using
+  HammerDB, again depending on — not sponsoring — Oratcl's already-existing thread
+  safety.
   - Note: Tcl threading support (`--enable-threads`) is a compile-time option, not a
     given — any thread-safety work needs to account for Oratcl being built against both
     threaded and non-threaded Tcl, and the corresponding OCI environment initialization
