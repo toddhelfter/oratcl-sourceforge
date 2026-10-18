@@ -24,10 +24,10 @@ Wire up SourceForge's GitHub release integration so new GitHub releases are auto
 
 SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt binaries for Windows and possibly macOS, matching the current 5.0 source. Historically these were cross-compiled; we don't currently have direct access to all target platforms, so this is broadly scoped pending investigation of what's actually feasible here.
 
-**Current state (as of this writing):** SourceForge's "latest version" default download is still `oratcl45.tar.gz` (293.0 kB, from the 4.5 line) — no 4.6 *source* `tar.gz` was ever published as the default download, even though 4.6 existed on trunk. However, a 4.6 **Windows x64 binary** *was* published and still exists: [`Oratcl46-MSWin32-x64.zip`](https://sourceforge.net/projects/oratcl/files/oratcl/4.6/Oratcl46-MSWin32-x64.zip/download) (95,478 bytes, confirmed live) — so Windows builds for 4.6 did happen, just not a corresponding source release or 32-bit/macOS build (per Todd's own recollection: "I did manage to create a 4.6 win32 download, but never a 64b one" — though the filename itself says x64; this may be a historical mislabeling worth double-checking against the archive's actual binary). (SourceForge note: the "Default Download" per-file checkbox under each file's settings controls which file is served from the `/files/latest/download` link; uncheck it on the old file / check it on the new one when a replacement is ready.)
+**Current state (as of this writing):** SourceForge's "latest version" default download is still `oratcl45.tar.gz` (293.0 kB, from the 4.5 line) — no 4.6 *source* `tar.gz` was ever published as the default download, even though 4.6 existed on trunk. However, a 4.6 **Windows x64 binary** *was* published and still exists: [`Oratcl46-MSWin32-x64.zip`](https://sourceforge.net/projects/oratcl/files/oratcl/4.6/Oratcl46-MSWin32-x64.zip/download) (95,478 bytes, confirmed live) — so Windows builds for 4.6 did happen, just not a corresponding source release or 32-bit/macOS build. **Resolved**: this was not a mislabeling — contemporaneous email correspondence (October 2017, "Oratcl Windows Build") confirms Todd Helfter and Steve Shaw collaborated on exactly this: Shaw shared his own working Visual C build setup, and Todd confirmed a genuine working "Tcl 8.6.7/Tk 8.6.7 and Oratcl (head) 4.6 build on 64bit windows" — that's the direct origin of this x64 zip. (SourceForge note: the "Default Download" per-file checkbox under each file's settings controls which file is served from the `/files/latest/download` link; uncheck it on the old file / check it on the new one when a replacement is ready.)
 
-- [ ] Produce an updated source release tarball (`oratcl-5.0.tar.gz` or similar) from the final `main`/5.0 tree via `make dist` or equivalent
-- [ ] Investigate Windows cross-compilation options from macOS/Linux (e.g. mingw-w64 toolchain) against an Oracle Instant Client SDK for Windows, matching how prior Windows binaries were built
+- [x] Produce an updated source release tarball (`oratcl-5.0.tar.gz` or similar) from the final `main`/5.0 tree via `make dist` or equivalent — **done**: fixed the `make dist` rule (was missing `LICENSE`/`COPYRIGHT`/`INSTALL`), verified the resulting `oratcl-5.0.tar.gz` extracts and builds cleanly from scratch
+- [ ] Investigate Windows cross-compilation options from macOS/Linux (e.g. mingw-w64 toolchain) against an Oracle Instant Client SDK for Windows, matching how prior Windows binaries were built — **new lead**: Steve Shaw's own working MSVC build setup (Makefile + build script) for Oratcl 4.6 on 64-bit Windows is exactly the thing to ask him for when reaching out per Story 9, rather than reinventing Windows builds from scratch via mingw-w64 guesswork
 - [x] Investigate macOS binary builds (native, since we're on macOS) against Oracle Instant Client for macOS (arm64/x86_64), and whether a universal binary is feasible/desired — **confirmed feasible, proof-of-concept built successfully**:
   - `./configure --with-tcl=<tclConfig.sh dir> --with-oracle-directory=<instant client dir>` followed by `make` produces a working `libtcl9Oratcl5.0.dylib` (Mach-O arm64) against Tcl 9.0.2 and Oracle Instant Client 23.3
   - Verified it loads cleanly under `tclsh9.0` (`package require Oratcl`) and registers all expected commands, including the new `oralob2`
@@ -38,7 +38,7 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
 - [ ] Determine which Oracle client/SDK versions to target per platform (note Oracle 23c compatibility work already done in 5.0)
 - [ ] Decide packaging/distribution format per platform (zip vs tar.gz, directory layout) consistent with prior SourceForge releases
 - [ ] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz`
-- [ ] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built
+- [x] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built — **done**: [Oratcl 5.0](https://github.com/toddhelfter/oratcl-sourceforge/releases/tag/oratcl-5.0) published with `oratcl-5.0.tar.gz` and `Oratcl50-Darwin-arm64.zip` attached; the webhook fired and delivered successfully (4x `release` events, all `200 OK`) — awaiting confirmation the files actually mirrored through to SourceForge's Files page
 
 ## Story 8: Seamless/inline LOB handling (replace the PL/SQL-wrapper mindset)
 
@@ -125,7 +125,13 @@ work in parallel with ours, so there's likely useful fixes to pull in both direc
     threaded and non-threaded Tcl, and the corresponding OCI environment initialization
     mode (`OCI_THREADED` vs. not) needs to match how Tcl itself was built
 - [ ] Consider reaching out to Steve Shaw directly, given the shared lineage and
-  HammerDB's real-world dependency on Oratcl, to coordinate/share fixes going forward
+  HammerDB's real-world dependency on Oratcl, to coordinate/share fixes going forward —
+  Todd and Shaw have a long history of exactly this kind of direct collaboration (2006
+  threading debugging, 2017 Windows build work, both per contemporaneous email
+  correspondence — see `ADOPTERS.md`), so this has real precedent. Worth specifically
+  asking whether Shaw still has his working Visual C build setup for Oratcl on Windows
+  (see Story 7) and whether the `OCIStmtExecute` Windows threading issue they diagnosed
+  in 2017 (an Oracle client bug, not Oratcl's) is relevant to the current 5.0 line.
 
 ## Story 11: Learn from bagnongithub/oratcl (ODPI-C reimplementation)
 
