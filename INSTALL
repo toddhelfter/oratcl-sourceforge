@@ -1,125 +1,110 @@
 Oratcl
 
-INSTALLATION ON UNIX
+INSTALLATION
 
-For installation on win and mac platforms, see the ./win and ./mac directories.
+Oratcl uses the standard Tcl Extension Architecture (TEA) build system
+(GNU Autoconf + make), the same workflow on macOS, Linux/Unix, and
+Windows (via cross-compilation -- see below). There is no separate
+per-platform build system or directory; the same configure.in/Makefile.in
+is used everywhere.
 
-Oratcl can be added to standard Tcl's tclsh and wish, or to Extended Tcl's
-tcl and wishx.  
+Requirements:
 
-Change to the toplevel directory to run configure and make.
+  1. A working Tcl 9 installation (headers + tclConfig.sh)
+  2. A C compiler (gcc/clang; MSVC is not required, see "Windows" below)
 
-Oratcl supports building a shared library by default that can be
-loaded using Tcl's 'package require' or 'load' commands.
-Static libraries can be built by configuring with --disable-shared.
-
-First, you must start from a working Tcl base.
-
-Un-tar the Oratcl distribution in a sibling directory to tcl.
-
-Oratcl uses GNU Autoconf to build a Makefile.  Run "../configure" in the
-unix directory.  Configure recognizes the following options:
-
-
-  --prefix=DIR         where to install in bin/ and man/ (default=/usr/local)
-  --exec-prefix=DIR    where to install in bin/  (default=/usr/local/bin)
-                       the paths you specify should be the same as the paths
-                       you specified when you configured Tcl and Tk.  Oratcl's
-                       configure script uses the tclConfig.sh file that
-                       was installed by Tcl in these locations.
+Notably, NO Oracle client software, headers, or libraries are required
+to build Oratcl, on any platform. Oratcl dynamically loads the Oracle
+client library (dlopen/dlsym on Unix/macOS, LoadLibrary/GetProcAddress
+on Windows) at runtime, not link time -- so you can build Oratcl on a
+machine with no Oracle software installed at all, and deploy the
+resulting binary to a different machine that has a real Oracle client.
 
 
-  package options:     --disable-shared
+BUILDING (macOS / Linux / Unix, native)
 
-  --disable-shared     disable building shared library, build static libraries
-		       The default is to build a shared library.  
+Change to the toplevel directory and run:
 
-		     * NOTE: --enable-shared can only be specified if your
-		       Oracle distribution includes a shared library object,
-		       e.g $ORACLE_HOME/lib/liboracle.so or libclntsh.so
-		       (architecture appropriate shared library extension).
+  ./configure --with-tcl=DIR --with-oracle-directory=DIR
+  make
+  make install
 
-                       On some systems, it may be possible to build the
-		       Oracle shared library if if doesn't already exist.
-		       Under Solaris 2.4 there is a makefile:
-			 $ORACLE_HOME/rdbms/lib/clntsh.mk
-		       All it does is to call the shell script:
-			 $ORACLE_HOME/rdbms/lib/mkclntsh.sh
-		       which builds the Oracle shared library. 
-		       (thanks to Larry W. Virden for this info)
+  --with-tcl=DIR              directory containing tclConfig.sh
+                               (e.g. /opt/homebrew/lib on an Apple
+                               Silicon Homebrew install, or
+                               $ORACLE_HOME/../tcl/lib, etc.)
 
-                     * NOTE 2: It is highly recommended that you have
-                       configured Tcl with '--enable-shared'.  The configure
-                       and Makefile for Oratcl uses information in tclConfig.sh
-                       for searching for dynamic libraries at run time.  This
-                       information is only included in tclConfig.sh if Tcl
-                       was configured with --enabled-shared.  Otherwise, it
-                       may be necessary that you include the path to your
-                       Oracle libraries in the environment variable used for
-                       searching for dynamic libraries, typically
-                       LD_LIBRARY_PATH or LPATH, depending on your cpu/os.
-                       See the man pages for ld(1), ldd(1), or dlopen(3) for 
-                       details and the correct flag for your cpu/os.
- 
+  --with-oracle-directory=DIR directory containing an sdk/include
+                               subfolder. This only needs to satisfy a
+                               configure check for a *path*; since no
+                               Oracle header is actually #included by
+                               Oratcl's own source, even an empty
+                               placeholder directory with a sdk/include
+                               subfolder works fine if you don't have
+                               a real Oracle Instant Client SDK handy.
 
-  the following maybe specified, but configure tries to find the
-  paths on its own if not specified:
+  --prefix=DIR                where to install (default: same prefix
+                               as your Tcl installation)
 
-  --with-oracle-directory=DIR    where to find the Oracle home directory,
-                                 for rdbms/lib/libocic.a or lib/libocic.a
-  --with-oracle-version=<x>      use a specific Oracle version, "8" or "9", 
-				 configure will try to determine the version
-				 based on libocic.
+  --disable-shared             build a static library instead of the
+                               default shared library
+
+"make install" copies the resulting shared library, library/*.tcl
+support files, and a generated pkgIndex.tcl into a versioned Oratcl
+directory under your Tcl installation's package path.
+
+At runtime, Oratcl needs to find the real Oracle client shared library
+(libclntsh.so/.dylib). By default it looks for
+$ORACLE_HOME/lib/libclntsh<ext>; if your Oracle Instant Client doesn't
+follow that layout (a plain Instant Client download places
+libclntsh.dylib/.so directly in its root, not under a lib/
+subdirectory), set env(ORACLE_LIBRARY) to the full path of the library
+file before loading the package.
 
 
-You should specify the same "--prefix=DIR" and "--exec-prefix=DIR" as when you
-built Tcl.
+BUILDING (Windows, via cross-compilation)
 
-The configure script tries to find Tcl installation files in the
-same directory path as specified with --prefix= (default /usr/local).
-Configure expects to find $prefix/lib/tclConfig.sh  
+The recommended way to build Oratcl for Windows is to cross-compile it
+from Linux (including WSL Ubuntu running on Windows itself) using the
+free mingw-w64 toolchain -- no Visual Studio or MSVC license is
+required. See doc/Oratcl_Users_Guide_and_Reference.md's "MS Windows"
+section for the full, verified recipe. In short:
 
-The environment variable ORACLE_HOME is used to find the Oracle libraries, or
-specify the Oracle home using --with-oracle-directory=DIR
+  sudo apt install mingw-w64 build-essential
 
-If configure cannot find the paths to Tcl or Oracle, configure
-will halt with a message.  
+  # Cross-build Tcl 9 itself for Windows first, to guarantee ABI
+  # compatibility with the Oratcl build:
+  cd tcl9.x.y/win
+  ./configure --host=x86_64-w64-mingw32 --enable-64bit --prefix=DIR
+  make && make install
 
-Manual editing of the Makefile may be necessary if configure reports a warning.
-Also check the value of the 'OTHER_LD_SEARCH_FLAGS' if you are building
-the dynamic library version of Oratcl.
+  # Then cross-configure and build Oratcl the same way as above, adding
+  # --host=x86_64-w64-mingw32:
+  ./configure --host=x86_64-w64-mingw32 --with-tcl=DIR/lib \
+      --with-oracle-directory=DIR
+  make
 
-After configure runs, examine 'Makefile', or just 'make' and see what happens.
- 
-If you specified '--enable-shared' (the default)  while running configure, a 
-shared library will be built.  Otherwise, if you specified '--disable-shared',
-a static library will be built.  
+This produces a tcl9Oratcl<version>.dll, which can be copied alongside
+pkgIndex.tcl and library/oratcl_utils.tcl to a target Windows machine
+with a native Windows Tcl 9 installation. As on other platforms, no
+Oracle software is required to build it, but you do need the Oracle
+Instant Client for Windows present (with its directory added to
+%PATH%) to actually connect to a database at runtime.
 
-"make install" will copy the resulting scripts, library and man page into
-the specified directories.  If you specified '--enable-shared' (the default), a
-pkgIndex.tcl file is built or modified.
 
-Note on pkgIndex.tcl:  The Makefile builds a pkgIndex.tcl file, and installs
-it into a versioned Oratcl directory.  
+TESTING THE BUILD
 
-"make clean" will delete the .o files, formatted man page, and
-configure cache files.
+"make test" runs the test suite (requires a live Oracle database;
+see tests/defs.tcl for the environment variables used to configure the
+test connection).
 
-You can add Oratcl to other Tcl/Tk interpreters.  Add a call to
-"Oratcl_Init(interp)" to your tclAppInit.c or tkAppInit.c module, and link
-with libOratcl.a.  
+You can also try a quick interactive smoke test:
 
-Try out the sample Oratcl scripts.  It's also fun to start the tcl
-interpreter, and just type in code on the fly.  Try benign SQL commands
-at first, say:
-	$ ./tcl
-	tcl> oralogon scott/tiger       ** use a vaild connect string **
-	tcl> oraopen oratcl0
-	tcl> orasql oratcl0.0 {select * from emp}
-	tcl> orafetch oratcl0.0
-	tcl> orafetch oratcl0.0
-	tcl> oracols oratcl0.0
-	tcl> oramsg oratcl0.0 all
-
-Oratcl seems to fit in to the rest of Tcl/Extended Tcl/Tk without
-name conflicts;  
+  $ tclsh9.0
+  % package require Oratcl
+  % oralogon scott/tiger       ** use a valid connect string **
+  % oraopen oratcl0
+  % orasql oratcl0.0 {select * from emp}
+  % orafetch oratcl0.0
+  % oracols oratcl0.0
+  % oramsg oratcl0.0 all
