@@ -96,73 +96,100 @@ The versions of these individual pieces will determine the list of features avai
 
 ## Tcl / Tk
 
-First a Tcl shell is created, typically with the tclsh (tclsh84.exe on windows, tclsh8.4 on unix) command. After Tcl is running we instruct Tcl to load the Oratcl package via the package require Oratcl command. When the environment is properly initialized, the Oratcl library will dynamically link to the Oracle client library at this time, when successful, package require returns the version number of the package loaded. When the environment is not correct, the Oratcl package will fail to load at which time an error will be displayed.
+First a Tcl shell is created, typically with the `tclsh` (`tclsh9.0.exe` on Windows, `tclsh9.0` on Unix/macOS) command. After Tcl is running we instruct Tcl to load the Oratcl package via the `package require Oratcl` command. When the environment is properly initialized, the Oratcl library will dynamically link to the Oracle client library at this time; when successful, `package require` returns the version number of the package loaded. When the environment is not correct, the Oratcl package will fail to load at which time an error will be displayed.
 
-## MS Windows XP, 2000, 2003
+## MS Windows
 
-The quickest and easiest way to prepare a MS Windows system is to obtain and install two pre-packaged download files. First we will take care of requirements one and two. To do so, we can use ActiveTCL for windows which includes a Tcl shell, a Tk gui console, and it includes Oratcl as well as many other popular extensions.
+Oratcl 5.0 targets Tcl 9, and the build approach has changed significantly since the
+ActiveTcl 8.4 era this chapter originally described. ActiveTcl/ActiveState's packaged
+installer hasn't kept pace with Tcl 9, and the old 32-bit, `C:\Oracle`-drag-and-drop
+workflow is no longer representative of how Oratcl is actually built today. This section
+has been rewritten to reflect the current, verified approach.
 
-For this demonstration I obtained a copy of the prepackaged installer program ActiveTcl8.4.14.0.272572- win32-ix86-threaded.exe from the ActiveState web site: http://www.activestate.com/downloads .
+The recommended way to build Oratcl for Windows is to **cross-compile it from Linux**
+(including WSL on Windows itself) using the free `mingw-w64` toolchain — no Visual Studio
+or MSVC license is required, and critically, **no Oracle software is required at build
+time at all**: Oratcl only loads the Oracle client library (`OCI.DLL`) dynamically at
+runtime via `LoadLibrary`, never linking against it at compile time. Oratcl's own build
+system (`configure.in`/`Makefile.in`, via TEA) already has mingw-w64 cross-compilation
+support built in, so no separate Windows-specific project files are needed.
 
-### ActiveTcl Installation
+### Cross-compiling (from Linux or WSL Ubuntu)
 
-Follow the download instructions on the ActiveState site. And run the installer. You may modify the installation options, but I chose all the defaults for the examples in this book. Like most MS windows based
+```bash
+# 1. Install the mingw-w64 cross-compiler toolchain
+sudo apt install -y mingw-w64 build-essential wget
 
-software, The ActiveTcl installer will add menu items to the Windows ‘Start Menu’ and includes options for uninstalling. Navigating through the start menu, select Tclsh8.4 and a Tcl shell window will be started.
+# 2. Cross-build Tcl 9 itself for Windows (guarantees ABI compatibility with Oratcl)
+wget https://downloads.sourceforge.net/tcl/tcl9.0.4-src.tar.gz
+tar xzf tcl9.0.4-src.tar.gz && cd tcl9.0.4/win
+./configure --host=x86_64-w64-mingw32 --enable-64bit --prefix=$HOME/tcl9-win
+make && make install
+cd ../..
 
-.
+# 3. Clone and cross-compile Oratcl itself. The --with-oracle-directory argument
+#    only needs to point at a directory containing an (even empty) sdk/include
+#    subfolder to satisfy a configure check -- no real Oracle SDK is required.
+git clone https://github.com/toddhelfter/oratcl-sourceforge.git
+cd oratcl-sourceforge
+mkdir -p /tmp/fake-oracle/sdk/include
+./configure --host=x86_64-w64-mingw32 \
+    --with-tcl=$HOME/tcl9-win/lib \
+    --with-oracle-directory=/tmp/fake-oracle
+make
+```
 
-*Figure 1 the ActiveTcl installation*
+This produces `tcl9Oratcl50.dll` along with `pkgIndex.tcl` and `oratcl_utils.tcl`. Copy
+all three to a directory on the target Windows machine, alongside a native Windows Tcl 9
+installation.
 
-![Figure 1 the ActiveTcl installation](images/guide-activetcl-install.png)
+### Oracle Instant Client for Windows
 
-*Figure 2 the Oratcl installation*
+Even though no Oracle software is needed to *build* Oratcl, you still need a real Oracle
+client library present at *runtime* to actually connect to a database. Download the
+Oracle Instant Client "Basic" package for Windows x64 from Oracle's Instant Client page
+(a free download; an Oracle account is required, but no license cost). Extract it
+somewhere on the target machine.
 
-![Figure 2 the Oratcl installation](images/guide-oratcl-install.png)
+As with earlier Windows versions, Windows will only load a DLL it can find in its search
+path — the current working directory or a location listed in the `PATH` environment
+variable. The simplest option is to add the Instant Client directory to the system `PATH`.
+If you can't change the system `PATH`, you can instead set it from within your Tcl script
+before loading the package:
 
-Since Oratcl is a dynamically loaded library, on windows it will have two required files; the Oratcl44.dll file and the pkgIndex..tcl file which provides the package loading instructions to Tcl’s package loading mechanism. By convention, these files are located in their own directory inside the Tcl\lib folder. Using the tclsh84.exe shell program we can attempt to load the Oratcl package into Tcl with the package require syntax..
+```tcl
+append env(PATH) ";C:\\oracle\\instantclient_23_3"
+package require Oratcl
+```
 
-*Figure 3 tclsh84.exe window with error message*
+### Testing the build
 
-![Figure 3 tclsh84.exe window with error message](images/guide-tclsh84-error.png)
+```tcl
+cd path\to\your\oratcl\package\directory
+source pkgIndex.tcl
+package require Oratcl
+```
 
-This error is entirely expected, since we have not yet installed the oracle client software. If your server already has an Oracle client and you still have this error, skip past the instant client install to the trouble shooting section.
+A successful `package require` returns the Oratcl version number. If it fails, the most
+common cause (as above) is that Windows can't find `oci.dll` in its search path.
 
-### Oracle Instant Client for Windows Installation
+## macOS
 
-For this chapter’s exercise, I downloaded the Oracle instant client software from this URL:
+Oratcl also builds natively on macOS (both Apple Silicon/arm64 and Intel/x86_64), using
+the same `configure`/`make` workflow, with Tcl 9 and an Oracle Instant Client for macOS
+installed (e.g. via Homebrew for Tcl, and Oracle's Instant Client download for the client
+library):
 
-http://www.oracle.com/technology/tech/oci/instantclient/index.html
+```bash
+./configure --with-tcl=/opt/homebrew/lib --with-oracle-directory=/path/to/instantclient
+make
+```
 
-The instant client download site requires that you create an Oracle Technology Network identity. While I was there, I obtained all the windows related instant client files, however only one file, the instant client basic is needed. Since my MS Windows computer is a 32-bit platform. I downloaded and uncompressed instantclient- basic-win32-10.2.03-20061115.zip
-
-Oracle provides several instant client download files that provide additional functionality. The Sql*Plus files are helpful for database connection debugging and for running ad-hoc queries, but they are not required for Oratcl. Likewise the odbc and jdbc downloads are also not required. All instant client downloads should be unzipped and copied into a single directory.
-
-Before unzipping the instantclient-basic, I first created a C:\Oracle directory on my computer so that I can drag and drop the files from the provided zip file into this directory. When finished you should see something similar to my results.
-
-*Figure 4 Oracle instant client install*
-
-![Figure 4 Oracle instant client install](images/guide-instant-client-install.png)
-
-So let’s try the tclsh84.exe and package require commands again.
-
-*Figure 5 tclsh84.exe with Oratcl installed and without oci.dll in the search path*
-
-![Figure 5 tclsh84.exe with Oratcl installed and without oci.dll in the search path](images/guide-tclsh84-error.png)
-
-Again it has failed to load the Oracle library. I have forgotten one little detail specific to the MS windows environment. Windows will only load a dll that it can find in it’s search path. The default search path is the current working directory and locations defined in the system PATH environment variable. So simply changing to the oracle instant client directory allows windows to locate the oci.dll file. This of course is not a viable option in your programming scripts.
-
-*Figure 6 tclsh84.exe with Oratcl installed after changing directory to oracle instant client location.*
-
-![Figure 6 tclsh84.exe with Oratcl installed after changing directory to oracle instant client location.](images/guide-tclsh84-after-cd.png)
-
-If you are planning to deploy applications to a windows environment with the Oracle instant client, there are a few options available. The easiest is to add the instant client location (in this case c:\oracle\instantclient_10_2) to the windows PATH environment variable. I have done so and the examples from this book will operate on the assumption that you have too. If your windows administrator will not let you adjust the system PATH variable, you can update the path variable in your Tcl script using a variety of variable commands (set, append) before loading the package. The following example demonstrates the append method.
-
-*Figure 7 altering the env(PATH) variable so Windows will load oci.dll*
-
-![Figure 7 altering the env(PATH) variable so Windows will load oci.dll](images/guide-env-path-fix.png)
-
-Success! From now on, we will be able to load Oratcl into our Tcl shells and start to make use of it’s features.
+If the Instant Client directory doesn't follow the traditional `$ORACLE_HOME/lib/...`
+layout (as is the case for a plain Instant Client download, which places
+`libclntsh.dylib` directly in its root rather than under a `lib/` subdirectory), set
+`env(ORACLE_LIBRARY)` to the full path of `libclntsh.dylib` directly before loading the
+package.
 
 ## Solaris 8,9 & 10
 

@@ -71,23 +71,26 @@ The full command reference (syntax, arguments, return values) is in
 [doc/oratcl.n](doc/oratcl.n)). See [doc/FAQ.html](doc/FAQ.html) for platform build notes,
 SQL*NET/`tnsnames.ora` configuration, and date-format troubleshooting.
 
-For a full tutorial-style walkthrough (installation on Windows/Solaris/Linux, connection
-management, transactions, PL/SQL, LOBs, array DML, multithreading, async processing, CGI
-usage, and more, with real worked examples), see
+For a full tutorial-style walkthrough (installation on Windows/macOS/Solaris/Linux,
+connection management, transactions, PL/SQL, LOBs, array DML, multithreading, async
+processing, CGI usage, and more, with real worked examples), see
 [doc/Oratcl_Users_Guide_and_Reference.md](doc/Oratcl_Users_Guide_and_Reference.md) — a Markdown conversion of Todd Helfter's
 original 87-page "Oratcl User's Guide and Reference".
 
 ## Building
 
 ```sh
-./configure --prefix=/same/prefix/as/tcl --exec-prefix=/same/exec-prefix/as/tcl
+./configure --with-tcl=/path/to/tclConfig.sh/dir --with-oracle-directory=/path/to/sdk/parent
 make
 make install
 ```
 
-Oratcl is built against a working Tcl installation (uses `tclConfig.sh`) and an Oracle
-client/SDK (OCI headers and libraries, e.g. Oracle Instant Client). See [INSTALL](INSTALL)
-for the full set of `configure` options and platform-specific notes.
+Oratcl is built against a working Tcl 9 installation (uses `tclConfig.sh`); no Oracle
+client software, headers, or libraries are actually required at build time on any
+platform — Oratcl loads the Oracle client library dynamically at runtime instead. Windows
+builds are done by cross-compiling from macOS/Linux (including WSL) with the free
+`mingw-w64` toolchain — no MSVC/Visual Studio required. See [INSTALL](INSTALL) for the
+full set of `configure` options, per-platform notes, and the Windows cross-compile recipe.
 
 ## Project links
 
