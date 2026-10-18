@@ -4,6 +4,84 @@
 > (1993-2003) into a single Markdown file, most recent changes first. Entry
 > text is otherwise preserved as written at the time.
 
+## 2026-10-17  Todd Helfter <thelfter@gmail.com>
+
+- `LICENSE`, `license.terms`: bump copyright year to 2026 for Oratcl 5.0.
+
+## 2026-03-20  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oralob2.c` (new): C implementation of LOB read using OCILobRead2 for direct OCI-level LOB access without PL/SQL DBMS_LOB wrappers. Usage: `oralob2 read $stm -table T -column C -rowid R -lobtype clob|blob -datavariable V`.
+- `generic/oratypes.h`: add oraub8/orasb8 types for 64-bit LOB offsets.
+- `generic/oratcl.c`, `generic/oratcl.h`, `generic/oratclTypes.h`: register the oralob2 command, add OCILobRead2/OCILobGetLength2 typedefs and DLSYM loading.
+
+## 2026-03-20  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oraconfig.c`: print a deprecation warning when the `unicode` option is set to true.
+- `tests/unicode.test`: remove `oraconfig unicode true` from all unicode tests; the default UTF-8 code path now handles unicode natively with Tcl 9 + NLS_LANG=AL32UTF8.
+- `tests/defs.tcl`: add NLS_LANG=AMERICAN_AMERICA.AL32UTF8 default so the plain UTF-8 path is exercised.
+
+## 2026-03-20  Todd Helfter <thelfter@gmail.com>
+
+- `tests/arraydml.test`: arraydml-1.1 and arraydml-1.5 now use a separate statement handle (stm2) for the SELECT query after an array DML insert, avoiding ORA-24338 (Oracle 23c no longer allows reparsing a SELECT on the same handle after array DML execution).
+
+## 2026-03-20  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oralob.c`, `library/oralob.tcl`: fix blob LOB read/write using HEXTORAW/RAWTOHEX, cap blob piece size to 16383.
+- `tests/orabind.test`, `tests/orabindexec.test`, `tests/oradesc.test`, `tests/oraplexec.test`, `tests/arraydml.test`: fix ORA error message matching for Oracle 23c.
+- `tests/slaveinterps.test`: fix scoping.
+
+## 2026-03-20  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oratcl.c`: fix Tcl_InitStubs version check for the Tcl 9 port.
+- `tests/defs.tcl` and other `tests/*.test` files: qualify global vars (needed under Tcl 9's stricter scoping), add environment-variable support for test credentials, fix version regex matching for Oracle 23c.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oraconfig.c`: validate fetchrows against a new upper bound (and tighten the lower bound from 0 to 1) to prevent integer overflow in ckalloc size calculations (e.g. valuesz * fetchrows).
+- `generic/oratclInt.h`: add MAX_FETCH_ROWS (100000) constant.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oratcl.c`: guard library-loading diagnostics behind #ifdef ORATCL_DEBUG; remove fprintf from dead-code paths that can't be reached.
+- `generic/oralob.c`, `generic/oralong.c`: guard init debug output behind #ifdef ORATCL_DEBUG; remove unused debug variable.
+- `generic/oradesc.c`, `generic/oralogon.c`: remove fprintf(stderr) from error paths that already return error codes.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oralogon.c`: fix a stack buffer overflow and Tcl script injection in the TAF failover callback by replacing sprintf+Tcl_Eval with Tcl_EvalObjv on a proper Tcl list.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oralogon.c`: memset() the connect string to zero before ckfree(), so credentials don't linger in freed heap memory; initialize con_len to 0 for safety on early error paths.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/orainfo.c`: fix OCI_NLS_WRITING_DIR typo to OCI_NLS_WRITINGDIR.
+- `generic/oradefs.h`: add SQLT_JSON, SQLT_REC, SQLT_TAB, SQLT_BOL column types; add OCI_SYSBKP/OCI_SYSDGD/OCI_SYSKMT/OCI_SYSRAC auth modes; add OCI_HTYPE_ADMIN/OCI_HTYPE_EVENT handle types and new OCI descriptor types (75-86) for Oracle 23.3 SDK compatibility.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oratclExtern.h`, `generic/oratcl.c`: replace all _ANSI_ARGS_-wrapped declarations with standard ANSI C prototypes.
+- `generic/oratclInt.h`: remove the _ANSI_ARGS_ fallback definition.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oratcl.c`: remove #if TCL_MAJOR_VERSION/TCL_MINOR_VERSION conditionals guarding Tcl 8.3 compatibility code, keeping only the modern code paths; simplify Oratcl_Init by removing unused DString-based path joining and old-style stubs guard.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `configure.in`: replace AC_HELP_STRING with AS_HELP_STRING, split AC_OUTPUT([...]) into AC_CONFIG_FILES + AC_OUTPUT per modern autoconf conventions; regenerate configure.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- remove 34 legacy CVS metadata directories (102 files), no longer needed now that the project is managed with git.
+
+## 2026-02-17  Todd Helfter <thelfter@gmail.com>
+
+- `generic/oraconfig.c`, `generic/orafetch.c`, `generic/orainfo.c`, `generic/oralob.c`, `generic/oralong.c`, `generic/oramsg.c`, `generic/oratcl.c`: remove CONST84 compatibility macro (pre-Tcl 8.4 support), replace all usages with plain 'const'.
+- `generic/oratclInt.h`: remove the #ifndef CONST84 fallback.
+- `generic/oraexec.c`: fix a truncated OCI_AttrGet call missing OCI_ATTR_SQLFNCODE/errhp arguments.
+
 ## 2026-02-17  Todd Helfter <thelfter@gmail.com>
 
 - `generic/oratclInt.h`: define CONST84 fallback as 'const' for Tcl 9 compatibility.
