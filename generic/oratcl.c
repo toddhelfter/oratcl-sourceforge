@@ -43,16 +43,16 @@
 EXTERN int Oratcl_Init(Tcl_Interp *interp);
 
 BOOL APIENTRY
-DllEntryPoint(hInst, reason, reserved)
-HINSTANCE hInst;            /* Library instance handle. */
-DWORD reason;               /* Reason this function is being called. */
-LPVOID reserved;            /* Not used. */
+DllEntryPoint(HINSTANCE hInst, DWORD reason, LPVOID reserved)
+/* hInst	Library instance handle. */
+/* reason	Reason this function is being called. */
+/* reserved	Not used. */
 {
     return TRUE;
 }
 
 #define DLOPEN(libname, flags)	LoadLibrary(libname)
-#define DLCLOSE(path)		((void *) FreeLibrary((HMODULE) path))
+#define DLCLOSE(path)		((void) FreeLibrary((HMODULE) path))
 #define DLSYM(handle, symbol, proc, type) \
 	(proc = (type) GetProcAddress((HINSTANCE) handle, symbol))
 
@@ -278,7 +278,9 @@ Oratcl_Init(Tcl_Interp *interp)
 	HMODULE		handle;
 
 #ifdef __WIN32__
+#ifdef ORATCL_DEBUG
 	DWORD		last_error;
+#endif
 #else							/* __WIN32__ */
 	CONST char	*native;
 
@@ -381,8 +383,8 @@ Oratcl_Init(Tcl_Interp *interp)
 
 	handle = LoadLibrary(TEXT("OCI.DLL"));
 	if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
-		last_error = GetLastError();
 #ifdef ORATCL_DEBUG
+		last_error = GetLastError();
 		fprintf(stderr, "%s(): %s with error %lu",
 			"Oratcl_Init",
 			"Failed loading oci.dll symbols",
