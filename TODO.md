@@ -38,7 +38,7 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
 - [ ] Determine which Oracle client/SDK versions to target per platform (note Oracle 23c compatibility work already done in 5.0)
 - [ ] Decide packaging/distribution format per platform (zip vs tar.gz, directory layout) consistent with prior SourceForge releases
 - [ ] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz`
-- [x] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built — **done**: [Oratcl 5.0](https://github.com/toddhelfter/oratcl-sourceforge/releases/tag/oratcl-5.0) published with `oratcl-5.0.tar.gz` and `Oratcl50-Darwin-arm64.zip` attached; the webhook fired and delivered successfully (4x `release` events, all `200 OK`) — awaiting confirmation the files actually mirrored through to SourceForge's Files page
+- [x] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built — **done and verified end-to-end**: [Oratcl 5.0](https://github.com/toddhelfter/oratcl-sourceforge/releases/tag/oratcl-5.0) published with `oratcl-5.0.tar.gz` and `Oratcl50-Darwin-arm64.zip` attached; the webhook fired and delivered successfully (4x `release` events, all `200 OK`); confirmed live on SourceForge's Files page under `oratcl-5-0` (the `.` in the GitHub tag `oratcl-5.0` gets normalized to `-` in the SourceForge folder name) — the full GitHub→SourceForge release pipeline (Story 4) works
 
 ## Story 8: Seamless/inline LOB handling (replace the PL/SQL-wrapper mindset)
 
