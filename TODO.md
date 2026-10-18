@@ -23,10 +23,10 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
   - Along the way, found and fixed a real build-system bug: `oralob2.c` (added in 5.0) was never registered in `configure.in`'s `TEA_ADD_SOURCES`, so every build was silently failing at link time (`undefined symbol _Oratcl_Lob2`) until now
   - Live-DB functional/integration testing intentionally skipped for now — no test database currently available
   - Universal (arm64+x86_64) binary and Intel Mac builds not yet attempted
-- [ ] Determine which Oracle client/SDK versions to target per platform (note Oracle 23c compatibility work already done in 5.0)
-- [ ] Decide packaging/distribution format per platform (zip vs tar.gz, directory layout) consistent with prior SourceForge releases
+- [x] Determine which Oracle client/SDK versions to target per platform — **decided**: Oracle 23c client is the standard going forward (matches the Oracle 23c compatibility work already done in 5.0)
+- [x] Decide packaging/distribution format per platform — **decided**: both `tar.gz` and `.zip`, matching the already-built artifacts (`oratcl-5.0.tar.gz` for source, `.zip` for platform binaries — `.zip` in particular because Windows doesn't typically have `tar` available)
 - [ ] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz`
-- [x] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built — **done and verified end-to-end**: [Oratcl 5.0](https://github.com/toddhelfter/oratcl-sourceforge/releases/tag/oratcl-5.0) published with `oratcl-5.0.tar.gz` and `Oratcl50-Darwin-arm64.zip` attached; the webhook fired and delivered successfully (4x `release` events, all `200 OK`); confirmed live on SourceForge's Files page under `oratcl-5-0` (the `.` in the GitHub tag `oratcl-5.0` gets normalized to `-` in the SourceForge folder name) — the full GitHub→SourceForge release pipeline (Story 4) works
+- [x] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built — **done and verified end-to-end**: [Oratcl 5.0](https://github.com/toddhelfter/oratcl-sourceforge/releases/tag/oratcl-5.0) published with `oratcl-5.0.tar.gz`, `Oratcl50-Darwin-arm64.zip`, and `Oratcl50-Windows-x64.zip` attached; the webhook fired and delivered successfully, confirmed live on SourceForge's Files page under `oratcl-5-0` (the `.` in the GitHub tag `oratcl-5.0` gets normalized to `-` in the SourceForge folder name) — the full GitHub→SourceForge release pipeline (Story 4) works
 
 ## Story 8: Seamless/inline LOB handling (replace the PL/SQL-wrapper mindset)
 
