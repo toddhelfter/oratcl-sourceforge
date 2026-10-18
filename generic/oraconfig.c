@@ -233,7 +233,7 @@ Oratcl_Config (clientData, interp, objc, objv)
 		if (option == OPT_CACHE) {
 			tcl_rc = Tcl_GetIntFromObj(interp, objv[i], &value);
 			/* test for valid integer */
-			if (tcl_rc != TCL_OK || value < 0) {
+			if (tcl_rc != TCL_OK || value < 1 || value > MAX_FETCH_ROWS) {
 				Oratcl_ErrorMsg(interp,
 						objv[0],
 						": invalid value",
