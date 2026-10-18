@@ -2,18 +2,6 @@
 
 **Current test status**: 189 passed, 0 failed, 4 skipped (NLS mismatch)
 
-## Story 3: Deprecate `oraconfig unicode` for Tcl 9
-
-**RESOLVED** — The `oraconfig $stm unicode true` option used UCS-2 encoding via `Tcl_GetUnicodeFromObj`/`Tcl_NewUnicodeObj`, which is broken in Tcl 9 (changed `Tcl_UniChar` from 2 bytes to 4 bytes).
-
-**Resolution**: With Tcl 9 + `NLS_LANG=AL32UTF8`, unicode "just works" through the default UTF-8 code path:
-- Tcl 9 strings are always UTF-8 internally
-- `NLS_LANG=AL32UTF8` tells OCI the client encoding is UTF-8
-- `Tcl_GetStringFromObj` / `Tcl_NewStringObj` handle UTF-8 transparently
-- No `oraconfig unicode true` needed
-
-The `unicode` config option now prints a deprecation warning if set to true. Tests updated to use the default path.
-
 ## Story 4: GitHub ↔ SourceForge release integration
 
 Wire up SourceForge's GitHub release integration so new GitHub releases are automatically mirrored to SourceForge downloads.
@@ -27,35 +15,6 @@ Wire up SourceForge's GitHub release integration so new GitHub releases are auto
   - Secret: `REDACTED-ROTATE-THIS-SECRET`
   - Events: only `Release`
 - [ ] Verify: refresh the SourceForge admin page for "Integration configured", and confirm the GitHub webhook's `ping` event delivered successfully
-
-## Story 5: GitHub-compatible documentation
-
-Most of the project's documentation predates Markdown/GitHub (`doc/oratcl.html`, `doc/oratcl.man`, `doc/oratcl.txt`, plain-text `README`/`INSTALL`/`CHANGES`/`ChangeLog`, `COPYRIGHT`/`license.terms`), so `oratcl-sourceforge`'s GitHub "About" panel currently shows no description, no recognized README/License, no topics, 0 stars/watchers.
-
-- [x] Write a proper `README.md` (GitHub-flavored Markdown) synthesized from the existing `doc/oratcl.html`, `oratcl.man`, `oratcl.txt`, `README`, and `INSTALL`, across `oratcl-sourceforge` and its branches — see [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) (pending merge to `main`)
-- [x] Add a GitHub-recognized `LICENSE` file derived from `COPYRIGHT`/`license.terms` so the License badge resolves — same PR; note GitHub's detector matches it as "Other" (not an exact SPDX template), since the original historical license text was preserved as-is
-- [x] Set the repo description and topics (e.g. `tcl`, `oracle`, `oci`, `database`) on GitHub — done: "Tcl extension providing access to Oracle Database via OCI (Oracle Call Interface)", topics: tcl, oracle, oci, database, oracle-database, tcl-extension
-- [x] Add `ADOPTERS.md` (linked from `README.md`, not inlined there) listing notable projects/products built on Oratcl — see [oratcl-sourceforge#1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) (pending merge to `main`):
-  - HP 3PAR System Reporter ([user's guide reference](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html), System Reporter 2.8, Nov 2010) — **confirmed**: page 3 of that manual reproduces the Oratcl copyright/license notice verbatim ("Copyright (c) 2000-2005 Todd M. Helfter... Permission to use, copy, modify, distribute, and sell this software..."), i.e. the exact `license.terms` text, though dated 2000-2005 vs. our `license.terms`'s 2000-2017 — worth noting as a data point on the license's copyright year history
-  - HammerOra / HammerDB (Steve Shaw) — used Oratcl for many years; see Story 9 for the HammerDB fork
-  - Steve Shaw and Intel sponsored a bounty to make Oratcl thread-safe
-- [x] Mine the historical branches/tags (scriptics-sc-* through oratcl-4-6, plus oratcl-source's 5.0 work) for anything worth preserving in the new docs (feature history, platform notes, API changes) — captured in `WIKI.md`: Poindexter's original authorship (1.0-2.6), the Scriptics/Ajuba era, the 1999 ownership transfer, the "Tcl/Tk Tools" book publication, and the pre-1999 history gap
-- [x] Add `WIKI.md` holding the detailed historical narrative (origins, ownership transfer, publications, the CVS/SVN/Git migration story, related/derivative projects), with `README.md` trimmed to reflect only the current state (5.0) plus pointers to `WIKI.md`/`ADOPTERS.md`/`TODO.md` — same PR
-- [x] Decide whether this applies only to `oratcl-sourceforge` or also `oratcl-source` — **`oratcl-sourceforge` is canonical** going forward (see Story 12)
-- [x] Convert the original 87-page "Oratcl User's Guide and Reference" PDF to `doc/ORATCL_GUIDE.md` (redacting a home address found on the title page), linked from `README.md` — same PR
-
-**Status: COMPLETE.** [PR #1](https://github.com/toddhelfter/oratcl-sourceforge/pull/1) and a follow-up [PR #2](https://github.com/toddhelfter/oratcl-sourceforge/pull/2) (PR #1 was merged early by GitHub/the UI before all the work above was pushed, so PR #2 synced the remainder) are both merged into `main`. `README.md`, `LICENSE`, `ADOPTERS.md`, `WIKI.md`, `doc/ORATCL_GUIDE.md`, repo description/topics are all live on the `oratcl-sourceforge` repo homepage.
-
-## Story 6: Backport 5.0 security fixes (memory guards, buffer overruns) to 4.6
-
-During 5.0 development, security-related issues — memory guards and buffer over-runs — were analyzed and fixed. Several of these aren't tied to the Tcl 9 port and are candidates to backport onto `oratcl-4-6-branch` (last real SVN release line). Identified by reviewing the actual diffs (not just commit titles) of all 25 commits between `a2281e4` and `91e9d74`, including a dedicated second pass for buffer-safety swaps (`sprintf`→`snprintf`, `strcpy`→`strncpy`, bounds/guard checks):
-
-- [ ] `42b4053` — fix script injection and stack buffer overflow in the TAF failover callback (replace `sprintf`+`Tcl_Eval` with `Tcl_EvalObjv`)
-- [ ] `afa57a3` — add an upper bound (`MAX_FETCH_ROWS`) on `fetchrows` to prevent integer overflow in `ckalloc` size calculations
-- [ ] `5389c9b` — memory guard: scrub password (`memset` before `ckfree`) before freeing the connect string, so credentials don't linger in freed heap memory
-- [ ] `c45cfba` — fix a truncated `OCI_AttrGet` call in `oraexec.c` (missing `OCI_ATTR_SQLFNCODE`/`errhp` args) — cherry-pick only this bug fix, not the same commit's unrelated `CONST84`→`const` Tcl 9 cleanup
-
-Two full diff passes (keyword + buffer-safety pattern scan) across all 25 commits found no additional distinct memory-guard/overrun fixes beyond these four. Re-check against your own notes/memory of the 5.0 work in case something was missed, and add any other specific commits you have in mind.
 
 ## Story 7: Build release packages for multiple platforms
 
@@ -123,34 +82,6 @@ work in parallel with ours, so there's likely useful fixes to pull in both direc
     mode (`OCI_THREADED` vs. not) needs to match how Tcl itself was built
 - [ ] Consider reaching out to Steve Shaw directly, given the shared lineage and
   HammerDB's real-world dependency on Oratcl, to coordinate/share fixes going forward
-
-## Story 10: Copyright year was bumped per-release — update it for 5.0
-
-The copyright end-year in `license.terms`/`COPYRIGHT` was updated at each release over
-the project's history, not left static:
-
-| Branch | Copyright notice |
-|---|---|
-| `scriptics-sc-1-0-branch` / `oratcl-3-0-branch` | `Copyright 1993 Tom Poindexter and U S WEST Advanced Technologies, Inc.` (no Helfter year range yet) |
-| `oratcl-4-3-branch` | `Copyright (c) 2000-2004 Todd M. Helfter` |
-| `oratcl-4-5-branch` | `Copyright (c) 2000-2005 Todd M. Helfter` |
-| `oratcl-4-6-branch` | `Copyright (c) 2000-2017 Todd M. Helfter` |
-
-The HP 3PAR System Reporter manual (Story 5) reproduces the `2000-2005` notice, matching
-whatever Oratcl version it was bundled with at the time — confirming the pattern that the
-copyright year tracked the release it shipped with, not a single fixed range.
-
-Our current 5.0 line (`license.terms`, `COPYRIGHT`, and the new root `LICENSE` copy)
-inherited `2000-2017` unchanged from 4.6 — it was never bumped for 5.0.
-
-- [x] Update `license.terms`, `COPYRIGHT`, and `LICENSE` (root, on `oratcl-5-0-branch`) to
-  `Copyright (c) 2000-2026 Todd M. Helfter` for the 5.0 release — done in both
-  `oratcl-source` (`main`) and `oratcl-sourceforge` (`oratcl-5-0-branch`); `COPYRIGHT`
-  itself doesn't carry a year, so only `license.terms`/`LICENSE` needed the bump
-- [x] Apply this on both `oratcl-source` and `oratcl-sourceforge`'s `oratcl-5-0-branch`
-  (same files need updating in both places until/unless one repo is retired)
-- [ ] Going forward, bump the end-year again at each future release, matching the
-  historical pattern
 
 ## Story 11: Learn from bagnongithub/oratcl (ODPI-C reimplementation)
 
