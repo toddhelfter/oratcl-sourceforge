@@ -61,7 +61,7 @@ Oratcl_Logon (clientData, interp, objc, objv)
 	char		*cpy_str = NULL;
 	char		*cpy_pos1 = NULL;
 	char		*cpy_pos2 = NULL;
-	int		con_len;
+	int		con_len = 0;
 	sword		rc = 0;
 
 	int		attached = 0;
@@ -352,12 +352,24 @@ Oratcl_Logon (clientData, interp, objc, objv)
 
 		if (0 == strcmp(Tcl_GetString(objv[2]), "-failovercallback")) {
 			if (objc > i) {
+				Tcl_Obj		*cbListObj;
+				char		*cbStr;
+				int		cbLen;
+
 				i++;
 				p = Tcl_GetStringFromObj(objv[i], NULL);
 
-				/* append oralogon handle string */
-				LogPtr->failovercallback = ckalloc(strlen(p) + strlen(buf) +2);
-				sprintf(LogPtr->failovercallback, "%s %s", p, buf);
+				/* store as proper Tcl list: {procname handle} */
+				cbListObj = Tcl_NewListObj(0, NULL);
+				Tcl_ListObjAppendElement(interp, cbListObj,
+							 Tcl_NewStringObj(p, -1));
+				Tcl_ListObjAppendElement(interp, cbListObj,
+							 Tcl_NewStringObj(buf, -1));
+				Tcl_IncrRefCount(cbListObj);
+				cbStr = Tcl_GetStringFromObj(cbListObj, &cbLen);
+				LogPtr->failovercallback = ckalloc(cbLen + 1);
+				memcpy(LogPtr->failovercallback, cbStr, cbLen + 1);
+				Tcl_DecrRefCount(cbListObj);
 				LogPtr->interp = interp;
 				failover.fo_ctx = (dvoid *)LogPtr;
 				failover.callback_function = &callback_fn;
@@ -435,6 +447,7 @@ common_exit:
 
 	}
 
+	memset(cpy_str, 0, con_len);
 	ckfree(cpy_str);
 
 	return tcl_return;
@@ -453,19 +466,42 @@ sb4 callback_fn(svchp, envhp, fo_ctx, fo_type, fo_event)
 	ub4		fo_event;
 {
 	int		res;
+	int		cbObjc;
+	Tcl_Obj		**cbObjv;
+	Tcl_Obj		*cmdObj;
 
 	OratclLogs *LogPtr = (OratclLogs*)fo_ctx;
-	char buffer[100];
 
-	sprintf(buffer,
-		"%s %d %d",
-		LogPtr->failovercallback,
-		fo_type,
-		fo_event);
-	res = Tcl_Eval(LogPtr->interp, buffer);
+	/*
+	 * Build the command as a Tcl list: {procname handle fo_type fo_event}
+	 * failovercallback contains "procname handle" from registration.
+	 * Using a list avoids script injection and buffer overflow.
+	 */
+	cmdObj = Tcl_NewStringObj(LogPtr->failovercallback, -1);
+	Tcl_IncrRefCount(cmdObj);
+
+	if (Tcl_ListObjAppendElement(LogPtr->interp, cmdObj,
+				     Tcl_NewIntObj((int) fo_type)) != TCL_OK ||
+	    Tcl_ListObjAppendElement(LogPtr->interp, cmdObj,
+				     Tcl_NewIntObj((int) fo_event)) != TCL_OK) {
+		Tcl_BackgroundError(LogPtr->interp);
+		Tcl_DecrRefCount(cmdObj);
+		return 0;
+	}
+
+	if (Tcl_ListObjGetElements(LogPtr->interp, cmdObj,
+				   &cbObjc, &cbObjv) != TCL_OK) {
+		Tcl_BackgroundError(LogPtr->interp);
+		Tcl_DecrRefCount(cmdObj);
+		return 0;
+	}
+
+	res = Tcl_EvalObjv(LogPtr->interp, cbObjc, cbObjv, 0);
 	if (res != TCL_OK) {
 		Tcl_BackgroundError(LogPtr->interp);
 	}
+
+	Tcl_DecrRefCount(cmdObj);
 
 	return 0;
 }
