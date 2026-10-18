@@ -5447,7 +5447,7 @@ printf "%s\n" "$ac_cv_c_bigendian" >&6; }
 #-----------------------------------------------------------------------
 
 
-    vars="oratcl.c oralob.c oralong.c oralogon.c oralogoff.c
+    vars="oratcl.c oralob.c oralob2.c oralong.c oralogon.c oralogoff.c
 	oraopen.c oraclose.c oracommit.c oraroll.c oraautocom.c
 	orainfo.c oramsg.c oraconfig.c oradesc.c orabreak.c
 	oraparse.c orabind.c oraexec.c orafetch.c

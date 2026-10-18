@@ -28,7 +28,13 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
 
 - [ ] Produce an updated source release tarball (`oratcl-5.0.tar.gz` or similar) from the final `main`/5.0 tree via `make dist` or equivalent
 - [ ] Investigate Windows cross-compilation options from macOS/Linux (e.g. mingw-w64 toolchain) against an Oracle Instant Client SDK for Windows, matching how prior Windows binaries were built
-- [ ] Investigate macOS binary builds (native, since we're on macOS) against Oracle Instant Client for macOS (arm64/x86_64), and whether a universal binary is feasible/desired
+- [x] Investigate macOS binary builds (native, since we're on macOS) against Oracle Instant Client for macOS (arm64/x86_64), and whether a universal binary is feasible/desired — **confirmed feasible, proof-of-concept built successfully**:
+  - `./configure --with-tcl=<tclConfig.sh dir> --with-oracle-directory=<instant client dir>` followed by `make` produces a working `libtcl9Oratcl5.0.dylib` (Mach-O arm64) against Tcl 9.0.2 and Oracle Instant Client 23.3
+  - Verified it loads cleanly under `tclsh9.0` (`package require Oratcl`) and registers all expected commands, including the new `oralob2`
+  - Set `env(ORACLE_LIBRARY)` to the full path of `libclntsh.dylib` directly when using an Instant Client layout (no `lib/` subdirectory) — the default `$ORACLE_HOME/lib/libclntsh.dylib` lookup only matches a traditional full Oracle Client install layout
+  - Along the way, found and fixed a real build-system bug: `oralob2.c` (added in 5.0) was never registered in `configure.in`'s `TEA_ADD_SOURCES`, so every build was silently failing at link time (`undefined symbol _Oratcl_Lob2`) until now
+  - Live-DB functional/integration testing intentionally skipped for now — no test database currently available
+  - Universal (arm64+x86_64) binary and Intel Mac builds not yet attempted
 - [ ] Determine which Oracle client/SDK versions to target per platform (note Oracle 23c compatibility work already done in 5.0)
 - [ ] Decide packaging/distribution format per platform (zip vs tar.gz, directory layout) consistent with prior SourceForge releases
 - [ ] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz`
