@@ -35,7 +35,7 @@ Oratcl_Autocom(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	Tcl_HashEntry	*logHashPtr;
 	OratclLogs	*LogPtr;
 
-	int		bool;
+	int		boolval;
 	int		tcl_return = TCL_OK;
 
 	if (objc < 3) {
@@ -59,10 +59,10 @@ Oratcl_Autocom(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 	LogPtr = (OratclLogs *) Tcl_GetHashValue(logHashPtr);
 
-	Tcl_GetBooleanFromObj(interp, objv[2], &bool);
-	LogPtr->autocom = bool;
+	Tcl_GetBooleanFromObj(interp, objv[2], &boolval);
+	LogPtr->autocom = boolval;
 
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(bool));
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(boolval));
 
 common_exit:
 
