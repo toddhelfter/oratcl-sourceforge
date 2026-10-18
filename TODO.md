@@ -7,15 +7,18 @@
 Wire up SourceForge's GitHub release integration so new GitHub releases are automatically mirrored to SourceForge downloads.
 
 - [x] Pick the target GitHub repo for the sync — **`oratcl-sourceforge` is canonical** going forward
-- [ ] Automatic import: enter the GitHub username/repo at https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/ — **needs a human with SourceForge admin login**, not doable via API/CLI
-- [ ] Add a SourceForge download button into GitHub release notes (checkbox in the same SourceForge integration page) — same, needs SourceForge admin login
+- [x] Automatic import: one-time import run via https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/ with `toddhelfter`/`oratcl-sourceforge` — backfilled all historical branch folders into SourceForge Files
+- [x] Add a SourceForge download button into GitHub release notes — checkbox enabled on the GitHub Integration page
 - [x] Manual webhook, on the target GitHub repo under Settings -> Webhooks — created via the GitHub API (hook id `700014680`):
   - Payload URL: `https://sourceforge.net/p/oratcl/files/github_webhook`
   - Content type: `application/x-www-form-urlencoded`
   - Secret: `REDACTED-ROTATE-THIS-SECRET`
   - Events: only `Release`
+- [x] Enter the GitHub username/repo (`toddhelfter/oratcl-sourceforge`) in the "Set up integration automatically" field on the GitHub Integration page — this is what actually associates incoming webhook pings with the `oratcl` SourceForge project
 - [x] Verify (GitHub side): the webhook's `ping` event delivered successfully — `status_code: 200`, `status: OK`
-- [ ] Verify (SourceForge side): refresh the SourceForge admin page for "Integration configured" — needs SourceForge admin login
+- [x] Verify (SourceForge side): the GitHub Integration admin page now shows **"Integration configured"**
+
+**Status: COMPLETE.** New GitHub releases on `oratcl-sourceforge` will now automatically mirror to SourceForge downloads.
 
 ## Story 7: Build release packages for multiple platforms
 
