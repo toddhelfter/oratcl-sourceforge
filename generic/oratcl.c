@@ -40,7 +40,7 @@
 #undef  TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS  DLLEXPORT
 
-EXTERN Oratcl_Init(Tcl_Interp *interp);
+EXTERN int Oratcl_Init(Tcl_Interp *interp);
 
 BOOL APIENTRY
 DllEntryPoint(hInst, reason, reserved)
