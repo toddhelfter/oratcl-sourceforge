@@ -22,8 +22,19 @@ A non-exhaustive list of notable projects and products built on Oratcl.
   [doc/Oratcl_Users_Guide_and_Reference.md](doc/Oratcl_Users_Guide_and_Reference.md)), Steve Shaw is quoted directly: *"when I
   looked for the best language to write a load test tool the main requirements were a
   scripted Oracle interface (thread safe) with a multi-threaded capability and only TCL
-  and Oratcl met this requirement and as far as I know still do."*
-- Steve Shaw, together with Intel, sponsored a bounty to make Oratcl thread-safe.
+  and Oratcl met this requirement and as far as I know still do."* HammerOra was already
+  an established tool well before GitHub existed: it has its own dedicated chapter
+  ("Benchmarking Tools: Hammerora and Swingbench") in *[Pro Oracle Database 10g RAC on
+  Linux: Installation, Administration, and Performance](https://www.oreilly.com/library/view/pro-ora-cle/9781590595244/)*
+  (Julian Dyke and Steve Shaw, Apress, March 2007).
+- Oratcl's thread-safety itself shipped earlier, in version 4.0 (December 2001), funded
+  by Dionisios Pothos and Grid Intelligent Systems Ltd, UK (see `CHANGELOG.md`) — Shaw
+  and HammerOra (HammerDB's original name) were already using Oratcl at the time and
+  needed that thread safety to drive TPC-C and TPC-H benchmark workloads with threaded
+  Tcl, simulating many concurrent database clients — so Shaw was a direct beneficiary and
+  motivated user of this capability, not the one who funded its creation. Separately,
+  while later at Intel, Shaw's HammerDB was also used for Intel's own chipset performance
+  testing, again depending on — rather than sponsoring — Oratcl's existing thread safety.
 - **[tdbc_oratcl](https://fossil.sowaswie.de/tdbc_oratcl/home)**, by Joerg Mehring
   (Copyright 2018 SESAM GmbH / 2023 MehrDV) — a BSD-3-licensed TDBC driver (Tcl's standard
   `tdbc` database API, the Tcl analog of ODBC/JDBC/DBI) built on top of classic Oratcl
