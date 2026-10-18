@@ -7,14 +7,15 @@
 Wire up SourceForge's GitHub release integration so new GitHub releases are automatically mirrored to SourceForge downloads.
 
 - [x] Pick the target GitHub repo for the sync — **`oratcl-sourceforge` is canonical** going forward
-- [ ] Automatic import: enter the GitHub username/repo at https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/
-- [ ] Add a SourceForge download button into GitHub release notes (checkbox in the same SourceForge integration page)
-- [ ] Manual webhook (if automatic setup needs it / as a fallback), on the target GitHub repo under Settings -> Webhooks:
+- [ ] Automatic import: enter the GitHub username/repo at https://sourceforge.net/p/oratcl/admin/ext/import/github-downloads/ — **needs a human with SourceForge admin login**, not doable via API/CLI
+- [ ] Add a SourceForge download button into GitHub release notes (checkbox in the same SourceForge integration page) — same, needs SourceForge admin login
+- [x] Manual webhook, on the target GitHub repo under Settings -> Webhooks — created via the GitHub API (hook id `700014680`):
   - Payload URL: `https://sourceforge.net/p/oratcl/files/github_webhook`
   - Content type: `application/x-www-form-urlencoded`
   - Secret: `6178f31bd3fd27aac850a08f4e5e8b8ed3dd964d`
   - Events: only `Release`
-- [ ] Verify: refresh the SourceForge admin page for "Integration configured", and confirm the GitHub webhook's `ping` event delivered successfully
+- [x] Verify (GitHub side): the webhook's `ping` event delivered successfully — `status_code: 200`, `status: OK`
+- [ ] Verify (SourceForge side): refresh the SourceForge admin page for "Integration configured" — needs SourceForge admin login
 
 ## Story 7: Build release packages for multiple platforms
 
