@@ -8,6 +8,11 @@ A non-exhaustive list of notable projects and products built on Oratcl.
   events scripts"* — see
   [the Oracle8 OEM 1.3.5 manual, mirrored at UMBC](https://portal.cs.umbc.edu/help/oracle8.bak/oem135/A53701_01/scripts.htm#54069).
   See [WIKI.md](WIKI.md) for additional book citations documenting this usage.
+- **[Biotronik](https://www.biotronik.com/)** GmbH & Co KG, a German medical device
+  manufacturer (cardiac implants/pacemakers) — contemporaneous email correspondence
+  (September 2005) documents Oratcl 4.3 in production use there, migrating from Oratcl
+  3.3 on Solaris just ahead of a production machine cutover. Confirms real-world
+  production (not just dev/test) deployment of Oratcl in an enterprise environment.
 - **HP 3PAR System Reporter** — uses Oratcl for Oracle database access. Confirmed: page 3
   of the [System Reporter 2.8 User's Guide](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html)
   (Nov 2010) reproduces the Oratcl copyright/license notice verbatim.

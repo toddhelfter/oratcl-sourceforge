@@ -53,6 +53,29 @@ programming for special situations," documenting an informal paid-consulting dim
 the project's maintenance model, separate from the various sponsored bug-fix/thread-safety
 work documented elsewhere (see `ADOPTERS.md`).
 
+A March 2006 email to Jeff Hobbs documents Todd hitting a genuine Tcl core limitation
+while implementing direct SQL access to Oracle LOB columns for the Oratcl 4.4 candidate
+("one of the most requested features of Oratcl"): `Tcl_DString`-based values beyond
+roughly 1.2GB (`Tcl_ConvertCountedElement`/`tclUtil.c`) caused a segfault, traced to
+signed-`int`-based size limits baked into the `Tcl_DString` API itself. Hobbs confirmed
+this was an inherent API restriction, not an Oratcl bug: *"the maximum size is signed int,
+based on restrictions in how the APIs were written. You may find that you can construct
+something larger, but it may not be 'sized' right in all occurrences that use it."* This
+is a direct historical precursor to the exact class of problem Tcl 9's `Tcl_Size` type
+(signed `ptrdiff_t`, able to address far beyond 32-bit `int` limits) was designed to fix —
+twenty years before Oratcl's own Tcl 9 port tackled the same category of size-type issue
+throughout the codebase (see `CHANGELOG.md`'s 2026-02-17 entries).
+
+A November 2007 email thread with Hobbs, during Todd's work adding Unicode database
+support to Oratcl (matching `CHANGELOG.md`'s 2007-10-29 and 2007-11-24 entries adding the
+`oraconfig unicode` flag and unicode processing to `orabind`/`orafetch` — the email is
+dated the day after the latter commit), discusses detecting whether a `Tcl_Obj` genuinely
+needs Unicode representation versus plain ASCII. Hobbs sketched a possible Tcl core
+addition (`TclStringObjIsAscii` in `tclStringObj.c`) partly in response to this exchange,
+noting "it's not in the core at this time, but it could be added... perhaps you have
+better supporting cases?" — Oratcl's real-world Unicode-handling needs informing a
+Tcl-core API design discussion, not just consuming an existing one.
+
 ## Publications
 
 Oratcl is covered in **"Tcl/Tk Tools"**, edited by Mark Harrison, published by O'Reilly and
