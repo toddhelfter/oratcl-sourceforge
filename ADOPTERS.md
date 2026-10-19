@@ -54,6 +54,19 @@ A non-exhaustive list of notable projects and products built on Oratcl.
     Oracle client bug (not an Oratcl bug), worked around via a `sqlnet.ora` setting. Shaw
     noted he'd done similar from-scratch Windows builds, never released, for the other
     database Tcl extensions HammerDB grew to support.
+- **ActiveState**, via **ActiveTcl** — bundled/distributed Oratcl through its "teapot" Tcl
+  package repository (confirmed by Jeff Hobbs in the September 2017 email thread above),
+  making it readily installable alongside the rest of ActiveTcl's package set rather than
+  requiring a separate build. ActiveTcl also bundled Tcl's **Thread** extension (the
+  package that actually creates OS-level Tcl threads/interpreters — without it, Tcl is
+  single-threaded per interpreter), which is what Oratcl's thread-safety feature
+  (shipped in 4.0, December 2001) exists to be used *with*. A contemporaneous October 2006
+  email (Zoran Vasiljevic to Jeff Hobbs on the `activetcl-dev` mailing list, re: building
+  Thread 2.6.4 for the ActiveTcl 8.4.14/8.5 beta release) documents this Thread-extension
+  maintenance as an active, ongoing part of ActiveTcl's release process at the time —
+  the same release vehicle that carried Oratcl. Together, ActiveTcl was effectively the
+  standard distribution channel that made "thread-safe Oratcl" (as used by HammerOra/
+  HammerDB, see above) practically usable without a from-source build.
 - **[tdbc_oratcl](https://fossil.sowaswie.de/tdbc_oratcl/home)**, by Joerg Mehring
   (Copyright 2018 SESAM GmbH / 2023 MehrDV) — a BSD-3-licensed TDBC driver (Tcl's standard
   `tdbc` database API, the Tcl analog of ODBC/JDBC/DBI) built on top of classic Oratcl
