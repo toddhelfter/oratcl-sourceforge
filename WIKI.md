@@ -38,6 +38,21 @@ ownership and maintenance of the project to Helfter in 1999. Helfter has authore
 release from 3.0.1 onward — 3.1, 3.2, 3.3, 4.0, 4.1, 4.3, 4.4, 4.5, 4.6 (the last SVN trunk
 state, 2017), and the current 5.0.
 
+## Enterprise usage and minimum Tcl version (2006)
+
+Contemporaneous email correspondence (January–February 2006) documents Steve May, a Tcl
+consultant who had used Oratcl on an Oracle 8i project at **Computerized Processes
+Unlimited (CPU) LLC** roughly four years earlier (and also worked with Tcl extensively at
+**AspenTech**, both companies that got ActiveTcl builds directly from Jeff Hobbs),
+reaching out about upgrading a client from Oracle 8i to 10i and asking the minimum Tcl
+version Oratcl 4.3 required. Jeff Hobbs initially guessed "8.3, and possibly as early as
+8.1," but Todd Helfter — the actual maintainer — gave the definitive answer directly:
+*"Oratcl relies heavily on Tcl_Obj, I know for certain it will compile/run with Tcl 8.3.
+Earlier than that, no dice."* Todd also mentioned being "available for contract
+programming for special situations," documenting an informal paid-consulting dimension to
+the project's maintenance model, separate from the various sponsored bug-fix/thread-safety
+work documented elsewhere (see `ADOPTERS.md`).
+
 ## Publications
 
 Oratcl is covered in **"Tcl/Tk Tools"**, edited by Mark Harrison, published by O'Reilly and
