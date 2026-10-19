@@ -2,12 +2,33 @@
 
 A non-exhaustive list of notable projects and products built on Oratcl.
 
+- **Purdue University** — **ACMAINT** (Account Creation and Maintenance system), Purdue's
+  central account-management tool for distributed UNIX systems since at least 1990 (David
+  A. Curry, Sam Kimery, Kent C. De La Croix, and J. R. Schwab, *"ACMAINT: An Account
+  Creation and Maintenance System for Distributed UNIX Systems"*, see
+  [Semantic Scholar](https://www.semanticscholar.org/paper/ACMAINT%3A-An-Account-Creation-and-Maintenance-System-Curry-Kimery/61e441e4f183eb196ba1d943eb8f769b763f8c1d)),
+  incorporated Oratcl into version 3.1 to replace a slow `SQL*Plus`-via-pseudotty
+  integration with real OCI calls — this is, in fact, Oratcl maintainer Todd Helfter's own
+  origin story: he was a Purdue employee and key member of the ACMAINT implementation team
+  at the time (see [WIKI.md](WIKI.md) for the full account). By the time he left Purdue in
+  2005, Purdue's entire identity system (**ACCOUNTS**, an early ETL/visualization system
+  unifying staff/student/employee/remote-campus data) was built on Tcl/Tk + Oratcl, driving
+  bulk ACMAINT provisioning and directly enabling Purdue's now long-standing unified
+  [Career Account](https://it.purdue.edu/services/career-account.php) identity system.
+  ACMAINT itself ran in continuous production for roughly 30 years, confirmed still active
+  as of a [board-approved April 2026 Purdue executive summary](https://www.purdue.edu/bot/meetings/past-meetings/2026/02.%20april/FIC/IAMO%20Exec%20Summary%20April2026_Final%20Public%20Session_Geswein.pdf)
+  recommending its replacement with a commercial identity platform (SailPoint).
 - **Oracle Enterprise Manager (OEM)** itself, versions 8i/9i era — Oracle's own official
   product documentation states that OraTcl was the scripting language for OEM job and
   event scripts: *"The Tcl Language with OraTcl extensions is used to write the job and
   events scripts"* — see
   [the Oracle8 OEM 1.3.5 manual, mirrored at UMBC](https://portal.cs.umbc.edu/help/oracle8.bak/oem135/A53701_01/scripts.htm#54069).
   See [WIKI.md](WIKI.md) for additional book citations documenting this usage.
+- **[Biotronik](https://www.biotronik.com/)** GmbH & Co KG, a German medical device
+  manufacturer (cardiac implants/pacemakers) — contemporaneous email correspondence
+  (September 2005) documents Oratcl 4.3 in production use there, migrating from Oratcl
+  3.3 on Solaris just ahead of a production machine cutover. Confirms real-world
+  production (not just dev/test) deployment of Oratcl in an enterprise environment.
 - **HP 3PAR System Reporter** — uses Oratcl for Oracle database access. Confirmed: page 3
   of the [System Reporter 2.8 User's Guide](https://www.manualsdir.com/manuals/398299/hp-3par-system-reporter-software.html)
   (Nov 2010) reproduces the Oratcl copyright/license notice verbatim.
@@ -54,6 +75,19 @@ A non-exhaustive list of notable projects and products built on Oratcl.
     Oracle client bug (not an Oratcl bug), worked around via a `sqlnet.ora` setting. Shaw
     noted he'd done similar from-scratch Windows builds, never released, for the other
     database Tcl extensions HammerDB grew to support.
+- **ActiveState**, via **ActiveTcl** — bundled/distributed Oratcl through its "teapot" Tcl
+  package repository (confirmed by Jeff Hobbs in the September 2017 email thread above),
+  making it readily installable alongside the rest of ActiveTcl's package set rather than
+  requiring a separate build. ActiveTcl also bundled Tcl's **Thread** extension (the
+  package that actually creates OS-level Tcl threads/interpreters — without it, Tcl is
+  single-threaded per interpreter), which is what Oratcl's thread-safety feature
+  (shipped in 4.0, December 2001) exists to be used *with*. A contemporaneous October 2006
+  email (Zoran Vasiljevic to Jeff Hobbs on the `activetcl-dev` mailing list, re: building
+  Thread 2.6.4 for the ActiveTcl 8.4.14/8.5 beta release) documents this Thread-extension
+  maintenance as an active, ongoing part of ActiveTcl's release process at the time —
+  the same release vehicle that carried Oratcl. Together, ActiveTcl was effectively the
+  standard distribution channel that made "thread-safe Oratcl" (as used by HammerOra/
+  HammerDB, see above) practically usable without a from-source build.
 - **[tdbc_oratcl](https://fossil.sowaswie.de/tdbc_oratcl/home)**, by Joerg Mehring
   (Copyright 2018 SESAM GmbH / 2023 MehrDV) — a BSD-3-licensed TDBC driver (Tcl's standard
   `tdbc` database API, the Tcl analog of ODBC/JDBC/DBI) built on top of classic Oratcl

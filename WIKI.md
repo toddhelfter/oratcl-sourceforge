@@ -14,6 +14,45 @@ site — this matches this project's imported `scriptics-sc-1-0-branch`,
 `scriptics-sc-1-1-branch`, `scriptics-sc-2-6-branch`, and `scriptics-sc-2-7-branch` branches,
 and the `ajuba-ajuba2-*` tags (Ajuba Solutions was Scriptics' later corporate name).
 
+## How Todd Helfter found Oratcl: ACMAINT at Purdue University
+
+Before taking over Oratcl's maintenance, Todd Helfter was an employee of Purdue University
+and a key member of the implementation team for **ACMAINT** (Account Creation and
+Maintenance system) — originally designed by David A. Curry, Sam Kimery, Kent C. De La
+Croix, and J. R. Schwab, documented in their 1990 paper *"ACMAINT: An Account Creation and
+Maintenance System for Distributed UNIX Systems"* (see
+[Semantic Scholar](https://www.semanticscholar.org/paper/ACMAINT%3A-An-Account-Creation-and-Maintenance-System-Curry-Kimery/61e441e4f183eb196ba1d943eb8f769b763f8c1d)).
+ACMAINT 2.0 was designed and in use at Purdue's Engineering school (Engineering Computer
+Network, ECN); the Purdue University Computing Center (PUCC) assisted with modernizing it
+to version 3.0, a command-line-only tool written in Tcl with an Oracle database backend —
+but at that point, ACMAINT interacted with Oracle by spawning `SQL*Plus` in a pseudo-tty
+and parsing its text output, which performed poorly once adopted.
+
+That performance problem is what led Todd to discover Tom Poindexter's Oratcl. At the
+time, Tcl didn't yet have a dynamic package-loading mechanism (`package require`/`load`
+matured with Tcl 7.5/8.0), so using Oratcl meant statically linking it directly into a
+custom-built `tclsh` binary. Todd incorporated Oratcl into ACMAINT 3.1, replacing the
+`SQL*Plus`-via-pseudotty approach with real OCI calls — faster, and with real Oracle error
+codes instead of parsed string output, "a huge improvement." This hands-on production
+experience as a serious early adopter is what positioned Todd to take over Oratcl's
+maintenance from Poindexter in 1999 (see "Ownership transfer" below).
+
+By the time Todd left Purdue in 2005, the work had grown well beyond speeding up ACMAINT
+itself: Purdue's entire identity system, internally called **ACCOUNTS**, was written in
+Tcl/Tk + Oratcl. It functioned as an early ETL (extract/transform/load) and visualization
+system, unifying staff, student, employee, and remote-campus data sources into a single
+identity store — then combining that with class enrollment data to drive bulk ACMAINT
+account creation/removal commands. This work directly facilitated Purdue's adoption of
+the unified **Career Account** system, which [remains Purdue's official identity for
+faculty, staff, and students today](https://it.purdue.edu/services/career-account.php).
+
+ACMAINT itself remained in continuous production use at Purdue for roughly 30 years,
+finally slated for replacement by a commercial identity/access management platform
+(SailPoint) per a
+[board-approved April 2026 Purdue executive summary](https://www.purdue.edu/bot/meetings/past-meetings/2026/02.%20april/FIC/IAMO%20Exec%20Summary%20April2026_Final%20Public%20Session_Geswein.pdf),
+which describes it as "the current 30-year-old custom developed identity management
+system, ACMAINT."
+
 ## Logos and merchandise
 
 The codebase itself has carried an embedded "OraTcl POWERED" logo for years, exposed via
@@ -37,6 +76,44 @@ Todd Helfter contributed most of the patches for Oratcl 2.7. Poindexter transfer
 ownership and maintenance of the project to Helfter in 1999. Helfter has authored every
 release from 3.0.1 onward — 3.1, 3.2, 3.3, 4.0, 4.1, 4.3, 4.4, 4.5, 4.6 (the last SVN trunk
 state, 2017), and the current 5.0.
+
+## Enterprise usage and minimum Tcl version (2006)
+
+Contemporaneous email correspondence (January–February 2006) documents Steve May, a Tcl
+consultant who had used Oratcl on an Oracle 8i project at **Computerized Processes
+Unlimited (CPU) LLC** roughly four years earlier (and also worked with Tcl extensively at
+**AspenTech**, both companies that got ActiveTcl builds directly from Jeff Hobbs),
+reaching out about upgrading a client from Oracle 8i to 10i and asking the minimum Tcl
+version Oratcl 4.3 required. Jeff Hobbs initially guessed "8.3, and possibly as early as
+8.1," but Todd Helfter — the actual maintainer — gave the definitive answer directly:
+*"Oratcl relies heavily on Tcl_Obj, I know for certain it will compile/run with Tcl 8.3.
+Earlier than that, no dice."* Todd also mentioned being "available for contract
+programming for special situations," documenting an informal paid-consulting dimension to
+the project's maintenance model, separate from the various sponsored bug-fix/thread-safety
+work documented elsewhere (see `ADOPTERS.md`).
+
+A March 2006 email to Jeff Hobbs documents Todd hitting a genuine Tcl core limitation
+while implementing direct SQL access to Oracle LOB columns for the Oratcl 4.4 candidate
+("one of the most requested features of Oratcl"): `Tcl_DString`-based values beyond
+roughly 1.2GB (`Tcl_ConvertCountedElement`/`tclUtil.c`) caused a segfault, traced to
+signed-`int`-based size limits baked into the `Tcl_DString` API itself. Hobbs confirmed
+this was an inherent API restriction, not an Oratcl bug: *"the maximum size is signed int,
+based on restrictions in how the APIs were written. You may find that you can construct
+something larger, but it may not be 'sized' right in all occurrences that use it."* This
+is a direct historical precursor to the exact class of problem Tcl 9's `Tcl_Size` type
+(signed `ptrdiff_t`, able to address far beyond 32-bit `int` limits) was designed to fix —
+twenty years before Oratcl's own Tcl 9 port tackled the same category of size-type issue
+throughout the codebase (see `CHANGELOG.md`'s 2026-02-17 entries).
+
+A November 2007 email thread with Hobbs, during Todd's work adding Unicode database
+support to Oratcl (matching `CHANGELOG.md`'s 2007-10-29 and 2007-11-24 entries adding the
+`oraconfig unicode` flag and unicode processing to `orabind`/`orafetch` — the email is
+dated the day after the latter commit), discusses detecting whether a `Tcl_Obj` genuinely
+needs Unicode representation versus plain ASCII. Hobbs sketched a possible Tcl core
+addition (`TclStringObjIsAscii` in `tclStringObj.c`) partly in response to this exchange,
+noting "it's not in the core at this time, but it could be added... perhaps you have
+better supporting cases?" — Oratcl's real-world Unicode-handling needs informing a
+Tcl-core API design discussion, not just consuming an existing one.
 
 ## Publications
 
@@ -161,6 +238,19 @@ later converted to SVN, still on SourceForge
 (`svn+ssh://tmh@svn.code.sf.net/p/oratcl/svncode`), where it remained through version 4.6
 (2017) — still read-only accessible today at
 https://svn.code.sf.net/p/oratcl/svncode/.
+
+**Origin of the idea (2017):** per contemporaneous email correspondence, Todd first raised
+the question of converting Oratcl from CVS to Git nearly a decade before it actually
+happened — on September 11, 2017, reaching out to former ActiveState Tcl core developers
+Jeff Hobbs and Andreas Kupries (both had since moved on, Hobbs independently and Kupries to
+SUSE/MicroFocus) for help, motivated in part by wanting to add connection-handling
+improvements for Oracle 12c and its new container database (CDB/PDB) architecture. Kupries
+identified Roy Keene as the person with the actual hands-on experience doing these kinds of
+Tcl-ecosystem CVS/SVN-to-git conversions. The same email thread shows Todd separately asking
+about getting Oratcl included in ActiveTcl; Hobbs confirmed Oratcl was already listed in
+ActiveState's "teapot" Tcl package repository — which explains why `teapot.txt`/
+`teapot.txt.in` (ActiveState teapot package metadata, `Meta as::author`, `Meta as::origin`,
+etc.) are still present in the build system today, auto-generated on every build.
 
 In 2026, the full revision history (800 SVN revisions, itself encompassing the earlier CVS
 history back to 1999-07-26) was imported into Git via `git svn`, preserving every branch
