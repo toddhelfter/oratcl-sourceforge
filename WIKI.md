@@ -162,6 +162,19 @@ later converted to SVN, still on SourceForge
 (2017) — still read-only accessible today at
 https://svn.code.sf.net/p/oratcl/svncode/.
 
+**Origin of the idea (2017):** per contemporaneous email correspondence, Todd first raised
+the question of converting Oratcl from CVS to Git nearly a decade before it actually
+happened — on September 11, 2017, reaching out to former ActiveState Tcl core developers
+Jeff Hobbs and Andreas Kupries (both had since moved on, Hobbs independently and Kupries to
+SUSE/MicroFocus) for help, motivated in part by wanting to add connection-handling
+improvements for Oracle 12c and its new container database (CDB/PDB) architecture. Kupries
+identified Roy Keene as the person with the actual hands-on experience doing these kinds of
+Tcl-ecosystem CVS/SVN-to-git conversions. The same email thread shows Todd separately asking
+about getting Oratcl included in ActiveTcl; Hobbs confirmed Oratcl was already listed in
+ActiveState's "teapot" Tcl package repository — which explains why `teapot.txt`/
+`teapot.txt.in` (ActiveState teapot package metadata, `Meta as::author`, `Meta as::origin`,
+etc.) are still present in the build system today, auto-generated on every build.
+
 In 2026, the full revision history (800 SVN revisions, itself encompassing the earlier CVS
 history back to 1999-07-26) was imported into Git via `git svn`, preserving every branch
 (`scriptics-sc-1-0` through `oratcl-4-6`) and tag, with real authorship and dates, at
