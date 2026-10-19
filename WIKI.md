@@ -59,10 +59,13 @@ most significant was a campus-wide identification card **"recarding"** project: 
 Purdue retired Social Security Numbers in favor of the dedicated
 [Purdue University Identification (PUID)](https://www.purdue.edu/apps/account/IAMO/Purdue_PUID_SSN_Remediation.jsp)
 number — a transition the University states it began in 2000 specifically to reduce
-identity-theft risk from using SSNs as the primary identifier — Todd's team re-issued ID
-cards to the entire campus in just four days, in roughly the 2003–2004 timeframe. (Todd
-also still has a roughly 20-year-old archival copy of the ACMAINT software and much of
-the ACCOUNTS implementation stashed away, not yet incorporated here.)
+identity-theft risk from using SSNs as the primary identifier, formalized in
+[Purdue Policy VII.B.7, "Social Security Numbers Policy"](https://www.purdue.edu/vpec/policies/information-technology/s18/)
+(originally issued August 4, 2004, superseding an earlier Executive Memorandum No. B-54
+on the same subject) — Todd's team re-issued ID cards to the entire campus in just four
+days, matching his own recollection of the 2003–2004 timeframe. (Todd also still has a
+roughly 20-year-old archival copy of the ACMAINT software and much of the ACCOUNTS
+implementation stashed away, not yet incorporated here.)
 
 ## Logos and merchandise
 
