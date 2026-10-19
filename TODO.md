@@ -1,6 +1,6 @@
 # Oratcl TODO
 
-**Current test status**: 189 passed, 0 failed, 4 skipped (NLS mismatch)
+**Current test status**: 189 passed, 0 failed, 4 skipped (NLS mismatch) (prior environment); **169 passed, 0 failed, 0 skipped** against a live Oracle 23c (XEPDB1) database on Ubuntu/WSL2 with Tcl 9.1.0 — see Story 7
 
 ## Story 7: Build release packages for multiple platforms
 
@@ -23,6 +23,7 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
   - Along the way, found and fixed a real build-system bug: `oralob2.c` (added in 5.0) was never registered in `configure.in`'s `TEA_ADD_SOURCES`, so every build was silently failing at link time (`undefined symbol _Oratcl_Lob2`) until now
   - Live-DB functional/integration testing intentionally skipped for now — no test database currently available
   - Universal (arm64+x86_64) binary and Intel Mac builds not yet attempted
+- [x] Native Linux build and full live-database test run — **done, 100% pass rate, confirms the whole Tcl 9 + Oracle 23c compatibility story end-to-end**: Todd built and ran Oratcl 5.0 on Ubuntu/WSL2 (Tcl 9.1.0, Oracle Instant Client 23.26) against a real, live Oracle 23c XE database (`XEPDB1`), producing `libtcl9Oratcl5.0.so` and running the full `make test` suite — **169 passed, 0 failed, 0 skipped**, including `unicode.test` (5/5, validating Story 3's Tcl 9 UTF-8 resolution) and `arraydml.test` (5/5, validating the Oracle 23c array-DML cursor fix). This is the first real-database verification of the entire 5.0 line, and also retroactively validates the Windows cross-compile approach (same `configure.in`/`Makefile.in`, same zero-Oracle-at-build-time design) since the only difference on Windows is the cross-compiler target.
 - [x] Determine which Oracle client/SDK versions to target per platform — **decided**: Oracle 23c client is the standard going forward (matches the Oracle 23c compatibility work already done in 5.0)
 - [x] Decide packaging/distribution format per platform — **decided**: both `tar.gz` and `.zip`, matching the already-built artifacts (`oratcl-5.0.tar.gz` for source, `.zip` for platform binaries — `.zip` in particular because Windows doesn't typically have `tar` available). **New consideration**: the 4.5 line was also distributed as RPMs ([`Oratcl-4.5-1.i386.rpm`](https://sourceforge.net/projects/oratcl/files/oratcl/4.5/Oratcl-4.5-1.i386.rpm/download), [`Oratcl-4.5-1.x86_64.rpm`](https://sourceforge.net/projects/oratcl/files/oratcl/4.5/Oratcl-4.5-1.x86_64.rpm/download), 2009) alongside `oratcl45_win.zip`/`oratcl45.tar.gz` — decide whether to resume RPM packaging for 5.0 (would need `rpmbuild` or `fpm`, neither currently installed/attempted)
 - [x] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz` — **done**, confirmed by Todd
