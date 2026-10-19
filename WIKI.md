@@ -53,6 +53,17 @@ finally slated for replacement by a commercial identity/access management platfo
 which describes it as "the current 30-year-old custom developed identity management
 system, ACMAINT."
 
+Todd built other Tcl/Oratcl tools at Purdue beyond identity management, including a
+department vacation tracker and a conference nametag-printing system (sticky labels). The
+most significant was a campus-wide identification card **"recarding"** project: when
+Purdue retired Social Security Numbers in favor of the dedicated
+[Purdue University Identification (PUID)](https://www.purdue.edu/apps/account/IAMO/Purdue_PUID_SSN_Remediation.jsp)
+number — a transition the University states it began in 2000 specifically to reduce
+identity-theft risk from using SSNs as the primary identifier — Todd's team re-issued ID
+cards to the entire campus in just four days, in roughly the 2003–2004 timeframe. (Todd
+also still has a roughly 20-year-old archival copy of the ACMAINT software and much of
+the ACCOUNTS implementation stashed away, not yet incorporated here.)
+
 ## Logos and merchandise
 
 The codebase itself has carried an embedded "OraTcl POWERED" logo for years, exposed via
