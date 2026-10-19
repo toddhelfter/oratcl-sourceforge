@@ -2,6 +2,22 @@
 
 A non-exhaustive list of notable projects and products built on Oratcl.
 
+- **Purdue University** — **ACMAINT** (Account Creation and Maintenance system), Purdue's
+  central account-management tool for distributed UNIX systems since at least 1990 (David
+  A. Curry, Sam Kimery, Kent C. De La Croix, and J. R. Schwab, *"ACMAINT: An Account
+  Creation and Maintenance System for Distributed UNIX Systems"*, see
+  [Semantic Scholar](https://www.semanticscholar.org/paper/ACMAINT%3A-An-Account-Creation-and-Maintenance-System-Curry-Kimery/61e441e4f183eb196ba1d943eb8f769b763f8c1d)),
+  incorporated Oratcl into version 3.1 to replace a slow `SQL*Plus`-via-pseudotty
+  integration with real OCI calls — this is, in fact, Oratcl maintainer Todd Helfter's own
+  origin story: he was a Purdue employee and key member of the ACMAINT implementation team
+  at the time (see [WIKI.md](WIKI.md) for the full account). By the time he left Purdue in
+  2005, Purdue's entire identity system (**ACCOUNTS**, an early ETL/visualization system
+  unifying staff/student/employee/remote-campus data) was built on Tcl/Tk + Oratcl, driving
+  bulk ACMAINT provisioning and directly enabling Purdue's now long-standing unified
+  [Career Account](https://it.purdue.edu/services/career-account.php) identity system.
+  ACMAINT itself ran in continuous production for roughly 30 years, confirmed still active
+  as of a [board-approved April 2026 Purdue executive summary](https://www.purdue.edu/bot/meetings/past-meetings/2026/02.%20april/FIC/IAMO%20Exec%20Summary%20April2026_Final%20Public%20Session_Geswein.pdf)
+  recommending its replacement with a commercial identity platform (SailPoint).
 - **Oracle Enterprise Manager (OEM)** itself, versions 8i/9i era — Oracle's own official
   product documentation states that OraTcl was the scripting language for OEM job and
   event scripts: *"The Tcl Language with OraTcl extensions is used to write the job and

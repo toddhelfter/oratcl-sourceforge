@@ -14,6 +14,45 @@ site — this matches this project's imported `scriptics-sc-1-0-branch`,
 `scriptics-sc-1-1-branch`, `scriptics-sc-2-6-branch`, and `scriptics-sc-2-7-branch` branches,
 and the `ajuba-ajuba2-*` tags (Ajuba Solutions was Scriptics' later corporate name).
 
+## How Todd Helfter found Oratcl: ACMAINT at Purdue University
+
+Before taking over Oratcl's maintenance, Todd Helfter was an employee of Purdue University
+and a key member of the implementation team for **ACMAINT** (Account Creation and
+Maintenance system) — originally designed by David A. Curry, Sam Kimery, Kent C. De La
+Croix, and J. R. Schwab, documented in their 1990 paper *"ACMAINT: An Account Creation and
+Maintenance System for Distributed UNIX Systems"* (see
+[Semantic Scholar](https://www.semanticscholar.org/paper/ACMAINT%3A-An-Account-Creation-and-Maintenance-System-Curry-Kimery/61e441e4f183eb196ba1d943eb8f769b763f8c1d)).
+ACMAINT 2.0 was designed and in use at Purdue's Engineering school (Engineering Computer
+Network, ECN); the Purdue University Computing Center (PUCC) assisted with modernizing it
+to version 3.0, a command-line-only tool written in Tcl with an Oracle database backend —
+but at that point, ACMAINT interacted with Oracle by spawning `SQL*Plus` in a pseudo-tty
+and parsing its text output, which performed poorly once adopted.
+
+That performance problem is what led Todd to discover Tom Poindexter's Oratcl. At the
+time, Tcl didn't yet have a dynamic package-loading mechanism (`package require`/`load`
+matured with Tcl 7.5/8.0), so using Oratcl meant statically linking it directly into a
+custom-built `tclsh` binary. Todd incorporated Oratcl into ACMAINT 3.1, replacing the
+`SQL*Plus`-via-pseudotty approach with real OCI calls — faster, and with real Oracle error
+codes instead of parsed string output, "a huge improvement." This hands-on production
+experience as a serious early adopter is what positioned Todd to take over Oratcl's
+maintenance from Poindexter in 1999 (see "Ownership transfer" below).
+
+By the time Todd left Purdue in 2005, the work had grown well beyond speeding up ACMAINT
+itself: Purdue's entire identity system, internally called **ACCOUNTS**, was written in
+Tcl/Tk + Oratcl. It functioned as an early ETL (extract/transform/load) and visualization
+system, unifying staff, student, employee, and remote-campus data sources into a single
+identity store — then combining that with class enrollment data to drive bulk ACMAINT
+account creation/removal commands. This work directly facilitated Purdue's adoption of
+the unified **Career Account** system, which [remains Purdue's official identity for
+faculty, staff, and students today](https://it.purdue.edu/services/career-account.php).
+
+ACMAINT itself remained in continuous production use at Purdue for roughly 30 years,
+finally slated for replacement by a commercial identity/access management platform
+(SailPoint) per a
+[board-approved April 2026 Purdue executive summary](https://www.purdue.edu/bot/meetings/past-meetings/2026/02.%20april/FIC/IAMO%20Exec%20Summary%20April2026_Final%20Public%20Session_Geswein.pdf),
+which describes it as "the current 30-year-old custom developed identity management
+system, ACMAINT."
+
 ## Logos and merchandise
 
 The codebase itself has carried an embedded "OraTcl POWERED" logo for years, exposed via
