@@ -22,3 +22,6 @@ pkgIndex.tcl
 .DS_Store
 *~
 *.swp
+
+# Temporary local working area, never committed
+/Scratch/

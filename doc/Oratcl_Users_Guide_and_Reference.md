@@ -149,7 +149,9 @@ Even though no Oracle software is needed to *build* Oratcl, you still need a rea
 client library present at *runtime* to actually connect to a database. Download the
 Oracle Instant Client "Basic" package for Windows x64 from Oracle's Instant Client page
 (a free download; an Oracle account is required, but no license cost). Extract it
-somewhere on the target machine.
+somewhere on the target machine. There's no need to track down a version matching some
+particular Oracle server release — the same Instant Client major version (e.g. 23.x) used
+on Linux and macOS works equally well on Windows against the same database.
 
 As with earlier Windows versions, Windows will only load a DLL it can find in its search
 path — the current working directory or a location listed in the `PATH` environment
@@ -162,6 +164,27 @@ append env(PATH) ";C:\\oracle\\instantclient_23_3"
 package require Oratcl
 ```
 
+Alternatively (and this is the combination confirmed working end-to-end), set
+`ORACLE_HOME` to the Instant Client directory and `ORACLE_LIBRARY` to the full path of
+the client DLL (e.g. `oci.dll`) directly — the same two environment variables used on
+Unix/macOS. `ORACLE_LIBRARY` in particular is what makes Instant Client work here: Oratcl's
+default library lookup expects a traditional full Oracle Client install, where the client
+library lives under `$ORACLE_HOME/lib/...`. Instant Client doesn't follow that layout —
+its DLLs sit flat in the directory you extracted it to — so `ORACLE_LIBRARY` must point
+directly at the library file to override the default lookup. Set both, then add the
+directory to `PATH` and start `tclsh`:
+
+```powershell
+$env:ORACLE_HOME="C:\instantclient_23_26"
+$env:ORACLE_LIBRARY="C:\instantclient_23_26\oci.dll"
+$env:Path += ";C:\instantclient_23_26"
+```
+
+Until an installer/package exists, copy the built `tcl9Oratcl50.dll`, `pkgIndex.tcl` and
+`oratcl_utils.tcl` directly into your Tcl installation's `lib` directory (alongside the
+other packages Tcl auto-discovers) rather than relying on `package require` to find them
+in an arbitrary location.
+
 ### Testing the build
 
 ```tcl
@@ -172,6 +195,11 @@ package require Oratcl
 
 A successful `package require` returns the Oratcl version number. If it fails, the most
 common cause (as above) is that Windows can't find `oci.dll` in its search path.
+
+This full workflow — cross-compiled DLL, Instant Client 23.26, manual install into Tcl's
+`lib` directory, `ORACLE_HOME`/`ORACLE_LIBRARY`/`PATH` set as above — has been verified
+end-to-end on a real Windows machine: `package require Oratcl` loaded successfully and
+`oralogon` connected to a live Oracle 23c database.
 
 ## macOS
 
