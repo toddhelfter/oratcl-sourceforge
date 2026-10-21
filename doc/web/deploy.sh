@@ -15,6 +15,11 @@
 # and images/slogo_xhtml10.png validator badge) in favor of css/style.css --
 # those are removed from the server too, since "put -r" won't delete files
 # that no longer exist locally.
+#
+# doc/web/Oratcl_Users_Guide_and_Reference.pdf is a symlink to the canonical
+# copy at doc/Oratcl_Users_Guide_and_Reference.pdf (avoids two copies
+# drifting out of sync); deploy explicitly "put"s the real source path below
+# rather than relying on sftp to follow the symlink.
 
 set -eu
 
@@ -50,7 +55,7 @@ put index.html
 put FAQ.html
 put oratcl.html
 put CHANGELOG.html
-put Oratcl_Users_Guide_and_Reference.pdf
+put ../Oratcl_Users_Guide_and_Reference.pdf Oratcl_Users_Guide_and_Reference.pdf
 put -r css
 put -r images
 EOF
