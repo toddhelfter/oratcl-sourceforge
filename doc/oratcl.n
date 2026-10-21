@@ -584,6 +584,56 @@ orabindexec $sth :lob_key "AAAAAAAAAA"
 .RE
 .RS
 .sp
+.TP
+.B oralob2 read \fIstatement\-handle -table $table -column $column -rowid $rowid -lobtype clob|blob -datavariable $var\fR
+.br
+Read a CLOB or BLOB directly via \fBOCILobRead2\fR, without going through
+the \fIDBMS_LOB\fR PL/SQL wrapper that \fBoralob\fR uses. Added in Oratcl 5.0.
+.sp
+\fIStatement\-handle\fR must be a valid handle previously opened with
+\fBoraopen\fR. Unlike \fBoralob\fR, \fIoralob2\fR has no \fBalloc\fR
+sub-command and no LOB-handle concept; the LOB is identified directly by
+(\fI$table\fR, \fI$column\fR, \fI$rowid\fR) on each call, and \fIread\fR is
+currently the only \fIsub\-command\fR.
+.sp
+All five options are required:
+.RS
+.TP
+.B \-table \fI$table\fR
+.br
+The name of the table containing the LOB column.
+.TP
+.B \-column \fI$column\fR
+.br
+The name of the LOB column.
+.TP
+.B \-rowid \fI$rowid\fR
+.br
+The rowid of the row containing the LOB, as returned by a prior
+\fBselect rowid\fR query (see the \fBoralob\fR example above).
+.TP
+.B \-lobtype \fIclob\fR or \fIblob\fR
+.br
+Whether the column is a CLOB or a BLOB.
+.TP
+.B \-datavariable \fIvar\fR
+.br
+The name of the variable to receive the LOB's contents.
+.RE
+.sp
+\fIExample\fR
+.RS
+.nf
+oraparse $sth "select rowid from my_table where my_key = 'keyvalue'"
+oraexec $sth
+orafetch $sth -datavariable rowid
+set data {}
+oralob2 read $sth -table "my_table" -column "clob_col" -rowid $rowid \\
+	-lobtype clob -datavariable data
+.fi
+.RE
+.RE
+.sp
 .TP 
 .B oralong \fIsub\-command handle ?options ...?\fR
 .br
