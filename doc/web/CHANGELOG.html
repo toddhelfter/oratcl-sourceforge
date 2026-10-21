@@ -72,7 +72,25 @@ See <a href="https://github.com/toddhelfter/oratcl-sourceforge/blob/main/CHANGEL
 <b>Version 4.6 </b>
 
 A Windows x64 binary was built and published for 4.6, but no corresponding source tarball was
-ever published as a SourceForge default download; see CHANGELOG.md for the 4.6-era commit history.
+ever published as a SourceForge default download. Highlights of this release (developed in
+two main bursts, 2009-10 through 2009-11 and 2016-03 through 2017-11):
+
+	* `orainfo` expanded with new `release` and `nlsgetinfo` subcommands (server/client release
+	  string in #.#.#.#.# format; NLS_CHARACTER_SET and other NLS_PARAMETER values)
+	* `oralogon`/`oralogoff` set OCI_ATTR_DRIVER_NAME so Oratcl connections show as 'Oratcl' in
+	  v$session_connect_info, and fixed several int/size_t and OCIServerAttach parameter issues
+	* `oratcl_utils.tcl`: added `getLogo` (expose the Oratcl-powered logo as a Tk image for
+	  external use) and `prettyDesc` (cleaner formatted column descriptions)
+	* Fixed sourceforge bug #71 (LONG column results ignoring `oraconfig longsize`) and
+	  implemented feature request #10 (consistent `-datavariable` usage across `oralob`/
+	  `oralong`/`orafetch`)
+	* Test suite hardened for OS-authentication and Oracle 12c error-code changes; `oradesc.test`
+	  completely rewritten
+	* Build updated to TEA 3.10, added teapot.txt packaging support
+	* Converted to SVN for source code management partway through this release's development
+
+See <a href="https://github.com/toddhelfter/oratcl-sourceforge/blob/main/CHANGELOG.md">CHANGELOG.md</a>
+on GitHub for the complete day-by-day commit history.
 
 <b>Version 4.5, Production, Oct 07, 2009 </b>
 

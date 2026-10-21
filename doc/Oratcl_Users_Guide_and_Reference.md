@@ -2500,6 +2500,89 @@ set ENV(LD_LIBRARY_PATH) /usr/lib/oracle/10.2.0.3/client/lib
 package require Oratcl
 ```
 
+## The Oratcl::utils Package
+
+Alongside the core `Oratcl` extension, the source distribution ships a pure-Tcl
+companion package, `Oratcl::utils` (`library/oratcl_utils.tcl`), added in 2007.
+It provides a few optional conveniences for Tk-based applications and is not
+required to use Oratcl itself.
+
+```tcl
+package require Oratcl
+package require Oratcl::utils
+```
+
+### logonBox
+
+`Oratcl::utils::logonBox ?options?` displays a Tk GUI database connection
+dialog (username/password/service, with TNS-name or host/port/service
+"Easy Connect" style entry) and calls `oralogon` on the caller's behalf when
+the user clicks "Login". It supports both classic Tk widgets and themed `ttk`
+widgets.
+
+Recognized options:
+
+| Option | Description |
+| --- | --- |
+| `-user` / `-u` | Pre-fill the username field |
+| `-password` / `-p` | Pre-fill the password field |
+| `-service` / `-s` | Pre-fill the TNS service/database name |
+| `-host` | Pre-fill the host, for `-type url` (Easy Connect) mode |
+| `-port` | Pre-fill the port, for `-type url` mode (defaults to 1521) |
+| `-type` | `tns` (default) or `url` (Easy Connect host:port/service) |
+| `-tilewidgets` / `-tw` *theme* | Use `ttk` themed widgets instead of classic `tk`, with the given theme |
+
+The dialog is non-blocking (standard Tk event-driven behavior). On success,
+the resulting `oralogon` handle is stored in
+`::Oratcl::utils::OraTcl(lhandle)`; on cancel or failure it is left empty and
+any error text is placed in `::Oratcl::utils::OraTcl(error)`. A script that
+needs to wait for the dialog to close can use `tkwait variable
+::Oratcl::utils::OraTcl(button)`:
+
+```tcl
+package require Oratcl::utils
+Oratcl::utils::logonBox -tw clam
+tkwait variable ::Oratcl::utils::OraTcl(button)
+set lda $::Oratcl::utils::OraTcl(lhandle)
+if {$lda ne {}} {
+	set sth [oraopen $lda]
+	# ... proceed as usual
+} else {
+	puts "connection cancelled: $::Oratcl::utils::OraTcl(error)"
+}
+```
+
+### prettyDesc
+
+`Oratcl::utils::prettyDesc logon-handle table-name` is a thin, formatted
+wrapper around `oradesc` that prints a column name/nullability/type summary
+to stdout, similar in spirit to SQL*Plus's `DESCRIBE`:
+
+```tcl
+Oratcl::utils::prettyDesc $lda EMP
+```
+
+```
+ Name                                      Null?    Type
+ ________________________________________  ________ ____________________________
+ EMPNO                                     NOT NULL NUMBER(4)
+ ENAME                                              VARCHAR2(10)
+ JOB                                                VARCHAR2(9)
+ SAL                                                NUMBER(7,2)
+```
+
+### getLogo
+
+`Oratcl::utils::getLogo` returns a Tk image (decoded from embedded GIF data)
+of the "Oratcl Powered" logo, for use in the title bar or about-box of a Tk
+application built on Oratcl:
+
+```tcl
+package require Oratcl::utils
+label .logo -image [Oratcl::utils::getLogo]
+pack .logo
+```
+
 ## Biography
 
 Todd M. Helfter received the B.S. degree in computer science from Purdue University, West Lafayette, Indiana in 1995. After several years as a student assistant with Purdue's IT department, he took a full time position in that department in 1994. During the next ten years he improved, developed and deployed applications and services related to computer account provisioning and identity and access management. He assisted in several migrations from mainframe databases into the client/server architecture using AIX, Solaris and Oracle 7, 8 and 9 and with the integration of the university's core systems with various products.
