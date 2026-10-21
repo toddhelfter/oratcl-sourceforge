@@ -1,130 +1,140 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-
-<!-- Web Page Design by James Koster - http://www.jameskoster.co.uk -->
-<!-- Modified for the Oratcl site by Robert Hicks -->
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="Everything you need to know about Oratcl" />
+<meta name="description" content="Oratcl: Oracle Database access commands for Tcl" />
 <meta name="keywords" content="Tcl, Tcl/Tk, Oratcl, Oracle" />
-<meta name="robots" content="noindex" />
-<meta name="author" content="Robert Hicks" />
-<title>Oratcl Pages</title>
+<title>Oratcl</title>
 <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
-<link href="css/1.css" rel="stylesheet" type="text/css" />
+<link href="css/style.css" rel="stylesheet" type="text/css" />
 </head>
-
 <body>
-<div align="center">
-    <div id="menu">
-    <a href="index.html">home</a>
-    <a href="CHANGELOG.html">change history</a>
-    <a href="https://sourceforge.net/projects/oratcl/">project page</a>
-    <a href="oratcl.html">man page</a>
-    <a href="FAQ.html">faq</a>
-    </div>
 
-	<div id="header">
-    <span style="float:right"><img src="images/tclp.gif" alt="Tcl powered animated gif" /></span>
-    <h1>Oratcl</h1>
-    <h2>Latest version: Oratcl 5.0&nbsp;&nbsp;</h2>
-    </div>
+<header class="site-header">
+<nav class="site-nav" aria-label="Site">
+<a class="brand" href="index.html">
+<img src="images/oratcl-powered-logo.gif" alt="" width="40" height="40" />
+Oratcl
+</a>
+<ul>
+<li><a href="index.html" aria-current="page">Home</a></li>
+<li><a href="CHANGELOG.html">Change History</a></li>
+<li><a href="https://sourceforge.net/projects/oratcl/">Project Page</a></li>
+<li><a href="oratcl.html">Man Page</a></li>
+<li><a href="FAQ.html">FAQ</a></li>
+</ul>
+</nav>
+</header>
 
-	<div id="content">
-    <p class="introduction">
-    Welcome to the Oratcl website!  Oratcl 5.0 was released Oct 18, 2026 &mdash;
-    a major modernization release with a full Tcl 9 port and Oracle 23c
-    compatibility.  Please report any inconsistencies.</p>
-
-        <div id="sidebar">
-        <h1>Sub Menu</h1>
-
-            <div class="submenu">
-            <a href="index.html">Home</a>
-            <a href="CHANGELOG.html">Change History</a>
-            <a href="https://sourceforge.net/projects/oratcl/">Project Page</a>
-            <a href="oratcl.html">Man Page</a>
-	    <a href="./Oratcl_Users_Guide_and_Reference.pdf">User's Guide</a>
-            <a href="https://sourceforge.net/p/oratcl/_list/tickets">Submit bug</a>
-            <a href="https://sourceforge.net/p/oratcl/_list/tickets">Submit feature request</a>
-            <a href="https://sourceforge.net/projects/oratcl/files/oratcl-5.0">Download Oratcl 5.0</a>
-            <a href="https://sourceforge.net/projects/oratcl/files/">All Downloads</a>
-            <a href="FAQ.html">FAQ</a>
-            </div>
-
-		<h1>Offsite Links</h1>
-
-            <div class="submenu">
-            <a href="https://github.com/toddhelfter/oratcl-sourceforge">GitHub Repository</a>
-            <a href="http://groups.google.com/group/comp.lang.tcl">Tcl Newsgroup</a>
-            <a href="https://wiki.tcl-lang.org/">Tcl Wiki</a>
-            <a href="http://www.tcl.tk">Tcl Developer Xchange</a>
-            <a href="http://www.nyx.net/~tpoindex/tcl.html">Tom Poindexter</a>
-            <a href="http://hammerora.sourceforge.net/index.html">hammerora</a>
-            </div>
-	</div>
-
-    <div id="mainbar">
-    <h1>Introduction</h1>
-    <p>
-    The Oratcl package is a dynamic extension of the Tcl language that
-    integrates Oracle OCI calls into a set of Tcl commands that allow Oracle
-    access via Tcl.
-    <br />
-    <br />
-    Starting in May 2000, Todd Helfter became the new maintainer of the Oratcl
-    package.  Oratcl 5.0 is the current supported version, for use with
-    Oracle 23c (and earlier releases via the Oracle Instant Client).  The
-    older Oratcl 4 line supports Oracle 8i through 11g, and Oratcl 3 supports
-    Oracle 7 and 8.0.x.
-    <br /> 
-    <br />
-    Please visit the project page for feature requests, bug reports and general
-    help requests.
-    </p>
-
-	<h1>A new User's Guide and Reference</h1>
-    <p>The latest version of the  
-    <a href="./Oratcl_Users_Guide_and_Reference.pdf">Oratcl User's Guide and Reference</a> e-book
-    is now available for download.
-    </p>
-            
-
-	<h1>Some information</h1>
-    <p>Oratcl was originally written by Tom Poindexter and his site has many
-    valuable references. His website link can be found in the "Offsite Links"
-    section.
-    <br />
-    <br />
-    Oratcl 5.0 is a full port to Tcl 9 (remaining source-compatible with
-    Tcl 8.6), targeting Oracle 23c.  It adds a new <tt>oralob2</tt> command
-    for direct OCI-based LOB access, and includes several security hardening
-    fixes (see the Change History for details).
-    <br />
-    <br />
-    Oratcl is not linked with Oracle libraries at build time.  Oracle
-    libraries are dynamically loaded at run time, allowing the user to have
-    flexibility of Oracle client installs.
-    <br />
-    <br />
-    The Oratcl 4.x and 5.x series have been released under a 'BSD' style
-    license, which means that it can be used in commercial applications.
-    <br />
-    <br />
-    Prebuilt 5.0 binaries are available for macOS (Apple Silicon) and Windows
-    x64 (the Windows build is cross-compiled with the free mingw-w64
-    toolchain &mdash; no MSVC or Oracle SDK required to build).  A source
-    tarball is available for Linux and other Unix-like platforms.
-    </p>
-	</div>
-    </div>
-    <a href="https://sourceforge.net/"><img src="images/sourceforge.png" alt="sourceforge web badge" /></a>
-
-    <div id="footer">
-        Copyright&copy; 2000-2026 Todd Helfter
-    </div>
+<div class="hero">
+<div>
+<h1>Oratcl</h1>
+<span class="version-badge">Latest version: Oratcl 5.0</span>
 </div>
+<img class="logo-mark" src="images/oratcl-powered-logo.gif" alt="Oratcl Powered" width="110" />
+</div>
+
+<p class="intro">
+Welcome to the Oratcl website! Oratcl 5.0 was released Oct 18, 2026 &mdash;
+a major modernization release with a full Tcl 9 port and Oracle 23c
+compatibility. Please report any inconsistencies.
+</p>
+
+<div class="page-layout">
+<main>
+
+<h1>Introduction</h1>
+<p>
+The Oratcl package is a dynamic extension of the Tcl language that
+integrates Oracle OCI calls into a set of Tcl commands that allow Oracle
+access via Tcl.
+</p>
+<p>
+Starting in May 2000, Todd Helfter became the new maintainer of the Oratcl
+package. Oratcl 5.0 is the current supported version, for use with
+Oracle 23c (and earlier releases via the Oracle Instant Client). The
+older Oratcl 4 line supports Oracle 8i through 11g, and Oratcl 3 supports
+Oracle 7 and 8.0.x.
+</p>
+<p>
+Please visit the project page for feature requests, bug reports and general
+help requests.
+</p>
+
+<h1>A new User's Guide and Reference</h1>
+<p>
+The latest version of the
+<a href="./Oratcl_Users_Guide_and_Reference.pdf">Oratcl User's Guide and Reference</a> e-book
+is now available for download.
+</p>
+
+<h1>Some information</h1>
+<p>
+Oratcl was originally written by Tom Poindexter and his site has many
+valuable references. His website link can be found in the "Offsite Links"
+section.
+</p>
+<p>
+Oratcl 5.0 is a full port to Tcl 9 (remaining source-compatible with
+Tcl 8.6), targeting Oracle 23c. It adds a new <code>oralob2</code> command
+for direct OCI-based LOB access, and includes several security hardening
+fixes (see the Change History for details).
+</p>
+<p>
+Oratcl is not linked with Oracle libraries at build time. Oracle
+libraries are dynamically loaded at run time, allowing the user to have
+flexibility of Oracle client installs.
+</p>
+<p>
+The Oratcl 4.x and 5.x series have been released under a 'BSD' style
+license, which means that it can be used in commercial applications.
+</p>
+<p>
+Prebuilt 5.0 binaries are available for macOS (Apple Silicon) and Windows
+x64 (the Windows build is cross-compiled with the free mingw-w64
+toolchain &mdash; no MSVC or Oracle SDK required to build). A source
+tarball is available for Linux and other Unix-like platforms.
+</p>
+
+</main>
+
+<aside aria-label="Site links">
+<h2>Sub Menu</h2>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="CHANGELOG.html">Change History</a></li>
+<li><a href="https://sourceforge.net/projects/oratcl/">Project Page</a></li>
+<li><a href="oratcl.html">Man Page</a></li>
+<li><a href="./Oratcl_Users_Guide_and_Reference.pdf">User's Guide</a></li>
+<li><a href="https://sourceforge.net/p/oratcl/_list/tickets">Submit bug</a></li>
+<li><a href="https://sourceforge.net/p/oratcl/_list/tickets">Submit feature request</a></li>
+<li><a href="https://sourceforge.net/projects/oratcl/files/oratcl-5.0">Download Oratcl 5.0</a></li>
+<li><a href="https://sourceforge.net/projects/oratcl/files/">All Downloads</a></li>
+<li><a href="FAQ.html">FAQ</a></li>
+</ul>
+<h2>Offsite Links</h2>
+<ul>
+<li><a href="https://github.com/toddhelfter/oratcl-sourceforge">GitHub Repository</a></li>
+<li><a href="http://groups.google.com/group/comp.lang.tcl">Tcl Newsgroup</a></li>
+<li><a href="https://wiki.tcl-lang.org/">Tcl Wiki</a></li>
+<li><a href="http://www.tcl.tk">Tcl Developer Xchange</a></li>
+<li><a href="http://www.nyx.net/~tpoindex/tcl.html">Tom Poindexter</a></li>
+<li><a href="http://hammerora.sourceforge.net/index.html">hammerora</a></li>
+</ul>
+</aside>
+
+</div>
+
+<footer class="site-footer">
+<div class="footer-inner">
+<div class="badges">
+<a href="https://sourceforge.net/"><img src="images/sourceforge.png" alt="SourceForge" height="20" /></a>
+<img src="images/tclp.gif" alt="Tcl Powered" height="40" />
+</div>
+<p class="copyright">Copyright&copy; 2000-2026 Todd Helfter</p>
+</div>
+</footer>
+
 </body>
 </html>

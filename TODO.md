@@ -287,7 +287,35 @@ unclear whether `doc/FAQ.html` matches what's actually live on the site.
   (`sftp <user>@web.sourceforge.net`, upload to `/home/project-web/oratcl/htdocs/`) —
   **done**: [`doc/web/deploy.sh`](doc/web/deploy.sh) removes the old stale filenames and
   uploads the renamed content via `sftp`
+- [x] Post-publish visual pass (prompted by live screenshots of the deployed site on a
+  widescreen monitor) — **done**:
+  - The original CSS pinned `#header`/`#content` to 720/750px, leaving huge empty margins
+    on widescreen displays; widened to `width:94%; max-width:1600px` (sidebar/mainbar
+    split is margin-based, not percentage-based, so this didn't require touching that math)
+  - Added `<meta name="viewport">` to all four pages (was missing entirely), bumped base
+    font-size from `0.74em` to `1em`, added a `@media (max-width:700px)` breakpoint to
+    stack the sidebar below mainbar instead of overflowing on narrow viewports, and
+    removed `index.html`'s defunct W3C XHTML validator badge
+  - A follow-up `max-width:75ch` added to `#mainbar p` for readability was reverted after
+    a live screenshot showed it mismatched against the full-width `<h1>` heading
+    underlines — confirmed looking right afterward and redeployed
 - [ ] Decide whether to keep this a manual per-release publish step, or automate it (e.g.
   a GitHub Actions step triggered on release, alongside Story 4's GitHub→SourceForge
   Files sync)
+
+## Story 17: Validate Oratcl 5.0 against Oracle 26AI
+
+Oracle 26AI has just been released. We already track Oracle 12c/19c/21c/23c compatibility
+(4.6/5.0, per the FAQ's compatibility matrix) — need to confirm 5.0 also works against
+this newest release, download the [Instant Client](https://www.oracle.com/database/technologies/instant-client/downloads.html)
+for it, and update the compatibility matrix/docs accordingly.
+
+- [ ] Download the Oracle 26AI Instant Client and run Oratcl 5.0's live-database test
+  suite (`make test`) against it, same spot-check level as prior versions (Story 7)
+- [ ] Note any OCI-level incompatibilities or deprecations introduced in 26AI that affect
+  `generic/oradefs.h`'s type/constant definitions (same category of work as the 23c SDK
+  updates already done)
+- [ ] Once verified, add a 26AI column to the compatibility matrix in `doc/web/FAQ.html`
+  (and the in-repo `doc/FAQ.html` if still tracked separately) and mention it in
+  `CHANGELOG.md`/`doc/web/CHANGELOG.html`
 
