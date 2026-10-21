@@ -53,7 +53,6 @@ Oratcl
 <div class="page-layout single-column">
 <main>
 <h1>Oratcl Command Reference</h1>
-<!-- Manpage converted by man2html 3.0.1 -->
 <H2>NAME</H2><PRE>
      Oratcl - Oracle Database Server access commands for Tcl
 
@@ -630,6 +629,48 @@ Oratcl
                     # Create a new row in test_lob_2 with lob_clob
                     # and lob_blob properly initialized.
                     orabindexec $sth :lob_key "AAAAAAAAAA"
+
+
+          <B>oralob2</B> <B>read</B> <I>statement</I>-<I>handle</I> -<I>table</I> $<I>table</I> -<I>column</I>
+          $<I>column</I> -<I>rowid</I> $<I>rowid</I> -<I>lobtype</I> clob|blob -<I>datavariable</I> $<I>var</I>
+               Read a CLOB or BLOB directly via  <B>OCILobRead2</B>,  with-
+               out  going  through  the  <I>DBMS_LOB</I>  PL/SQL  wrapper
+               that  <B>oralob</B>  uses.   Added  in  Oratcl  5.0.
+
+               <I>Statement</I>-<I>handle</I>  must  be  a  valid  handle previously
+               opened with <B>oraopen</B>.  Unlike <B>oralob</B>, <B>oralob2</B> has  no
+               <B>alloc</B>  sub-command  and  no  LOB-handle concept;  the
+               LOB is identified directly by (<I>$table</I>, <I>$column</I>,
+               <I>$rowid</I>) on each call, and <B>read</B> is currently the
+               only <I>sub</I>-<I>command</I>.
+
+               All five options are required:
+
+               -<I>table</I> $<I>table</I>
+                    The name of the table containing the LOB column.
+
+               -<I>column</I> $<I>column</I>
+                    The name of the LOB column.
+
+               -<I>rowid</I> $<I>rowid</I>
+                    The rowid of the row containing the LOB, as returned
+                    by a prior <B>select</B> <B>rowid</B> query (see the <B>oralob</B>
+                    example above).
+
+               -<I>lobtype</I> <I>clob</I> or <I>blob</I>
+                    Whether the column is a CLOB or a BLOB.
+
+               -<I>datavariable</I> <I>var</I>
+                    The name of the variable to receive the LOB's contents.
+
+               <I>Example</I>
+
+                    oraparse $sth "select rowid from my_table where my_key = 'keyvalue'"
+                    oraexec $sth
+                    orafetch $sth -datavariable rowid
+                    set data {}
+                    oralob2 read $sth -table "my_table" -column "clob_col" -rowid $rowid \
+                         -lobtype clob -datavariable data
 
 
           <B>oralong</B> <I>sub</I>-<I>command</I> <I>handle</I> ?<I>options</I> ...?
