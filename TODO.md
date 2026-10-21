@@ -32,6 +32,7 @@ SourceForge downloads need updating: a fresh source `tar.gz` plus new prebuilt b
 - [x] Decide packaging/distribution format per platform — **decided**: both `tar.gz` and `.zip`, matching the already-built artifacts (`oratcl-5.0.tar.gz` for source, `.zip` for platform binaries — `.zip` in particular because Windows doesn't typically have `tar` available). **New consideration**: the 4.5 line was also distributed as RPMs ([`Oratcl-4.5-1.i386.rpm`](https://sourceforge.net/projects/oratcl/files/oratcl/4.5/Oratcl-4.5-1.i386.rpm/download), [`Oratcl-4.5-1.x86_64.rpm`](https://sourceforge.net/projects/oratcl/files/oratcl/4.5/Oratcl-4.5-1.x86_64.rpm/download), 2009) alongside `oratcl45_win.zip`/`oratcl45.tar.gz` — decide whether to resume RPM packaging for 5.0 (would need `rpmbuild` or `fpm`, neither currently installed/attempted)
 - [x] Once 5.0 packages are ready, update SourceForge's "Default Download" flag to point at the new tarball/binaries instead of `oratcl45.tar.gz` — **done**, confirmed by Todd
 - [x] Wire up the resulting artifacts to the GitHub Releases (feeding Story 4's GitHub→SourceForge sync) once built — **done and verified end-to-end**: [Oratcl 5.0](https://github.com/toddhelfter/oratcl-sourceforge/releases/tag/oratcl-5.0) published with `oratcl-5.0.tar.gz`, `Oratcl50-Darwin-arm64.zip`, and `Oratcl50-Windows-x64.zip` attached; the webhook fired and delivered successfully, confirmed live on SourceForge's Files page under `oratcl-5-0` (the `.` in the GitHub tag `oratcl-5.0` gets normalized to `-` in the SourceForge folder name) — the full GitHub→SourceForge release pipeline (Story 4) works
+- [x] SourceForge's project-level "Operating System" Trove classifier only listed BSD/Linux/Windows despite shipping a macOS binary — **done**, Todd added the macOS/Darwin classifier via Project Admin → Categorization
 
 ## Story 8: Seamless/inline LOB handling (replace the PL/SQL-wrapper mindset)
 
@@ -246,4 +247,47 @@ succeed — see Story 7). Only Linux/WSL2 has run the *full* `tests/all.tcl` sui
   harness needs a PowerShell-compatible setup path
 - [ ] Once both are running, update the top-of-file test status line to reflect combined
   pass/fail counts across all three platforms
+
+## Story 16: Update and version-control the `oratcl.sourceforge.net` project website
+
+`oratcl.sourceforge.net` is SourceForge's separate "Project Web" static-hosting service
+(distinct from the Files area and from this git repo) — content is uploaded via
+SFTP/SCP/rsync to `web.sourceforge.net:/home/project-web/oratcl/htdocs/`. It's badly
+stale: the homepage still says "LATEST VERSION: ORATCL 4.5" (2009), and `manpage.html` is
+the man2html-converted man page for Oratcl 4.4 (2006) — neither reflects the 5.0 work
+(Tcl 9, Oracle 23c, `oralob2`, etc.). None of this site's HTML sources (`index.html`,
+`changelog.html`, `manpage.html`) currently live in this repo, so there's no
+version-controlled way to regenerate or diff them; only `doc/FAQ.html` and `doc/oratcl.html`
+(the current 5.0 man page, man2html-converted from `doc/oratcl.n`) exist here, and it's
+unclear whether `doc/FAQ.html` matches what's actually live on the site.
+
+- [x] Pull down the current live site content (`index.html`, `changelog.html`, any other
+  pages/images referenced in its sub-menu) and add it to the repo (e.g. under a new
+  `doc/web/` directory) so it's version-controlled going forward — **done**: pulled via
+  SFTP into `doc/web/`, renamed to match repo conventions (`manpage.html` → `oratcl.html`,
+  `changelog.html` → `CHANGELOG.html`, `OraTcl_Users_Guide_and_Reference.pdf` →
+  `Oratcl_Users_Guide_and_Reference.pdf`), `css/` and `images/` (including `backgrounds/`)
+  carried over as-is
+- [x] Update `index.html`'s "latest version" banner and body text for 5.0 (Tcl 9 port,
+  Oracle 23c compatibility, new `oralob2` command, security hardening — see `CHANGELOG.md`)
+  — **done**, also fixed dead links (`wiki.tcl.tk` → `wiki.tcl-lang.org`), repointed
+  bug/feature links at SourceForge Tickets, added a GitHub repo link
+- [x] Regenerate `manpage.html` from the current `doc/oratcl.n`/`doc/oratcl.html` (5.0,
+  includes `oralob2`) instead of the stale 4.4 version — **done**, `doc/web/oratcl.html`
+  wraps the already-current `doc/oratcl.html` body in the site's nav/CSS template
+- [x] Verify `doc/FAQ.html` is current and republish it; update `changelog.html` to point
+  at/mirror `CHANGELOG.md` — **done**: the live FAQ.html (pulled from the server) turned
+  out to be more current than the in-repo `doc/FAQ.html` despite an older `$Id` tag
+  (confirms the site was hand-edited post-2009 without keeping that tag in sync) — used it
+  as the baseline, added a Tcl 9/Oracle 23c/5.0 row to the compatibility matrix, and fixed
+  several dead/stale links (old CVS, SourceForge forum/bugs/patch URLs, bad email
+  addresses). `CHANGELOG.html` now opens with a 5.0/4.6 summary linking to the full
+  `CHANGELOG.md` on GitHub, with the original 4.5-and-earlier log preserved below.
+- [x] Publish the updated site via SFTP/SCP/rsync per SourceForge's Project Web docs
+  (`sftp <user>@web.sourceforge.net`, upload to `/home/project-web/oratcl/htdocs/`) —
+  **done**: [`doc/web/deploy.sh`](doc/web/deploy.sh) removes the old stale filenames and
+  uploads the renamed content via `sftp`
+- [ ] Decide whether to keep this a manual per-release publish step, or automate it (e.g.
+  a GitHub Actions step triggered on release, alongside Story 4's GitHub→SourceForge
+  Files sync)
 
