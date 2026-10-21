@@ -1,0 +1,347 @@
+/* Oratcl project website — modern stylesheet (2026 redesign). */
+
+:root {
+	--color-brand: #253183;
+	--color-brand-dark: #1a2361;
+	--color-accent: #d9480f;
+	--color-link: #2a65ad;
+	--color-link-hover: #17457f;
+	--color-text: #2b2d33;
+	--color-text-muted: #5c6370;
+	--color-bg: #ffffff;
+	--color-bg-alt: #f6f7fb;
+	--color-border: #e3e5ec;
+	--font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	--content-max: 1200px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	font-size: 1.0625rem;
+	line-height: 1.6;
+	color: var(--color-text);
+	background: var(--color-bg);
+}
+
+a {
+	color: var(--color-link);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+a:hover,
+a:focus-visible {
+	color: var(--color-link-hover);
+	text-decoration: underline;
+}
+
+img {
+	max-width: 100%;
+	border: none;
+}
+
+/* Site header + nav, shared across all pages */
+
+.site-header {
+	background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%);
+	color: #ffffff;
+}
+
+.site-nav {
+	max-width: var(--content-max);
+	margin: 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 1.5rem;
+	padding: 1rem 1.5rem;
+}
+
+.site-nav .brand {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	font-size: 1.15rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	color: #ffffff;
+	margin-right: auto;
+}
+
+.site-nav .brand img {
+	height: 32px;
+	width: auto;
+}
+
+.site-nav ul {
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	margin: 0;
+	padding: 0;
+}
+
+.site-nav a {
+	color: rgba(255, 255, 255, 0.88);
+	font-weight: 600;
+	font-size: 0.95rem;
+	padding: 0.4rem 0.7rem;
+	border-radius: 6px;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible {
+	color: #ffffff;
+	background: rgba(255, 255, 255, 0.12);
+	text-decoration: none;
+}
+
+.site-nav a[aria-current="page"] {
+	background: rgba(255, 255, 255, 0.18);
+	color: #ffffff;
+}
+
+/* Page hero (index.html only) */
+
+.hero {
+	max-width: var(--content-max);
+	margin: 0 auto;
+	padding: 2.5rem 1.5rem 2rem;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1.5rem;
+	justify-content: space-between;
+}
+
+.hero h1 {
+	margin: 0 0 0.3rem;
+	font-size: 2.1rem;
+	letter-spacing: -0.01em;
+}
+
+.hero .version-badge {
+	display: inline-block;
+	margin-top: 0.4rem;
+	padding: 0.3rem 0.8rem;
+	border-radius: 999px;
+	background: var(--color-bg-alt);
+	color: var(--color-brand);
+	font-weight: 700;
+	font-size: 0.9rem;
+}
+
+.hero .logo-mark {
+	flex-shrink: 0;
+	width: 110px;
+	height: auto;
+}
+
+.intro {
+	max-width: var(--content-max);
+	margin: 0 auto;
+	padding: 0 1.5rem 1rem;
+	color: var(--color-text-muted);
+	font-size: 1.05rem;
+}
+
+/* Main two-column layout */
+
+.page-layout {
+	max-width: var(--content-max);
+	margin: 0 auto;
+	padding: 0 1.5rem 3rem;
+	display: grid;
+	grid-template-columns: 1fr 260px;
+	gap: 2.5rem;
+	align-items: start;
+}
+
+.page-layout.single-column {
+	grid-template-columns: 1fr;
+}
+
+main h1 {
+	font-size: 1.5rem;
+	color: var(--color-brand);
+	border-bottom: 2px solid var(--color-border);
+	padding-bottom: 0.4rem;
+	margin-top: 2rem;
+}
+
+main h1:first-child {
+	margin-top: 0;
+}
+
+main p {
+	margin: 0 0 1rem;
+}
+
+aside {
+	background: var(--color-bg-alt);
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	padding: 1.25rem 1.4rem;
+}
+
+aside h2 {
+	font-size: 0.78rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--color-text-muted);
+	margin: 1.25rem 0 0.5rem;
+}
+
+aside h2:first-child {
+	margin-top: 0;
+}
+
+aside ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+aside li a {
+	display: block;
+	padding: 0.35rem 0;
+	font-weight: 600;
+	font-size: 0.95rem;
+	border-bottom: 1px solid transparent;
+}
+
+aside li:not(:last-child) a {
+	border-bottom: 1px dashed var(--color-border);
+}
+
+/* FAQ: native <details>/<summary> accordion, no JS required */
+
+.faq-section {
+	margin: 2rem 0;
+}
+
+.faq-section > h2 {
+	font-size: 1.3rem;
+	color: var(--color-brand);
+	border-bottom: 2px solid var(--color-border);
+	padding-bottom: 0.4rem;
+}
+
+details.faq-item {
+	border: 1px solid var(--color-border);
+	border-radius: 10px;
+	margin-bottom: 0.6rem;
+	padding: 0;
+	overflow: hidden;
+}
+
+details.faq-item summary {
+	cursor: pointer;
+	font-weight: 700;
+	padding: 0.85rem 1.1rem;
+	background: var(--color-bg-alt);
+	list-style: none;
+}
+
+details.faq-item summary::-webkit-details-marker {
+	display: none;
+}
+
+details.faq-item summary::before {
+	content: "▸";
+	display: inline-block;
+	margin-right: 0.6rem;
+	color: var(--color-accent);
+	transition: transform 0.15s ease;
+}
+
+details.faq-item[open] summary::before {
+	transform: rotate(90deg);
+}
+
+details.faq-item .faq-answer {
+	padding: 1rem 1.1rem 1.3rem;
+}
+
+details.faq-item table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 0.75rem 0;
+	font-size: 0.92rem;
+}
+
+details.faq-item th,
+details.faq-item td {
+	border: 1px solid var(--color-border);
+	padding: 0.4rem 0.6rem;
+	text-align: center;
+}
+
+/* Preformatted content: man page, changelog */
+
+pre {
+	background: var(--color-bg-alt);
+	border: 1px solid var(--color-border);
+	border-radius: 10px;
+	padding: 1.25rem;
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+	line-height: 1.5;
+	white-space: pre-wrap;
+	word-break: break-word;
+	overflow-x: auto;
+}
+
+/* Footer */
+
+.site-footer {
+	border-top: 1px solid var(--color-border);
+	background: var(--color-bg-alt);
+	margin-top: 2rem;
+}
+
+.site-footer .footer-inner {
+	max-width: var(--content-max);
+	margin: 0 auto;
+	padding: 1.5rem;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.site-footer .badges {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.site-footer .copyright {
+	color: var(--color-text-muted);
+	font-size: 0.9rem;
+}
+
+/* Responsive */
+
+@media (max-width: 760px) {
+	.page-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.hero {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

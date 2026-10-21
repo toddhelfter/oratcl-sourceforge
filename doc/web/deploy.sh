@@ -9,6 +9,12 @@
 # OraTcl_Users_Guide_and_Reference.pdf) -- those are removed and replaced with
 # our current names (oratcl.html, CHANGELOG.html,
 # Oratcl_Users_Guide_and_Reference.pdf).
+#
+# The 2026 HTML5/CSS redesign also dropped the old css/1.css stylesheet (and
+# its images/backgrounds/ tiled-texture assets, images/logo.jpg placeholder,
+# and images/slogo_xhtml10.png validator badge) in favor of css/style.css --
+# those are removed from the server too, since "put -r" won't delete files
+# that no longer exist locally.
 
 set -eu
 
@@ -25,6 +31,20 @@ cd $remote
 -rm manpage.html
 -rm changelog.html
 -rm OraTcl_Users_Guide_and_Reference.pdf
+-rm css/1.css
+-rm images/logo.jpg
+-rm images/slogo_xhtml10.png
+-rm images/backgrounds/a_hover.jpg
+-rm images/backgrounds/back.png
+-rm images/backgrounds/desc.jpg
+-rm images/backgrounds/hover.jpg
+-rm images/backgrounds/li.gif
+-rm images/backgrounds/mainbar.jpg
+-rm images/backgrounds/menu.jpg
+-rm images/backgrounds/submenua.gif
+-rm images/backgrounds/submenua.png
+-rm images/backgrounds/submenua_hover.jpg
+-rmdir images/backgrounds
 lcd $dir
 put index.html
 put FAQ.html
