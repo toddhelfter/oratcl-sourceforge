@@ -64,7 +64,8 @@ li {
 }
 
 #header {
-	width:750px;
+	width:94%;
+	max-width:1600px;
 	margin:0 auto 0 auto;
 	margin-bottom:40px;
 }
@@ -95,7 +96,8 @@ li {
 }
 
 #content {
-	width:720px;
+	width:94%;
+	max-width:1570px;
 	margin:0 auto 0 auto;
 	text-align:left;
 }
