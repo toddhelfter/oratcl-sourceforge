@@ -15,6 +15,10 @@
 # and images/slogo_xhtml10.png validator badge) in favor of css/style.css --
 # those are removed from the server too, since "put -r" won't delete files
 # that no longer exist locally.
+#
+# doc/web/Oratcl_Users_Guide_and_Reference.pdf is a symlink to the canonical
+# copy at doc/Oratcl_Users_Guide_and_Reference.pdf (avoids two copies
+# drifting out of sync); sftp's "put" follows it transparently when reading.
 
 set -eu
 
