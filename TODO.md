@@ -319,3 +319,56 @@ for it, and update the compatibility matrix/docs accordingly.
   (and the in-repo `doc/FAQ.html` if still tracked separately) and mention it in
   `CHANGELOG.md`/`doc/web/CHANGELOG.html`
 
+## Story 18: `Oratcl::utils` (`library/oratcl_utils.tcl`) packaging gap
+
+While documenting `Oratcl::utils` (`logonBox`, `prettyDesc`, `getLogo`) for the Users
+Guide, found that although the standard `./configure && make && make install` process
+on Unix correctly installs `oratcl_utils.tcl` alongside `pkgIndex.tcl` (verified directly
+in `Makefile.in`'s `install-lib-binaries` target, which iterates `$(PKG_TCL_SOURCES)`),
+the **macOS build instructions in the Users Guide never run `make install` at all** —
+they stop at `make` — and never mention copying `oratcl_utils.tcl`/`pkgIndex.tcl`
+anywhere, unlike the Windows section which explicitly calls both out. Story 7's actual
+macOS runtime test only verified `package require Oratcl` + `oralogon`, not
+`Oratcl::utils`. The already-published `Oratcl50-Darwin-arm64.zip` (and possibly
+`Oratcl50-Windows-x64.zip`, since that was also built via manual copy rather than a
+scripted/automated step) may be missing `oratcl_utils.tcl` entirely.
+
+- [ ] Download and inspect the contents of the already-published `Oratcl50-Darwin-arm64.zip`
+  and `Oratcl50-Windows-x64.zip` from the 5.0 GitHub release / SourceForge Files to confirm
+  whether `oratcl_utils.tcl` and `pkgIndex.tcl` (with its `Oratcl::utils` line) are
+  actually present
+- [ ] If missing, rebuild and republish corrected zips, and fix the Users Guide's macOS
+  section to match the Windows section's explicit file-copy instructions (or to run
+  `make install DESTDIR=...` instead of a manual copy)
+
+Three candidate approaches were discussed for permanently closing this gap (no decision
+made yet — Todd wants to think it over):
+
+1. **Packaging script/`make` target** — add a `tools/`-style script (or new `Makefile.in`
+   target) that runs `make install DESTDIR=<staging>` and zips the resulting `pkglibdir`
+   contents, so every platform's distributable zip is built the same scripted way instead
+   of by manual file copying. Lowest risk, smallest change, but doesn't prevent the
+   underlying class of bug (a file silently missing from manual packaging) as robustly as
+   the other two options — it just makes the *correct* path easier to follow.
+2. **Freeze `oratcl_utils.tcl` into the C extension via `Tcl_Eval`** — at build time,
+   embed the existing Tcl source as a C string constant and `Tcl_Eval()` it once near the
+   end of `Oratcl_Init()` (just defining the procs, not calling them). Since
+   `package require Tk` already only appears lazily *inside* `logonBox`/`getLogo`
+   (never at file-source time in the current code), this preserves the existing
+   "no Tk dependency unless you actually call a GUI proc" safety property automatically —
+   nothing new to guard. Fully eliminates the possibility of the file going missing from
+   a package (it's baked into the shared library/DLL itself), at the cost of losing
+   accurate file/line attribution in Tcl error tracebacks originating from that embedded
+   code, plus a small amount of added build complexity to keep the frozen copy in sync
+   with the real `.tcl` source.
+3. **Full native C reimplementation** (Todd's original instinct, same approach as
+   `oralob`/`oralong`) — rewrite `logonBox`/`prettyDesc`/`getLogo` as real C functions
+   using Tk's public C API (`Tk_InitStubs`, `Tk_PhotoPutBlock`, etc.) instead of
+   evaluating Tcl script text. This is the most work by far (new `.c`/`.h` files, TK_STUBS
+   build wiring in `configure.in`), and — unlike option 2 — does *not* get Tk-optionality
+   for free: `Tk_InitStubs` must be called defensively (e.g. only when a GUI command is
+   actually invoked, checking its return value and raising a normal Tcl error rather than
+   hard-failing `Oratcl_Init()`/package load if Tk isn't present), since linking against
+   Tk's stub table at all introduces a real dependency that has to be explicitly guarded
+   wherever it's used, not just deferred like options 1 and 2 get automatically from the
+   current Tcl-level design.
