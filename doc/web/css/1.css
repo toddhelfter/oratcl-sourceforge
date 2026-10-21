@@ -199,7 +199,6 @@ li {
 #mainbar p {
 	padding:15px;
 	line-height:20px;
-	max-width:75ch;
 }
 
 #manpage p {
@@ -266,8 +265,5 @@ img {
 		margin-right:0;
 		padding-right:0;
 		background-image:none;
-	}
-	#mainbar p {
-		max-width:none;
 	}
 }
