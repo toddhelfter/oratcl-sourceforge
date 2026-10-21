@@ -114,6 +114,14 @@
 
 - `generic/oralogon.c`: fix arg processing loop for -sysdba, -sysoper, -sysasm options. Was incorrectly using objv[2] instead of objv[i] causing only the first option to be checked repeatedly.
 
+## 2017-11-23  Todd Helfter <thelfter@gmail.com>
+
+- `library/oratcl_utils.tcl`: add function `::Oratcl::utils::getLogo` to expose the Oratcl-powered logo as a Tk image for external use.
+
+## 2017-11-22  Todd Helfter <thelfter@gmail.com>
+
+- Converted to SVN for source code management (explains the `git-svn-id` trailers on commits from this point through the eventual move to git).
+
 ## 2017-10-12  Todd Helfter <thefter@gmail.com>
 
 - `generic/oratcl.c`: sourceforge bug #71 - fix query results for 'long' column types that were not properly handling the 'oraconfig longsize' values.
@@ -300,174 +308,6 @@ since there is now only a single cleanup function.
 ## 2009-09-27  Todd Helfter <thelfter@gmail.com>
 
 - `tests/oratcl.h`: [BUG 2817940] remove unused function header Oratcl_Kill
-
-## 2009-09-22  Todd Helfter <thelfter@gmail.com>
-
-- `tests/oralogon.test`: Apply constraints that require oralogon and oralogoff procs.
-
-## 2009-09-22  Todd Helfter <thelfter@gmail.com>
-
-- `tests/orainfo.test`: Improve error code testing and update to tcltest v2.
-
-## 2009-09-22  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oraclose.test`: update oraclose to return 0 instead of null on success.
-- `tests/oraopen.test`: 
-
-## 2009-09-22  Todd Helfter <thelfter@gmail.com>
-
-- `tests/oraopen.test`: Improve error code testing and update to tcltest v2.
-
-## 2009-09-22  Todd Helfter <thelfter@gmail.com>
-
-- `tests/oralogon.test`: Improve error code testing and update to tcltest v2.
-
-## 2009-06-24  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oratcl.c`: BUG 2811878] Correct the [oracols $stm name] functionality for pl/sql.
-
-## 2008-12-22  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oraparse.c`: Correct the [oramsg $stm ocicode] functionality.
-- `generic/oraexec.c`: 
-
-## 2008-12-21  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oramsg.c`: The ARRAYDML patch, caused core dumps in oramsg.c. This has been corrected.
-
-## 2008-08-30  Todd Helfter <thelfter@gmail.com>
-
-- `tests/safe.test`: BUG [2078194] Safe Interps can [package require] since Tcl 8.5.3.  The safe test will fail on Tcl older than 8.5.3
-
-## 2008-08-13  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oratcl.c`: BUG [2049761] remove an unneeded ckfree() call.
-
-## 2007-12-17  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oraexec.c`: XOR the various oci_mode options together; such as OCI_COMMIT_ON_SUCCESS and OCI_BATCH_ERRORS.  This allows arraydml and autocommit to work properly in the same oraexec.
-
-## 2007-12-17  Todd Helfter <thelfter@gmail.com>
-
-- `tests/arraydml.test`: add additional tests for arraydml.
-
-## 2007-12-17  Todd Helfter <thelfter@gmail.com>
-
-- `library/oratcl_utils.tcl`: allow caller to specify tile them as a parameter
-
-## 2007-12-17  Todd Helfter <thelfter@gmail.com>
-
-- `tests/all.tcl, tests/arraydml.test`: new test file for array dml
-- `generic/oraexec.c`: oraexec now returns oracle API error message for array dml operations instead of a pre-set value.
-
-## 2007-12-16  Todd Helfter <thelfter@gmail.com>
-
-- `Makefile.in`: 
-- `configure, configure.in`: 
-- `tclconfig/tcl.m4`: update to TEA 3.6
-
-## 2007-12-16  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oratcl.c`: correct the offset computation in the ColAppend to account for the '\0' null byte.
-
-## 2007-12-14  Todd Helfter <thelfter@gmail.com>
-
-- `library/oratcl_utils.tcl`: new file
-- `configure.in`, `configure`, `Makefile.in`: provide a new package 'Oratcl::utils' with additional features including GUI login dialog boxes.
-
-## 2007-12-13  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oratclInt.h`: BUG [1708729] set the default LOBPSIZE back to 10000, a value that works with the pl/sql wrappers in the oralob command, but is too small for DML lob support performance.
-
-## 2007-12-13  Todd Helfter <thelfter@gmail.com>
-
-- `generic/orabind.c`, `generic/oraexec.c`: correct issues with -arraydml flag to orabind. Poor logic in orabind.c caused abort.  List error handling part from original patch not applied to oraexec.c
-
-## 2007-12-12  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oraplexec.c`, `generic/orabindexec.c`: #1725882 : memory leak in oralob alloc/free This was really a leak of Tcl_Obj from the objv duplication methods in		oraplexec and orabindexec.  Corrected this leak.
-
-## 2007-12-11  Todd Helfter <thelfter@gmail.com>
-
-- `generic/orabind.c`, `generic/oratclTypes.h`: Slight correction of the OCIBindDynamic() prototype and some (dvoid *) castes to eliminate compile warning about changin pointer types in the new arraydml code.
-
-## 2007-12-10  Todd Helfter <thelfter@gmail.com>
-
-- `doc/oratcl.n`, `generic/orabind.c`, `generic/oramsg.c`, `generic/oraopen.c`, `generic/oratcl.c`, `generic/oratclInt.h`, `generic/oratclTypes.h`: Implement an array dml feature for bulk loading data (insert/update) using a patch submitted by Jeremy Collins about four years ago.  1000 row inserts using array dml execute in about 5% of the time as a traditional loop, bind, exec.
-
-## 2007-12-09  Todd Helfter <thelfter@gmail.com>
-
-- `doc/oratcl.n`, `doc/oratcl.html`: Correct a typo
-
-## 2007-12-08  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oradefs.h`, `generic/oralob.c`, `generic/oralong.c`, `generic/oratcl.c`, `generic/oratcl.h`, `generic/oratclInt.h`, `generic/oratypes.h`, `tests/async.test`, `tests/codes.test`, `tests/orabind.test`, `tests/orabindexec.test`, `tests/oracols.test`, `tests/oracommit.test`, `tests/oradesc.test`, `tests/oraexec.test`, `tests/orafetch.test`, `tests/orainfo.test`, `tests/oralob.test`, `tests/oralogin.test`, `tests/oralogon.test`, `tests/oralong.test`, `tests/oraopen.test`, `tests/oraparse.test`, `tests/oraplexec.test`, `tests/orasql.test`, `tests/safe.test`, `tests/usertype.test`: update copyright date
-
-## 2007-12-08  Todd Helfter <thelfter@gmail.com>
-
-- `configure.in`, `configure`: reoganize .c modules build list for neatness
-
-## 2007-12-08  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oraparse.c`: new file
-- `generic/orasql.c`: new file
-- `configure.in`, `configure`, `generic/oratcl.c`: Break up oratcl.c source file into smaller units for easier
-
-## 2007-12-07  Todd Helfter <thelfter@gmail.com>
-
-- `generic/orabind.c`: new file
-- `generic/orabindexec.c`: new file
-- `generic/orabreak.c`: new file
-- `generic/oraconfig.c`: new file
-- `generic/oradesc.c`: new file
-- `generic/oraexec.c`: new file
-- `generic/orafetch.c`: new file
-- `generic/oraplexec.c`: new file
-- `configure.in`, `configure`, `generic/oratcl.c`: Break up oratcl.c source file into smaller units for easier management and revision control.
-
-## 2007-12-07  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oralogon.c`: remove unneeded code that was ifdef'd out.
-
-## 2007-12-07  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oralogon.c`: new file
-- `generic/oralogoff.c`: new file
-- `configure.in`, `configure`, `generic/oratcl.c`: Break up oratcl.c source file into smaller units for easier management and revision control.
-
-## 2007-12-07  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oraautocom.c`: new file
-- `generic/oraclose.c`: new file
-- `generic/oracommit.c`: new file
-- `generic/orainfo.c`: new file
-- `generic/oramsg.c`: new file
-- `generic/oraopen.c`: new file
-- `generic/oraroll.c`: new file
-- `generic/oratclExtern.h`: new file
-- `configure.in`, `configure`, `generic/oratcl.c`: Break up oratcl.c source file into smaller units for easier management and revision control.
-
-## 2007-11-29  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oratcl.c`, `generic/oralob.c`, `generic/oralong.c`, `doc/oratcl.html`, `doc/oratcl.n`, `tests/orainfo.test`: standardize naming of a 'logonhandle'. Since the relevent function is 'oralogon' the item returned is a logonhandle.  The 'orainfo' command inccorectly had an option for the 'loginhandle' (misspelled).  'orainfo', now accepts 'logonhandle' and a future version of OraTcl will deprecate the 'loginhandle' option. ** Future code incompatibility
-
-## 2007-11-29  Todd Helfter <thelfter@gmail.com>
-
-- `generic/oradefs.h`, `generic/oratcl.c`, `doc/oratcl.n`, `doc/oratcl.html`: add 3 new options to 'oralogon'.  -sysdba, -sysoper and -sysasm
-
-## 2007-11-29  Todd Helfter <thelfter@gmail.com>
-
-- `doc/oratcl.n`, `doc/oratcl.html`: bump version number to 4.5 and unset release date.
-
-## 2007-11-24  Todd Helfter <thelfter@gmail.com>
-
-- `tests/all.tcl`, `tests/unicode.tcl`, `generic/oratcl.c`: add new unicode processing to orabind and orafetch triggered by the unicode flag which is set with oraconfig.
-
-## 2007-10-29  Todd Helfter
-
-- `generic/oratclInt.h`, `generic/oratcl.c`: add a unicode flag to the Statement Handle structure. allow oraconfig to set and get the unicode flag.
-
-## 2007-10-27  Todd Helfter <thelfter@gmail.com>
 
 ## 2009-09-22  Todd Helfter <thelfter@gmail.com>
 
