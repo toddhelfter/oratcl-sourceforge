@@ -173,8 +173,8 @@ namespace eval ::tcl::test::oradesc {
 			oradesc $desc_lda ORATCL_NOEXIST_TBL_1
 		}
                 -returnCodes {1}
-                -match regexp
-                -result {^ORA-04043: object ORATCL_NOEXIST_TBL_1 does not exist}
+                -match glob
+                -result {ORA-04043: Object ORATCL_NOEXIST_TBL_1 does not exist*}
 	}
 
 	test oradesc-2.1 {oradesc: describe non-existent schema.table} {
@@ -183,8 +183,8 @@ namespace eval ::tcl::test::oradesc {
 			oradesc $desc_lda ${desc_usr}.ORATCL_NOEXIST_TBL_1
 		}
                 -returnCodes {1}
-                -match regexp
-                -result {^ORA-04043: object .+\.ORATCL_NOEXIST_TBL_1 does not exist}
+                -match glob
+                -result "ORA-04043: Object ${desc_usr}.ORATCL_NOEXIST_TBL_1 does not exist*"
 	}
 
 	test oradesc-3.0 {oradesc: describe private synonym} {

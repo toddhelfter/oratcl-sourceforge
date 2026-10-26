@@ -18,6 +18,7 @@ set testlist [list \
 		oraopen.test \
 		orainfo.test \
 		oraparse.test \
+		oramsg.test \
 		orabind.test \
 		oraexec.test \
 		orafetch.test \

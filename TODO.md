@@ -310,8 +310,77 @@ Oracle 26AI has just been released. We already track Oracle 12c/19c/21c/23c comp
 this newest release, download the [Instant Client](https://www.oracle.com/database/technologies/instant-client/downloads.html)
 for it, and update the compatibility matrix/docs accordingly.
 
-- [ ] Download the Oracle 26AI Instant Client and run Oratcl 5.0's live-database test
-  suite (`make test`) against it, same spot-check level as prior versions (Story 7)
+- [x] Run Oratcl 5.0's live-database test suite (`make test`) against a live Oracle 26AI
+  server — **done**, from WSL2/Ubuntu (Tcl 9.1.0) using the existing Oracle 23c Instant
+  Client (23.26) against a remote 26AI (`FREE`) database — confirms the existing 23c
+  client is forward-compatible with a 26AI server; no new Instant Client download was
+  actually needed for this pass. Nearly everything passed; two pre-existing tests broke
+  due to 26AI wording/behavior changes, not build or connectivity issues:
+  - `oradesc-2.0`/`oradesc-2.1` (`tests/oradesc.test`): 26AI capitalizes the error text —
+    `ORA-04043: Object ... does not exist` (capital `O`) vs. the lowercase `object` the
+    regexes still expect. Needs a test fix (case-insensitive match or updated literal).
+  - `oraparse-2.1` (`tests/oraparse.test`): the second bad-SQL case
+    (`select * from oratcl___tests v_number = 0`) now raises `ORA-03048` ("SQL reserved
+    word '=' is not syntactically valid...") instead of the `ORA-00933` ("SQL command not
+    properly ended") a 23c-era server reports for the same statement — a genuine
+    server-side parser behavior change in 26AI, not an Oratcl bug. Also reconfirmed the
+    existing `# TMH` note in that test: `oraparse` still requires wrapping in `catch` to
+    get a usable return code instead of raising a bare Tcl error, which the test works
+    around rather than exercises.
+  - `orabindexec-1.4` ("too few bind values") newly **fails** against 26AI: binding only
+    2 of 3 `:varname` placeholders now returns `0` (success) instead of raising
+    `ORA-01008: not all variables bound` — looks like a real behavior change (either in
+    26AI's OCI parse/bind validation, or a latent Oratcl bug this exposes) and needs
+    investigation in `generic/orabindexec.c`/`generic/orabind.c`, not just a test update.
+  - Also noted in passing: `generic/oratcl.c`'s `Oratcl_Checkerr` allocates a fixed
+    `ORA_MSG_SIZE` (1000 bytes, `generic/oratclInt.h`) buffer for `OCIErrorGet` — 26AI
+    error messages now append a `Help: https://docs.oracle.com/error-help/db/ora-NNNNN/`
+    line, making messages meaningfully longer than older Oracle versions produced; worth
+    checking whether any real-world message now gets silently truncated by that fixed
+    buffer (`OCIErrorGet` gives no truncation indication) and bumping it if so.
+- [x] Fix `tests/oradesc.test`'s `oradesc-2.0`/`-2.1` expected-error text for 26AI's
+  capitalized `Object` wording — **done**: switched both from `-match regexp` to
+  `-match glob` with the literal (now correctly-cased) `Object` text plus a trailing `*`
+  to tolerate 26AI's appended `Help: ...` URL line, rather than reaching for a
+  case-insensitive regex — a direct string/glob comparison is simpler and was all that
+  was actually needed here
+- [x] Decide how to handle `oraparse.test`'s version-dependent error codes (`ORA-00933`
+  on older servers vs. `ORA-03048` on 26AI for the same malformed SQL) — **done**: split
+  the old `tst(1)`/`tst(2)` loop (one test asserting an exact list of hardcoded codes)
+  into two separate tests, `oraparse-2.1`/`oraparse-2.2`, one SQL string each, each
+  asserting only `-returnCodes {1}` and `-match glob -result {ORA-*}` — no exact code or
+  wording pinned down, since that's the server's business, not Oratcl's. Along the way,
+  found the `catch` wrapping (and the `# TMH` comment claiming it was needed) was already
+  stale: `generic/oraparse.c` has returned `TCL_ERROR` directly on a bad `OCI_StmtPrepare`
+  since before this investigation, so both new tests call `oraparse` directly with no
+  `catch`. Exact rc/error-text self-consistency is now covered separately in the new
+  `oramsg.test` (below), which doesn't depend on which specific code a given server
+  version assigns to a given malformed statement either.
+- [ ] Investigate the `orabindexec-1.4` regression (too-few-bind-values no longer errors)
+  against 26AI — determine whether this is an Oratcl bug or an upstream OCI/26AI
+  behavior change, and fix or document accordingly
+- [x] Check whether `ORA_MSG_SIZE` (`generic/oratclInt.h`, currently 1000 bytes) needs to
+  be increased given 26AI's longer `Help:`-URL-suffixed error messages, and confirm
+  `Oratcl_Checkerr` doesn't need to handle/detect truncation — **done**: bumped
+  `ORA_MSG_SIZE` to Oracle's own `OCI_ERROR_MAXMSG_SIZE2` (3072 bytes, added as a new
+  constant in `generic/oratclInt.h`), matching Oracle's documented recommendation for
+  buffers passed to `OCIErrorGet()` since 26AI's `Help:` URL suffix was introduced.
+  `Oratcl_Checkerr` itself doesn't need a code change — 3072 bytes is large enough in
+  practice, and the existing code already just takes whatever `OCIErrorGet()` returns
+- [ ] Add a connection-level option to `oraconfig` to toggle the 26AI `Help:` URL suffix
+  on/off per-session (wrapping `OCI_ATTR_SUPPRESS_ERROR_URL` on the environment handle,
+  the same effect as the `ORA_SUPPRESS_ERROR_URL` env var but controllable from Tcl) —
+  worth doing since some callers may want the shorter message back, or may be parsing/
+  matching on exact error text elsewhere the way `tests/oradesc.test`/`oraparse.test` do
+
+- [x] Consider moving the bad-SQL/error-message tests out of `oraparse.test` into a
+  dedicated `oramsg.test`, since they're really exercising `oramsg`'s error reporting more
+  than `oraparse` itself — **done**: added `tests/oramsg.test` (registered in
+  `tests/all.tcl`), asserting self-consistency rather than hardcoded codes — `rc` is a
+  positive integer, the numeric prefix embedded in `error`'s `ORA-NNNNN:` text matches
+  `rc` regardless of which code it is, `all`'s first two elements agree with the `rc`/
+  `error` single-option accessors, and `rc`/`error` reset to `0`/`{}` after a subsequent
+  successful parse on the same statement handle
 - [ ] Note any OCI-level incompatibilities or deprecations introduced in 26AI that affect
   `generic/oradefs.h`'s type/constant definitions (same category of work as the 23c SDK
   updates already done)
