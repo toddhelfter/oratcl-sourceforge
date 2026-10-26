@@ -1,0 +1,93 @@
+# oramsg.test
+#
+# Copyright (c) 2026 by Todd M. Helfter
+# All rights reserved.
+#
+# exercise oramsg: self-consistency of its rc/error/all reporting after an
+# OCI error, independent of whatever exact ORA-NNNNN code/wording a given
+# Oracle server version assigns to the statement that triggered it (that's
+# the server's business, not Oratcl's -- see oraparse.test/oradesc.test for
+# the commands that actually trigger these errors).
+#
+
+if {[catch {package require tcltest 2}]} {
+    puts stderr "Skipping tests in [info script].  tcltest 2 required."
+    return
+}
+
+if {[info exists ora_lda] == 0} {
+	source [file  join [pwd] [file dirname [info script]] defs.tcl]
+}
+
+namespace eval ::tcl::test::oramsg {
+    namespace import ::tcltest::*
+
+    testConstraint testoramsg [llength [info commands oramsg]]
+
+    test oramsg-1.1 {oramsg: rc/error self-consistency after an error} {
+	-constraints testoramsg
+	-setup {
+		set tst(lda) [oralogon $::ora_constr]
+		set tst(stm) [oraopen $tst(lda)]
+		catch {oraparse $tst(stm) {select * oratcl___tests where v_number = 0}}
+	}
+	-body {
+		set tst(rc)    [oramsg $tst(stm) rc]
+		set tst(error) [oramsg $tst(stm) error]
+		list [string is integer -strict $tst(rc)] \
+		     [expr {$tst(rc) > 0}] \
+		     [regexp {^ORA-0*([0-9]+):} $tst(error) -> tst(embedded)] \
+		     [expr {$tst(embedded) == $tst(rc)}]
+	}
+	-cleanup {
+                oraclose $tst(stm)
+                oralogoff $tst(lda)
+		array unset tst
+	}
+	-result {1 1 1 1}
+    }
+
+    test oramsg-1.2 {oramsg: all is consistent with the individual options} {
+	-constraints testoramsg
+	-setup {
+		set tst(lda) [oralogon $::ora_constr]
+		set tst(stm) [oraopen $tst(lda)]
+		catch {oraparse $tst(stm) {select * oratcl___tests where v_number = 0}}
+	}
+	-body {
+		set tst(all) [oramsg $tst(stm) all]
+		list [llength $tst(all)] \
+		     [string equal [lindex $tst(all) 0] [oramsg $tst(stm) rc]] \
+		     [string equal [lindex $tst(all) 1] [oramsg $tst(stm) error]]
+	}
+	-cleanup {
+                oraclose $tst(stm)
+                oralogoff $tst(lda)
+		array unset tst
+	}
+	-result {7 1 1}
+    }
+
+    test oramsg-2.1 {oramsg: rc/error reset to success after a good parse} {
+	-constraints testoramsg
+	-setup {
+		set tst(lda) [oralogon $::ora_constr]
+		set tst(stm) [oraopen $tst(lda)]
+		catch {oraparse $tst(stm) {select * oratcl___tests where v_number = 0}}
+	}
+	-body {
+		oraparse $tst(stm) {select * from oratcl___tests where v_number = 0}
+		list [oramsg $tst(stm) rc] [oramsg $tst(stm) error]
+	}
+	-cleanup {
+                oraclose $tst(stm)
+                oralogoff $tst(lda)
+		array unset tst
+	}
+	-result {0 {}}
+    }
+
+    cleanupTests
+}
+namespace delete ::tcl::test::oramsg
+return

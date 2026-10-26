@@ -17,7 +17,9 @@
 #include <tcl.h>
 
 /* various limits for arrays of structures, default buffer sizes */
-#define ORA_MSG_SIZE    1000    /* oracle error message max size*/
+/* OCI_ERROR_MAXMSG_SIZE2 (Oracle 26AI) -- sized to hold the appended "Help: <url>" line */
+#define OCI_ERROR_MAXMSG_SIZE2	3072
+#define ORA_MSG_SIZE    OCI_ERROR_MAXMSG_SIZE2    /* oracle error message max size*/
 #define NO_DATA_FOUND   1403    /* oracle error # no data for this fetch */
 
 #define ORA_NUMB_SIZE	40
